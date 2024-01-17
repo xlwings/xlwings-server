@@ -1,0 +1,9 @@
+node_modules
+dist/
+.DS_Store
+.parcel-cache/
+*.pyc
+*.pem
+*.bat
+.env
+.idea/

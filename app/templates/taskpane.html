@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Task Pane</title>
+    <!-- Load office.js and xlwings.min.js -->
+    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    <script type="text/javascript" src="/static/vendor/xlwings/xlwings.min.js"></script>
+    <!-- Bootstrap with the xlwings theme -->
+    <link rel="stylesheet" href="/static/vendor/bootstrap-xlwings/bootstrap-xlwings.min.css" />
+    <!-- Load Custom Functions -->
+    <script type="text/javascript" src="/xlwings/custom-functions-code"></script>
+    <!-- Own -->
+    <link rel="stylesheet" href="/static/css/style.css" />
+  </head>
+
+  <body>
+    <div class="container-fluid pt-3">
+      <!-- Put a button on the task pane -->
+      <button class="btn btn-primary btn-sm" id="btn-hello-taskpane" type="button">Hello World</button>
+    </div>
+    <script>
+      // Initialize Office.js
+      Office.onReady(function (info) {});
+
+      // This is required for authentication and must not be deleted
+      globalThis.getAuth = async function () {
+        return "";
+      };
+
+      // Add click event listeners to buttons on task pane
+      document.getElementById("btn-hello-taskpane").addEventListener("click", helloTaskpane);
+
+      // Sample 1: Button on Task pane
+      // Use runPython with the desired endpoint of your web app
+      function helloTaskpane() {
+        xlwings.runPython(window.location.origin + "/hello");
+      }
+
+      // Sample 2: Button on Ribbon
+      // Needs event.completed() and Office.actions.associate
+      // "hello-ribbon" is the identifier in manifest.xml
+      function helloRibbon(event) {
+        xlwings.runPython(window.location.origin + "/hello");
+        event.completed();
+      }
+      Office.actions.associate("hello-ribbon", helloRibbon);
+    </script>
+  </body>
+</html>
