@@ -6,7 +6,7 @@
 ## Prod deployment
 
 * **Note that the web app *has* to be served via https, not http!**
-* **The app could be deployed directly via Dockerfile using a service such as Render.com, Heroku, etc. and only requires the XLWINGS_LICENSE_KEY to be set.**
+* **The app could be deployed directly via Dockerfile using a service such as Render.com, Heroku, etc. and only requires the XLWINGS_LICENSE_KEY environment variable to be set.**
 
 **Backend via Python directly:**
 
