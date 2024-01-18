@@ -10,9 +10,9 @@
 
 **Backend via Python directly:**
 
-* Set the environment variable `XLWINGS_LICENSE_KEY=...`
-* Install the dependencies `pip install -r requirements.txt`
-* Run the app `gunicorn app.main:cors_app --bind 0.0.0.0:8000 --access-logfile --workers 2 --worker-class uvicorn.workers.UvicornWorker`
+* Set the environment variable: `XLWINGS_LICENSE_KEY=...`
+* Install the dependencies: `pip install -r requirements.txt`
+* Run the app: `gunicorn app.main:cors_app --bind 0.0.0.0:8000 --access-logfile - --workers 2 --worker-class uvicorn.workers.UvicornWorker`
 
 **Backend via Docker**:
 
@@ -33,8 +33,8 @@ Follow the steps under https://docs.xlwings.org/en/latest/pro/server/officejs_ad
 
 **Backend via Python directly:**
 
-* Set the environment variable `XLWINGS_LICENSE_KEY=...`
-* Install the dependencies `pip install -r requirements.txt`
+* Set the environment variable: `XLWINGS_LICENSE_KEY=...`
+* Install the dependencies: `pip install -r requirements.txt`
 * Run the app: `python run.py`
 
 **Backend via Docker**:
