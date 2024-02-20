@@ -2,10 +2,10 @@ import logging
 
 import markupsafe
 import xlwings as xw
-from fastapi import APIRouter, Body, Request, Response
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Body, Depends, Request, Response
 
 from .. import custom_functions
+from ..auth.entraid import get_user
 from ..utils import templates
 
 logger = logging.getLogger(__name__)
@@ -22,7 +22,9 @@ async def alert(
         "xlwings-alert.html",
         {
             "request": request,
-            "prompt": markupsafe.Markup(prompt.replace("\n", "<br>")),
+            "prompt": markupsafe.escape(prompt).replace(
+                "\n", markupsafe.Markup("<br>")
+            ),
             "title": title,
             "buttons": buttons,
             "mode": mode,
@@ -45,6 +47,9 @@ async def custom_functions_code():
 
 
 @router.post("/custom-functions-call")
-async def custom_functions_call(request: Request, data: dict = Body):
+async def custom_functions_call(
+    request: Request, data: dict = Body, current_user=Depends(get_user)
+):
+    logger.info(f"""Function "{data['func_name']}" called by {current_user.name}""")
     rv = await xw.server.custom_functions_call(data, custom_functions)
-    return JSONResponse({"result": rv})
+    return {"result": rv}
