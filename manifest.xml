@@ -143,5 +143,14 @@
       </bt:LongStrings>
     </Resources>
 
+    <!-- <WebApplicationInfo>
+      <Id>CLIENT_ID</Id>
+      <Resource>api://127.0.0.1:8000/CLIENT_ID</Resource>
+      <Scopes>
+        <Scope>openid</Scope>
+        <Scope>profile</Scope>
+      </Scopes>
+    </WebApplicationInfo> -->
+
   </VersionOverrides>
 </OfficeApp>
