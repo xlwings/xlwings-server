@@ -60,7 +60,7 @@ Follow the steps under https://docs.xlwings.org/en/latest/pro/server/officejs_ad
    ENTRAID_CLIENT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
    ```
 
-3. In `manifest.xml`, uncomment the last section and fill in the `CLIENT_ID` (2x). You also need to adjust the domain if you're not running this on localhost.
+3. In `manifest.xml`, uncomment the last section and fill in the `CLIENT_ID` (2x). You also need to adjust the domain if you're not running this on localhost. After changing the manifest, it's usually best to restart Excel to make sure everything is loaded properly.
 
 4. In `taskpane.html`, activate the `globalThis.getAuth` function like this (requires xlwings v0.30.14+):
 
