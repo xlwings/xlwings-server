@@ -12,7 +12,7 @@ default_language_version:
 
 exclude: |
   (?x)^(
-  server/app/static/vendor/.*
+  app/static/vendor/.*
   )$
 
 repos:
