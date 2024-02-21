@@ -51,16 +51,16 @@ Follow the steps under https://docs.xlwings.org/en/latest/pro/server/officejs_ad
 
 ## Authentication & Authorization with Entra ID (previously called Azure AD)
 
-1. Register you Excel add-in as app on Microsoft Entra ID by following these instructions: https://learn.microsoft.com/en-us/office/dev/add-ins/develop/register-sso-add-in-aad-v2
+1. Register your Excel add-in as app on Microsoft Entra ID by following these instructions: https://learn.microsoft.com/en-us/office/dev/add-ins/develop/register-sso-add-in-aad-v2
 
-2. Set your environmental variables, e.g., in `.env` like this:
+2. Set your environment variables, e.g., in `.env` like this:
 
    ```
    ENTRAID_TENANT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
    ENTRAID_CLIENT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
    ```
 
-3. In `manifest.xml`, uncomment the last section and fill in the CLIENT_ID (2x). You alos need to adjust the domain if you're not running this on localhost.
+3. In `manifest.xml`, uncomment the last section and fill in the `CLIENT_ID` (2x). You also need to adjust the domain if you're not running this on localhost.
 
 4. In `taskpane.html`, activate the `globalThis.getAuth` function like this (requires xlwings v0.30.14+):
 
