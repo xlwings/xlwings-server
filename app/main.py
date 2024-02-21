@@ -1,6 +1,7 @@
 import logging
 
 from fastapi import FastAPI, status
+from fastapi.exceptions import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
 from fastapi.staticfiles import StaticFiles
@@ -9,7 +10,7 @@ from . import settings
 from .routers import macros, taskpane, xlwings_router
 
 # Logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=settings.log_level.upper())
 logger = logging.getLogger(__name__)
 
 # App
@@ -34,9 +35,18 @@ StaticFiles.is_not_modified = lambda *args, **kwargs: False  # Never cache stati
 
 
 # Exception handlers
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request, exception):
+    logger.error(exception)
+    return PlainTextResponse(
+        exception.detail, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+    )
+
+
 @app.exception_handler(Exception)
 async def exception_handler(request, exception):
     # This handles all exceptions, so you may want to make this more restrictive
+    logger.error(exception)
     return PlainTextResponse(
         str(exception), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
     )

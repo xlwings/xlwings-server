@@ -2,8 +2,10 @@
 # They could be used with a tool such as pip-tools or just manually:
 # pip install requirements.in
 # pip freeze > requirements.txt
+cachetools
 fastapi[all]
-jinja2
 gunicorn
+jinja2
+PyJWT[crypto]
 uvicorn[standard]
 xlwings

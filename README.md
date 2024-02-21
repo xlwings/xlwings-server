@@ -47,3 +47,48 @@ Follow the steps under https://docs.xlwings.org/en/latest/pro/server/officejs_ad
 **Office.js add-in**:
 
 * Has to be sideloaded, see: https://learn.microsoft.com/en-us/office/dev/add-ins/testing/test-debug-office-add-ins#sideload-an-office-add-in-for-testing
+
+
+## Authentication & Authorization with Entra ID (previously called Azure AD)
+
+1. Register you Excel add-in as app on Microsoft Entra ID by following these instructions: https://learn.microsoft.com/en-us/office/dev/add-ins/develop/register-sso-add-in-aad-v2
+
+2. Set your environmental variables, e.g., in `.env` like this:
+
+   ```
+   ENTRAID_TENANT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+   ENTRAID_CLIENT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+   ```
+
+3. In `taskpane.html`, activate the `globalThis.getAuth` function like this (requires xlwings v0.30.14+):
+
+   ```js
+   globalThis.getAuth = async function () {
+     return xlwings.getAccessToken();
+   };
+   ```
+
+4. Calling custom functions (via `custom_functions_call` in `routers/xlwings_router.py`) and any function in `macros.py` use the `get_user` dependency injection to authenticate the users as soon as the env variables are provided (see application logs).
+
+5. To only allow specific users to use your application, you can use role-based access control (RBAC): at the bottom of `auth/entraid.py` you can change the definition of `get_user` to require specific roles or create new dependencies (e.g., `get_admin`).
+
+6. To set up the roles in Entra ID and map them to users, follow these instructions:
+
+   Go to All Services > Microsoft Entra ID > App registrations > Your app > App roles (left sidebar):
+   
+   * Click on Create app role
+   * Display name (e.g.): Writer
+   * Allowed member types: Users/Groups
+   * Value (e.g.): Task.Write
+   * Description (e.g.): Writer
+   * Checkbox must be active for `Do you want to enable this app role`?
+   * Apply => Repeat for other roles
+   
+   Go all the way back to All Services > Microsoft Entra ID, then under Enterprise applications (left sidebar):
+   
+   * Select your app
+   * Click on the `Assign users and groups` link in the "1. Assign users and groups" box
+   * Click on `+ Add user/group`
+       * Under User, click on `None Selected` and select a user or group. Confirm with `Select`.
+       * Under Role, click on `None Selected` and select the desired role (if you don't see any role, wait a moment and reload the page). Confirm with `Select`.
+       * Repeat the last step to give the user more roles

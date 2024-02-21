@@ -26,7 +26,9 @@
 
       // This is required for authentication and must not be deleted
       globalThis.getAuth = async function () {
+        // To activate Entra ID authentication, replace "" with xlwings.getAccessToken()
         return "";
+        // return xlwings.getAccessToken();
       };
 
       // Add click event listeners to buttons on task pane
@@ -34,15 +36,17 @@
 
       // Sample 1: Button on Task pane
       // Use runPython with the desired endpoint of your web app
-      function helloTaskpane() {
-        xlwings.runPython(window.location.origin + "/hello");
+      async function helloTaskpane() {
+        let token = await globalThis.getAuth();
+        xlwings.runPython(window.location.origin + "/hello", { auth: token });
       }
 
       // Sample 2: Button on Ribbon
       // Needs event.completed() and Office.actions.associate
       // "hello-ribbon" is the identifier in manifest.xml
-      function helloRibbon(event) {
-        xlwings.runPython(window.location.origin + "/hello");
+      async function helloRibbon(event) {
+        let token = await globalThis.getAuth();
+        xlwings.runPython(window.location.origin + "/hello", { auth: token });
         event.completed();
       }
       Office.actions.associate("hello-ribbon", helloRibbon);
