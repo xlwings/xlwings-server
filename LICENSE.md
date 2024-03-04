@@ -1,4 +1,6 @@
-xlwings-server is source available and dual-licensed under one of the following licenses:
+# xlwings Server
+
+xlwings Server is source-available and dual-licensed under one of the following licenses:
 
 * PolyForm Noncommercial License 1.0.0 (non-commercial use is free)
 * xlwings PRO End User License Agreement (commercial use requires a paid plan)
