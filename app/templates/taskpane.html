@@ -26,7 +26,7 @@
 
       // This is required for authentication and must not be deleted
       globalThis.getAuth = async function () {
-        // To activate Entra ID authentication, replace "" with xlwings.getAccessToken()
+        // To activate Entra ID authentication, replace "" with: await xlwings.getAccessToken()
         return "";
         // return await xlwings.getAccessToken();
       };
