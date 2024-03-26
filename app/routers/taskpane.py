@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Request
 
+from ..config import settings
 from ..utils import templates
 
 router = APIRouter()
@@ -9,5 +10,5 @@ router = APIRouter()
 async def taskpane(request: Request):
     return templates.TemplateResponse(
         "taskpane.html",
-        {"request": request},
+        {"request": request, "settings": settings},
     )
