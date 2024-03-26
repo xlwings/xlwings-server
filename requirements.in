@@ -6,6 +6,8 @@ cachetools
 fastapi[all]
 gunicorn
 jinja2
+pandas
 PyJWT[crypto]
+python-socketio
 uvicorn[standard]
 xlwings

@@ -1,13 +1,12 @@
-version: '3.7'
-
+# This setup assumes that TSL certificates are handled seperatly, e.g., via nginx
 services:
   app:
     build: .
     command: >
-        gunicorn app.main:cors_app
+        gunicorn app.main:sio_app
         --bind 0.0.0.0:8000
         --access-logfile -
-        --workers 2
+        --workers 1
         --worker-class uvicorn.workers.UvicornWorker
     ports:
       - "8000:8000"
