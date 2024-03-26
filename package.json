@@ -1,6 +1,12 @@
 {
+  "dependencies": {
+    "alpinejs": "3.13.7",
+    "bootstrap": "5.3.3",
+    "htmx.org": "1.9.11",
+    "socket.io": "4.7.5"
+  },
   "devDependencies": {
-    "prettier": "2.8.8",
-    "prettier-plugin-jinja-template": "0.5.0"
+    "prettier": "3.2.5",
+    "prettier-plugin-jinja-template": "1.3.3"
   }
 }
