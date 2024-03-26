@@ -26,9 +26,9 @@ class User(BaseModel):
 
 
 @cached(cache=TTLCache(maxsize=1024, ttl=60 * 60))
-def authenticate(token: str = Header(default="", alias="Authorization")):
-    """Dependency that reads and validates the Entra ID access/id token provided via
-    Authorization header. Returns a user object."""
+def validate_token(token: str):
+    """Function that reads and validates the Entra ID access/id token.
+    Returns a user object."""
     if not settings.entraid_tenant_id and not settings.entraid_client_id:
         return User(oid="n/a", name="Anonymous")
     logger.debug(f"Validating token: {token}")
@@ -105,13 +105,31 @@ def authenticate(token: str = Header(default="", alias="Authorization")):
         email=claims.get("preferred_username"),
         roles=claims.get("roles", []),
     )
-    logger.info(f"User successfully authenticated: {current_user.name}")
+    logger.info(f"User authenticated: {current_user.name}")
     return current_user
 
 
+def authorize(user: User, roles: list = None):
+    if roles:
+        if set(roles).issubset(user.roles):
+            logger.info(f"User authorized: {user.name}")
+            return user
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Auth error: Missing roles for {user.name}: {', '.join(set(roles).difference(user.roles))}",
+            )
+    else:
+        return user
+
+
+def authenticate(token: str = Header(default="", alias="Authorization")):
+    """Dependency, returns a user object"""
+    return validate_token(token)
+
+
 class Authorizer:
-    """This class can be used to easily create dependencies that require specific
-    roles likes so (see also below):
+    """This class can be used to create dependencies that require specific roles:
 
     get_specific_user = Authorizer(roles=["role1", "role2"])
 
@@ -122,17 +140,7 @@ class Authorizer:
         self.roles = roles
 
     def __call__(self, current_user: User = Depends(authenticate)):
-        if self.roles:
-            if set(self.roles).issubset(current_user.roles):
-                logger.info(f"User successfully authorized: {current_user.name}")
-                return current_user
-            else:
-                raise HTTPException(
-                    status_code=status.HTTP_403_FORBIDDEN,
-                    detail=f"Auth error: Missing roles for {current_user.name}: {', '.join(set(self.roles).difference(current_user.roles))}",
-                )
-        else:
-            return current_user
+        return authorize(current_user, self.roles)
 
 
 # Dependencies for RBAC

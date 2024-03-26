@@ -1,19 +1,17 @@
 # This file is only for local development
-version: '3.7'
-
 services:
   app:
     build: .
     command: >
-        uvicorn app.main:cors_app
+        uvicorn app.main:sio_app
         --host 0.0.0.0 --port 8000
-        --ssl-keyfile /certs/localhost+2-key.pem --ssl-certfile /certs/localhost+2.pem
+        --ssl-keyfile /project/certs/localhost+2-key.pem --ssl-certfile /project/certs/localhost+2.pem
         --reload
-        --reload-dir /app
+        --reload-dir /project/app
     ports:
       - "8000:8000"
     volumes:
-      - ./app:/app
-      - ./certs:/certs
+      - ./app:/project/app
+      - ./certs:/project/certs
     env_file:
       - .env
