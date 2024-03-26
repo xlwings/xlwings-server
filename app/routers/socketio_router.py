@@ -21,6 +21,12 @@ sio = socketio.AsyncServer(
 
 @sio.on("connect")
 async def connect(sid, environ, auth):
+    if settings.development:
+        from .. import hotreload
+
+        await hotreload.start_browser_reload_watcher(
+            sio=sio, directory=settings.base_dir
+        )
     await xw.server.sio_connect(sid, environ, auth, sio, authenticate)
 
 

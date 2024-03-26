@@ -7,6 +7,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     base_dir: Path = Path(__file__).resolve().parent
     cors_allow_origins: List[str] = ["*"]
+    development: bool = False
     entraid_client_id: Optional[str] = None
     entraid_tenant_id: Optional[str] = None
     # Set to False if you have users from external organizations

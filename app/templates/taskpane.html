@@ -16,6 +16,9 @@
     <!-- Own -->
     <link rel="stylesheet" href="/static/css/style.css" />
     <script defer type="text/javascript" src="/static/js/main.js"></script>
+    {% if settings.development %}
+      <script defer src="/static/js/hotreload.js"></script>
+    {% endif %}
   </head>
 
   <body>
