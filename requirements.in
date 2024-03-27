@@ -6,6 +6,7 @@ cachetools
 fastapi[all]
 gunicorn
 jinja2
+jinja2-fragments
 pandas
 PyJWT[crypto]
 python-socketio

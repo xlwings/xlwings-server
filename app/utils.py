@@ -3,7 +3,7 @@ from typing import Annotated
 import jinja2
 import xlwings as xw
 from fastapi import Depends
-from fastapi.templating import Jinja2Templates
+from jinja2_fragments.fastapi import Jinja2Blocks
 
 from . import settings
 
@@ -16,7 +16,12 @@ loader = jinja2.ChoiceLoader(
         jinja2.PackageLoader("xlwings", "html"),
     ]
 )
-templates = Jinja2Templates(directory=settings.base_dir / "templates", loader=loader)
+templates = Jinja2Blocks(
+    directory=settings.base_dir / "templates",
+    loader=loader,
+    trim_blocks=True,
+    lstrip_blocks=True,
+)
 
 
 # Book dependency
