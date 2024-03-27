@@ -24,6 +24,7 @@ async def connect(sid, environ, auth):
     if settings.development:
         from .. import hotreload
 
+        logging.getLogger("watchfiles").setLevel(logging.INFO)
         await hotreload.start_browser_reload_watcher(
             sio=sio, directory=settings.base_dir
         )
