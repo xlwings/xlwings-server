@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Task Pane</title>
     <!-- Load office.js, socket.io and xlwings.min.js. Socket.io must come before xlwings and custom-functions-code-->
-    {# <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script> #}
-    <script type="text/javascript" src="/static/vendor/@microsoft/office-js/dist/office.js"></script>
+    {% if settings.public_addin_store %}
+      <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+    {% else %}
+      <script type="text/javascript" src="/static/vendor/@microsoft/office-js/dist/office.js"></script>
+    {% endif %}
     <script type="text/javascript" src="/static/vendor/socket.io/client-dist/socket.io.min.js"></script>
     <script type="text/javascript" src="/static/vendor/xlwings/xlwings.min.js"></script>
     <script type="text/javascript" src="/static/js/init.js"></script>
