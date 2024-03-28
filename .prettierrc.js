@@ -7,6 +7,7 @@ module.exports = {
       options: {
         parser: "jinja-template",
         printWidth: 120,
+        bracketSameLine: true,
       },
     },
   ],

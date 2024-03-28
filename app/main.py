@@ -1,3 +1,4 @@
+import json
 import logging
 
 import socketio
@@ -17,6 +18,11 @@ logger = logging.getLogger(__name__)
 # App
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
+# Routers
+app.include_router(xlwings_router.router)
+app.include_router(macros.router)
+app.include_router(taskpane.router)
+
 # CORS: Office Scripts and custom functions in Excel on the web require CORS
 # Using app.add_middleware won't add the CORS headers if you handle the root "Exception"
 # in an exception handler (it would require a specific exception type).
@@ -27,13 +33,22 @@ cors_app = CORSMiddleware(
     allow_headers=["*"],
 )
 
-# Routers
-app.include_router(xlwings_router.router)
-app.include_router(macros.router)
-app.include_router(taskpane.router)
-
 # Socket.io
 sio_app = socketio.ASGIApp(socketio_router.sio, cors_app)
+
+
+# Security headers
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    # https://owasp.org/www-project-secure-headers/index.html#configuration-proposal
+    # https://owasp.org/www-project-secure-headers/ci/headers_add.json
+    response = await call_next(request)
+    with open(settings.base_dir / "security_headers.json", "r") as f:
+        data = json.load(f)
+
+    for header in data["headers"]:
+        response.headers[header["name"]] = header["value"]
+    return response
 
 
 # Endpoints
