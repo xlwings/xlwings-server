@@ -17,6 +17,9 @@
     <script src="/static/vendor/htmx.org/dist/htmx.min.js"></script>
     <script src="/static/vendor/htmx.org/dist/ext/head-support.js"></script>
     <script src="/static/vendor/htmx.org/dist/ext/loading-states.js"></script>
+    {# Alpine.js CSP build #}
+    <script defer src="/static/js/alpinejs-behaviors.js"></script>
+    <script defer src="/static/vendor/@alpinejs/csp/dist/cdn.min.js"></script>
     {# Load Custom Functions #}
     <script defer src="/xlwings/custom-functions-code"></script>
     {# Bootstrap with the xlwings theme #}
@@ -35,6 +38,7 @@
     <div class="container-fluid pt-3">
       {# Put a button on the task pane #}
       <button class="btn btn-primary btn-sm" type="button" data-js-hello>Hello World</button>
+      <div x-data="bookName">Active Book Name: <span x-text="getName"></span></div>
     </div>
   </body>
 </html>
