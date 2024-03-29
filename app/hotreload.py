@@ -1,5 +1,5 @@
 """
-Uvicorn reloads the app when the Python code is changed. So, we need to reload the 
+Uvicorn reloads the app when the Python code is changed. So, we need to reload the
 browser when the app starts to show any changes caused the Python code.
 But, restarting the app takes a lot of time (especially in Docker), so we
 watch HTML, CSS, and JS files separately via Watchfiles. If these files change, we just

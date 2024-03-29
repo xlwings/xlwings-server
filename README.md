@@ -77,7 +77,7 @@ Follow the steps under https://docs.xlwings.org/en/latest/pro/server/officejs_ad
 7. To set up the roles in Entra ID and map them to users, follow these instructions:
 
    Go to All Services > Microsoft Entra ID > App registrations > Your app > App roles (left sidebar):
-   
+
    * Click on Create app role
    * Display name (e.g.): Writer
    * Allowed member types: Users/Groups
@@ -85,9 +85,9 @@ Follow the steps under https://docs.xlwings.org/en/latest/pro/server/officejs_ad
    * Description (e.g.): Writer
    * Checkbox must be active for `Do you want to enable this app role`?
    * Apply => Repeat for other roles
-   
+
    Go all the way back to All Services > Microsoft Entra ID, then under Enterprise applications (left sidebar):
-   
+
    * Select your app
    * Click on the `Assign users and groups` link in the "1. Assign users and groups" box
    * Click on `+ Add user/group`
