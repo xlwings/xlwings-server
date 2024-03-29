@@ -1,5 +1,6 @@
 import json
 import logging
+from functools import cache
 
 import socketio
 from fastapi import FastAPI, status
@@ -38,14 +39,20 @@ sio_app = socketio.ASGIApp(socketio_router.sio, cors_app)
 
 
 # Security headers
+@cache
+def read_security_headers():
+    with open(settings.base_dir / "security_headers.json", "r") as f:
+        data = json.load(f)
+    return data
+
+
 @app.middleware("http")
 async def add_security_headers(request, call_next):
     # https://owasp.org/www-project-secure-headers/index.html#configuration-proposal
     # https://owasp.org/www-project-secure-headers/ci/headers_add.json
     response = await call_next(request)
     if settings.add_security_headers:
-        with open(settings.base_dir / "security_headers.json", "r") as f:
-            data = json.load(f)
+        data = read_security_headers()
 
         for header in data["headers"]:
             response.headers[header["name"]] = header["value"]
