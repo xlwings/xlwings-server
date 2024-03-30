@@ -8,6 +8,7 @@
     "socket.io": "4.7.5"
   },
   "devDependencies": {
+    "@types/alpinejs": "3.13.10",
     "prettier": "3.2.5",
     "prettier-plugin-jinja-template": "1.3.3"
   }
