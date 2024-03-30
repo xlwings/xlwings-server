@@ -1,4 +1,4 @@
-const models = {
+const data = {
   bookName: {
     getName: async function () {
       await Office.onReady(); // TODO: move to xlwings.js
@@ -9,7 +9,7 @@ const models = {
 
 // Alpine.data boilerplate
 document.addEventListener("alpine:init", () => {
-  for (let modelName in models) {
-    Alpine.data(modelName, () => models[modelName]);
+  for (let name in data) {
+    Alpine.data(name, () => data[name]);
   }
 });
