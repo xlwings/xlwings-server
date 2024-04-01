@@ -4,7 +4,6 @@ from functools import cache
 
 import socketio
 from fastapi import FastAPI, status
-from fastapi.exceptions import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
 from fastapi.staticfiles import StaticFiles
@@ -34,7 +33,7 @@ cors_app = CORSMiddleware(
     app=app,
     allow_origins=settings.cors_allow_origins,
     allow_methods=["POST"],
-    allow_headers=["*"],
+    allow_headers=["*"],  # TODO
 )
 
 # Socket.io
@@ -78,22 +77,17 @@ async def root():
 
 # Static files: in prod should be served via a HTTP server like nginx if possible
 app.mount("/static", StaticFiles(directory=settings.static_dir), name="static")
-StaticFiles.is_not_modified = lambda *args, **kwargs: False  # Never cache static files
+if settings.development:
+    # Don't cache static files
+    StaticFiles.is_not_modified = lambda *args, **kwargs: False
 
 
 # Exception handlers
-@app.exception_handler(HTTPException)
-async def http_exception_handler(request, exception):
-    logger.error(exception)
-    return PlainTextResponse(
-        exception.detail, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-    )
-
-
 @app.exception_handler(Exception)
 async def exception_handler(request, exception):
-    # This handles all exceptions, so you may want to make this more restrictive
     logger.error(exception)
-    return PlainTextResponse(
-        str(exception), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-    )
+    if settings.development:
+        msg = repr(exception)
+    else:
+        msg = "An error ocurred."
+    return PlainTextResponse(msg, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
