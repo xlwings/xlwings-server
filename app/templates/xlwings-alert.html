@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% set title = "Alert" %}
+
+{% block extra_head %}
+  <script defer src="/static/js/xlwings-alert.js"></script>
+{% endblock extra_head %}
+
+{% block content %}
+  <div id="callback" data-callback="{{ callback }}"></div>
+  <div class="container-fluid">
+    <div class="d-flex flex-column pb-3 px-2 vh-100">
+      <h1 class="pt-4">{{ title }}</h1>
+      <p>{{ prompt|replace("\n", "<br>"|safe) }}</p>
+      <div class="mt-auto">
+        <div class="float-end">
+          {% if "ok" in buttons %}
+            <button id="ok" type="button" class="btn btn-primary btn-xl-alert">OK</button>
+          {% endif %}
+          {% if "yes" in buttons %}
+            <button id="yes" type="button" class="btn btn-primary btn-xl-alert">Yes</button>
+          {% endif %}
+          {% if "no" in buttons %}
+            <button id="no" type="button" class="btn btn-outline-secondary btn-xl-alert">No</button>
+          {% endif %}
+          {% if "cancel" in buttons %}
+            <button id="cancel" type="button" class="btn btn-outline-secondary btn-xl-alert">Cancel</button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock content %}

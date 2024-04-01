@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    {% block head %}
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>{{ title }}</title>
+      {# Load office.js, socket.io and xlwings.min.js. Socket.io must come before xlwings and custom-functions-code #}
+      {% if settings.public_addin_store %}
+        <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+      {% else %}
+        <script src="/static/vendor/@microsoft/office-js/dist/office.js"></script>
+      {% endif %}
+      {# Socket.io #}
+      <script src="/static/vendor/socket.io/client-dist/socket.io.min.js"></script>
+      {# xlwings.js #}
+      <script src="/static/vendor/xlwings/xlwings.min.js"></script>
+      {# htmx #}
+      <script src="/static/vendor/htmx.org/dist/htmx.min.js"></script>
+      <script src="/static/vendor/htmx.org/dist/ext/head-support.js"></script>
+      <script src="/static/vendor/htmx.org/dist/ext/loading-states.js"></script>
+      <script defer src="/static/js/htmx-behaviors.js"></script>
+      {# Alpine.js CSP build #}
+      <script defer src="/static/js/alpinejs-data.js"></script>
+      <script defer src="/static/vendor/@alpinejs/csp/dist/cdn.min.js"></script>
+      {# Auth #}
+      {% if settings.entraid_client_id or settings.entraid_tenant_id %}
+        <script src="/static/js/auth-entraid.js"></script>
+      {% else %}
+        <script src="/static/js/auth-placeholder.js"></script>
+      {% endif %}
+      {# Load Custom Functions #}
+      <script defer src="/xlwings/custom-functions-code"></script>
+      {# Bootstrap with the xlwings theme #}
+      <link rel="stylesheet" href="/static/vendor/bootstrap-xlwings/bootstrap-xlwings.min.css" />
+      <script src="/static/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+      {# Own #}
+      <link rel="stylesheet" href="/static/css/style.css" />
+      <script defer src="/static/js/main.js"></script>
+      {% if settings.development %}
+        <script defer src="/static/js/hotreload.js"></script>
+      {% endif %}
+    {% endblock head %}
+    {% block extra_head %}
+    {% endblock extra_head %}
+  </head>
+
+  <body>
+    {% block content %}
+    {% endblock content %}
+  </body>
+</html>
