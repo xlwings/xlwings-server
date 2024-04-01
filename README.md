@@ -1,5 +1,18 @@
 # xlwings Server
 
+This repo is currently in an early stage and changing rapidly.
+
+## Features:
+
+* Only requires Python (no dependency on Node.js or Webpack)
+* Runs in an airgapped environment without access to the internet
+* Supports SSO authentication and RBAC via Entra ID (previously known as Azure AD)
+* The task pane is hot-reloaded with every code change during development
+* Tight security: uses the HTTP response headers recommended by OWASP including the most restrictive CSP header
+* Supports streaming functions out-of-the-box
+
+## Instructions:
+
 * Custom functions can be added under `app/custom_functions/sample.py`. There is a sample custom function included that can be run via `=XLWINGS.HELLO("xlwings")`. The `XLWINGS` prefix ("namespace") can be adjusted in `manifest.xml` and should be different for each environment (DEV, UAT, PROD, etc.)
 * Macros can be added under `app/routers/macros.py`. They will need to be bound to a button on either the ribbon (via `manifest.xml`) or task pane (via `app/templates/taskpane.html`). There is a sample button `Hello World` included on both the ribbon and task pane.
 
