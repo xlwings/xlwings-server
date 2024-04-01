@@ -10,7 +10,7 @@ if (document.getElementById("no")) {
 if (document.getElementById("cancel")) {
   document.getElementById("cancel").addEventListener("click", buttonCallback);
 }
-async function buttonCallback() {
+function buttonCallback() {
   Office.onReady(function (info) {
     // This causes this issue: https://github.com/OfficeDev/office-js/issues/3582
     Office.context.ui.messageParent(
