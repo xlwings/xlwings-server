@@ -1,11 +1,11 @@
 import logging
 
-import markupsafe
 import xlwings as xw
 from fastapi import APIRouter, Body, Depends, Request, Response
 
 from .. import custom_functions
 from ..auth.entraid import get_user
+from ..config import settings
 from ..utils import templates
 
 logger = logging.getLogger(__name__)
@@ -22,13 +22,12 @@ async def alert(
         "xlwings-alert.html",
         {
             "request": request,
-            "prompt": markupsafe.escape(prompt).replace(
-                "\n", markupsafe.Markup("<br>")
-            ),
+            "prompt": prompt,
             "title": title,
             "buttons": buttons,
             "mode": mode,
             "callback": callback,
+            "settings": settings,
         },
     )
 
