@@ -24,11 +24,11 @@
       <script src="/static/js/alpinejs-handlers.js" defer></script>
       <script src="/static/vendor/@alpinejs/csp/dist/cdn.min.js" defer></script>
       {# Auth #}
-      {% if settings.entraid_client_id or settings.entraid_tenant_id %}
-        <script src="/static/js/auth-entraid.js"></script>
-      {% else %}
-        <script src="/static/js/auth-placeholder.js"></script>
-      {% endif %}
+      {% set auth_value = "entraid" if settings.entraid_client_id or settings.entraid_tenant_id else null %}
+      <script id="auth" type="application/json">
+        { "auth": "{{ auth_value }}" }
+      </script>
+      <script src="/static/js/auth.js"></script>
       {# Load Custom Functions #}
       <script src="/xlwings/custom-functions-code" defer></script>
       {# Bootstrap with the xlwings theme #}
