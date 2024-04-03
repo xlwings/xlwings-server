@@ -1,4 +1,4 @@
-const authData = JSON.parse(document.getElementById("auth").textContent);
+const authData = JSON.parse(document.getElementById("auth").text);
 
 globalThis.getAuth = async function () {
   if (authData.auth === "entraid") {
