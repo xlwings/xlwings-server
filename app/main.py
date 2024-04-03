@@ -33,7 +33,6 @@ cors_app = CORSMiddleware(
     app=app,
     allow_origins=settings.cors_allow_origins,
     allow_methods=["POST"],
-    allow_headers=["*"],  # TODO
 )
 
 # Socket.io
