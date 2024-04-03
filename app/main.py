@@ -57,7 +57,10 @@ async def add_security_headers(request, call_next):
         data = read_security_headers()
 
         for header in data["headers"]:
-            response.headers[header["name"]] = header["value"]
+            if header["name"] not in ("Permissions-Policy", "Clear-Site-Data"):
+                # Permissions-Policy headers are experimental
+                # Clear-Site-Data is too aggressive
+                response.headers[header["name"]] = header["value"]
         if settings.public_addin_store:
             response.headers["Content-Security-Policy"] = (
                 response.headers["Content-Security-Policy"]
