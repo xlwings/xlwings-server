@@ -61,6 +61,16 @@ async def add_security_headers(request, call_next):
                 # Permissions-Policy headers are experimental
                 # Clear-Site-Data is too aggressive
                 response.headers[header["name"]] = header["value"]
+        if settings.enable_excel_online:
+            response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+            response.headers["Content-Security-Policy"] = response.headers[
+                "Content-Security-Policy"
+            ].replace("frame-ancestors 'none'; ", "")
+            response.headers["Content-Security-Policy"] = (
+                response.headers["Content-Security-Policy"]
+                + "; font-src 'self' https://res-1.cdn.office.net; style-src 'self' 'unsafe-inline';"
+            )
+            del response.headers["X-Frame-Options"]
         if settings.public_addin_store:
             response.headers["Content-Security-Policy"] = (
                 response.headers["Content-Security-Policy"]
