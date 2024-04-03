@@ -2,7 +2,6 @@
   "dependencies": {
     "@alpinejs/csp": "3.13.7",
     "@microsoft/office-js": "1.1.91",
-    "alpinejs": "3.13.7",
     "bootstrap": "5.3.3",
     "htmx.org": "1.9.11",
     "socket.io": "4.7.5"
