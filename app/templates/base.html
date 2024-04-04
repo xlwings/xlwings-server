@@ -1,20 +1,10 @@
 <!doctype html>
 <html lang="en">
-  <head>
+  <head hx-head="merge">
     {% block head %}
       <meta charset="utf-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <title>{{ title }}</title>
-      {# Office.js #}
-      {% if settings.public_addin_store %}
-        <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
-      {% else %}
-        <script src="/static/vendor/@microsoft/office-js/dist/office.js"></script>
-      {% endif %}
-      {# Socket.io (must come before xlwings.js) #}
-      <script src="/static/vendor/socket.io/client-dist/socket.io.min.js"></script>
-      {# xlwings.js (must come before custom-function-code) #}
-      <script src="/static/vendor/xlwings/xlwings.min.js"></script>
       {# htmx #}
       {% if settings.enable_htmx %}
         <script src="/static/vendor/htmx.org/dist/htmx.min.js"></script>
@@ -22,6 +12,26 @@
         <script src="/static/vendor/htmx.org/dist/ext/loading-states.js"></script>
         <script src="/static/js/htmx-handlers.js" defer></script>
       {% endif %}
+      {# TODO: move to own script for CSP #}
+      <script>
+        // https://github.com/OfficeDev/office-js/issues/429#issuecomment-1971645795
+        const originalReplaceState = history.replaceState;
+        const originalPushState = history.pushState;
+      </script>
+      {# Office.js #}
+      {% if settings.public_addin_store %}
+        <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+      {% else %}
+        <script src="/static/vendor/@microsoft/office-js/dist/office.js"></script>
+      {% endif %}
+      <script>
+        history.replaceState = originalReplaceState;
+        history.pushState = originalPushState;
+      </script>
+      {# Socket.io (must come before xlwings.js) #}
+      <script src="/static/vendor/socket.io/client-dist/socket.io.min.js"></script>
+      {# xlwings.js (must come before custom-function-code) #}
+      <script src="/static/vendor/xlwings/xlwings.min.js"></script>
       {# Alpine.js CSP build (aplinejs-handlers must come first) #}
       {% if settings.enable_alpinejs_csp %}
         <script src="/static/js/alpinejs-handlers.js" defer></script>
@@ -53,7 +63,7 @@
     {% endblock extra_head %}
   </head>
 
-  <body>
+  <body hx-ext="head-support">
     {% block content %}
     {% endblock content %}
   </body>
