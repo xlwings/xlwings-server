@@ -1,4 +1,4 @@
-const data = {
+const alpineData = {
   appLoader: {
     init: async function () {
       let bookName = await xlwings.getActiveBookName();
@@ -14,16 +14,11 @@ const data = {
     },
     url: "",
   },
-  bookName: {
-    getName: async function () {
-      return await xlwings.getActiveBookName();
-    },
-  },
 };
 
 // Alpine boilerplate
 document.addEventListener("alpine:init", () => {
-  for (let name in data) {
-    Alpine.data(name, () => data[name]);
+  for (let name in alpineData) {
+    Alpine.data(name, () => alpineData[name]);
   }
 });

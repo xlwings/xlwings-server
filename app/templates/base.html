@@ -12,22 +12,14 @@
         <script src="/static/vendor/htmx.org/dist/ext/loading-states.js"></script>
         <script src="/static/js/htmx-handlers.js" defer></script>
       {% endif %}
-      {# TODO: move to own script for CSP #}
-      <script>
-        // https://github.com/OfficeDev/office-js/issues/429#issuecomment-1971645795
-        const originalReplaceState = history.replaceState;
-        const originalPushState = history.pushState;
-      </script>
+      <script src="/static/js/officejs-history-fix-part1.js"></script>
       {# Office.js #}
       {% if settings.public_addin_store %}
         <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
       {% else %}
         <script src="/static/vendor/@microsoft/office-js/dist/office.js"></script>
       {% endif %}
-      <script>
-        history.replaceState = originalReplaceState;
-        history.pushState = originalPushState;
-      </script>
+      <script src="/static/js/officejs-history-fix-part2.js"></script>
       {# Socket.io (must come before xlwings.js) #}
       <script src="/static/vendor/socket.io/client-dist/socket.io.min.js"></script>
       {# xlwings.js (must come before custom-function-code) #}

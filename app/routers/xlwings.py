@@ -19,7 +19,7 @@ async def alert(
 ):
     """Boilerplate required by book.app.alert() and to show unhandled exceptions"""
     return templates.TemplateResponse(
-        "xlwings-alert.html",
+        "xlwings_alert.html",
         {
             "request": request,
             "prompt": prompt,
