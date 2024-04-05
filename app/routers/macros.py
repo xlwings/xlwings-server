@@ -3,7 +3,7 @@ import logging
 from fastapi import APIRouter, Depends
 
 from ..auth.entraid import User, get_user
-from ..utils import Book
+from ..dependencies import Book
 
 logger = logging.getLogger(__name__)
 
