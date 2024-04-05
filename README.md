@@ -13,6 +13,7 @@ This repo is currently in an early stage and changing rapidly.
 - The task pane is hot-reloaded with every code change during development
 - Tight security: uses the HTTP response headers recommended by OWASP including the most restrictive CSP header
 - Supports streaming functions out-of-the-box
+- Cache busting for static files is automatically done when using the Docker image
 
 ## Instructions:
 
