@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import List, Optional
 
@@ -22,7 +23,7 @@ class Settings(BaseSettings):
     xlwings_license_key: str
 
     class Config:
-        env_file = ".env"
+        env_file = os.getenv("DOTENV_PATH", ".env")
 
 
 settings = Settings()

@@ -6,9 +6,7 @@
     // Don't load .env files into Terminal as we handle them via config.py
     // or docker-compose, respectively. Terminal would always require a restart to apply
     // changes to .env files.
-    "terminal.integrated.env.osx": {},
-    "terminal.integrated.env.linux": {},
-    "terminal.integrated.env.windows": {},
+    "python.envFile": "",
     "[jinja-html]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode",
         "editor.tabSize": 2,
