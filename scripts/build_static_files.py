@@ -22,6 +22,7 @@ for source_path in static_dir.rglob("*"):
         and "." in source_path.name  # requires extension
         and "fonts" not in str(source_path)
         and "vendor/@microsoft/office-js/dist" not in str(source_path)
+        and "images/ribbon" not in str(source_path)  # TODO: update manifest with hashes
     ):
         contents = source_path.read_bytes()
         digest = hashlib.sha256(contents).hexdigest()[:8]

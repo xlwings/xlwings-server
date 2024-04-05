@@ -24,6 +24,10 @@
       <script src="/static/vendor/socket.io/client-dist/socket.io.min.js"></script>
       {# xlwings.js (must come before custom-function-code) #}
       <script src="/static/vendor/xlwings/xlwings.min.js"></script>
+      {# Examples #}
+      {% if settings.development or settings.include_examples %}
+        <script src="/static/js/examples.js" defer></script>
+      {% endif %}
       {# Alpine.js CSP build (aplinejs-handlers must come first) #}
       {% if settings.enable_alpinejs_csp %}
         <script src="/static/js/alpinejs-handlers.js" defer></script>
