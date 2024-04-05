@@ -6,7 +6,7 @@ from fastapi import APIRouter, Body, Depends, Request, Response
 from .. import custom_functions
 from ..auth.entraid import get_user
 from ..config import settings
-from ..utils import templates
+from ..templates import TemplateResponse
 
 logger = logging.getLogger(__name__)
 
@@ -18,10 +18,10 @@ async def alert(
     request: Request, prompt: str, title: str, buttons: str, mode: str, callback: str
 ):
     """Boilerplate required by book.app.alert() and to show unhandled exceptions"""
-    return templates.TemplateResponse(
-        "xlwings_alert.html",
-        {
-            "request": request,
+    return TemplateResponse(
+        request=request,
+        name="xlwings_alert.html",
+        context={
             "prompt": prompt,
             "title": title,
             "buttons": buttons,

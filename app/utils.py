@@ -2,16 +2,6 @@ from typing import Annotated
 
 import xlwings as xw
 from fastapi import Depends
-from jinja2_fragments.fastapi import Jinja2Blocks
-
-from . import settings
-
-# Templates
-templates = Jinja2Blocks(
-    directory=settings.base_dir / "templates",
-    trim_blocks=True,
-    lstrip_blocks=True,
-)
 
 
 # Book dependency

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Request
 
 from ..config import settings
-from ..utils import templates
+from ..templates import TemplateResponse
 
 router = APIRouter()
 
@@ -17,7 +17,8 @@ async def taskpane(request: Request, app: str = None):
     else:
         raise HTTPException(status_code=400, detail="Invalid app value")
 
-    return templates.TemplateResponse(
-        template,
-        {"request": request, "settings": settings},
+    return TemplateResponse(
+        request=request,
+        name=template,
+        context={"settings": settings},
     )
