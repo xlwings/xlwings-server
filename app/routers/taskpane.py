@@ -10,6 +10,6 @@ router = APIRouter()
 async def taskpane(request: Request):
     return TemplateResponse(
         request=request,
-        name="/examples/hello_world_taskpane.html",
+        name="/examples/hello_world/taskpane_hello.html",
         context={"settings": settings},
     )

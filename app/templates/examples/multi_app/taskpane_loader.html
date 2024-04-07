@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% set title = "Task pane" %}
 
 {% block content %}
   <div x-data="appLoader" :hx-get="url" hx-target="body" hx-trigger="app:loadTaskpane"></div>

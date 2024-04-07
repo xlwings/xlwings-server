@@ -1,5 +1,10 @@
-// Multiapp
 const exampleData = {
+  helloWorld: {
+    hello: async function () {
+      let token = await globalThis.getAuth();
+      xlwings.runPython(window.location.origin + "/hello", { auth: token });
+    },
+  },
   appLoader: {
     init: async function () {
       let bookName = await xlwings.getActiveBookName();

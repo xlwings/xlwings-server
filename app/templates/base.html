@@ -4,7 +4,7 @@
     {% block head %}
       <meta charset="utf-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
-      <title>{{ title }}</title>
+      <title>Task pane</title>
       {# htmx #}
       {% if settings.enable_htmx %}
         <script src="/static/vendor/htmx.org/dist/htmx.min.js"></script>
@@ -25,7 +25,7 @@
       {# xlwings.js (must come before custom-function-code) #}
       <script src="/static/vendor/xlwings/xlwings.min.js"></script>
       {# Examples #}
-      {% if settings.development or settings.include_examples %}
+      {% if settings.enable_examples %}
         <script src="/static/js/examples.js" defer></script>
       {% endif %}
       {# Alpine.js CSP build (aplinejs-handlers must come first) #}
