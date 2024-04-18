@@ -1,1 +1,1 @@
-from .sample import *
+from .example import *
