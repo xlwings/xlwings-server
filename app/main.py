@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 
 from . import settings
 from .routers import socketio as socketio_router
-from .routers.macros import router as macros_router
+from .routers.macros.router import router as macros_router
 from .routers.taskpane import router as taskpane_router
 from .routers.xlwings import router as xlwings_router
 
@@ -25,10 +25,6 @@ app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 app.include_router(xlwings_router)
 app.include_router(macros_router)
 app.include_router(taskpane_router)
-if settings.enable_examples:
-    from .routers.examples import router as examples_router
-
-    app.include_router(examples_router)
 
 # CORS: Office Scripts and custom functions in Excel on the web require CORS
 # Using app.add_middleware won't add the CORS headers if you handle the root "Exception"

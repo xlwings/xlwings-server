@@ -1,17 +1,17 @@
+"""
+Make sure to import the module under __init__.py, e.g.:
+from . import examples
+"""
+
 import logging
 
-from fastapi import APIRouter, Depends
+from fastapi import Depends
 
-from ..auth.entraid import User, get_user
-from ..dependencies import Book
+from ...auth.entraid import User, get_user
+from ...dependencies import Book
+from .router import router
 
 logger = logging.getLogger(__name__)
-
-
-# Adding the dependencies to the router makes sure that all endpoints are protected in
-# this module. If you need access to the user in the endpoints, you'll need to add the
-# dependency again to the endpoint (see hello).
-router = APIRouter(dependencies=[Depends(get_user)])
 
 
 @router.post("/hello")
