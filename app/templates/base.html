@@ -12,14 +12,14 @@
         <script src="/static/vendor/htmx.org/dist/ext/loading-states.js"></script>
         <script src="/static/js/htmx-handlers.js" defer></script>
       {% endif %}
-      <script src="/static/js/officejs-history-fix-part1.js"></script>
+      <script src="/static/js/utils/officejs-history-fix-part1.js"></script>
       {# Office.js #}
       {% if settings.public_addin_store %}
         <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
       {% else %}
         <script src="/static/vendor/@microsoft/office-js/dist/office.js"></script>
       {% endif %}
-      <script src="/static/js/officejs-history-fix-part2.js"></script>
+      <script src="/static/js/utils/officejs-history-fix-part2.js"></script>
       {# Socket.io (must come before xlwings.js) #}
       <script src="/static/vendor/socket.io/client-dist/socket.io.min.js"></script>
       {# xlwings.js (must come before custom-function-code) #}
@@ -52,7 +52,7 @@
       <script src="/static/js/main.js" defer></script>
       <script src="/static/js/ribbon.js" defer></script>
       {% if settings.development %}
-        <script src="/static/js/hotreload.js" defer></script>
+        <script src="/static/js/utils/hotreload.js" defer></script>
       {% endif %}
     {% endblock head %}
     {% block extra_head %}
