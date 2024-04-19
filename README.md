@@ -1,14 +1,14 @@
 # xlwings Server
 
-This repo is currently in an early stage and changing rapidly.
+**NOTE: This repo is currently in an early stage and changing rapidly.**
 
 ## Features:
 
 - Only requires Python (no dependency on Node.js or Webpack)
 - Uses FastAPI as the web framework
-- Comes with htmx and Alpine.js (CSP build), and Socket.io
+- Comes with htmx, Alpine.js (CSP build), and Socket.io
 - Comes with Bootstrap-xlwings, a Bootstrap theme in the Excel look
-- Runs in an air-gapped environment without access to the Internet or Microsoft's servers
+- Runs in an air-gapped environment without access to the Internet or any Microsoft servers
 - Supports SSO (Single Sign-On) authentication and RBAC (Role-Based Access Control) via Entra ID (previously known as Azure AD)
 - The task pane is hot-reloaded with every code change during development
 - Tight security: uses the HTTP response headers recommended by OWASP including the most restrictive CSP header
@@ -17,8 +17,8 @@ This repo is currently in an early stage and changing rapidly.
 
 ## Instructions:
 
-- Custom functions can be added under `app/custom_functions/sample.py`. There is a sample custom function included that can be run via `=XLWINGS.HELLO("xlwings")`. The `XLWINGS` prefix ("namespace") can be adjusted in `manifest.xml` and should be different for each environment (DEV, UAT, PROD, etc.)
-- Macros can be added under `app/routers/macros.py`. They will need to be bound to a button on either the ribbon (via `manifest.xml`) or task pane (via `app/templates/taskpane.html`). There is a sample button `Hello World` included on both the ribbon and task pane.
+- Custom functions can be added under `app/custom_functions/examples.py`. There is a sample custom function included that can be run via `=XLWINGS.HELLO("xlwings")`. There's also a streaming function (`=XLWINGS.STREAMING_RANDOM(2, 3)`). The `XLWINGS` prefix ("namespace") can be adjusted in `manifest.xml` and should be different for each environment (DEV, UAT, PROD, etc.)
+- Macros can be added under `app/routers/macros/example.py`. They will need to be bound to a button on either the ribbon (via `manifest.xml`) or task pane (via `app/templates/taskpane.html`). There is a sample button `Hello World` included on both the ribbon and task pane.
 
 ## Prod deployment
 
@@ -29,7 +29,7 @@ This repo is currently in an early stage and changing rapidly.
 
 - Set the environment variable: `XLWINGS_LICENSE_KEY=...`
 - Install the dependencies: `pip install -r requirements.txt`
-- Run the app: `gunicorn app.main:cors_app --bind 0.0.0.0:8000 --access-logfile - --workers 2 --worker-class uvicorn.workers.UvicornWorker`
+- Run the app: `gunicorn app.main:sio_app --bind 0.0.0.0:8000 --access-logfile - --workers 1 --worker-class uvicorn.workers.UvicornWorker`
 
 **Backend via Docker**:
 
@@ -50,15 +50,15 @@ Follow the steps under https://docs.xlwings.org/en/latest/pro/server/officejs_ad
 
 **Backend via Python directly:**
 
-- Set the environment variable: `XLWINGS_LICENSE_KEY=...`
+- Copy `.env.template` to `.env` and update `XLWINGS_LICENSE_KEY=...`. Make sure that `DEVELOPMENT=true`.
 - Install the dependencies: `pip install -r requirements.txt`
 - Run the app: `python run.py`
 
 **Backend via Docker**:
 
 - Install Docker and Docker Compose
-- Copy `.env.template` to `.env` and update `XLWINGS_LICENSE_KEY=...`
-- To run the dev server: `docker compose up -d`
+- Copy `.env.template` to `.env` and update `XLWINGS_LICENSE_KEY=...`. Make sure that `DEVELOPMENT=true`.
+- To run the dev server: `docker compose up`
 - Run `docker compose build` whenever you need to install a new dependency via `requirements.txt`
 
 **Office.js add-in**:
