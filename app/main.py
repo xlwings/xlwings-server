@@ -4,14 +4,13 @@ from functools import cache
 
 import socketio
 from fastapi import FastAPI, status
-from fastapi.exceptions import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
 from . import settings
 from .routers import socketio as socketio_router
-from .routers.macros import router as macros_router
+from .routers.macros.router import router as macros_router
 from .routers.taskpane import router as taskpane_router
 from .routers.xlwings import router as xlwings_router
 
@@ -34,7 +33,6 @@ cors_app = CORSMiddleware(
     app=app,
     allow_origins=settings.cors_allow_origins,
     allow_methods=["POST"],
-    allow_headers=["*"],
 )
 
 # Socket.io
@@ -58,7 +56,20 @@ async def add_security_headers(request, call_next):
         data = read_security_headers()
 
         for header in data["headers"]:
-            response.headers[header["name"]] = header["value"]
+            if header["name"] not in ("Permissions-Policy", "Clear-Site-Data"):
+                # Permissions-Policy headers are experimental
+                # Clear-Site-Data is too aggressive
+                response.headers[header["name"]] = header["value"]
+        if settings.enable_excel_online:
+            response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+            response.headers["Content-Security-Policy"] = response.headers[
+                "Content-Security-Policy"
+            ].replace("frame-ancestors 'none'; ", "")
+            response.headers["Content-Security-Policy"] = (
+                response.headers["Content-Security-Policy"]
+                + "; font-src 'self' https://res-1.cdn.office.net; style-src 'self' 'unsafe-inline';"
+            )
+            del response.headers["X-Frame-Options"]
         if settings.public_addin_store:
             response.headers["Content-Security-Policy"] = (
                 response.headers["Content-Security-Policy"]
@@ -78,22 +89,17 @@ async def root():
 
 # Static files: in prod should be served via a HTTP server like nginx if possible
 app.mount("/static", StaticFiles(directory=settings.static_dir), name="static")
-StaticFiles.is_not_modified = lambda *args, **kwargs: False  # Never cache static files
+if settings.development:
+    # Don't cache static files
+    StaticFiles.is_not_modified = lambda *args, **kwargs: False
 
 
 # Exception handlers
-@app.exception_handler(HTTPException)
-async def http_exception_handler(request, exception):
-    logger.error(exception)
-    return PlainTextResponse(
-        exception.detail, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-    )
-
-
 @app.exception_handler(Exception)
 async def exception_handler(request, exception):
-    # This handles all exceptions, so you may want to make this more restrictive
     logger.error(exception)
-    return PlainTextResponse(
-        str(exception), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
-    )
+    if settings.development:
+        msg = repr(exception)
+    else:
+        msg = "An error ocurred."
+    return PlainTextResponse(msg, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)

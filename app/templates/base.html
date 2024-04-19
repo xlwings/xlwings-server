@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en">
+  <head hx-head="merge">
+    {% block head %}
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>Task pane</title>
+      {# htmx #}
+      {% if settings.enable_htmx %}
+        <script src="/static/vendor/htmx.org/dist/htmx.min.js"></script>
+        <script src="/static/vendor/htmx.org/dist/ext/head-support.js"></script>
+        <script src="/static/vendor/htmx.org/dist/ext/loading-states.js"></script>
+        <script src="/static/js/htmx-handlers.js" defer></script>
+      {% endif %}
+      <script src="/static/js/utils/officejs-history-fix-part1.js"></script>
+      {# Office.js #}
+      {% if settings.public_addin_store %}
+        <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+      {% else %}
+        <script src="/static/vendor/@microsoft/office-js/dist/office.js"></script>
+      {% endif %}
+      <script src="/static/js/utils/officejs-history-fix-part2.js"></script>
+      {# Socket.io (must come before xlwings.js) #}
+      <script src="/static/vendor/socket.io/client-dist/socket.io.min.js"></script>
+      {# xlwings.js (must come before custom-function-code) #}
+      <script src="/static/vendor/xlwings/xlwings.min.js"></script>
+      {# Examples #}
+      {% if settings.enable_examples %}
+        <script src="/static/js/examples.js" defer></script>
+      {% endif %}
+      {# Alpine.js CSP build (aplinejs-handlers must come first) #}
+      {% if settings.enable_alpinejs_csp %}
+        <script src="/static/js/alpinejs-handlers.js" defer></script>
+        <script src="/static/vendor/@alpinejs/csp/dist/cdn.min.js" defer></script>
+      {% endif %}
+      {# Auth #}
+      {% set auth_value = "entraid" if settings.entraid_client_id or settings.entraid_tenant_id else None %}
+      <!-- prettier-ignore-start -->
+      <script id="auth" type="application/json">
+        { "auth": {{ auth_value|tojson }} }
+      </script>
+      <!-- prettier-ignore-end -->
+      <script src="/static/js/auth.js"></script>
+      {# Load Custom Functions #}
+      <script src="/xlwings/custom-functions-code" defer></script>
+      {# Bootstrap with the xlwings theme #}
+      <link rel="stylesheet" href="/static/vendor/bootstrap-xlwings/bootstrap-xlwings.min.css" />
+      <script src="/static/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+      {# Own #}
+      <link rel="stylesheet" href="/static/css/style.css" />
+      <script src="/static/js/socketio-handlers.js" defer></script>
+      <script src="/static/js/main.js" defer></script>
+      <script src="/static/js/ribbon.js" defer></script>
+      {% if settings.development %}
+        <script src="/static/js/utils/hotreload.js" defer></script>
+      {% endif %}
+    {% endblock head %}
+    {% block extra_head %}
+    {% endblock extra_head %}
+  </head>
+
+  <body hx-ext="head-support">
+    <div
+      id="global-error-alert"
+      class="alert alert-danger alert-dismissible fade show d-none"
+      role="alert"
+      style="z-index: 1000;">
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      <span></span>
+    </div>
+    {% block content %}
+    {% endblock content %}
+  </body>
+</html>

@@ -23,7 +23,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.3.4
+    rev: v0.4.0
     hooks:
       - id: ruff
         args:
@@ -31,6 +31,8 @@ repos:
       - id: ruff-format
 
   - repo: https://github.com/pre-commit/mirrors-prettier
+    # According to mirrors-prettier, prettier 4.0 doesn't support plugins
+    # See also: https://github.com/prettier/prettier/issues/15742
     rev: v3.1.0
     hooks:
       - id: prettier

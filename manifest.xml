@@ -10,8 +10,8 @@
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="xlwings Server" />
   <Description DefaultValue="xlwings Server" />
-  <IconUrl DefaultValue="https://127.0.0.1:8000/static/img/icon-32.png" />
-  <HighResolutionIconUrl DefaultValue="https://127.0.0.1:8000/static/img/icon-64.png" />
+  <IconUrl DefaultValue="https://127.0.0.1:8000/static/images/xlwings/icon-32.png" />
+  <HighResolutionIconUrl DefaultValue="https://127.0.0.1:8000/static/images/xlwings/icon-64.png" />
   <SupportUrl DefaultValue="https://www.xlwings.org/contact" />
   <AppDomains>
     <AppDomain>https://127.0.0.1:8000</AppDomain>
@@ -119,9 +119,9 @@
 
     <Resources>
       <bt:Images>
-        <bt:Image id="Icon.16x16" DefaultValue="https://127.0.0.1:8000/static/img/icon-16.png" />
-        <bt:Image id="Icon.32x32" DefaultValue="https://127.0.0.1:8000/static/img/icon-32.png" />
-        <bt:Image id="Icon.80x80" DefaultValue="https://127.0.0.1:8000/static/img/icon-80.png" />
+        <bt:Image id="Icon.16x16" DefaultValue="https://127.0.0.1:8000/static/images/xlwings/icon-16.png" />
+        <bt:Image id="Icon.32x32" DefaultValue="https://127.0.0.1:8000/static/images/xlwings/icon-32.png" />
+        <bt:Image id="Icon.80x80" DefaultValue="https://127.0.0.1:8000/static/images/xlwings/icon-80.png" />
       </bt:Images>
       <bt:Urls>
         <!-- This must point to the HTML document with the task pane -->

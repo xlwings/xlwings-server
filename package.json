@@ -1,13 +1,13 @@
 {
   "dependencies": {
-    "@alpinejs/csp": "3.13.7",
-    "@microsoft/office-js": "1.1.91",
-    "alpinejs": "3.13.7",
+    "@alpinejs/csp": "3.13.8",
+    "@microsoft/office-js": "1.1.92",
     "bootstrap": "5.3.3",
-    "htmx.org": "1.9.11",
+    "htmx.org": "1.9.12",
     "socket.io": "4.7.5"
   },
   "devDependencies": {
+    "@types/alpinejs": "3.13.10",
     "prettier": "3.2.5",
     "prettier-plugin-jinja-template": "1.3.3"
   }

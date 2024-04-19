@@ -1,3 +1,8 @@
+"""
+Make sure to import the desired functions under __init__.py, e.g.:
+from .example import *
+"""
+
 import asyncio
 
 import numpy as np
