@@ -60,6 +60,14 @@
   </head>
 
   <body hx-ext="head-support">
+    <div
+      id="global-error-alert"
+      class="alert alert-danger alert-dismissible fade show d-none"
+      role="alert"
+      style="z-index: 1000;">
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      <span></span>
+    </div>
     {% block content %}
     {% endblock content %}
   </body>
