@@ -7,12 +7,12 @@ It is the default example in `app/routers/taskpane.py`.
 The sample also depends on code in:
 
 - `app/static/js/examples.js`
-- `app/routers/examples.py`
+- `app/routers/macros/examples.py`
 
 Instead of using Alpine.js to handle the button click, you could also use plain-vanilla JavaScript like this:
 
 ```html
-<button class="btn btn-primary btn-sm" type="button" data-js-hello->Hello World</button>
+<button class="btn btn-primary btn-sm" type="button" data-js-hello>Hello World</button>
 ```
 
 and
