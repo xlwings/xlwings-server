@@ -22,9 +22,6 @@
     // pre-commit has issues without safe.directory
     "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
     // Configure tool-specific properties.
-    // "customizations": {},
-    // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-    // "remoteUser": "root"
     "customizations": {
         "vscode": {
             "extensions": [
@@ -36,4 +33,6 @@
             ]
         }
     }
+    // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+    // "remoteUser": "root"
 }
