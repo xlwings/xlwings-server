@@ -50,14 +50,14 @@ Follow the steps under https://docs.xlwings.org/en/latest/pro/server/officejs_ad
 
 **Backend via Python directly:**
 
-- Copy `.env.template` to `.env` and update `XLWINGS_LICENSE_KEY=...`. Make sure that `DEVELOPMENT=true`.
+- Copy `.env.template` to `.env` and update `XLWINGS_LICENSE_KEY=...`. Make sure that `ENVIRONMENT=development`.
 - Install the dependencies: `pip install -r requirements.txt`
 - Run the app: `python run.py`
 
 **Backend via Docker**:
 
 - Install Docker and Docker Compose
-- Copy `.env.template` to `.env` and update `XLWINGS_LICENSE_KEY=...`. Make sure that `DEVELOPMENT=true`.
+- Copy `.env.template` to `.env` and update `XLWINGS_LICENSE_KEY=...`. Make sure that `ENVIRONMENT=development`.
 - To run the dev server: `docker compose up`
 - Run `docker compose build` whenever you need to install a new dependency via `requirements.txt`
 

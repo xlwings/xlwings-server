@@ -89,7 +89,7 @@ async def root():
 
 # Static files: in prod should be served via a HTTP server like nginx if possible
 app.mount("/static", StaticFiles(directory=settings.static_dir), name="static")
-if settings.development:
+if settings.environment == "development":
     # Don't cache static files
     StaticFiles.is_not_modified = lambda *args, **kwargs: False
 
@@ -98,7 +98,7 @@ if settings.development:
 @app.exception_handler(Exception)
 async def exception_handler(request, exception):
     logger.error(exception)
-    if settings.development:
+    if settings.environment == "development":
         msg = repr(exception)
     else:
         msg = "An error ocurred."
