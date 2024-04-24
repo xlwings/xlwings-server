@@ -1,10 +1,17 @@
 cachetools
-fastapi[all]
-gunicorn
+fastapi
+gunicorn; sys_platform != 'win32'
+httptools
+httpx
 jinja2
 jinja2-fragments
+orjson
 pandas
+pydantic-settings
 PyJWT[crypto]
+python-multipart
 python-socketio
-uvicorn[standard]
+uvicorn
+uvloop; sys_platform != 'win32'
+watchfiles
 xlwings
