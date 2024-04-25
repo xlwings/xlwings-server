@@ -102,3 +102,84 @@ Follow the steps under https://docs.xlwings.org/en/latest/pro/server/officejs_ad
      - Under User, click on `None Selected` and select a user or group. Confirm with `Select`.
      - Under Role, click on `None Selected` and select the desired role (if you don't see any role, wait a moment and reload the page). Confirm with `Select`.
      - Repeat the last step to give the user more roles
+
+## Deployment to Azure Functions
+
+NOTE: Azure functions don't support streaming functions.
+
+For the following walk through, you'll need to have the Azure CLI and Azure Functions Core Tools installed, see [here](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli).
+
+### Create a function app
+
+While you can run Azure functions locally, we're deploying the function app directly to Azure:
+
+In the commands below, we're going to use the following names/parameters:
+
+- the function app: `xlwings-quickstart`
+- the resource group: `xlwings-quickstart-rg`
+- the storage account: `xlwingsquickstartsa`
+- deploy it to the region: `westeurope`
+
+Note that you may need to use different names/parameters though.
+
+Before you begin, you'll need to login to Azure:
+
+```bash
+az login
+```
+
+1.  Create a resource group:
+
+    ```bash
+    az group create --name xlwings-quickstart-rg --location westeurope
+    ```
+
+2.  Create storage account:
+
+    ```bash
+    az storage account create --name xlwingsquickstartsa --location westeurope --resource-group xlwings-quickstart-rg --sku Standard_LRS
+    ```
+
+3.  Create the function app:
+
+    ```bash
+    az functionapp create --resource-group xlwings-quickstart-rg --consumption-plan-location westeurope --runtime python --runtime-version 3.10 --functions-version 4 --name xlwings-quickstart --os-type linux --storage-account xlwingsquickstartsa
+    ```
+
+4.  Set the xlwings license key as environment variable (you can get a free trial key [here](https://www.xlwings.org/trial)):
+
+    ```bash
+    az functionapp config appsettings set --name xlwings-quickstart --resource-group xlwings-quickstart-rg --settings XLWINGS_LICENSE_KEY=<YOUR_LICENSE_KEY>
+    ```
+
+5.  Set the following setting to enable the worker process to index the functions:
+
+    ```bash
+    az functionapp config appsettings set --name xlwings-quickstart --resource-group xlwings-quickstart-rg --settings AzureWebJobsFeatureFlags=EnableWorkerIndexing
+    ```
+
+6.  Deploy the function app (this is also the command to run to deploy an update):
+
+    ```bash
+    func azure functionapp publish xlwings-quickstart
+    ```
+
+    It should terminate with the following message:
+
+    ```bash
+    Remote build succeeded!
+    [...] Syncing triggers...
+    Functions in xlwings-quickstart:
+       http_app_func - [httpTrigger]
+          Invoke url: https://xlwings-quickstart.azurewebsites.net//{*route}
+    ```
+
+8. On Azure portal, under Function App > Your Function App > CORS, set `Allowed Origins` to `*` if you want to be able to call the functions from Excel on the web. This step should not be required if you're only using the desktop version of Excel.
+
+### Cleanup
+
+After running this tutorial you can get rid of all the resources again by running:
+
+```bash
+az group delete --name xlwings-quickstart-rg
+```
