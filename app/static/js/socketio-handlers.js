@@ -9,6 +9,6 @@ try {
     },
   });
 } catch (error) {
-  console.error(error);
+  console.log("Didn't load socket.io: ", error);
   globalThis.socket = null;
 }

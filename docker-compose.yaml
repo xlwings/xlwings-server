@@ -3,7 +3,7 @@ services:
   app:
     build: .
     command: >
-        uvicorn app.main:sio_app
+        uvicorn app.main:main_app
         --host 0.0.0.0 --port 8000
         --ssl-keyfile /project/certs/localhost+2-key.pem --ssl-certfile /project/certs/localhost+2.pem
         --reload

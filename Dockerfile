@@ -23,7 +23,7 @@ EXPOSE 8000
 # up the FastAPI workers.
 # NOTE: If you run this Dockerfile via "docker compose up", CMD will be overridden
 # by docker-compose.yaml
-CMD ["gunicorn", "app.main:sio_app", \
+CMD ["gunicorn", "app.main:main_app", \
      "--bind", "0.0.0.0:8000", \
      "--access-logfile", "-", \
      "--workers", "1", \

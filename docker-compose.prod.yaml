@@ -3,7 +3,7 @@ services:
   app:
     build: .
     command: >
-        gunicorn app.main:sio_app
+        gunicorn app.main:main_app
         --bind 0.0.0.0:8000
         --access-logfile -
         --workers 1

@@ -22,7 +22,9 @@
       {% endif %}
       <script src="/static/js/utils/officejs-history-fix-part2.js"></script>
       {# Socket.io (must come before xlwings.js) #}
-      <script src="/static/vendor/socket.io/client-dist/socket.io.min.js"></script>
+      {% if settings.enable_socketio %}
+        <script src="/static/vendor/socket.io/client-dist/socket.io.min.js"></script>
+      {% endif %}
       {# xlwings.js (must come before custom-function-code) #}
       <script src="/static/vendor/xlwings/xlwings.min.js"></script>
       {# Examples #}

@@ -21,11 +21,6 @@ logger = logging.getLogger(__name__)
 # App
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
-# Routers
-app.include_router(xlwings_router)
-app.include_router(macros_router)
-app.include_router(taskpane_router)
-
 # CORS: Office Scripts and custom functions in Excel on the web require CORS
 # Using app.add_middleware won't add the CORS headers if you handle the root "Exception"
 # in an exception handler (it would require a specific exception type).
@@ -36,7 +31,17 @@ cors_app = CORSMiddleware(
 )
 
 # Socket.io
-sio_app = socketio.ASGIApp(socketio_router.sio, cors_app)
+if settings.enable_socketio:
+    sio_app = socketio.ASGIApp(socketio_router.sio, cors_app)
+    main_app = sio_app
+else:
+    main_app = cors_app
+
+
+# Routers
+app.include_router(xlwings_router)
+app.include_router(macros_router)
+app.include_router(taskpane_router)
 
 
 # Security headers
