@@ -2,12 +2,13 @@ import os
 from pathlib import Path
 from typing import List, Literal, Optional
 
+from pydantic import computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_prefix="XLWINGS_", env_file=os.getenv("DOTENV_PATH", ".env")
+        env_prefix="XLWINGS_", env_file=os.getenv("DOTENV_PATH", ".env"), extra="ignore"
     )
     add_security_headers: bool = True
     base_dir: Path = Path(__file__).resolve().parent
@@ -25,8 +26,12 @@ class Settings(BaseSettings):
     hostname: Optional[str] = None
     log_level: str = "INFO"
     public_addin_store: bool = False
-    static_dir: Path = base_dir / "static"
     license_key: str
+
+    @computed_field
+    @property
+    def static_dir(self) -> Path:
+        return self.base_dir / "static"
 
 
 settings = Settings()

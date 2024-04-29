@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<OfficeApp
-  xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
-  xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
-  xsi:type="TaskPaneApp">
+  xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="TaskPaneApp">
   <!-- TODO: Create your own ID via https://www.guidgen.com or by running in Python: import uuid;print(uuid.uuid4()) -->
   <Id>0a856eb1-91ab-4f38-b757-23fbe1f73130</Id>
   <Version>1.0.0</Version>
@@ -12,8 +10,8 @@
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="xlwings Server" />
   <Description DefaultValue="xlwings Server" />
-  <IconUrl DefaultValue="{{ base_url }}/static/images/examples/xlwings-32.png" />
-  <HighResolutionIconUrl DefaultValue="{{ base_url }}/static/images/examples/xlwings-64.png" />
+  <IconUrl DefaultValue="{{ base_url }}/static/images/ribbon/examples/xlwings-32.png" />
+  <HighResolutionIconUrl DefaultValue="{{ base_url }}/static/images/ribbon/examples/xlwings-64.png" />
   <SupportUrl DefaultValue="https://www.xlwings.org/contact" />
   <AppDomains>
     <AppDomain>{{ base_url }}</AppDomain>
@@ -31,9 +29,7 @@
     <SourceLocation DefaultValue="{{ base_url }}/taskpane" />
   </DefaultSettings>
   <Permissions>ReadWriteDocument</Permissions>
-  <VersionOverrides
-    xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
-    xsi:type="VersionOverridesV1_0">
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
     <Hosts>
       <Host xsi:type="Workbook">
         <!-- Custom Functions -->
@@ -43,7 +39,7 @@
         <AllFormFactors>
           <ExtensionPoint xsi:type="CustomFunctions">
             <Script>
-              <SourceLocation resid="Functions.Script.Url" />;
+              <SourceLocation resid="Functions.Script.Url" />
             </Script>
             <Page>
               <SourceLocation resid="Taskpane.Url" />
@@ -119,9 +115,9 @@
 
     <Resources>
       <bt:Images>
-        <bt:Image id="Icon.16x16" DefaultValue="{{ base_url }}/static/images/examples/xlwings-16.png" />
-        <bt:Image id="Icon.32x32" DefaultValue="{{ base_url }}/static/images/examples/xlwings-32.png" />
-        <bt:Image id="Icon.80x80" DefaultValue="{{ base_url }}/static/images/examples/xlwings-80.png" />
+        <bt:Image id="Icon.16x16" DefaultValue="{{ base_url }}/static/images/ribbon/examples/xlwings-16.png" />
+        <bt:Image id="Icon.32x32" DefaultValue="{{ base_url }}/static/images/ribbon/examples/xlwings-32.png" />
+        <bt:Image id="Icon.80x80" DefaultValue="{{ base_url }}/static/images/ribbon/examples/xlwings-80.png" />
       </bt:Images>
       <bt:Urls>
         <!-- This must point to the HTML document with the task pane -->

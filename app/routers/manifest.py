@@ -13,8 +13,6 @@ logger = logging.getLogger(__name__)
 
 @router.get("/manifest")
 async def manifest(request: Request):
-    logger.info(os.environ)
-    logger.info(os.getenv("RENDER_EXTERNAL_URL"))
     if settings.hostname:
         # Settings
         if settings.hostname.startswith("https://"):
@@ -25,7 +23,6 @@ async def manifest(request: Request):
     elif os.getenv("RENDER_EXTERNAL_URL"):
         # Render
         base_url = os.getenv("RENDER_EXTERNAL_URL")
-        logger.info(base_url)
     elif os.getenv("WEBSITE_HOSTNAME"):
         # Azure Functions
         base_url = os.getenv("WEBSITE_HOSTNAME")
