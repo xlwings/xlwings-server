@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+<OfficeApp
+  xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
-  xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="TaskPaneApp">
+  xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
+  xsi:type="TaskPaneApp">
   <!-- TODO: Create your own ID via https://www.guidgen.com or by running in Python: import uuid;print(uuid.uuid4()) -->
   <Id>0a856eb1-91ab-4f38-b757-23fbe1f73130</Id>
   <Version>1.0.0</Version>
@@ -10,11 +12,11 @@
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="xlwings Server" />
   <Description DefaultValue="xlwings Server" />
-  <IconUrl DefaultValue="https://127.0.0.1:8000/static/images/examples/xlwings-32.png" />
-  <HighResolutionIconUrl DefaultValue="https://127.0.0.1:8000/static/images/examples/xlwings-64.png" />
+  <IconUrl DefaultValue="{{ base_url }}/static/images/examples/xlwings-32.png" />
+  <HighResolutionIconUrl DefaultValue="{{ base_url }}/static/images/examples/xlwings-64.png" />
   <SupportUrl DefaultValue="https://www.xlwings.org/contact" />
   <AppDomains>
-    <AppDomain>https://127.0.0.1:8000</AppDomain>
+    <AppDomain>{{ base_url }}</AppDomain>
   </AppDomains>
   <Hosts>
     <Host Name="Workbook" />
@@ -22,33 +24,34 @@
   <!-- SharedRuntime for Custom Functions -->
   <Requirements>
     <Sets DefaultMinVersion="1.1">
-      <Set Name="SharedRuntime" MinVersion="1.1"/>
+      <Set Name="SharedRuntime" MinVersion="1.1" />
     </Sets>
   </Requirements>
   <DefaultSettings>
-    <SourceLocation DefaultValue="https://127.0.0.1:8000/taskpane" />
+    <SourceLocation DefaultValue="{{ base_url }}/taskpane" />
   </DefaultSettings>
   <Permissions>ReadWriteDocument</Permissions>
-  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+  <VersionOverrides
+    xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
+    xsi:type="VersionOverridesV1_0">
     <Hosts>
       <Host xsi:type="Workbook">
-
         <!-- Custom Functions -->
         <Runtimes>
-          <Runtime resid="Taskpane.Url" lifetime="long"/>
+          <Runtime resid="Taskpane.Url" lifetime="long" />
         </Runtimes>
         <AllFormFactors>
           <ExtensionPoint xsi:type="CustomFunctions">
             <Script>
-              <SourceLocation resid="Functions.Script.Url"/>
+              <SourceLocation resid="Functions.Script.Url" />;
             </Script>
             <Page>
-              <SourceLocation resid="Taskpane.Url"/>
+              <SourceLocation resid="Taskpane.Url" />
             </Page>
             <Metadata>
-              <SourceLocation resid="Functions.Metadata.Url"/>
+              <SourceLocation resid="Functions.Metadata.Url" />
             </Metadata>
-            <Namespace resid="Functions.Namespace"/>
+            <Namespace resid="Functions.Namespace" />
           </ExtensionPoint>
         </AllFormFactors>
 
@@ -56,7 +59,6 @@
           <!-- FunctionFile is used to bind functions directly to Ribbon buttons -->
           <FunctionFile resid="Taskpane.Url" />
           <ExtensionPoint xsi:type="PrimaryCommandSurface">
-
             <CustomTab id="MyTab">
               <Group id="MyCommandsGroup">
                 <Label resid="MyCommandsGroup.Label" />
@@ -107,11 +109,9 @@
                     <SourceLocation resid="Taskpane.Url" />
                   </Action>
                 </Control>
-
               </Group>
               <Label resid="MyTab.TabLabel" />
             </CustomTab>
-
           </ExtensionPoint>
         </DesktopFormFactor>
       </Host>
@@ -119,19 +119,19 @@
 
     <Resources>
       <bt:Images>
-        <bt:Image id="Icon.16x16" DefaultValue="https://127.0.0.1:8000/static/images/examples/xlwings-16.png" />
-        <bt:Image id="Icon.32x32" DefaultValue="https://127.0.0.1:8000/static/images/examples/xlwings-32.png" />
-        <bt:Image id="Icon.80x80" DefaultValue="https://127.0.0.1:8000/static/images/examples/xlwings-80.png" />
+        <bt:Image id="Icon.16x16" DefaultValue="{{ base_url }}/static/images/examples/xlwings-16.png" />
+        <bt:Image id="Icon.32x32" DefaultValue="{{ base_url }}/static/images/examples/xlwings-32.png" />
+        <bt:Image id="Icon.80x80" DefaultValue="{{ base_url }}/static/images/examples/xlwings-80.png" />
       </bt:Images>
       <bt:Urls>
         <!-- This must point to the HTML document with the task pane -->
-        <bt:Url id="Taskpane.Url" DefaultValue="https://127.0.0.1:8000/taskpane" />
-        <bt:Url id="Functions.Script.Url" DefaultValue="https://127.0.0.1:8000/xlwings/custom-functions-code"/>
-        <bt:Url id="Functions.Metadata.Url" DefaultValue="https://127.0.0.1:8000/xlwings/custom-functions-meta"/>
+        <bt:Url id="Taskpane.Url" DefaultValue="{{ base_url }}/taskpane" />
+        <bt:Url id="Functions.Script.Url" DefaultValue="{{ base_url }}/xlwings/custom-functions-code" />
+        <bt:Url id="Functions.Metadata.Url" DefaultValue="{{ base_url }}/xlwings/custom-functions-meta" />
       </bt:Urls>
       <bt:ShortStrings>
         <!-- Uncomment the next line to use a global Namespace. It can also be set per function via xw.func(namespace="...") -->
-        <bt:String id="Functions.Namespace" DefaultValue="XLWINGS"/>
+        <bt:String id="Functions.Namespace" DefaultValue="XLWINGS" />
         <bt:String id="MyTab.TabLabel" DefaultValue="xlwings Server" />
         <bt:String id="MyCommandsGroup.Label" DefaultValue="MyGroup" />
         <bt:String id="MyFunctionButton.Label" DefaultValue="Hello World" />
@@ -143,14 +143,15 @@
       </bt:LongStrings>
     </Resources>
 
-    <!-- <WebApplicationInfo>
-      <Id>CLIENT_ID</Id>
-      <Resource>api://127.0.0.1:8000/CLIENT_ID</Resource>
+    {% if settings.entraid_tenant_id or settings.entraid_client_id %}
+    <WebApplicationInfo>
+      <Id>{{ settings.entraid_client_id }}</Id>
+      <Resource>api://{{ base_url | replace("https://", "") }}/{{ settings.entraid_client_id }}</Resource>
       <Scopes>
         <Scope>openid</Scope>
         <Scope>profile</Scope>
       </Scopes>
-    </WebApplicationInfo> -->
-
+    </WebApplicationInfo>
+    {% endif %}
   </VersionOverrides>
 </OfficeApp>
