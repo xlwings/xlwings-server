@@ -15,17 +15,16 @@ logger = logging.getLogger(__name__)
 async def manifest(request: Request):
     if settings.hostname:
         # Settings
-        if settings.hostname.startswith("https://"):
-            hostname = settings.hostname[8:]
-        else:
-            hostname = settings.hostname
-        base_url = f"https://{hostname}"
+        base_url = f"https://{settings.hostname}"
     elif os.getenv("RENDER_EXTERNAL_URL"):
-        # Render
+        # Render.com
         base_url = os.getenv("RENDER_EXTERNAL_URL")
     elif os.getenv("WEBSITE_HOSTNAME"):
-        # Azure Functions
-        base_url = os.getenv("WEBSITE_HOSTNAME")
+        # Azure Functions and Azure App Service
+        base_url = f"https://{os.getenv('WEBSITE_HOSTNAME')}"
+    elif os.getenv("CODESPACES"):
+        # GitHub Codespaces
+        base_url = f"https://{os.getenv('CODESPACE_NAME')}-8000.{os.getenv('GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN')}"
     else:
         # Mostly localhost
         base_url = request.base_url
