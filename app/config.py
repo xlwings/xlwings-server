@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from typing import List, Literal, Optional
 
-from pydantic import computed_field
+from pydantic import UUID4, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     environment: Literal["development", "staging", "production"] = "development"
     hostname: Optional[str] = None
     log_level: str = "INFO"
+    manifest_id_development: Optional[UUID4] = None
+    manifest_id_staging: Optional[UUID4] = None
+    manifest_id_production: Optional[UUID4] = None
     public_addin_store: bool = False
     license_key: str
 
