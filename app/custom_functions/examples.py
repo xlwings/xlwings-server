@@ -8,6 +8,7 @@ import asyncio
 import numpy as np
 import pandas as pd
 from xlwings import server
+from xlwings.ext.sql import _sql
 
 
 @server.func
@@ -25,3 +26,11 @@ async def streaming_random(rows, cols):
         df = pd.DataFrame(matrix, columns=[f"col{i+1}" for i in range(matrix.shape[1])])
         yield df
         await asyncio.sleep(1)
+
+
+@server.func
+@server.arg("tables", expand="table", ndim=2)
+def sql(query, *tables):
+    """In-Excel SQL
+    see: https://docs.xlwings.org/en/latest/extensions.html#in-excel-sql"""
+    return _sql(query, *tables)
