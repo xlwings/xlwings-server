@@ -41,7 +41,7 @@ def create_dotenv():
 def init():
     replace_uuids()
     create_dotenv()
-    print("Open the .env file and add a license key")
+    print("Success! Now open the .env file and add a license key")
 
 
 if __name__ == "__main__":
