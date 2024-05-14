@@ -1,5 +1,6 @@
 import argparse
 import os
+import re
 import shutil
 import uuid
 from pathlib import Path
@@ -22,11 +23,12 @@ def replace_uuids():
     with open(file_path, "w") as file:
         for line in lines:
             if "manifest_id" in line and any(uuid in line for uuid in uuids):
-                file.write(
-                    line.replace(
-                        "0a856eb1-91ab-4f38-b757-23fbe1f73130", f'"{uuid.uuid4()}"'
-                    )
+                line = re.sub(
+                    r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+                    str(uuid.uuid4()),
+                    line,
                 )
+                file.write(line)
             else:
                 file.write(line)
 
