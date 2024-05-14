@@ -16,8 +16,16 @@ def replace_uuids():
 
     with open(file_path, "w") as file:
         for line in lines:
-            if "manifest_id" in line:
+            if "manifest_id" in line and "None" in line:
                 file.write(line.replace("None", f'"{uuid.uuid4()}"'))
+            elif (
+                "manifest_id" in line and "0a856eb1-91ab-4f38-b757-23fbe1f73130" in line
+            ):
+                file.write(
+                    line.replace(
+                        "0a856eb1-91ab-4f38-b757-23fbe1f73130", f'"{uuid.uuid4()}"'
+                    )
+                )
             else:
                 file.write(line)
 

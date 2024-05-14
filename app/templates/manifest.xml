@@ -3,13 +3,12 @@
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
   xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="TaskPaneApp">
-  <!-- TODO: Create your own ID via https://www.guidgen.com or by running in Python: import uuid;print(uuid.uuid4()) -->
-  <Id>0a856eb1-91ab-4f38-b757-23fbe1f73130</Id>
+  <Id>{{ manifest_id }}</Id>
   <Version>1.0.0</Version>
   <ProviderName>xlwings</ProviderName>
   <DefaultLocale>en-US</DefaultLocale>
-  <DisplayName DefaultValue="xlwings Server" />
-  <Description DefaultValue="xlwings Server" />
+  <DisplayName DefaultValue="{{ settings.project_name }}" />
+  <Description DefaultValue="{{ settings.project_name }}" />
   <IconUrl DefaultValue="{{ base_url }}/static/images/ribbon/examples/xlwings-32.png" />
   <HighResolutionIconUrl DefaultValue="{{ base_url }}/static/images/ribbon/examples/xlwings-64.png" />
   <SupportUrl DefaultValue="https://www.xlwings.org/contact" />
@@ -126,9 +125,10 @@
         <bt:Url id="Functions.Metadata.Url" DefaultValue="{{ base_url }}/xlwings/custom-functions-meta" />
       </bt:Urls>
       <bt:ShortStrings>
-        <!-- Uncomment the next line to use a global Namespace. It can also be set per function via xw.func(namespace="...") -->
-        <bt:String id="Functions.Namespace" DefaultValue="XLWINGS" />
-        <bt:String id="MyTab.TabLabel" DefaultValue="xlwings Server" />
+        {% if settings.functions_namespace %}
+        <bt:String id="Functions.Namespace" DefaultValue="{{ settings.functions_namespace|upper }}{{ '-' if settings.functions_namespace and settings.environment != 'prod'}}{{ settings.environment if settings.environment != 'prod'}}" />
+        {% endif %}
+        <bt:String id="MyTab.TabLabel" DefaultValue="{{ settings.project_name }}" />
         <bt:String id="MyCommandsGroup.Label" DefaultValue="MyGroup" />
         <bt:String id="MyFunctionButton.Label" DefaultValue="Hello World" />
         <bt:String id="MyTaskpaneButton.Label" DefaultValue="Show Taskpane" />

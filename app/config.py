@@ -22,12 +22,14 @@ class Settings(BaseSettings):
     entraid_tenant_id: Optional[str] = None
     # Set to False if you have users from external organizations
     entraid_validate_issuer: bool = True
-    environment: Literal["development", "staging", "production"] = "development"
+    environment: Literal["dev", "staging", "prod"] = "dev"
+    functions_namespace: str = "XLWINGS"
     hostname: Optional[str] = None
     log_level: str = "INFO"
-    manifest_id_development: Optional[UUID4] = None
+    manifest_id_dev: Optional[UUID4] = "0a856eb1-91ab-4f38-b757-23fbe1f73130"
     manifest_id_staging: Optional[UUID4] = None
-    manifest_id_production: Optional[UUID4] = None
+    manifest_id_prod: Optional[UUID4] = None
+    project_name: str = "xlwings Server"
     public_addin_store: bool = False
     license_key: str
 

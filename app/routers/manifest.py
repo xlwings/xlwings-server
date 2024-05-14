@@ -29,9 +29,20 @@ async def manifest(request: Request):
         # Mostly localhost
         base_url = request.base_url
 
+    manifest_ids = {
+        "dev": settings.manifest_id_dev,
+        "staging": settings.manifest_id_staging,
+        "prod": settings.manifest_id_prod,
+    }
+    manifest_id = manifest_ids[settings.environment]
+
     return TemplateResponse(
         request=request,
         name="/manifest.xml",
-        context={"settings": settings, "base_url": str(base_url).rstrip("/")},
+        context={
+            "settings": settings,
+            "base_url": str(base_url).rstrip("/"),
+            "manifest_id": manifest_id,
+        },
         media_type="text/plain",
     )
