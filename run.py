@@ -58,6 +58,7 @@ if __name__ == "__main__":
             host="127.0.0.1",
             port=8000,
             reload=True,
+            reload_includes=[".py", ".env"],
             ssl_keyfile="certs/localhost+2-key.pem" if not is_cloud else None,
             ssl_certfile="certs/localhost+2.pem" if not is_cloud else None,
         )
