@@ -40,7 +40,7 @@
 
 **Frontend via Office.js add-in:**
 
-- You will get the manifest content under your `URL/manifest`. For example, if you run this on localhost, you can go to https://127.0.0.1/manifest. Copy the content into a file called `manifest.xml`.
+- You will get the manifest content under your `URL/manifest`. For example, if you run this on localhost, you can go to https://127.0.0.1:8000/manifest. Copy the content into a file called `manifest.xml`.
 - If the manifest doesn't show the correct URL, set the `XLWINGS_HOSTNAME` settings in `.env` to the domain where your backend runs, e.g., `XLWINGS_HOSTNAME=xlwings.mycompany.com`.
 - The `manifest.xml` has to be deployed via the Office admin console, see: https://docs.xlwings.org/en/latest/pro/server/officejs_addins.html#production-deployment. The Office admin console also allows you to point directly to the `/manifest` endpoint.
 
@@ -64,6 +64,7 @@ Follow the steps under https://docs.xlwings.org/en/latest/pro/server/officejs_ad
 **Office.js add-in**:
 
 - Has to be sideloaded, see: https://learn.microsoft.com/en-us/office/dev/add-ins/testing/test-debug-office-add-ins#sideload-an-office-add-in-for-testing
+- You'll find the addin by going to the `/manifest` endpoint, e.g., on localhost, go to https://127.0.0.1:8000/manifest. Store the text in a file called `manifest.xml` that you can use to sideload the add-in.
 
 ## Authentication & Authorization with Entra ID (previously called Azure AD)
 
