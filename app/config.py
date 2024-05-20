@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     entraid_tenant_id: Optional[str] = None
     # Set to False if you have users from external organizations
     entraid_validate_issuer: bool = True
-    environment: Literal["dev", "staging", "prod"] = "dev"
+    environment: Literal["dev", "staging", "prod"] = "prod"
     functions_namespace: str = "XLWINGS"
     hostname: Optional[str] = None
     log_level: str = "INFO"
