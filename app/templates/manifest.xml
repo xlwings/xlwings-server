@@ -126,9 +126,9 @@
       </bt:Urls>
       <bt:ShortStrings>
         {% if settings.functions_namespace %}
-        <bt:String id="Functions.Namespace" DefaultValue="{{ settings.functions_namespace|upper }}{{ '-' if settings.functions_namespace and settings.environment != 'prod'}}{{ settings.environment if settings.environment != 'prod'}}" />
+        <bt:String id="Functions.Namespace" DefaultValue="{{ settings.functions_namespace|upper }}{{ '-' if settings.functions_namespace and settings.environment != 'prod'}}{{ settings.environment | upper if settings.environment != 'prod'}}" />
         {% endif %}
-        <bt:String id="MyTab.TabLabel" DefaultValue="{{ settings.project_name }}" />
+        <bt:String id="MyTab.TabLabel" DefaultValue="{{ settings.project_name }}{{ ' [' if settings.environment != 'prod'}}{{ settings.environment if settings.environment != 'prod'}}{{ ']' if settings.environment != 'prod'}}" />
         <bt:String id="MyCommandsGroup.Label" DefaultValue="MyGroup" />
         <bt:String id="MyFunctionButton.Label" DefaultValue="Hello World" />
         <bt:String id="MyTaskpaneButton.Label" DefaultValue="Show Taskpane" />
