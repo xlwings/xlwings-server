@@ -15,9 +15,34 @@
 - Supports streaming functions out-of-the-box
 - Cache busting for static files is automatically done when using the Docker image
 
-## Instructions:
+## Dev environment
+
+- Follow the steps under https://docs.xlwings.org/en/latest/pro/server/officejs_addins.html#quickstart (but using this repo instead of the one mentioned in the quickstart). Mainly, you need to install `mkcert` to create local certificates as Office.js requires the web app to be served via https (not http) even on localhost.
+
+- Alternatively, you can run this repo on GitHub Codepaces (make sure to expose the port 8000 publicly)
+
+- Run `python run.py init`: this copies `.env.template` over to `.env` (`.env` isn't tracked in Git) and replaces the default manifest UUIDs under `app/config.py` with your own ones. Make sure to commit `app/config.py` once it has your own UUIDs.
+
+**Backend via Python directly:**
+
+- Install the dependencies: `pip install -r requirements.txt`
+- Run the app: `python run.py`
+
+**Backend via Docker**:
+
+- Install Docker and Docker Compose
+- To run the dev server: `docker compose up`
+- Run `docker compose build` whenever you need to install a new dependency via `requirements.txt`
+
+**Office.js add-in**:
+
+- Has to be sideloaded, see: https://learn.microsoft.com/en-us/office/dev/add-ins/testing/test-debug-office-add-ins#sideload-an-office-add-in-for-testing
+- You'll find the addin by going to the `/manifest` endpoint, e.g., on localhost, go to https://127.0.0.1:8000/manifest. Store the text in a file called `manifest.xml` that you can use to sideload the add-in.
+
+## Macros & custom functions
 
 - Custom functions can be added under `app/custom_functions/examples.py`. To add your own Python modules, see the instructions at the top of `examples.py`. There is a sample custom function included that can be run via `=XLWINGS.HELLO("xlwings")`. There's also a streaming function (`=XLWINGS.STREAMING_RANDOM(2, 3)`). The `XLWINGS` prefix ("namespace") can be adjusted in via the settings (`XLWINGS_FUNCTIONS_NAMESPACE` in `.env` file). Except for the prod environment, `-dev` and `-staging` are automatically appended to avoid name clashes. So if you run this under a dev environment, you'll find the custom functions under the `XLWINGS-DEV` prefix.
+
 - Macros can be added under `app/routers/macros/examples.py`. To add your own Python modules, see the instructions at the top of `examples.py`. They will need to be bound to a button on either the ribbon (via `app/templates/manifest.xml`) or task pane (via `app/templates/taskpane.html`). There is a sample button `Hello World` included on both the ribbon and task pane.
 
 ## Prod deployment
@@ -43,28 +68,6 @@
 - You will get the manifest content under your `URL/manifest`. For example, if you run this on localhost, you can go to https://127.0.0.1:8000/manifest. Copy the content into a file called `manifest.xml`.
 - If the manifest doesn't show the correct URL, set the `XLWINGS_HOSTNAME` settings in `.env` to the domain where your backend runs, e.g., `XLWINGS_HOSTNAME=xlwings.mycompany.com`.
 - The `manifest.xml` has to be deployed via the Office admin console, see: https://docs.xlwings.org/en/latest/pro/server/officejs_addins.html#production-deployment. The Office admin console also allows you to point directly to the `/manifest` endpoint.
-
-## Dev environment
-
-Follow the steps under https://docs.xlwings.org/en/latest/pro/server/officejs_addins.html#quickstart (but using this repo instead of the one mentioned in the quickstart). Mainly, you need to install `mkcert` to create local certificates as Office.js requires the web app to served via https (not http) even on localhost.
-
-**Backend via Python directly:**
-
-- Run `python run.py init`: this copies `.env.template` over to `.env` and replaces the default manifest UUIDs under `app/config.py` with your own ones. Make sure to commit `app/config.py` once it has your own UUIDs.
-- Install the dependencies: `pip install -r requirements.txt`
-- Run the app: `python run.py`
-
-**Backend via Docker**:
-
-- Install Docker and Docker Compose
-- Run `python run.py init`: this copies `.env.template` over to `.env` and replaces the default manifest UUIDs under `app/config.py` with your own ones. Make sure to commit `app/config.py` once it has your own UUIDs.
-- To run the dev server: `docker compose up`
-- Run `docker compose build` whenever you need to install a new dependency via `requirements.txt`
-
-**Office.js add-in**:
-
-- Has to be sideloaded, see: https://learn.microsoft.com/en-us/office/dev/add-ins/testing/test-debug-office-add-ins#sideload-an-office-add-in-for-testing
-- You'll find the addin by going to the `/manifest` endpoint, e.g., on localhost, go to https://127.0.0.1:8000/manifest. Store the text in a file called `manifest.xml` that you can use to sideload the add-in.
 
 ## Authentication & Authorization with Entra ID (previously called Azure AD)
 
