@@ -7,6 +7,7 @@ from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
 from fastapi.staticfiles import StaticFiles
+from xlwings import XlwingsError
 
 from . import settings
 from .routers import socketio as socketio_router
@@ -103,6 +104,13 @@ if settings.environment == "development":
 
 
 # Exception handlers
+@app.exception_handler(XlwingsError)
+async def xlwings_exception_handler(request, exception):
+    logger.error(exception)
+    msg = str(exception)
+    return PlainTextResponse(msg, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 @app.exception_handler(Exception)
 async def exception_handler(request, exception):
     logger.error(exception)
