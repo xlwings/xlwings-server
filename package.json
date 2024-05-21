@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@alpinejs/csp": "3.13.10",
+    "@alpinejs/csp": "3.14.0",
     "@microsoft/office-js": "1.1.93",
     "bootstrap": "5.3.3",
     "htmx.org": "1.9.12",
