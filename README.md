@@ -17,8 +17,8 @@
 
 ## Instructions:
 
-- Custom functions can be added under `app/custom_functions/examples.py`. There is a sample custom function included that can be run via `=XLWINGS.HELLO("xlwings")`. There's also a streaming function (`=XLWINGS.STREAMING_RANDOM(2, 3)`). The `XLWINGS` prefix ("namespace") can be adjusted in `manifest.xml` and should be different for each environment (DEV, UAT, PROD, etc.)
-- Macros can be added under `app/routers/macros/example.py`. They will need to be bound to a button on either the ribbon (via `manifest.xml`) or task pane (via `app/templates/taskpane.html`). There is a sample button `Hello World` included on both the ribbon and task pane.
+- Custom functions can be added under `app/custom_functions/examples.py`. To add your own Python modules, see the instructions at the top of `examples.py`. There is a sample custom function included that can be run via `=XLWINGS.HELLO("xlwings")`. There's also a streaming function (`=XLWINGS.STREAMING_RANDOM(2, 3)`). The `XLWINGS` prefix ("namespace") can be adjusted in via the settings (`XLWINGS_FUNCTIONS_NAMESPACE` in `.env` file). Except for the prod environment, `-dev` and `-staging` are automatically appended to avoid name clashes. So if you run this under a dev environment, you'll find the custom functions under the `XLWINGS-DEV` prefix.
+- Macros can be added under `app/routers/macros/examples.py`. To add your own Python modules, see the instructions at the top of `examples.py`. They will need to be bound to a button on either the ribbon (via `app/templates/manifest.xml`) or task pane (via `app/templates/taskpane.html`). There is a sample button `Hello World` included on both the ribbon and task pane.
 
 ## Prod deployment
 
@@ -29,7 +29,7 @@
 
 - Set the environment variable: `XLWINGS_LICENSE_KEY=...`
 - Install the dependencies: `pip install -r requirements.txt`
-- Run the app: `gunicorn app.main:sio_app --bind 0.0.0.0:8000 --access-logfile - --workers 1 --worker-class uvicorn.workers.UvicornWorker`
+- Run the app: `gunicorn app.main:main_app --bind 0.0.0.0:8000 --access-logfile - --workers 1 --worker-class uvicorn.workers.UvicornWorker`
 
 **Backend via Docker**:
 
@@ -40,9 +40,9 @@
 
 **Frontend via Office.js add-in:**
 
-- In `manifest.xml`, replace all occurrences of `https://127.0.0.1:8000` with the URL where your server runs. It is recommended to create a copy of `manifest.xml` for each environment (DEV, UAT, PROD, etc.).
-- In `manifest.xml`, set your own ID (see TODO comment in `manifest.xml`). You should use an own ID for each environment (DEV, UAT, PROD, etc.).
-- The `manifest.xml` has to be deployed via the Office admin console, see: https://docs.xlwings.org/en/latest/pro/server/officejs_addins.html#production-deployment
+- You will get the manifest content under your `URL/manifest`. For example, if you run this on localhost, you can go to https://127.0.0.1:8000/manifest. Copy the content into a file called `manifest.xml`.
+- If the manifest doesn't show the correct URL, set the `XLWINGS_HOSTNAME` settings in `.env` to the domain where your backend runs, e.g., `XLWINGS_HOSTNAME=xlwings.mycompany.com`.
+- The `manifest.xml` has to be deployed via the Office admin console, see: https://docs.xlwings.org/en/latest/pro/server/officejs_addins.html#production-deployment. The Office admin console also allows you to point directly to the `/manifest` endpoint.
 
 ## Dev environment
 
@@ -50,20 +50,21 @@ Follow the steps under https://docs.xlwings.org/en/latest/pro/server/officejs_ad
 
 **Backend via Python directly:**
 
-- Copy `.env.template` to `.env` and update `XLWINGS_LICENSE_KEY=...`. Make sure that `ENVIRONMENT=development`.
+- Run `python run.py init`: this copies `.env.template` over to `.env` and replaces the default manifest UUIDs under `app/config.py` with your own ones. Make sure to commit `app/config.py` once it has your own UUIDs.
 - Install the dependencies: `pip install -r requirements.txt`
 - Run the app: `python run.py`
 
 **Backend via Docker**:
 
 - Install Docker and Docker Compose
-- Copy `.env.template` to `.env` and update `XLWINGS_LICENSE_KEY=...`. Make sure that `ENVIRONMENT=development`.
+- Run `python run.py init`: this copies `.env.template` over to `.env` and replaces the default manifest UUIDs under `app/config.py` with your own ones. Make sure to commit `app/config.py` once it has your own UUIDs.
 - To run the dev server: `docker compose up`
 - Run `docker compose build` whenever you need to install a new dependency via `requirements.txt`
 
 **Office.js add-in**:
 
 - Has to be sideloaded, see: https://learn.microsoft.com/en-us/office/dev/add-ins/testing/test-debug-office-add-ins#sideload-an-office-add-in-for-testing
+- You'll find the addin by going to the `/manifest` endpoint, e.g., on localhost, go to https://127.0.0.1:8000/manifest. Store the text in a file called `manifest.xml` that you can use to sideload the add-in.
 
 ## Authentication & Authorization with Entra ID (previously called Azure AD)
 
@@ -76,13 +77,11 @@ Follow the steps under https://docs.xlwings.org/en/latest/pro/server/officejs_ad
    ENTRAID_CLIENT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
    ```
 
-3. In `manifest.xml`, uncomment the last section and fill in the `CLIENT_ID` (2x). You also need to adjust the domain if you're not running this on localhost. After changing the manifest, it's usually best to restart Excel to make sure everything is loaded properly.
+3. Calling custom functions (via `custom_functions_call` in `routers/xlwings.py`) and any function in `routers/macros.py` use the `get_user` dependency injection to authenticate the user (see application logs).
 
-4. Calling custom functions (via `custom_functions_call` in `routers/xlwings.py`) and any function in `routers/macros.py` use the `get_user` dependency injection to authenticate the user (see application logs).
+4. To only allow specific users to use your application, you can use role-based access control (RBAC): at the bottom of `auth/entraid.py` you can change the definition of `get_user` to require specific roles or create new dependencies (e.g., `get_admin`).
 
-5. To only allow specific users to use your application, you can use role-based access control (RBAC): at the bottom of `auth/entraid.py` you can change the definition of `get_user` to require specific roles or create new dependencies (e.g., `get_admin`).
-
-6. To set up the roles in Entra ID and map them to users, follow these instructions:
+5. To set up the roles in Entra ID and map them to users, follow these instructions:
 
    Go to All Services > Microsoft Entra ID > App registrations > Your app > App roles (left sidebar):
 

@@ -92,8 +92,9 @@ def validate_token(token: str):
                     detail="Auth error: Couldn't validate token",
                 )
         logger.debug(claims)
-    except Exception:
+    except Exception as e:
         logger.debug(f"Authentication error for token: {token}")
+        logger.info(repr(e))
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Auth error: Couldn't validate token",

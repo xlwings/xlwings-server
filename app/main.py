@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from . import settings
 from .routers import socketio as socketio_router
 from .routers.macros.router import router as macros_router
+from .routers.manifest import router as manifest_router
 from .routers.taskpane import router as taskpane_router
 from .routers.xlwings import router as xlwings_router
 
@@ -42,6 +43,7 @@ else:
 app.include_router(xlwings_router)
 app.include_router(macros_router)
 app.include_router(taskpane_router)
+app.include_router(manifest_router)
 
 
 # Security headers
@@ -93,6 +95,7 @@ async def root():
 
 
 # Static files: in prod should be served via a HTTP server like nginx if possible
+# See also pending ASGI branch in https://github.com/evansd/whitenoise
 app.mount("/static", StaticFiles(directory=settings.static_dir), name="static")
 if settings.environment == "development":
     # Don't cache static files
