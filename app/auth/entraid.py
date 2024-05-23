@@ -2,8 +2,9 @@ import logging
 import re
 from typing import List, Optional
 
+import httpx
 import jwt
-from cachetools import TTLCache, cached
+from aiocache import Cache, cached
 from fastapi import Depends, Header, status
 from fastapi.exceptions import HTTPException
 from pydantic import BaseModel
@@ -12,10 +13,20 @@ from ..config import settings
 
 logger = logging.getLogger(__name__)
 
+OPENID_CONNECT_DISCOVERY_DOCUMENT_URL = (
+    "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration"
+)
 
-# See https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration
-jwks_uri = "https://login.microsoftonline.com/common/discovery/v2.0/keys"
-jwks_client = jwt.PyJWKClient(jwks_uri)
+
+@cached(ttl=60 * 60, cache=Cache.MEMORY)
+async def get_jwks_client_and_algorithms():
+    async with httpx.AsyncClient() as client:
+        response = await client.get(OPENID_CONNECT_DISCOVERY_DOCUMENT_URL)
+    data = response.json()
+    jwks_uri = data["jwks_uri"]
+    algorithms = data["id_token_signing_alg_values_supported"]
+    jwks_client = jwt.PyJWKClient(jwks_uri)  # TODO: Makes a blocking request
+    return jwks_client, algorithms
 
 
 class User(BaseModel):
@@ -25,8 +36,8 @@ class User(BaseModel):
     roles: Optional[List[str]] = []
 
 
-@cached(cache=TTLCache(maxsize=1024, ttl=60 * 60))
-def validate_token(token: str):
+@cached(ttl=60 * 60, cache=Cache.MEMORY)
+async def validate_token(token: str):
     """Function that reads and validates the Entra ID access/id token.
     Returns a user object."""
     if not settings.entraid_tenant_id and not settings.entraid_client_id:
@@ -35,7 +46,7 @@ def validate_token(token: str):
     if token.lower().startswith("error"):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Auth error with Entra ID token: {token}",
+            detail=f"Auth error with Entra ID token: {token} See https://learn.microsoft.com/en-us/office/dev/add-ins/develop/troubleshoot-sso-in-office-add-ins#causes-and-handling-of-errors-from-getaccesstoken",
         )
     if token.lower().startswith("bearer"):
         parts = token.split()
@@ -50,7 +61,7 @@ def validate_token(token: str):
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Auth error: Invalid token, must be in format 'Bearer xxxx'",
         )
-
+    jwks_client, algorithms = await get_jwks_client_and_algorithms()
     key = jwks_client.get_signing_key_from_jwt(token)
     token_version = jwt.decode(token, options={"verify_signature": False}).get("ver")
     # https://learn.microsoft.com/en-us/azure/active-directory/develop/access-tokens#token-formats
@@ -70,17 +81,17 @@ def validate_token(token: str):
     try:
         if settings.entraid_validate_issuer:
             claims = jwt.decode(
-                token,
-                key.key,
-                algorithms=["RS256"],
+                jwt=token,
+                key=key.key,
+                algorithms=algorithms,
                 audience=audience,
                 issuer=issuer,
             )
         else:
             claims = jwt.decode(
-                token,
-                key.key,
-                algorithms=["RS256"],
+                jwt=token,
+                key=key.key,
+                algorithms=algorithms,
                 audience=audience,
             )
             # External users have their own tenant_id
@@ -124,9 +135,9 @@ def authorize(user: User, roles: list = None):
         return user
 
 
-def authenticate(token: str = Header(default="", alias="Authorization")):
+async def authenticate(token: str = Header(default="", alias="Authorization")):
     """Dependency, returns a user object"""
-    return validate_token(token)
+    return await validate_token(token)
 
 
 class Authorizer:
