@@ -98,7 +98,7 @@ async def root():
 # Static files: in prod should be served via a HTTP server like nginx if possible
 # See also pending ASGI branch in https://github.com/evansd/whitenoise
 app.mount("/static", StaticFiles(directory=settings.static_dir), name="static")
-if settings.environment == "development":
+if settings.environment == "dev":
     # Don't cache static files
     StaticFiles.is_not_modified = lambda *args, **kwargs: False
 
@@ -114,7 +114,7 @@ async def xlwings_exception_handler(request, exception):
 @app.exception_handler(Exception)
 async def exception_handler(request, exception):
     logger.error(exception)
-    if settings.environment == "development":
+    if settings.environment == "dev":
         msg = repr(exception)
     else:
         msg = "An error ocurred."
