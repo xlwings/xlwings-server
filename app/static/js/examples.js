@@ -8,8 +8,8 @@ const exampleData = {
   appLoader: {
     init: async function () {
       let bookName = await xlwings.getActiveBookName();
-      // "Book1" is for an unsaved book, for saved books include the ext: "Book1.xlsx"
-      if (bookName === "Book1") {
+      // Works with both an unsaved book ("Book1") as well as a saved one "Book1.xlsx"
+      if (bookName.includes("Book1")) {
         this.url = "/taskpane?app=1";
       } else {
         this.url = "/taskpane?app=2";
