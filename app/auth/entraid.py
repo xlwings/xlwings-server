@@ -18,6 +18,13 @@ OPENID_CONNECT_DISCOVERY_DOCUMENT_URL = (
 )
 
 
+class User(BaseModel):
+    id: str
+    name: str
+    email: Optional[str] = None
+    roles: Optional[List[str]] = []
+
+
 @cached(ttl=60 * 60 * 24, cache=Cache.MEMORY)
 async def get_jwks_client_and_algorithms():
     async with httpx.AsyncClient() as client:
@@ -29,19 +36,12 @@ async def get_jwks_client_and_algorithms():
     return jwks_client, algorithms
 
 
-class User(BaseModel):
-    oid: str
-    name: str
-    email: Optional[str] = None
-    roles: Optional[List[str]] = []
-
-
 @cached(ttl=60 * 60, cache=Cache.MEMORY)
 async def validate_token(token: str):
     """Function that reads and validates the Entra ID access/id token.
     Returns a user object."""
     if not settings.entraid_tenant_id and not settings.entraid_client_id:
-        return User(oid="n/a", name="Anonymous")
+        return User(id="n/a", name="Anonymous")
     logger.debug(f"Validating token: {token}")
     if token.lower().startswith("error"):
         raise HTTPException(
@@ -112,7 +112,7 @@ async def validate_token(token: str):
         )
 
     current_user = User(
-        oid=claims.get("oid"),
+        id=claims.get("oid"),
         name=claims.get("name"),
         email=claims.get("preferred_username"),
         roles=claims.get("roles", []),
