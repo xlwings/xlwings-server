@@ -18,7 +18,7 @@ OPENID_CONNECT_DISCOVERY_DOCUMENT_URL = (
 )
 
 
-@cached(ttl=60 * 60, cache=Cache.MEMORY)
+@cached(ttl=60 * 60 * 24, cache=Cache.MEMORY)
 async def get_jwks_client_and_algorithms():
     async with httpx.AsyncClient() as client:
         response = await client.get(OPENID_CONNECT_DISCOVERY_DOCUMENT_URL)
