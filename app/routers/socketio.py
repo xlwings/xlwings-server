@@ -4,7 +4,7 @@ import socketio
 import xlwings as xw
 
 from .. import custom_functions
-from ..auth.entraid import authenticate
+from ..auth.entraid import validate_token
 from ..config import settings
 
 logger = logging.getLogger(__name__)
@@ -21,14 +21,14 @@ sio = socketio.AsyncServer(
 
 @sio.on("connect")
 async def connect(sid, environ, auth):
-    if settings.environment == "development":
+    if settings.environment == "dev":
         from .. import hotreload
 
         logging.getLogger("watchfiles").setLevel(logging.ERROR)
         await hotreload.start_browser_reload_watcher(
             sio=sio, directory=settings.base_dir
         )
-    await xw.server.sio_connect(sid, environ, auth, sio, authenticate)
+    await xw.server.sio_connect(sid, environ, auth, sio, authenticate=validate_token)
 
 
 @sio.on("disconnect")

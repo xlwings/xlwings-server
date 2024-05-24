@@ -1,5 +1,5 @@
+aiocache
 azure-functions; sys_platform != 'win32'
-cachetools
 fastapi
 gunicorn; sys_platform != 'win32'
 httptools
