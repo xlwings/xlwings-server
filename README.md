@@ -142,19 +142,20 @@ az login
     az storage account create --name xlwingsquickstartsa --location westeurope --resource-group xlwings-quickstart-rg --sku Standard_LRS
     ```
 
-3.  Create the function app:
+3.  Create the function app (if possible, use the same Python version locally as the one specified in this command):
 
     ```bash
-    az functionapp create --resource-group xlwings-quickstart-rg --consumption-plan-location westeurope --runtime python --runtime-version 3.10 --functions-version 4 --name xlwings-quickstart --os-type linux --storage-account xlwingsquickstartsa
+    az functionapp create --resource-group xlwings-quickstart-rg --consumption-plan-location westeurope --runtime python --runtime-version 3.11 --functions-version 4 --name xlwings-quickstart --os-type linux --storage-account xlwingsquickstartsa
     ```
 
-4.  Set the xlwings license key as environment variable (you can get a free trial key [here](https://www.xlwings.org/trial)):
+4.  Set the required environment variables (you can get a free trial key [here](https://www.xlwings.org/trial)). Note that streaming functions
+    and other Socket.io-related functionality is not supported with Azure Functions:
 
     ```bash
-    az functionapp config appsettings set --name xlwings-quickstart --resource-group xlwings-quickstart-rg --settings XLWINGS_LICENSE_KEY=<YOUR_LICENSE_KEY>
+    az functionapp config appsettings set --name xlwings-quickstart --resource-group xlwings-quickstart-rg --settings XLWINGS_LICENSE_KEY=<YOUR_LICENSE_KEY> XLWINGS_ENVIRONMENT=prod XLWINGS_ENABLE_SOCKETIO=false
     ```
 
-5.  Set the following setting to enable the worker process to index the functions:
+5.  Run the following to enable the worker process to index the functions:
 
     ```bash
     az functionapp config appsettings set --name xlwings-quickstart --resource-group xlwings-quickstart-rg --settings AzureWebJobsFeatureFlags=EnableWorkerIndexing

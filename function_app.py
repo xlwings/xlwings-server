@@ -6,6 +6,7 @@ Note: Azure Functions don't support streaming functions/socket.io.
 The other files required for Azure Functions are:
 - host.json
 - local.settings.json
+- .funcignore
 
 The function is always called http_app_func, see:
 https://github.com/Azure-Samples/fastapi-on-azure-functions/issues/31
