@@ -146,7 +146,7 @@ websockets==12.0
     # via uvicorn
 wsproto==1.2.0
     # via simple-websocket
-xlwings==0.31.2
+xlwings==0.31.3
     # via -r requirements.in
 
 # The following packages were excluded from the output:
