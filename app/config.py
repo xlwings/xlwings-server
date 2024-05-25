@@ -20,12 +20,12 @@ class Settings(BaseSettings):
     enable_socketio: bool = True
     entraid_client_id: Optional[str] = None
     entraid_tenant_id: Optional[str] = None
-    # Set to False if you have users from external organizations
     entraid_validate_issuer: bool = True
     environment: Literal["dev", "qa", "uat", "prod"] = "prod"
     functions_namespace: str = "XLWINGS"
     hostname: Optional[str] = None
     log_level: str = "INFO"
+    # These UUIDs will be overwritten by: python run.py init
     manifest_id_dev: UUID4 = "0a856eb1-91ab-4f38-b757-23fbe1f73130"
     manifest_id_qa: UUID4 = "9cda34b1-af68-4dc6-b97c-e63ef6284671"
     manifest_id_uat: UUID4 = "70428e53-8113-421c-8fe2-9b74fcb94ee5"

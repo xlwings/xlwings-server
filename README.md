@@ -80,9 +80,9 @@
    ENTRAID_CLIENT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
    ```
 
-3. Calling custom functions (via `custom_functions_call` in `routers/xlwings.py`) and any function in `routers/macros.py` use the `get_user` dependency injection to authenticate the user (see application logs).
+3. Calling custom functions (via `custom_functions_call` in `routers/xlwings.py`) and any function in `routers/macros.py` use the `dep.User` dependency injection to authenticate the user (see application logs).
 
-4. To only allow specific users to use your application, you can use role-based access control (RBAC): at the bottom of `auth/entraid.py` you can change the definition of `get_user` to require specific roles or create new dependencies (e.g., `get_admin`).
+4. To only allow specific users to use your application, you can use role-based access control (RBAC): at the bottom of `auth/entraid.py` you can change the definition of `get_user` to require specific roles or create new dependencies (e.g., `get_admin`). Make sure to add them to `app/dependencies` for ease of use.
 
 5. To set up the roles in Entra ID and map them to users, follow these instructions:
 

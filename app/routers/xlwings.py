@@ -1,10 +1,9 @@
 import logging
 
 import xlwings as xw
-from fastapi import APIRouter, Body, Depends, Request, Response
+from fastapi import APIRouter, Body, Request, Response
 
-from .. import custom_functions
-from ..auth.entraid import get_user
+from .. import custom_functions, dependencies as dep
 from ..config import settings
 from ..templates import TemplateResponse
 
@@ -47,7 +46,9 @@ async def custom_functions_code():
 
 @router.post("/custom-functions-call")
 async def custom_functions_call(
-    request: Request, data: dict = Body, current_user=Depends(get_user)
+    request: Request,
+    current_user: dep.User,
+    data: dict = Body,
 ):
     logger.info(f"""Function "{data['func_name']}" called by {current_user.name}""")
     rv = await xw.server.custom_functions_call(data, custom_functions)

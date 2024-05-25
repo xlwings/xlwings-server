@@ -5,17 +5,14 @@ from . import examples
 
 import logging
 
-from fastapi import Depends
-
-from ...auth.entraid import User, get_user
-from ...dependencies import Book
+from ... import dependencies as dep
 from .router import router
 
 logger = logging.getLogger(__name__)
 
 
 @router.post("/hello")
-async def hello(book: Book, current_user: User = Depends(get_user)):
+async def hello(book: dep.Book, current_user: dep.User):
     logger.info(f"hello called by {current_user.name}")
     sheet = book.sheets[0]
     cell = sheet["A1"]

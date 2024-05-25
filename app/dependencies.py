@@ -3,10 +3,13 @@ from typing import Annotated
 import xlwings as xw
 from fastapi import Depends
 
+from .auth import entraid
+from .auth.entraid import get_admin, get_user
 
-# Book dependency
+
+# Book
 def get_book(body: dict):
-    """Dependency that returns the calling book and cleans it up again"""
+    """Book dependency that returns the calling book and cleans it up again"""
     book = xw.Book(json=body)
     try:
         yield book
@@ -14,5 +17,9 @@ def get_book(body: dict):
         book.close()
 
 
-# This is the type annotation that we're using in the endpoints
 Book = Annotated[xw.Book, Depends(get_book)]
+
+
+# Users/Auth
+User = Annotated[entraid.User, Depends(get_user)]
+Admin = Annotated[entraid.User, Depends(get_admin)]
