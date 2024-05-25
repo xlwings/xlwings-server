@@ -8,10 +8,12 @@ jinja2
 jinja2-fragments
 orjson
 pandas
+pre-commit
 pydantic-settings
 PyJWT[crypto]
 python-multipart
 python-socketio
+pytest
 uvicorn
 uvloop; sys_platform != 'win32'
 watchfiles
