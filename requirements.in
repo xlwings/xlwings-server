@@ -1,6 +1,6 @@
 aiocache
 azure-functions; sys_platform != 'win32'
-fastapi
+fastapi-slim
 gunicorn; sys_platform != 'win32'
 httptools
 httpx

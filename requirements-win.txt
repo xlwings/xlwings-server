@@ -18,23 +18,13 @@ certifi==2024.2.2
 cffi==1.16.0
     # via cryptography
 click==8.1.7
-    # via
-    #   typer
-    #   uvicorn
+    # via uvicorn
 colorama==0.4.6
-    # via
-    #   click
-    #   uvicorn
+    # via click
 cryptography==42.0.7
     # via pyjwt
-dnspython==2.6.1
-    # via email-validator
-email-validator==2.1.1
-    # via fastapi
-fastapi==0.111.0
+fastapi-slim==0.111.0
     # via -r requirements.in
-fastapi-cli==0.0.4
-    # via fastapi
 h11==0.14.0
     # via
     #   httpcore
@@ -43,75 +33,51 @@ h11==0.14.0
 httpcore==1.0.5
     # via httpx
 httptools==0.6.1
-    # via
-    #   -r requirements.in
-    #   uvicorn
+    # via -r requirements.in
 httpx==0.27.0
-    # via
-    #   -r requirements.in
-    #   fastapi
+    # via -r requirements.in
 idna==3.7
     # via
     #   anyio
-    #   email-validator
     #   httpx
 jinja2==3.1.4
     # via
     #   -r requirements.in
-    #   fastapi
     #   jinja2-fragments
 jinja2-fragments==1.3.0
     # via -r requirements.in
-markdown-it-py==3.0.0
-    # via rich
 markupsafe==2.1.5
     # via jinja2
-mdurl==0.1.2
-    # via markdown-it-py
 numpy==1.26.4
     # via pandas
 orjson==3.10.3
-    # via
-    #   -r requirements.in
-    #   fastapi
+    # via -r requirements.in
 pandas==2.2.2
     # via -r requirements.in
 pycparser==2.22
     # via cffi
 pydantic==2.7.1
     # via
-    #   fastapi
+    #   fastapi-slim
     #   pydantic-settings
 pydantic-core==2.18.2
     # via pydantic
 pydantic-settings==2.2.1
     # via -r requirements.in
-pygments==2.18.0
-    # via rich
 pyjwt==2.8.0
     # via -r requirements.in
 python-dateutil==2.9.0.post0
     # via pandas
 python-dotenv==1.0.1
-    # via
-    #   pydantic-settings
-    #   uvicorn
+    # via pydantic-settings
 python-engineio==4.9.1
     # via python-socketio
 python-multipart==0.0.9
-    # via
-    #   -r requirements.in
-    #   fastapi
+    # via -r requirements.in
 python-socketio==5.11.2
     # via -r requirements.in
 pytz==2024.1
     # via pandas
-pyyaml==6.0.1
-    # via uvicorn
-rich==13.7.1
-    # via typer
-shellingham==1.5.4
-    # via typer
 simple-websocket==1.0.0
     # via python-engineio
 six==1.16.0
@@ -121,29 +87,18 @@ sniffio==1.3.1
     #   anyio
     #   httpx
 starlette==0.37.2
-    # via fastapi
-typer==0.12.3
-    # via fastapi-cli
+    # via fastapi-slim
 typing-extensions==4.11.0
     # via
-    #   fastapi
+    #   fastapi-slim
     #   pydantic
     #   pydantic-core
-    #   typer
 tzdata==2024.1
     # via pandas
-ujson==5.10.0
-    # via fastapi
 uvicorn==0.29.0
-    # via
-    #   -r requirements.in
-    #   fastapi
+    # via -r requirements.in
 watchfiles==0.21.0
-    # via
-    #   -r requirements.in
-    #   uvicorn
-websockets==12.0
-    # via uvicorn
+    # via -r requirements.in
 wsproto==1.2.0
     # via simple-websocket
 xlwings==0.31.3
