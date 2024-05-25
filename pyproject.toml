@@ -15,7 +15,7 @@ ignore = [
     # from ... import *
     "F403",
     # Comparison to `None` should be `cond is None` (sqlalchemy)
-    "E711"
+    "E711",
 
 ]
 select = [
