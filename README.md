@@ -18,10 +18,9 @@
 ## Dev environment
 
 - Follow the steps under https://docs.xlwings.org/en/latest/pro/server/officejs_addins.html#quickstart (but using this repo instead of the one mentioned in the quickstart). Mainly, you need to install `mkcert` to create local certificates as Office.js requires the web app to be served via https (not http) even on localhost.
-
 - Alternatively, you can run this repo on GitHub Codepaces (make sure to expose the port 8000 publicly)
-
 - Run `python run.py init`: this copies `.env.template` over to `.env` (`.env` isn't tracked in Git) and replaces the default manifest UUIDs under `app/config.py` with your own ones. Make sure to commit `app/config.py` once it has your own UUIDs.
+- Advanced configuration is done via `.env` file, where the settings are explained (note that lines starting with `#` are comments)
 
 **Backend via Python directly:**
 
