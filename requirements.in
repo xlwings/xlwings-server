@@ -1,5 +1,6 @@
 aiocache
 azure-functions; sys_platform != 'win32'
+beautifulsoup4
 fastapi-slim
 gunicorn; sys_platform != 'win32'
 httptools
