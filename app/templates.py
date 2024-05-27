@@ -36,6 +36,7 @@ except ModuleNotFoundError as e:
         "Install Starlette to use jinja2_fragments.fastapi"
     ) from e
 
+from jinja2 import Environment, FileSystemLoader
 from jinja2_fragments import render_block
 
 from .config import settings
@@ -47,7 +48,9 @@ class InvalidContextError(Exception):
 
 class Jinja2Blocks(Jinja2Templates):
     def __init__(self, directory, **env_options):
-        super().__init__(directory, **env_options)
+        # Fixed Starlette deprecation warning
+        env = Environment(loader=FileSystemLoader(directory), **env_options)
+        super().__init__(env=env)
 
     def TemplateResponse(
         self,
