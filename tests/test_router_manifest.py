@@ -10,9 +10,9 @@ def test_get_manifest_nonprod():
     response = client.get("/manifest")
     assert response.status_code == 200
     assert "text/plain" in response.headers["Content-Type"]
-    assert '<DisplayName DefaultValue="Test Project [test]" />' in response.text
+    assert '<DisplayName DefaultValue="Test Project [qa]" />' in response.text
     assert (
-        '<bt:String id="Functions.Namespace" DefaultValue="XLWINGS_TEST" />'
+        '<bt:String id="Functions.Namespace" DefaultValue="XLWINGS_QA" />'
         in response.text
     )
 
@@ -38,4 +38,4 @@ def test_empty_function_namespace_prod(monkeypatch):
 def test_empty_function_namespace_nonprod(monkeypatch):
     monkeypatch.setattr(settings, "functions_namespace", "")
     response = client.get("/manifest")
-    assert '<bt:String id="Functions.Namespace" DefaultValue="TEST" />' in response.text
+    assert '<bt:String id="Functions.Namespace" DefaultValue="QA" />' in response.text
