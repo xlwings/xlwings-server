@@ -75,8 +75,8 @@
 2. Set your environment variables, e.g., in `.env` like this:
 
    ```
-   ENTRAID_TENANT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
-   ENTRAID_CLIENT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+   XLWINGS_ENTRAID_TENANT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+   XLWINGS_ENTRAID_CLIENT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
    ```
 
 3. Calling custom functions (via `custom_functions_call` in `routers/xlwings.py`) and any function in `routers/macros.py` use the `dep.User` dependency injection to authenticate the user (see application logs).
