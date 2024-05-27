@@ -1,6 +1,6 @@
 aiocache
 azure-functions; sys_platform != 'win32'
-beautifulsoup4
+beautifulsoup4  # dev
 fastapi-slim
 gunicorn; sys_platform != 'win32'
 httptools
@@ -9,13 +9,13 @@ jinja2
 jinja2-fragments
 orjson
 pandas
-pre-commit
+pre-commit  # dev
 pydantic-settings
 PyJWT[crypto]
 python-multipart
 python-socketio
-pytest
+pytest  # dev
 uvicorn
 uvloop; sys_platform != 'win32'
-watchfiles
+watchfiles  # dev
 xlwings
