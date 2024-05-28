@@ -1,7 +1,5 @@
 # xlwings Server
 
-**NOTE: This repo is currently in an early stage and changing rapidly.**
-
 ## Features:
 
 - Only requires Python (no dependency on Node.js or Webpack)
@@ -9,11 +7,12 @@
 - Comes with htmx, Alpine.js (CSP build), and Socket.io
 - Comes with Bootstrap-xlwings, a Bootstrap theme in the Excel look
 - Runs in an air-gapped environment without access to the Internet or any Microsoft servers
-- Supports SSO (Single Sign-On) authentication and RBAC (Role-Based Access Control) via Entra ID (previously known as Azure AD)
+- Supports SSO (Single Sign-On) authentication and RBAC (Role-Based Access Control) via Entra ID (previously known as Azure AD) simply by adding the Client and Tenant IDs to the `.env` file
 - The task pane is hot-reloaded with every code change during development
 - Tight security: uses the HTTP response headers recommended by OWASP including the most restrictive CSP header
 - Supports streaming functions out-of-the-box
 - Cache busting for static files is automatically done when using the Docker image
+- The manifest is a template that automatically shows the correct URLs etc when going to the `/manifest` endpoint
 
 ## Dev environment
 
