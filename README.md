@@ -1,6 +1,6 @@
 # xlwings Server
 
-## Features:
+## Features
 
 - Only requires Python (no dependency on Node.js or Webpack)
 - Uses FastAPI as the web framework
