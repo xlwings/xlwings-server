@@ -13,6 +13,7 @@
 - Supports streaming functions out-of-the-box
 - Cache busting for static files is automatically done when using the Docker image
 - The manifest is a template that automatically shows the correct URLs etc when going to the `/manifest` endpoint
+- Development can be done on GitHub Codespaces, saving you from installing Python or mkcert locally
 
 ## Dev environment
 
