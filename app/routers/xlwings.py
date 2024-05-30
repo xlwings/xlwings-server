@@ -39,7 +39,10 @@ async def custom_functions_meta():
 @router.get("/custom-functions-code")
 async def custom_functions_code():
     return Response(
-        content=xw.server.custom_functions_code(custom_functions),
+        content=xw.server.custom_functions_code(
+            custom_functions,
+            custom_functions_call_path=f"{settings.app_path}/xlwings/custom-functions-call",
+        ),
         media_type="text/javascript",
     )
 
