@@ -42,7 +42,7 @@ async def manifest(request: Request):
         name="/manifest.xml",
         context={
             "settings": settings,
-            "base_url": str(base_url).rstrip("/"),
+            "base_url_with_app_path": f"{str(base_url).rstrip('/')}{settings.app_path}",
             "manifest_id": manifest_id,
         },
         media_type="text/plain",
