@@ -11,6 +11,7 @@ class Settings(BaseSettings):
         env_prefix="XLWINGS_", env_file=os.getenv("DOTENV_PATH", ".env"), extra="ignore"
     )
     add_security_headers: bool = True
+    app_path: str = ""
     base_dir: Path = Path(__file__).resolve().parent
     cors_allow_origins: List[str] = ["*"]
     enable_alpinejs_csp: bool = True
