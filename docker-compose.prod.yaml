@@ -1,4 +1,4 @@
-# This setup assumes that TSL certificates are handled seperatly, e.g., via nginx
+# This setup assumes that TLS certificates are handled seperatly, e.g., via nginx
 services:
   app:
     build: .

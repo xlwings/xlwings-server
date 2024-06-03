@@ -42,10 +42,13 @@
       <script id="auth" type="application/json">
         { "auth": {{ auth_value|tojson }} }
       </script>
+      <script id="app-path" type="application/json">
+        { "appPath": {{ settings.app_path|tojson }} }
+      </script>
       <!-- prettier-ignore-end -->
       <script src="{{ settings.app_path }}/static/js/auth.js"></script>
       {# Load Custom Functions #}
-      <script src="/xlwings/custom-functions-code" defer></script>
+      <script src="{{ settings.app_path }}/xlwings/custom-functions-code" defer></script>
       {# Bootstrap with the xlwings theme #}
       <link rel="stylesheet" href="{{ settings.app_path }}/static/vendor/bootstrap-xlwings/bootstrap-xlwings.min.css" />
       <script src="{{ settings.app_path }}/static/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
