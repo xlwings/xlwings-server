@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     app_path: str = ""
     base_dir: Path = Path(__file__).resolve().parent
     cors_allow_origins: List[str] = ["*"]
+    date_format: Optional[str] = None
     enable_alpinejs_csp: bool = True
     enable_examples: bool = True
     enable_excel_online: bool = True
@@ -44,5 +45,9 @@ class Settings(BaseSettings):
 
 settings = Settings()
 
+# TODO: refactor once xlwings offers a runtime config
 if not os.getenv("XLWINGS_LICENSE_KEY"):
     os.environ["XLWINGS_LICENSE_KEY"] = settings.license_key
+
+if settings.date_format:
+    os.environ["XLWINGS_DATE_FORMAT"] = settings.date_format
