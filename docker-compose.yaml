@@ -17,6 +17,9 @@ services:
       - .env
 
   # nginx:
+  #   # This requires the following settings:
+  #   # XLWINGS_APP_PATH="/app"
+  #   # XLWINGS_STATIC_URL_PATH="/app/static"
   #   image: nginx:latest
   #   ports:
   #     - "8888:443"
