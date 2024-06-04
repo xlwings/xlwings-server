@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     manifest_id_prod: UUID4 = "4f342d85-3a49-41cb-90a5-37b1f2219040"
     project_name: str = "xlwings Server"
     public_addin_store: bool = False
+    static_url_path: str = "/static"
     license_key: str
 
     @computed_field

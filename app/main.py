@@ -97,7 +97,11 @@ async def root():
 
 # Static files: in prod should be served via a HTTP server like nginx if possible
 # See also pending ASGI branch in https://github.com/evansd/whitenoise
-app.mount("/static", StaticFiles(directory=settings.static_dir), name="static")
+app.mount(
+    "/static",
+    StaticFiles(directory=settings.static_dir),
+    name="static",
+)
 if settings.environment == "dev":
     # Don't cache static files
     StaticFiles.is_not_modified = lambda *args, **kwargs: False

@@ -9,11 +9,11 @@
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="{{ settings.project_name }}{{ ' [' + settings.environment + ']' if settings.environment != 'prod'}}" />
   <Description DefaultValue="{{ settings.project_name }}{{ ' [' + settings.environment + ']' if settings.environment != 'prod'}}" />
-  <IconUrl DefaultValue="{{ base_url }}/static/images/ribbon/examples/xlwings-32.png" />
-  <HighResolutionIconUrl DefaultValue="{{ base_url }}/static/images/ribbon/examples/xlwings-64.png" />
+  <IconUrl DefaultValue="{{ base_url }}{{ settings.static_url_path }}/images/ribbon/examples/xlwings-32.png" />
+  <HighResolutionIconUrl DefaultValue="{{ base_url }}{{ settings.static_url_path }}/images/ribbon/examples/xlwings-64.png" />
   <SupportUrl DefaultValue="https://www.xlwings.org/contact" />
   <AppDomains>
-    <AppDomain>{{ base_url }}</AppDomain>
+    <AppDomain>{{ base_url_with_app_path }}</AppDomain>
   </AppDomains>
   <Hosts>
     <Host Name="Workbook" />
@@ -25,7 +25,7 @@
     </Sets>
   </Requirements>
   <DefaultSettings>
-    <SourceLocation DefaultValue="{{ base_url }}/taskpane" />
+    <SourceLocation DefaultValue="{{ base_url_with_app_path }}/taskpane" />
   </DefaultSettings>
   <Permissions>ReadWriteDocument</Permissions>
   <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
@@ -114,15 +114,15 @@
 
     <Resources>
       <bt:Images>
-        <bt:Image id="Icon.16x16" DefaultValue="{{ base_url }}/static/images/ribbon/examples/xlwings-16.png" />
-        <bt:Image id="Icon.32x32" DefaultValue="{{ base_url }}/static/images/ribbon/examples/xlwings-32.png" />
-        <bt:Image id="Icon.80x80" DefaultValue="{{ base_url }}/static/images/ribbon/examples/xlwings-80.png" />
+        <bt:Image id="Icon.16x16" DefaultValue="{{ base_url }}{{ settings.static_url_path }}/images/ribbon/examples/xlwings-16.png" />
+        <bt:Image id="Icon.32x32" DefaultValue="{{ base_url }}{{ settings.static_url_path }}/images/ribbon/examples/xlwings-32.png" />
+        <bt:Image id="Icon.80x80" DefaultValue="{{ base_url }}{{ settings.static_url_path }}/images/ribbon/examples/xlwings-80.png" />
       </bt:Images>
       <bt:Urls>
         <!-- This must point to the HTML document with the task pane -->
-        <bt:Url id="Taskpane.Url" DefaultValue="{{ base_url }}/taskpane" />
-        <bt:Url id="Functions.Script.Url" DefaultValue="{{ base_url }}/xlwings/custom-functions-code" />
-        <bt:Url id="Functions.Metadata.Url" DefaultValue="{{ base_url }}/xlwings/custom-functions-meta" />
+        <bt:Url id="Taskpane.Url" DefaultValue="{{ base_url_with_app_path }}/taskpane" />
+        <bt:Url id="Functions.Script.Url" DefaultValue="{{ base_url_with_app_path }}/xlwings/custom-functions-code" />
+        <bt:Url id="Functions.Metadata.Url" DefaultValue="{{ base_url_with_app_path }}/xlwings/custom-functions-meta" />
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="Functions.Namespace" DefaultValue="{{ settings.functions_namespace|upper }}{{ '_' if settings.functions_namespace and settings.environment != 'prod'}}{{ settings.environment | upper if settings.environment != 'prod'}}" />
@@ -140,7 +140,7 @@
     {% if settings.entraid_tenant_id or settings.entraid_client_id %}
     <WebApplicationInfo>
       <Id>{{ settings.entraid_client_id }}</Id>
-      <Resource>api://{{ base_url | replace("https://", "") }}/{{ settings.entraid_client_id }}</Resource>
+      <Resource>api://{{ base_url_with_app_path | replace("https://", "") }}/{{ settings.entraid_client_id }}</Resource>
       <Scopes>
         <Scope>openid</Scope>
         <Scope>profile</Scope>
