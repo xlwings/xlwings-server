@@ -9,8 +9,8 @@
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="{{ settings.project_name }}{{ ' [' + settings.environment + ']' if settings.environment != 'prod'}}" />
   <Description DefaultValue="{{ settings.project_name }}{{ ' [' + settings.environment + ']' if settings.environment != 'prod'}}" />
-  <IconUrl DefaultValue="{{ base_url_with_app_path }}/static/images/ribbon/examples/xlwings-32.png" />
-  <HighResolutionIconUrl DefaultValue="{{ base_url_with_app_path }}/static/images/ribbon/examples/xlwings-64.png" />
+  <IconUrl DefaultValue="{{ base_url }}{{ settings.static_url_path }}/images/ribbon/examples/xlwings-32.png" />
+  <HighResolutionIconUrl DefaultValue="{{ base_url }}{{ settings.static_url_path }}/images/ribbon/examples/xlwings-64.png" />
   <SupportUrl DefaultValue="https://www.xlwings.org/contact" />
   <AppDomains>
     <AppDomain>{{ base_url_with_app_path }}</AppDomain>
@@ -114,9 +114,9 @@
 
     <Resources>
       <bt:Images>
-        <bt:Image id="Icon.16x16" DefaultValue="{{ base_url_with_app_path }}/static/images/ribbon/examples/xlwings-16.png" />
-        <bt:Image id="Icon.32x32" DefaultValue="{{ base_url_with_app_path }}/static/images/ribbon/examples/xlwings-32.png" />
-        <bt:Image id="Icon.80x80" DefaultValue="{{ base_url_with_app_path }}/static/images/ribbon/examples/xlwings-80.png" />
+        <bt:Image id="Icon.16x16" DefaultValue="{{ base_url }}{{ settings.static_url_path }}/images/ribbon/examples/xlwings-16.png" />
+        <bt:Image id="Icon.32x32" DefaultValue="{{ base_url }}{{ settings.static_url_path }}/images/ribbon/examples/xlwings-32.png" />
+        <bt:Image id="Icon.80x80" DefaultValue="{{ base_url }}{{ settings.static_url_path }}/images/ribbon/examples/xlwings-80.png" />
       </bt:Images>
       <bt:Urls>
         <!-- This must point to the HTML document with the task pane -->

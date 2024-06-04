@@ -11,7 +11,7 @@ class Settings(BaseSettings):
         env_prefix="XLWINGS_", env_file=os.getenv("DOTENV_PATH", ".env"), extra="ignore"
     )
     add_security_headers: bool = True
-    app_path: str = ""
+    app_path: Optional[str] = None
     base_dir: Path = Path(__file__).resolve().parent
     cors_allow_origins: List[str] = ["*"]
     enable_alpinejs_csp: bool = True
@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     manifest_id_prod: UUID4 = "4f342d85-3a49-41cb-90a5-37b1f2219040"
     project_name: str = "xlwings Server"
     public_addin_store: bool = False
+    static_url_path: str = "/static"
     license_key: str
 
     @computed_field

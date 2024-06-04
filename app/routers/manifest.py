@@ -29,6 +29,8 @@ async def manifest(request: Request):
         # Mostly localhost
         base_url = request.base_url
 
+    base_url = str(base_url).rstrip("/")
+
     manifest_ids = {
         "dev": settings.manifest_id_dev,
         "qa": settings.manifest_id_qa,
@@ -42,7 +44,8 @@ async def manifest(request: Request):
         name="/manifest.xml",
         context={
             "settings": settings,
-            "base_url_with_app_path": f"{str(base_url).rstrip('/')}{settings.app_path}",
+            "base_url": base_url,
+            "base_url_with_app_path": f"{base_url}{settings.app_path if settings.app_path else ""}",
             "manifest_id": manifest_id,
         },
         media_type="text/plain",
