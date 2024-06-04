@@ -45,7 +45,7 @@ async def manifest(request: Request):
         context={
             "settings": settings,
             "base_url": base_url,
-            "base_url_with_app_path": f"{base_url}{settings.app_path if settings.app_path else ""}",
+            "base_url_with_app_path": f"{base_url}{settings.app_path}",
             "manifest_id": manifest_id,
         },
         media_type="text/plain",
