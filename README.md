@@ -14,6 +14,7 @@
 - Cache busting for static files is automatically done when using the Docker image
 - The manifest is a template that uses the correct URLs and IDs to prevent name clashing with different environments: it is shown under `/manifest`
 - Development can be done on GitHub Codespaces, saving you from installing Python or mkcert locally
+- Test coverage (growing...)
 - xlwings is free for non-commercial use. Commercial users can request access to a private repo from where they can fork it privately to be able to easily pull in updates.
 
 ## Dev environment
