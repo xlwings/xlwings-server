@@ -141,7 +141,7 @@ watchfiles==0.21.0
     # via -r requirements.in
 wsproto==1.2.0
     # via simple-websocket
-xlwings==0.31.4
+xlwings==0.31.5
     # via -r requirements.in
 
 # The following packages were excluded from the output:

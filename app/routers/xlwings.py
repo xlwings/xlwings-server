@@ -3,7 +3,7 @@ import logging
 import xlwings as xw
 from fastapi import APIRouter, Body, Request, Response
 
-from .. import custom_functions, dependencies as dep
+from .. import custom_functions, custom_scripts, dependencies as dep
 from ..config import settings
 from ..templates import TemplateResponse
 
@@ -56,3 +56,10 @@ async def custom_functions_call(
     logger.info(f"""Function "{data['func_name']}" called by {current_user.name}""")
     rv = await xw.server.custom_functions_call(data, custom_functions)
     return {"result": rv}
+
+
+@router.post("/custom-scripts-call/{script_name}")
+async def custom_scripts_call(script_name: str, book: dep.Book, current_user: dep.User):
+    logger.info(f"""Script "{script_name}" called by {current_user.name}""")
+    book = await xw.server.custom_scripts_call(custom_scripts, script_name, book)
+    return book.json()

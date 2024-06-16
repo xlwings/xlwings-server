@@ -42,9 +42,19 @@
 
 ## Macros & custom functions
 
-- Custom functions can be added under `app/custom_functions/examples.py`. To add your own Python modules, see the instructions at the top of `examples.py`. There is a sample custom function included that can be run via `=XLWINGS.HELLO("xlwings")`. There's also a streaming function (`=XLWINGS.STREAMING_RANDOM(2, 3)`). The `XLWINGS` prefix ("namespace") can be adjusted in via the settings (`XLWINGS_FUNCTIONS_NAMESPACE` in `.env` file). Except for the prod environment, `-dev` and `-staging` are automatically appended to avoid name clashes. So if you run this under a dev environment, you'll find the custom functions under the `XLWINGS-DEV` prefix.
+- Custom functions can be added under `app/custom_functions/examples.py`. To add your own Python modules, see the instructions at the top of `examples.py`. There is a sample custom function included that can be run via `=XLWINGS.HELLO("xlwings")`. There's also a streaming function (`=XLWINGS.STREAMING_RANDOM(2, 3)`). The `XLWINGS` prefix ("namespace") can be adjusted via the settings (`XLWINGS_FUNCTIONS_NAMESPACE` in `.env` file). Except for the prod environment, `-dev` and `-uat` are automatically appended to avoid name clashes. So if you run this under a dev environment, you'll find the custom functions under the `XLWINGS_DEV` prefix.
 
-- Macros can be added under `app/routers/macros/examples.py`. To add your own Python modules, see the instructions at the top of `examples.py`. They will need to be bound to a button on either the ribbon (via `app/templates/manifest.xml`) or task pane (via `app/templates/taskpane.html`). There is a sample button `Hello World` included on both the ribbon and task pane.
+- Scripts can be added under `app/custom_scripts/examples.py`. To add your own Python modules, see the instructions at the top of `examples.py`. They will need to be bound to a button on either the ribbon (via `app/templates/manifest.xml`) or task pane (e.g., see `app/templates/examples/hello_world/taskpane_hello.html`). There is a sample button `Hello World` included on both the ribbon and task pane. On the task pane, connecting a button is as easy as adding the `xw-click` attribute with the name of the Python function. Optionally, you can add configuration via `xw-config`, however the `auth` config is handled automatically:
+
+  ```html
+  <button
+    xw-click="hello_world"
+    xw-config='{"include": "Sheet1"}'
+    class="btn btn-primary btn-sm"
+    type="button">
+    Hello World
+  </button>
+  ```
 
 ## Prod deployment
 
