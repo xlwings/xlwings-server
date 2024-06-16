@@ -11,7 +11,6 @@ from xlwings import XlwingsError
 
 from . import settings
 from .routers import socketio as socketio_router
-from .routers.macros.router import router as macros_router
 from .routers.manifest import router as manifest_router
 from .routers.taskpane import router as taskpane_router
 from .routers.xlwings import router as xlwings_router
@@ -42,7 +41,6 @@ else:
 
 # Routers
 app.include_router(xlwings_router)
-app.include_router(macros_router)
 app.include_router(taskpane_router)
 app.include_router(manifest_router)
 
