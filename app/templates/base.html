@@ -50,8 +50,12 @@
       {# Load Custom Functions #}
       <script src="{{ settings.app_path }}/xlwings/custom-functions-code" defer></script>
       {# Bootstrap with the xlwings theme #}
-      <link rel="stylesheet" href="{{ settings.static_url_path }}/vendor/bootstrap-xlwings/bootstrap-xlwings.min.css" />
-      <script src="{{ settings.static_url_path }}/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+      {% if settings.enable_bootstrap %}
+        <link
+          rel="stylesheet"
+          href="{{ settings.static_url_path }}/vendor/bootstrap-xlwings/bootstrap-xlwings.min.css" />
+        <script src="{{ settings.static_url_path }}/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+      {% endif %}
       {# Own #}
       <link rel="stylesheet" href="{{ settings.static_url_path }}/css/style.css" />
       <script src="{{ settings.static_url_path }}/js/socketio-handlers.js" defer></script>

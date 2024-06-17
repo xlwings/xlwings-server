@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     cors_allow_origins: List[str] = ["*"]
     date_format: Optional[str] = None
     enable_alpinejs_csp: bool = True
+    enable_bootstrap: bool = True
     enable_examples: bool = True
     enable_excel_online: bool = True
     enable_htmx: bool = True
