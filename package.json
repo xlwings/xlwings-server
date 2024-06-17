@@ -5,11 +5,11 @@
     "bootstrap": "5.3.3",
     "htmx.org": "1.9.12",
     "socket.io": "4.7.5",
-    "xlwings": "github:xlwings/xlwings#0.31.4"
+    "xlwings": "github:xlwings/xlwings#0.31.5"
   },
   "devDependencies": {
     "@types/alpinejs": "3.13.10",
-    "prettier": "3.2.5",
+    "prettier": "3.3.2",
     "prettier-plugin-jinja-template": "1.4.0"
   }
 }
