@@ -40,7 +40,7 @@
 - Has to be sideloaded, see: https://learn.microsoft.com/en-us/office/dev/add-ins/testing/test-debug-office-add-ins#sideload-an-office-add-in-for-testing
 - You'll find the addin by going to the `/manifest` endpoint, e.g., on localhost, go to https://127.0.0.1:8000/manifest. Store the text in a file called `manifest.xml` that you can use to sideload the add-in.
 
-## Macros & custom functions
+## Scripts & custom functions
 
 - Custom functions can be added under `app/custom_functions/examples.py`. To add your own Python modules, see the instructions at the top of `examples.py`. There is a sample custom function included that can be run via `=XLWINGS.HELLO("xlwings")`. There's also a streaming function (`=XLWINGS.STREAMING_RANDOM(2, 3)`). The `XLWINGS` prefix ("namespace") can be adjusted via the settings (`XLWINGS_FUNCTIONS_NAMESPACE` in `.env` file). Except for the prod environment, `-dev` and `-uat` are automatically appended to avoid name clashes. So if you run this under a dev environment, you'll find the custom functions under the `XLWINGS_DEV` prefix.
 
@@ -91,7 +91,7 @@
    XLWINGS_ENTRAID_CLIENT_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
    ```
 
-3. Calling custom functions (via `custom_functions_call` in `routers/xlwings.py`) and any function in `routers/macros.py` use the `dep.User` dependency injection to authenticate the user (see application logs).
+3. Calling custom functions and custom scripts use the `dependencies.User` dependency injection to authenticate the user (see application logs).
 
 4. To only allow specific users to use your application, you can use role-based access control (RBAC): at the bottom of `auth/entraid.py` you can change the definition of `get_user` to require specific roles or create new dependencies (e.g., `get_admin`). Make sure to add them to `app/dependencies.py` for ease of use.
 
