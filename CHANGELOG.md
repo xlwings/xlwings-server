@@ -2,8 +2,8 @@
 
 ## v0.3.0 (Jun 18, 2024)
 
-* Introduced `@script` decorator and `xw-click` HTML tag, see examples.
-* Introduced `app.utils.trigger_script()` to trigger a custom script from within a custom function, see examples.
+* Introduced `@script` decorator and `xw-click` HTML tag, see `app/custom_scripts/examples.py`.
+* Introduced `app.utils.trigger_script()` to trigger a custom script from within a custom function, see `app/custom_functions/examples.py`.
 * Bootstrap can now be disabled via `XLWINGS_ENABLE_BOOTSTRAP=false`.
 * `python run.py` now runs locally without `certs`, which allows it to be used with VBA or Office Scripts (Office.js always require certs).
 * Upgraded all dependencies incl. xlwings to 0.31.5.
