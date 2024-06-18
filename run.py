@@ -54,12 +54,32 @@ if __name__ == "__main__":
     if args.subcommand == "init":
         init()
     else:
+        ssl_keyfile_path = Path("certs/localhost+2-key.pem")
+        ssl_certfile_path = Path("certs/localhost+2.pem")
+
+        ssl_keyfile = (
+            str(ssl_keyfile_path)
+            if ssl_keyfile_path.exists() and not is_cloud
+            else None
+        )
+        ssl_certfile = (
+            str(ssl_certfile_path)
+            if ssl_certfile_path.exists() and not is_cloud
+            else None
+        )
+
+        if (ssl_keyfile is None or ssl_certfile is None) and not is_cloud:
+            print(
+                "NO SSL KEYFILE OR CERTFILE FOUND. RUNNING ON HTTP, NOT HTTPS!.\n"
+                "THIS WILL ONLY WORK WITH VBA AND OFFICE SCRIPTS, BUT NOT WITH "
+                "OFFICE.JS ADD-INS!"
+            )
         uvicorn.run(
             "app.main:main_app",
             host="127.0.0.1",
             port=8000,
             reload=True,
             reload_includes=[".py", ".env"],
-            ssl_keyfile="certs/localhost+2-key.pem" if not is_cloud else None,
-            ssl_certfile="certs/localhost+2.pem" if not is_cloud else None,
+            ssl_keyfile=ssl_keyfile,
+            ssl_certfile=ssl_certfile,
         )
