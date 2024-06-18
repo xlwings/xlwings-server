@@ -20,6 +20,7 @@ services:
   #   # This requires the following settings:
   #   # XLWINGS_APP_PATH="/app"
   #   # XLWINGS_STATIC_URL_PATH="/app/static"
+  #   # Note the port: https://127.0.0.1:8888/app/
   #   image: nginx:latest
   #   ports:
   #     - "8888:443"
