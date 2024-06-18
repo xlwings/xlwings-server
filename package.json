@@ -1,9 +1,11 @@
 {
   "dependencies": {
-    "@alpinejs/csp": "3.14.0",
+    "@alpinejs/csp": "3.14.1",
     "@microsoft/office-js": "1.1.93",
     "bootstrap": "5.3.3",
-    "htmx.org": "1.9.12",
+    "htmx-ext-head-support": "2.0.0",
+    "htmx-ext-loading-states": "2.0.0",
+    "htmx.org": "2.0.0",
     "socket.io": "4.7.5",
     "xlwings": "github:xlwings/xlwings#0.31.5"
   },
