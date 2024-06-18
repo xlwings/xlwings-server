@@ -58,7 +58,9 @@
       {% endif %}
       {# Own #}
       <link rel="stylesheet" href="{{ settings.static_url_path }}/css/style.css" />
-      <script src="{{ settings.static_url_path }}/js/socketio-handlers.js" defer></script>
+      {% if settings.enable_socketio %}
+        <script src="{{ settings.static_url_path }}/js/socketio-handlers.js" defer></script>
+      {% endif %}
       <script src="{{ settings.static_url_path }}/js/main.js" defer></script>
       <script src="{{ settings.static_url_path }}/js/ribbon.js" defer></script>
       {% if settings.environment == "dev" %}
