@@ -10,6 +10,7 @@ import pandas as pd
 from xlwings import server
 from xlwings.ext.sql import _sql
 
+from ..custom_scripts import hello_world
 from ..utils import trigger_script
 
 
@@ -21,8 +22,8 @@ def hello(name):
 
 @server.func
 async def hello_with_script(name):
-    """This function triggers a custom script, see custom_scripts/examples.py"""
-    await trigger_script("hello_world", exclude="Sheet2")
+    """This function triggers a custom script (requires XLWINGS_ENABLE_SOCKETIO=true)"""
+    await trigger_script(hello_world, exclude="Sheet2")
     return f"Hello {name}!"
 
 
