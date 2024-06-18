@@ -8,8 +8,8 @@
       {# htmx #}
       {% if settings.enable_htmx %}
         <script src="{{ settings.static_url_path }}/vendor/htmx.org/dist/htmx.min.js"></script>
-        <script src="{{ settings.static_url_path }}/vendor/htmx.org/dist/ext/head-support.js"></script>
-        <script src="{{ settings.static_url_path }}/vendor/htmx.org/dist/ext/loading-states.js"></script>
+        <script src="{{ settings.static_url_path }}/vendor/htmx-ext-head-support/head-support.js"></script>
+        <script src="{{ settings.static_url_path }}/vendor/htmx-ext-loading-states/loading-states.js"></script>
         <script src="{{ settings.static_url_path }}/js/htmx-handlers.js" defer></script>
         <link rel="stylesheet" href="{{ settings.static_url_path }}/css/htmx.css" />
       {% endif %}
