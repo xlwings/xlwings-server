@@ -91,7 +91,8 @@ async def validate_token(token_string: str):
     try:
         if settings.entraid_multitenant:
             claims_requests = JWTClaimsRegistry(
-                aud={"value": audience}, iss={"value": issuer}
+                aud={"essential": True, "value": audience},
+                iss={"essential": True, "value": issuer},
             )
             claims_requests.validate(token.claims)
         else:
@@ -102,14 +103,14 @@ async def validate_token(token_string: str):
             # External users have their own tenant_id
             issuer_regex = r"https://login\.microsoftonline\.com/(common|organizations|consumers|[0-9a-fA-F-]{36})/v2\.0"
             if not re.match(issuer_regex, issuer):
-                logger.debug(f"Couldn't match issuer for token: {token}")
+                logger.debug(f"Couldn't match issuer for token: {token_string}")
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="Auth error: Couldn't validate token",
                 )
         logger.debug(claims_requests)
     except Exception as e:
-        logger.debug(f"Authentication error for token: {token}")
+        logger.debug(f"Authentication error for token: {token_string}")
         logger.info(repr(e))
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
