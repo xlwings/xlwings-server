@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.0 (Jun xx, 2024)
+
+* Breaking change: replaced `XLWINGS_ENTRAID_VALIDATE_ISSUER` with `XLWINGS_ENTRAID_MULTITENANT`
+* Changed dependencies for validating the Entra ID JWT
+* Allows to provide an own function for retrieving the JWKS (JSON Web Key Set), allowing to enable the Entra ID auth functionality on airgapped servers
+
 ## v0.3.0 (Jun 18, 2024)
 
 * Introduced `@script` decorator and `xw-click` HTML tag, see `app/custom_scripts/examples.py`.

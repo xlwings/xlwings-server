@@ -7,11 +7,11 @@ httptools
 httpx
 jinja2
 jinja2-fragments
+joserfc
 orjson
 pandas
 pre-commit  # dev
 pydantic-settings
-PyJWT[crypto]
 python-multipart
 python-socketio
 pytest  # dev

@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     enable_socketio: bool = True
     entraid_client_id: Optional[str] = None
     entraid_tenant_id: Optional[str] = None
-    entraid_validate_issuer: bool = True
+    entraid_multitenant: bool = False
     environment: Literal["dev", "qa", "uat", "prod"] = "prod"
     functions_namespace: str = "XLWINGS"
     hostname: Optional[str] = None
