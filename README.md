@@ -2,7 +2,7 @@
 
 ## Features
 
-- Only requires Python 3.10+ (no dependency on Node.js or Webpack)
+- Only requires Python 3.9+ (no dependency on Node.js or Webpack)
 - Uses FastAPI as the web framework
 - Comes with htmx (client-server interaction), Alpine.js (CSP build, for client interactions), and Socket.io (for streaming functions and realtime updates of the task pane)
 - Comes with Bootstrap-xlwings, a Bootstrap theme in the Excel look
