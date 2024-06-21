@@ -3,8 +3,8 @@ from typing import Annotated
 import xlwings as xw
 from fastapi import Depends
 
-from .auth import entraid
-from .auth.entraid import get_admin, get_user
+from . import settings
+from .auth import anonymous, entraid, models
 
 
 # Book
@@ -21,5 +21,9 @@ Book = Annotated[xw.Book, Depends(get_book)]
 
 
 # Users/Auth
-User = Annotated[entraid.User, Depends(get_user)]
-Admin = Annotated[entraid.User, Depends(get_admin)]
+if settings.entraid_tenant_id and settings.entraid_client_id:
+    User = Annotated[models.User, Depends(entraid.get_user)]
+    Admin = Annotated[models.User, Depends(entraid.get_admin)]
+else:
+    User = Annotated[models.User, Depends(anonymous.get_user)]
+    Admin = Annotated[models.User, Depends(anonymous.get_user)]

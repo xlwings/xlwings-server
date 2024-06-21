@@ -1,6 +1,9 @@
+"""
+See https://learn.microsoft.com/en-us/entra/identity-platform/access-tokens
+"""
+
 import logging
 import re
-from typing import List, Optional
 
 import httpx
 from aiocache import Cache, cached
@@ -9,9 +12,9 @@ from fastapi.exceptions import HTTPException
 from joserfc import jwt
 from joserfc.jwk import KeySet
 from joserfc.jwt import JWTClaimsRegistry
-from pydantic import BaseModel
 
-from ..config import settings
+from ...config import settings
+from ..models import User
 from . import jwks
 
 logger = logging.getLogger(__name__)
@@ -19,13 +22,6 @@ logger = logging.getLogger(__name__)
 OPENID_CONNECT_DISCOVERY_DOCUMENT_URL = (
     "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration"
 )
-
-
-class User(BaseModel):
-    id: str
-    name: str
-    email: Optional[str] = None
-    roles: Optional[List[str]] = []
 
 
 @cached(ttl=60 * 60 * 24, cache=Cache.MEMORY)
@@ -48,10 +44,7 @@ async def get_key_set():
 
 @cached(ttl=60 * 60, cache=Cache.MEMORY)
 async def validate_token(token_string: str):
-    """Function that reads and validates the Entra ID access/id token.
-    Returns a user object."""
-    if not settings.entraid_tenant_id and not settings.entraid_client_id:
-        return User(id="n/a", name="Anonymous")
+    """Validates the Entra ID access/id token. Returns a user object."""
     logger.debug(f"Validating token: {token_string}")
     if token_string.lower().startswith("error"):
         raise HTTPException(
