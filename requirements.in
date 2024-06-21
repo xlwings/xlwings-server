@@ -15,6 +15,7 @@ pydantic-settings
 python-multipart
 python-socketio
 pytest  # dev
+pytest-mock  # dev
 uvicorn
 uvloop; sys_platform != 'win32'
 watchfiles  # dev

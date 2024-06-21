@@ -49,8 +49,8 @@ def test_custom_functions_code():
     assert 'window.location.origin + "/xlwings/custom-functions-call"' in response.text
 
 
-def test_custom_functions_code_with_app_path(monkeypatch):
-    monkeypatch.setattr(settings, "app_path", "/x/y")
+def test_custom_functions_code_with_app_path(mocker):
+    mocker.patch.object(settings, "app_path", "/x/y")
     response = client.get("xlwings/custom-functions-code")
     assert response.status_code == 200
     assert (
