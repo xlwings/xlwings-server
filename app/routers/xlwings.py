@@ -49,7 +49,6 @@ async def custom_functions_code():
 
 @router.post("/custom-functions-call")
 async def custom_functions_call(
-    request: Request,
     current_user: dep.User,
     data: dict = Body,
 ):
