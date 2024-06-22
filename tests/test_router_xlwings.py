@@ -73,7 +73,7 @@ def test_custom_functions_call():
     assert response.json() == {"result": [["Hello xlwings!"]]}
 
 
-def test_custom_functions_call_with_invalid_token(mocker):
+def test_custom_functions_call_with_invalid_entraid_token(mocker):
     mocker.patch("app.config.settings.entraid_tenant_id", "mocked_tenant_id")
     mocker.patch("app.config.settings.entraid_client_id", "mocked_client_id")
 
@@ -103,6 +103,53 @@ def test_custom_functions_call_anonymous(mocker):
             "content_language": "en-US",
             "version": xw.__version__,
             "runtime": "1.4",
+        },
+    )
+    assert response.status_code == 200
+
+
+def test_custom_scripts_call_with_invalid_entraid_token(mocker):
+    mocker.patch("app.config.settings.entraid_tenant_id", "mocked_tenant_id")
+    mocker.patch("app.config.settings.entraid_client_id", "mocked_client_id")
+
+    response = client.post(
+        "/xlwings/custom-scripts-call/hello_world",
+        headers={"Authorization": "invalid token"},
+        json={
+            "client": "Office.js",
+            "version": "0.31.5",
+            "book": {"name": "Book1", "active_sheet_index": 0, "selection": "A2"},
+            "names": [],
+            "sheets": [
+                {
+                    "name": "Sheet1",
+                    "values": [["Hello xlwings!"]],
+                    "pictures": [],
+                    "tables": [],
+                }
+            ],
+        },
+    )
+    assert response.status_code == 401
+
+
+def test_custom_scripts_call_anonymous(mocker):
+    response = client.post(
+        "/xlwings/custom-scripts-call/hello_world",
+        headers={"Authorization": ""},
+        json={
+            "client": "Office.js",
+            "version": "0.31.5",
+            "book": {"name": "Book1", "active_sheet_index": 0, "selection": "A2"},
+            "names": [],
+            "sheets": [
+                {
+                    "name": "Sheet1",
+                    "values": [["Hello xlwings!"]],
+                    "pictures": [],
+                    "tables": [],
+                }
+            ],
         },
     )
     assert response.status_code == 200
