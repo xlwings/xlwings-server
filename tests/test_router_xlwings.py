@@ -71,3 +71,38 @@ def test_custom_functions_call():
         },
     )
     assert response.json() == {"result": [["Hello xlwings!"]]}
+
+
+def test_custom_functions_call_with_invalid_token(mocker):
+    mocker.patch("app.config.settings.entraid_tenant_id", "mocked_tenant_id")
+    mocker.patch("app.config.settings.entraid_client_id", "mocked_client_id")
+
+    response = client.post(
+        "/xlwings/custom-functions-call",
+        headers={"Authorization": "invalid token"},
+        json={
+            "func_name": "hello",
+            "args": [[["xlwings"]]],
+            "caller_address": "Sheet1!B21",
+            "content_language": "en-US",
+            "version": xw.__version__,
+            "runtime": "1.4",
+        },
+    )
+    assert response.status_code == 401
+
+
+def test_custom_functions_call_anonymous(mocker):
+    response = client.post(
+        "/xlwings/custom-functions-call",
+        headers={"Authorization": ""},
+        json={
+            "func_name": "hello",
+            "args": [[["xlwings"]]],
+            "caller_address": "Sheet1!B21",
+            "content_language": "en-US",
+            "version": xw.__version__,
+            "runtime": "1.4",
+        },
+    )
+    assert response.status_code == 200

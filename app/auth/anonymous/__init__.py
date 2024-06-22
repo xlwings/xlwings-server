@@ -1,5 +1,5 @@
 from ..models import User
 
 
-def get_user():
+async def validate_token(token_string=""):
     return User(id="n/a", name="Anonymous")
