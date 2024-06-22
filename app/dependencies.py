@@ -24,27 +24,13 @@ Book = Annotated[xw.Book, Depends(get_book)]
 
 
 # Users/Auth
-def authorize(user: models.User, roles: list = None):
-    # TODO: move to user model
-    if roles:
-        if set(roles).issubset(user.roles):
-            logger.info(f"User authorized: {user.name}")
-            return user
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=f"Auth error: Missing roles for {user.name}: {', '.join(set(roles).difference(user.roles))}",
-            )
-    else:
-        return user
-
-
 async def authenticate(token_string: str = Header(default="", alias="Authorization")):
-    """Dependency, returns a user object"""
     if settings.entraid_tenant_id or settings.entraid_client_id:
-        return await entraid.validate_token(token_string)
+        current_user = await entraid.validate_token(token_string)
+        return current_user
     else:
-        return await anonymous.validate_token(token_string)
+        current_user = await anonymous.validate_token(token_string)
+        return current_user
 
 
 class Authorizer:
@@ -59,12 +45,15 @@ class Authorizer:
         self.roles = roles
 
     def __call__(self, current_user: models.User = Depends(authenticate)):
-        return authorize(current_user, self.roles)
+        is_authorized, message = current_user.authorize(self.roles)
+        if not is_authorized:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=message)
+        return current_user
 
 
-# Dependencies for RBAC
 get_user = Authorizer()
 get_admin = Authorizer(roles=["admin"])
 
 
 User = Annotated[models.User, Depends(get_user)]
+Admin = Annotated[models.User, Depends(get_admin)]
