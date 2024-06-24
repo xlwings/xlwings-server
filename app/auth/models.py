@@ -13,15 +13,16 @@ class User(BaseModel):
     domain: Optional[str] = None
     roles: Optional[list[str]] = []
 
-    def has_required_roles(self, required_roles: list = None):
+    async def has_required_roles(self, required_roles: list = None):
         if required_roles:
             if set(required_roles).issubset(self.roles):
                 logger.info(f"User authorized: {self.name}")
-                return True, ""
+                return True
             else:
-                return (
-                    False,
-                    f"Auth error: Missing roles for {self.name}: {', '.join(set(required_roles).difference(self.roles))}",
-                )
+                return False
         else:
-            return True, ""
+            return True
+
+    async def is_authorized(self):
+        """Implement authorization logic"""
+        return True
