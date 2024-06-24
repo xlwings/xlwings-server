@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     add_security_headers: bool = True
     auth_providers: Optional[list[str]] = []
     auth_required_roles: Optional[list[str]] = []
+    auth_entraid_client_id: Optional[str] = None
+    auth_entraid_tenant_id: Optional[str] = None
     app_path: str = ""
     base_dir: Path = Path(__file__).resolve().parent
     cors_allow_origins: list[str] = ["*"]
@@ -23,8 +25,6 @@ class Settings(BaseSettings):
     enable_excel_online: bool = True
     enable_htmx: bool = True
     enable_socketio: bool = True
-    entraid_client_id: Optional[str] = None
-    entraid_tenant_id: Optional[str] = None
     entraid_multitenant: bool = False
     environment: Literal["dev", "qa", "uat", "prod"] = "prod"
     functions_namespace: str = "XLWINGS"

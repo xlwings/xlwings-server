@@ -71,11 +71,13 @@ async def validate_token(token_string: str):
     # Upgrade to 2.0:
     # https://learn.microsoft.com/en-us/answers/questions/639834/how-to-get-access-token-version-20.html
     if token_version == "1.0":
-        issuer = f"https://sts.windows.net/{settings.entraid_tenant_id}/"
-        audience = f"api://{settings.entraid_client_id}"
+        issuer = f"https://sts.windows.net/{settings.auth_entraid_tenant_id}/"
+        audience = f"api://{settings.auth_entraid_client_id}"
     elif token_version == "2.0":
-        issuer = f"https://login.microsoftonline.com/{settings.entraid_tenant_id}/v2.0"
-        audience = settings.entraid_client_id
+        issuer = (
+            f"https://login.microsoftonline.com/{settings.auth_entraid_tenant_id}/v2.0"
+        )
+        audience = settings.auth_entraid_client_id
     else:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

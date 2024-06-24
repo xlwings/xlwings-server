@@ -47,11 +47,12 @@ def test_entraid_auth_deactivated():
 
 
 def test_entraid_auth_activated(mocker):
+    mocker.patch.object(settings, "auth_providers", "entraid")
     mocker.patch.object(
-        settings, "entraid_client_id", "5be64098-090e-4183-ac32-e35f09379bb1"
+        settings, "auth_entraid_client_id", "5be64098-090e-4183-ac32-e35f09379bb1"
     )
     mocker.patch.object(
-        settings, "entraid_tenant_id", "efadd9e3-83b3-41f8-86d1-c0ea7ad203ad"
+        settings, "auth_entraid_tenant_id", "efadd9e3-83b3-41f8-86d1-c0ea7ad203ad"
     )
     response = client.get("/manifest")
     assert "<WebApplicationInfo>" in response.text

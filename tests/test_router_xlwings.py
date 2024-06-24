@@ -75,8 +75,8 @@ def test_custom_functions_call():
 
 def test_custom_functions_call_with_invalid_entraid_token(mocker):
     mocker.patch("app.config.settings.auth_providers", ["entraid"])
-    mocker.patch("app.config.settings.entraid_tenant_id", "mocked_tenant_id")
-    mocker.patch("app.config.settings.entraid_client_id", "mocked_client_id")
+    mocker.patch("app.config.settings.auth_entraid_tenant_id", "mocked_tenant_id")
+    mocker.patch("app.config.settings.auth_entraid_client_id", "mocked_client_id")
 
     response = client.post(
         "/xlwings/custom-functions-call",
@@ -130,8 +130,8 @@ def test_custom_functions_call_anonymous(mocker):
 
 def test_custom_scripts_call_with_invalid_entraid_token(mocker):
     mocker.patch("app.config.settings.auth_providers", ["entraid"])
-    mocker.patch("app.config.settings.entraid_tenant_id", "mocked_tenant_id")
-    mocker.patch("app.config.settings.entraid_client_id", "mocked_client_id")
+    mocker.patch("app.config.settings.auth_entraid_tenant_id", "mocked_tenant_id")
+    mocker.patch("app.config.settings.auth_entraid_client_id", "mocked_client_id")
 
     response = client.post(
         "/xlwings/custom-scripts-call/hello_world",

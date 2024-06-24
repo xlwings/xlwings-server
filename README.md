@@ -88,8 +88,8 @@
 
    ```
    XLWINGS_AUTH_PROVIDERS=["entraid"]
-   XLWINGS_ENTRAID_TENANT_ID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-   XLWINGS_ENTRAID_CLIENT_ID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+   XLWINGS_AUTH_ENTRAID_TENANT_ID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+   XLWINGS_AUTH_ENTRAID_CLIENT_ID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
    ```
 
 3. Calling custom functions and custom scripts use the `dependencies.User` dependency injection to authenticate the user (see application logs).
