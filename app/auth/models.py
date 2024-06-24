@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -10,7 +10,8 @@ class User(BaseModel):
     id: str
     name: str
     email: Optional[str] = None
-    roles: Optional[List[str]] = []
+    domain: Optional[str] = None
+    roles: Optional[list[str]] = []
 
     def authorize(self, roles: list = None):
         if roles:
