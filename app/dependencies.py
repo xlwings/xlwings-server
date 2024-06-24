@@ -68,15 +68,15 @@ class Authorizer:
         self.roles = roles
 
     def __call__(self, current_user: models.User = Depends(authenticate)):
-        is_authorized, message = current_user.has_required_roles(self.roles)
-        if not is_authorized:
+        if not settings.auth_providers:
+            return current_user
+        has_required_roles, message = current_user.has_required_roles(self.roles)
+        if not has_required_roles:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=message)
         return current_user
 
 
-get_user = Authorizer()
-get_admin = Authorizer(roles=["admin"])
+get_user = Authorizer(roles=settings.auth_required_roles)
 
 
 User = Annotated[models.User, Depends(get_user)]
-Admin = Annotated[models.User, Depends(get_admin)]

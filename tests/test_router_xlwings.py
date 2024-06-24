@@ -93,6 +93,25 @@ def test_custom_functions_call_with_invalid_entraid_token(mocker):
     assert response.status_code == 401
 
 
+def test_custom_functions_call_missing_roles(mocker):
+    mocker.patch("app.config.settings.auth_providers", ["custom"])
+    mocker.patch("app.config.settings.auth_required_roles", ["role1"])
+    response = client.post(
+        "/xlwings/custom-functions-call",
+        headers={"Authorization": ""},
+        json={
+            "func_name": "hello",
+            "args": [[["xlwings"]]],
+            "caller_address": "Sheet1!B21",
+            "content_language": "en-US",
+            "version": xw.__version__,
+            "runtime": "1.4",
+        },
+    )
+    assert response.status_code == 403
+    assert "Auth error: Missing roles" in str(response.text)
+
+
 def test_custom_functions_call_anonymous(mocker):
     response = client.post(
         "/xlwings/custom-functions-call",
@@ -119,7 +138,7 @@ def test_custom_scripts_call_with_invalid_entraid_token(mocker):
         headers={"Authorization": "invalid token"},
         json={
             "client": "Office.js",
-            "version": "0.31.5",
+            "version": xw.__version__,
             "book": {"name": "Book1", "active_sheet_index": 0, "selection": "A2"},
             "names": [],
             "sheets": [
@@ -135,13 +154,38 @@ def test_custom_scripts_call_with_invalid_entraid_token(mocker):
     assert response.status_code == 401
 
 
+def test_custom_scripts_call_missing_roles(mocker):
+    mocker.patch("app.config.settings.auth_providers", ["custom"])
+    mocker.patch("app.config.settings.auth_required_roles", ["role1"])
+    response = client.post(
+        "/xlwings/custom-scripts-call/hello_world",
+        headers={"Authorization": "token"},
+        json={
+            "client": "Office.js",
+            "version": xw.__version__,
+            "book": {"name": "Book1", "active_sheet_index": 0, "selection": "A2"},
+            "names": [],
+            "sheets": [
+                {
+                    "name": "Sheet1",
+                    "values": [["Hello xlwings!"]],
+                    "pictures": [],
+                    "tables": [],
+                }
+            ],
+        },
+    )
+    assert response.status_code == 403
+    assert "Auth error: Missing roles" in str(response.text)
+
+
 def test_custom_scripts_call_anonymous(mocker):
     response = client.post(
         "/xlwings/custom-scripts-call/hello_world",
         headers={"Authorization": ""},
         json={
             "client": "Office.js",
-            "version": "0.31.5",
+            "version": xw.__version__,
             "book": {"name": "Book1", "active_sheet_index": 0, "selection": "A2"},
             "names": [],
             "sheets": [

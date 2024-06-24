@@ -11,7 +11,8 @@ class Settings(BaseSettings):
         env_prefix="XLWINGS_", env_file=os.getenv("DOTENV_PATH", ".env"), extra="ignore"
     )
     add_security_headers: bool = True
-    auth_providers: Optional[list[str]] = None
+    auth_providers: Optional[list[str]] = []
+    auth_required_roles: Optional[list[str]] = []
     app_path: str = ""
     base_dir: Path = Path(__file__).resolve().parent
     cors_allow_origins: list[str] = ["*"]
