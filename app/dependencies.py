@@ -68,7 +68,7 @@ class Authorizer:
         self.roles = roles
 
     def __call__(self, current_user: models.User = Depends(authenticate)):
-        is_authorized, message = current_user.authorize(self.roles)
+        is_authorized, message = current_user.has_required_roles(self.roles)
         if not is_authorized:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=message)
         return current_user
