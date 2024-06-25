@@ -2,9 +2,12 @@
 
 ## v0.4.0 (Jun xx, 2024)
 
-* Breaking change: replaced `XLWINGS_ENTRAID_VALIDATE_ISSUER` with `XLWINGS_ENTRAID_MULTITENANT`
-* Changed dependencies for validating the Entra ID JWT
-* Allows to provide an own function for retrieving the JWKS (JSON Web Key Set), allowing to enable the Entra ID auth functionality on airgapped servers
+* Breaking change: replaced `XLWINGS_ENTRAID_VALIDATE_ISSUER` with `XLWINGS_AUTH_ENTRAID_MULTITENANT`
+* Breaking change: renamed `XLWINGS_ENTRAID_CLIENT_ID` with `XLWINGS_AUTH_ENTRAID_CLIENT_ID` and `XLWINGS_ENTRAID_TENANT_ID` with `XLWINGS_AUTH_ENTRAID_TENANT_ID`
+* Changed dependencies for validating the Entra ID JWT fro `PyJWT` to `joserfc`
+* Allows to provide an own function for retrieving the Entra ID JWKS (JSON Web Key Set), allowing to enable the Entra ID auth functionality on airgapped servers
+* Allow to use multiple auth providers on the backend. This is helpful if you want to use the same backend from Office.js via Entra ID and from Google Sheets via Google OAuth, for example.
+* Enabling auth now requires to set `XLWINGS_AUTH_PROVIDERS`, e.g., `XLWINGS_AUTH_PROVIDERS=["entraid"]`
 
 ## v0.3.0 (Jun 18, 2024)
 

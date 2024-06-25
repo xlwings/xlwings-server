@@ -13,8 +13,8 @@ from joserfc import jwt
 from joserfc.jwk import KeySet
 from joserfc.jwt import JWTClaimsRegistry
 
+from ... import models
 from ...config import settings
-from ..models import User
 from . import jwks
 
 logger = logging.getLogger(__name__)
@@ -71,18 +71,20 @@ async def validate_token(token_string: str):
     # Upgrade to 2.0:
     # https://learn.microsoft.com/en-us/answers/questions/639834/how-to-get-access-token-version-20.html
     if token_version == "1.0":
-        issuer = f"https://sts.windows.net/{settings.entraid_tenant_id}/"
-        audience = f"api://{settings.entraid_client_id}"
+        issuer = f"https://sts.windows.net/{settings.auth_entraid_tenant_id}/"
+        audience = f"api://{settings.auth_entraid_client_id}"
     elif token_version == "2.0":
-        issuer = f"https://login.microsoftonline.com/{settings.entraid_tenant_id}/v2.0"
-        audience = settings.entraid_client_id
+        issuer = (
+            f"https://login.microsoftonline.com/{settings.auth_entraid_tenant_id}/v2.0"
+        )
+        audience = settings.auth_entraid_client_id
     else:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=f"Auth error: Unsupported token version: {token_version}",
         )
     try:
-        if settings.entraid_multitenant:
+        if settings.auth_entraid_multitenant:
             claims_requests = JWTClaimsRegistry(
                 aud={"essential": True, "value": audience},
                 iss={"essential": True, "value": issuer},
@@ -110,10 +112,14 @@ async def validate_token(token_string: str):
             detail="Auth error: Couldn't validate token",
         )
 
-    current_user = User(
+    email = token.claims.get("preferred_username")
+    domain = email.split("@")[1] if email and "@" in email else None
+
+    current_user = models.User(
         id=token.claims.get("oid"),
         name=token.claims.get("name"),
-        email=token.claims.get("preferred_username"),
+        email=email,
+        domain=domain,
         roles=token.claims.get("roles", []),
     )
     logger.info(f"User authenticated: {current_user.name}")

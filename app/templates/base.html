@@ -37,7 +37,7 @@
         <script src="{{ settings.static_url_path }}/vendor/@alpinejs/csp/dist/cdn.min.js" defer></script>
       {% endif %}
       {# Auth #}
-      {% set auth_value = "entraid" if settings.entraid_client_id or settings.entraid_tenant_id else None %}
+      {% set auth_value = settings.auth_providers %}
       <!-- prettier-ignore-start -->
       <script id="auth" type="application/json">
         { "auth": {{ auth_value|tojson }} }

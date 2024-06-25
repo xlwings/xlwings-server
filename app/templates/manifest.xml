@@ -137,10 +137,10 @@
       </bt:LongStrings>
     </Resources>
 
-    {% if settings.entraid_tenant_id or settings.entraid_client_id %}
+    {% if "entraid" in settings.auth_providers %}
     <WebApplicationInfo>
-      <Id>{{ settings.entraid_client_id }}</Id>
-      <Resource>api://{{ base_url_with_app_path | replace("https://", "") }}/{{ settings.entraid_client_id }}</Resource>
+      <Id>{{ settings.auth_entraid_client_id }}</Id>
+      <Resource>api://{{ base_url_with_app_path | replace("https://", "") }}/{{ settings.auth_entraid_client_id }}</Resource>
       <Scopes>
         <Scope>openid</Scope>
         <Scope>profile</Scope>
