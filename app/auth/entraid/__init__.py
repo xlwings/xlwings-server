@@ -84,7 +84,7 @@ async def validate_token(token_string: str):
             detail=f"Auth error: Unsupported token version: {token_version}",
         )
     try:
-        if settings.entraid_multitenant:
+        if settings.auth_entraid_multitenant:
             claims_requests = JWTClaimsRegistry(
                 aud={"essential": True, "value": audience},
                 iss={"essential": True, "value": issuer},
