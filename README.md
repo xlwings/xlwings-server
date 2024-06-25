@@ -59,7 +59,7 @@
   If you want to call scripts from VBA, Office Scripts, or Google Apps Script, you will need to use the runPython function with the following endpoint:
 
   ```vb
-  runPython("https://127.0.0.1:8000/xlwings/custom-scripts-call/hello_world)
+  runPython("https://127.0.0.1:8000/xlwings/custom-scripts-call/hello_world")
   ```
 
 ## Prod deployment
