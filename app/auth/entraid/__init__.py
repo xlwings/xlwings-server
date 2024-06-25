@@ -13,8 +13,8 @@ from joserfc import jwt
 from joserfc.jwk import KeySet
 from joserfc.jwt import JWTClaimsRegistry
 
+from ... import models
 from ...config import settings
-from ..models import User
 from . import jwks
 
 logger = logging.getLogger(__name__)
@@ -115,7 +115,7 @@ async def validate_token(token_string: str):
     email = token.claims.get("preferred_username")
     domain = email.split("@")[1] if email and "@" in email else None
 
-    current_user = User(
+    current_user = models.User(
         id=token.claims.get("oid"),
         name=token.claims.get("name"),
         email=email,

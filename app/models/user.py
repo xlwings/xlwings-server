@@ -24,5 +24,5 @@ class User(BaseModel):
             return True
 
     async def is_authorized(self):
-        """Implement authorization logic"""
+        """Here, you can implement a custom authorization logic"""
         return True

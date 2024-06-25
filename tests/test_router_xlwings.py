@@ -181,7 +181,7 @@ def test_custom_scripts_call_missing_roles(mocker):
 
 def test_custom_scripts_call_missing_authorization(mocker):
     mocker.patch("app.config.settings.auth_providers", ["custom"])
-    mocker.patch("app.auth.models.User.is_authorized", return_value=False)
+    mocker.patch("app.models.User.is_authorized", return_value=False)
     response = client.post(
         "/xlwings/custom-scripts-call/hello_world",
         headers={"Authorization": "token"},

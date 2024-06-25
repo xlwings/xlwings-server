@@ -1,11 +1,11 @@
 import pytest
 
-from app.auth.models import User
+from app import models
 
 
 @pytest.fixture
 def user():
-    return User(
+    return models.User(
         id="1", name="Test User", email="test@example.com", roles=["admin", "user"]
     )
 

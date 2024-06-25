@@ -5,7 +5,7 @@ from typing import Annotated, Union
 import xlwings as xw
 from fastapi import Depends, Header, HTTPException, status
 
-from .auth import models
+from . import models
 from .config import settings
 
 logger = logging.getLogger(__name__)
