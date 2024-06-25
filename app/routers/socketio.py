@@ -4,8 +4,8 @@ import socketio
 import xlwings as xw
 
 from .. import custom_functions
-from ..auth.entraid import validate_token
 from ..config import settings
+from ..dependencies import authenticate
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,15 @@ async def connect(sid, environ, auth):
         await hotreload.start_browser_reload_watcher(
             sio=sio, directory=settings.base_dir
         )
-    await xw.server.sio_connect(sid, environ, auth, sio, authenticate=validate_token)
+    token_string = auth.get("token")
+    try:
+        current_user = await authenticate(token_string)
+        logger.info(f"Socket.io: connect {sid}")
+        logger.info(f"Socket.io: User authenticated {current_user.name}")
+    except Exception as e:
+        logger.info(f"Socket.io: authentication failed for sid {sid}: {repr(e)}")
+        await sio.disconnect(sid)
+    logger.info(f"Socket.io: connect {sid}")
 
 
 @sio.on("disconnect")
