@@ -94,7 +94,7 @@
 
 3. Calling custom functions and custom scripts use the `dependencies.User` dependency injection to authenticate the user (see application logs).
 
-4. To only allow specific users to use your application, you can use role-based access control (RBAC): in `dependencies.py` you can change the definition of `get_user` to require specific roles.
+4. To only allow users with specific roles to use your application, you can use the `XLWINGS_AUTH_REQUIRED_ROLES` setting.
 
 5. To set up the roles in Entra ID and map them to users, follow these instructions:
 
