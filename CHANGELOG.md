@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.4.0 (Jun xx, 2024)
+## v0.4.0 (Jun 25, 2024)
 
 * Breaking change: replaced `XLWINGS_ENTRAID_VALIDATE_ISSUER` with `XLWINGS_AUTH_ENTRAID_MULTITENANT`
 * Breaking change: renamed `XLWINGS_ENTRAID_CLIENT_ID` with `XLWINGS_AUTH_ENTRAID_CLIENT_ID` and `XLWINGS_ENTRAID_TENANT_ID` with `XLWINGS_AUTH_ENTRAID_TENANT_ID`
@@ -8,6 +8,7 @@
 * Allows to provide an own function for retrieving the Entra ID JWKS (JSON Web Key Set), allowing to enable the Entra ID auth functionality on airgapped servers
 * Allow to use multiple auth providers on the backend. This is helpful if you want to use the same backend from Office.js via Entra ID and from Google Sheets via Google OAuth, for example.
 * Enabling auth now requires to set `XLWINGS_AUTH_PROVIDERS`, e.g., `XLWINGS_AUTH_PROVIDERS=["entraid"]`
+* Upgraded dependencies incl. xlwings to 0.31.6.
 
 ## v0.3.0 (Jun 18, 2024)
 
@@ -15,7 +16,7 @@
 * Introduced `app.utils.trigger_script()` to trigger a custom script from within a custom function, see `app/custom_functions/examples.py`.
 * Bootstrap can now be disabled via `XLWINGS_ENABLE_BOOTSTRAP=false`.
 * `python run.py` now runs locally without `certs`, which allows it to be used with VBA or Office Scripts (Office.js always require certs).
-* Upgraded all dependencies incl. xlwings to 0.31.5.
+* Upgraded dependencies incl. xlwings to 0.31.5.
 
 ## v0.2.0 (Jun 4, 2024)
 
