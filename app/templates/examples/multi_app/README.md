@@ -2,9 +2,17 @@
 
 This example loads a different task pane depending on the name of the workbook.
 
-To try it out, replace the task pane endpoint in app/routers/taskpane.py with the following code:
+To try it out, replace `app/routers/taskpane.py` with the following code:
 
 ```python
+from fastapi import APIRouter, Request
+
+from ..config import settings
+from ..templates import TemplateResponse
+
+router = APIRouter()
+
+
 @router.get("/taskpane")
 async def taskpane(request: Request, app: str = None):
     if not app:

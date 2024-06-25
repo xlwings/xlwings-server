@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="container-fluid pt-3 ps-3">
+    <form hx-post="/form-example" hx-target="#result">
+      <div class="mb-3">
+        <label for="inputName" class="form-label">Name</label>
+        <input class="form-control" name="name" id="inputName" />
+      </div>
+      <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+    <div id="result" class="mt-4"></div>
+  </div>
+{% endblock content %}
