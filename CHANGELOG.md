@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.5.0
+
+* Upgraded xlwings-bootstrap to 5.3.3-1.
+
 ## v0.4.0 (Jun 25, 2024)
 
 * Breaking change: replaced `XLWINGS_ENTRAID_VALIDATE_ISSUER` with `XLWINGS_AUTH_ENTRAID_MULTITENANT`
