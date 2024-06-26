@@ -1,8 +1,8 @@
 # Changelog
 
-## v0.5.0
+## v0.4.1 (Jun 26, 2024)
 
-* Upgraded xlwings-bootstrap to 5.3.3-1.
+* Upgraded xlwings-bootstrap to 5.3.3-1 and xlwings to 0.31.7
 
 ## v0.4.0 (Jun 25, 2024)
 
