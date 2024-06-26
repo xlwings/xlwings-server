@@ -1,0 +1,16 @@
+<ul class="nav nav-underline pb-4" hx-boost="true">
+  {%
+    set pages = [
+      ('One', '/taskpane/one'),
+      ('Two', '/taskpane/two'),
+      ('Three', '/taskpane/three')
+    ]
+  %}
+  {% for name, url in pages %}
+    <li class="nav-item">
+      <a class="nav-link {% if page == name|lower %}active{% endif %}" aria-current="page" href="{{ url }}"
+        >{{ name }}</a
+      >
+    </li>
+  {% endfor %}
+</ul>
