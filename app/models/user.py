@@ -13,7 +13,7 @@ class User(BaseModel):
     domain: Optional[str] = None
     roles: Optional[list[str]] = []
 
-    async def has_required_roles(self, required_roles: list = None):
+    async def has_required_roles(self, required_roles: Optional[list[str]] = None):
         if required_roles:
             if set(required_roles).issubset(self.roles):
                 logger.info(f"User authorized: {self.name}")
