@@ -43,6 +43,6 @@ async def form_example(request: Request, name: str = Form(None)):
     )
 ```
 
-This sample also depends on code in:
+This sample also depends on:
 
 - no dependencies
