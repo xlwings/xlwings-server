@@ -40,4 +40,4 @@ repos:
         args: [--write]
         additional_dependencies:
           - prettier@3.1.0
-          - prettier-plugin-jinja-template@v1.3.3
+          - prettier-plugin-jinja-template@v1.4.1
