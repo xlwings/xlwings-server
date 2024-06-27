@@ -14,6 +14,7 @@ from ..templates import TemplateResponse
 router = APIRouter()
 
 
+@router.get("/taskpane")
 @router.get("/taskpane/{page}")
 async def taskpane(request: Request, page: str = "one"):
     return TemplateResponse(
