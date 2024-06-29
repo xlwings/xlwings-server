@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     project_name: str = "xlwings Server"
     public_addin_store: bool = False
     static_url_path: str = "/static"
-    license_key: str
+    license_key: Optional[str] = ""
 
     @computed_field
     @property
@@ -49,7 +49,7 @@ class Settings(BaseSettings):
 settings = Settings()
 
 # TODO: refactor once xlwings offers a runtime config
-if not os.getenv("XLWINGS_LICENSE_KEY"):
+if settings.license_key and not os.getenv("XLWINGS_LICENSE_KEY"):
     os.environ["XLWINGS_LICENSE_KEY"] = settings.license_key
 
 if settings.date_format:
