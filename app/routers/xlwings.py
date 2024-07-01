@@ -1,6 +1,6 @@
 import logging
 
-import xlwings as xw
+import xlwings.server
 from fastapi import APIRouter, Body, Request, Response
 
 from .. import custom_functions, custom_scripts, dependencies as dep
@@ -33,13 +33,13 @@ async def alert(
 
 @router.get("/custom-functions-meta")
 async def custom_functions_meta():
-    return xw.server.custom_functions_meta(custom_functions)
+    return xlwings.server.custom_functions_meta(custom_functions)
 
 
 @router.get("/custom-functions-code")
 async def custom_functions_code():
     return Response(
-        content=xw.server.custom_functions_code(
+        content=xlwings.server.custom_functions_code(
             custom_functions,
             custom_functions_call_path=f"{settings.app_path}/xlwings/custom-functions-call",
         ),
@@ -53,12 +53,12 @@ async def custom_functions_call(
     data: dict = Body,
 ):
     logger.info(f"""Function "{data['func_name']}" called by {current_user.name}""")
-    rv = await xw.server.custom_functions_call(data, custom_functions)
+    rv = await xlwings.server.custom_functions_call(data, custom_functions)
     return {"result": rv}
 
 
 @router.post("/custom-scripts-call/{script_name}")
 async def custom_scripts_call(script_name: str, book: dep.Book, current_user: dep.User):
     logger.info(f"""Script "{script_name}" called by {current_user.name}""")
-    book = await xw.server.custom_scripts_call(custom_scripts, script_name, book)
+    book = await xlwings.server.custom_scripts_call(custom_scripts, script_name, book)
     return book.json()
