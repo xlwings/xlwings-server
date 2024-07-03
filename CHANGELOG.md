@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.4.2 (Jul 3, 2024)
+
+* If you set a valid license key as `XLWINGS_DEVELOPER_KEY` env var in your build env, building the docker container via `docker compose build` will automatically install a deploy key inside the container.
+* Fixed the setting `XLWINGS_ENABLE_EXAMPLES=false`.
+* Upgraded dependencies incl. xlwings to 0.31.8.
+
 ## v0.4.1 (Jun 26, 2024)
 
 * Upgraded xlwings-bootstrap to 5.3.3-1 and xlwings to 0.31.7
