@@ -12,10 +12,10 @@ COPY ./scripts/build_static_files.py ./scripts/build_static_files.py
 
 RUN pip install --no-cache-dir -r ./requirements.txt
 
-# If you have your developer license key set as XLWINGS_DEVELOPER_KEY env var in your
+# If you have your developer license key set as `XLWINGS_DEVELOPER_KEY` env var in your
 # build environment, it will install the deploy key directly in the Docker image when
-# running 'docker build --build-arg XLWINGS_DEVELOPER_KEY=${XLWINGS_DEVELOPER_KEY}'.
-# This will happen automatically when running 'docker compose build'.
+# running `docker build --build-arg XLWINGS_DEVELOPER_KEY=${XLWINGS_DEVELOPER_KEY} .`.
+# This will happen automatically when running `docker compose build`.
 ARG XLWINGS_DEVELOPER_KEY
 ENV XLWINGS_DEVELOPER_KEY=${XLWINGS_DEVELOPER_KEY}
 RUN xlwings license update -k $(xlwings license deploy) || true

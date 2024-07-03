@@ -86,6 +86,10 @@
 - If the manifest doesn't show the correct URL, set the `XLWINGS_HOSTNAME` settings in `.env` to the domain where your backend runs, e.g., `XLWINGS_HOSTNAME=xlwings.mycompany.com`.
 - The `manifest.xml` has to be deployed via the Office admin console, see: https://docs.xlwings.org/en/latest/pro/server/officejs_addins.html#production-deployment. The Office admin console also allows you to point directly to the `/manifest` endpoint.
 
+**Installing deploy keys automatically in Docker images**
+
+If you have your developer license key set as `XLWINGS_DEVELOPER_KEY` env var in your build environment, it will install the deploy key directly in the Docker image when running `docker build --build-arg XLWINGS_DEVELOPER_KEY=${XLWINGS_DEVELOPER_KEY} .`. This will happen automatically when running `docker compose build`.
+
 ## Authentication & Authorization with Entra ID (previously called Azure AD)
 
 1. Register your Excel add-in as app on Microsoft Entra ID by following these instructions: https://learn.microsoft.com/en-us/office/dev/add-ins/develop/register-sso-add-in-aad-v2
