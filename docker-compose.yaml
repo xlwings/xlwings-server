@@ -5,7 +5,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        - XLWINGS_DEVELOPER_KEY=${XLWINGS_DEVELOPER_KEY}
+        - XLWINGS_DEVELOPER_KEY=${XLWINGS_DEVELOPER_KEY-}
     command: >
         uvicorn app.main:main_app
         --host 0.0.0.0 --port 8000
