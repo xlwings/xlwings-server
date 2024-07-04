@@ -6,7 +6,6 @@ on:
   push:
     branches:
       - main
-      - docker-platform
   release:
     types: [published]
 
