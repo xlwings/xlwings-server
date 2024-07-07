@@ -1,7 +1,9 @@
+import contextvars
 import logging
+from typing import Optional
 
 import xlwings.server
-from fastapi import APIRouter, Body, Request, Response
+from fastapi import APIRouter, Body, Header, Request, Response
 
 from .. import custom_functions, custom_scripts, dependencies as dep
 from ..config import settings
@@ -47,12 +49,17 @@ async def custom_functions_code():
     )
 
 
+socketio_id_context = contextvars.ContextVar("socketio_id_context")
+
+
 @router.post("/custom-functions-call")
 async def custom_functions_call(
     current_user: dep.User,
     data: dict = Body,
+    sid: Optional[str] = Header(default=None),
 ):
     logger.info(f"""Function "{data['func_name']}" called by {current_user.name}""")
+    socketio_id_context.set(sid)  # For utils.trigger_script()
     rv = await xlwings.server.custom_functions_call(data, custom_functions)
     return {"result": rv}
 
