@@ -63,7 +63,7 @@
       {% endif %}
       <script src="{{ settings.static_url_path }}/js/main.js" defer></script>
       <script src="{{ settings.static_url_path }}/js/ribbon.js" defer></script>
-      {% if settings.environment == "dev" %}
+      {% if settings.environment == "dev" and settings.enable_socketio %}
         <script src="{{ settings.static_url_path }}/js/utils/hotreload.js" defer></script>
       {% endif %}
     {% endblock head %}
