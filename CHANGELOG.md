@@ -1,9 +1,17 @@
 # Changelog
 
+## v0.4.3 (Jul 9, 2024)
+
+* Fixed `utils.trigger_script()` to only trigger the script 1x no matter how many times the files is open.
+* There is now an official Docker image available: https://hub.docker.com/repository/docker/xlwings/xlwings-server
+* Open Office.js alerts are now closed before showing a new alert, which would otherwise cause an error.
+* Custom functions now show errors that happen outside the app, such as timeouts.
+* Upgraded dependencies incl. xlwings to 0.31.9.
+
 ## v0.4.2 (Jul 3, 2024)
 
 * If you set a valid license key as `XLWINGS_DEVELOPER_KEY` env var in your build env, building the docker container via `docker compose build` will automatically install a deploy key inside the container.
-* Fixed the setting `XLWINGS_ENABLE_EXAMPLES=false`.
+* Fixed an issue when running the app with `XLWINGS_ENABLE_EXAMPLES=false`.
 * Upgraded dependencies incl. xlwings to 0.31.8.
 
 ## v0.4.1 (Jun 26, 2024)
