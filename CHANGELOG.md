@@ -2,7 +2,7 @@
 
 ## v0.4.3 (Jul 9, 2024)
 
-* Fixed `utils.trigger_script()` to only trigger the script 1x no matter how many times the files is open.
+* Fixed `utils.trigger_script()` to only trigger the script 1x no matter how many times the file is open.
 * There is now an official Docker image available: https://hub.docker.com/repository/docker/xlwings/xlwings-server
 * Open Office.js alerts are now closed before showing a new alert, which would otherwise cause an error.
 * Custom functions now show errors that happen outside the app, such as timeouts.
