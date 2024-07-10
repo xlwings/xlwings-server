@@ -2,6 +2,7 @@ import argparse
 import os
 import re
 import shutil
+import subprocess
 import uuid
 from pathlib import Path
 
@@ -45,14 +46,31 @@ def init():
     print("Success! Now open the .env file and add a license key")
 
 
+def compile_requirements():
+    # The order of how these files are compiled matters as requirements depends on core
+    # etc.
+    file_names = ["core-requirements", "requirements", "dev-requirements"]
+    for file_name in file_names:
+        cmd_linux = f"uv pip compile requirements/{file_name}.in -o requirements/{file_name}.txt --python-platform linux"
+        cmd_win = f"uv pip compile requirements/{file_name}.in -o requirements/{file_name}-win.txt --unsafe-package pywin32 --python-platform windows"
+        for cmd in [cmd_linux, cmd_win]:
+            subprocess.run(cmd, shell=True, check=True)
+    print("Requirements updated successfully.")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="subcommand")
     init_parser = subparsers.add_parser("init", help="Initialize the application.")
+    requirements_parser = subparsers.add_parser(
+        "requirements", help="Compile the requirements.txt files."
+    )
 
     args = parser.parse_args()
     if args.subcommand == "init":
         init()
+    elif args.subcommand == "requirements":
+        compile_requirements()
     else:
         ssl_keyfile_path = Path("certs/localhost+2-key.pem")
         ssl_certfile_path = Path("certs/localhost+2.pem")
