@@ -1,4 +1,0 @@
--r core-requirements.txt
-azure-functions; sys_platform != 'win32'
-pandas
-numpy
