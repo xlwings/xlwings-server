@@ -26,10 +26,14 @@
 
 **Backend via Python directly:**
 
-- Install the dependencies: `pip install -r dev-requirements.txt`
+- Install the dependencies: `pip install -r requirements.txt`
 - Run the app: `python run.py`
 
-Alternatively, this repo can be run as [dev container](https://code.visualstudio.com/docs/devcontainers/containers).
+**Backend via Docker**:
+
+- Install Docker and Docker Compose
+- To run the dev server: `docker compose up`
+- Run `docker compose build` whenever you need to install a new dependency via `requirements.txt`
 
 **Office.js add-in**:
 
@@ -57,20 +61,6 @@ Alternatively, this repo can be run as [dev container](https://code.visualstudio
   ```vb
   runPython("https://127.0.0.1:8000/xlwings/custom-scripts-call/hello_world")
   ```
-
-## Manage dependencies via requirements.txt
-
-Add your application-specific dependencies to `requirements/requirements.in` (note `.in`, not `.txt`). If you have a development dependency, add it to `requirements/dev-requirements.in` instead. If you need to pin a dependency to a certain version, you also do that in the `.in` version of your requirements file.
-
-After changing any dependencies via `.in` file, you need to run `python run.py requirements`. This uses [uv](https://github.com/astral-sh/uv) under the hood to produce the final `.txt` version of the dependencies where everything will be pinned.
-
-Here's an example of `requirements.txt`:
-
-```
--r core-requirements.txt
-pandas
-numpy==1.26.4
-```
 
 ## Prod deployment
 

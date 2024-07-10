@@ -1,7 +1,0 @@
--r requirements.txt
-beautifulsoup4
-pre-commit
-pytest
-pytest-mock
-watchfiles
-uv

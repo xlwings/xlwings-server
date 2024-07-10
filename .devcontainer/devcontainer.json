@@ -18,7 +18,7 @@
         8000
     ],
     // Use 'postCreateCommand' to run commands after the container is created.
-    "postCreateCommand": "pip install -r requirements/dev-requirements.txt && pip install pre-commit",
+    "postCreateCommand": "pip install -r requirements.txt && pip install pre-commit",
     // pre-commit has issues without safe.directory
     "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
     // Configure tool-specific properties.
