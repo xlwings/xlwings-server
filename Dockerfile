@@ -6,11 +6,10 @@ WORKDIR /project
 # Makes sure that logs are shown immediately
 ENV PYTHONUNBUFFERED=1
 
-COPY ./requirements.in ./requirements.in
-COPY ./requirements.txt ./requirements.txt
+COPY ./requirements/requirements.txt ./requirements/requirements.txt
 COPY ./scripts/build_static_files.py ./scripts/build_static_files.py
 
-RUN pip install --upgrade pip && pip install --no-cache-dir -r ./requirements.txt
+RUN pip install --upgrade pip && pip install --no-cache-dir -r ./requirements/requirements.txt
 
 # If you have your developer license key set as `XLWINGS_DEVELOPER_KEY` env var in your
 # build environment, it will install the deploy key directly in the Docker image when
