@@ -2,6 +2,7 @@ import argparse
 import os
 import re
 import shutil
+import subprocess
 import uuid
 from pathlib import Path
 
@@ -45,14 +46,48 @@ def init():
     print("Success! Now open the .env file and add a license key")
 
 
+def deps_compile(upgrade=False):
+    # The order of how these files matters because they are all interdependent
+    file_names = ["requirements-core", "requirements", "requirements-dev"]
+    for file_name in file_names:
+        cmd_linux = f"uv pip compile {file_name}.in -o {file_name}.txt --python-platform linux {'--upgrade' if upgrade else ''}"
+        cmd_win = f"uv pip compile {file_name}.in -o {file_name}-win.txt --unsafe-package pywin32 --python-platform windows {'--upgrade' if upgrade else ''}"
+        for cmd in [cmd_linux, cmd_win]:
+            subprocess.run(cmd, shell=True, check=True)
+    print(
+        f"Success! Requirements files {'upgraded' if upgrade else 'compiled'} successfully. Now commit the requirements.txt files!"
+    )
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="subcommand")
     init_parser = subparsers.add_parser("init", help="Initialize the application.")
 
+    # Deps command
+    deps_parser = subparsers.add_parser("deps", help="Manage dependencies.")
+    deps_subparsers = deps_parser.add_subparsers(
+        dest="deps_command",
+        required=True,
+        help="Use either 'deps sync' or 'deps upgrade'",
+    )
+
+    # Sync subcommand under deps
+    compile_parser = deps_subparsers.add_parser(
+        "compile", help="Synchronize dependencies."
+    )
+    upgrade_parser = deps_subparsers.add_parser("upgrade", help="Upgrade dependencies.")
+    update_parser = deps_subparsers.add_parser("update", help="Upgrade dependencies.")
+
     args = parser.parse_args()
+
     if args.subcommand == "init":
         init()
+    elif args.subcommand == "deps":
+        if args.deps_command == "compile":
+            deps_compile()
+        elif args.deps_command in ("upgrade", "update"):
+            deps_compile(upgrade=True)
     else:
         ssl_keyfile_path = Path("certs/localhost+2-key.pem")
         ssl_certfile_path = Path("certs/localhost+2.pem")

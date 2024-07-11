@@ -6,7 +6,6 @@ WORKDIR /project
 # Makes sure that logs are shown immediately
 ENV PYTHONUNBUFFERED=1
 
-COPY ./requirements.in ./requirements.in
 COPY ./requirements.txt ./requirements.txt
 COPY ./scripts/build_static_files.py ./scripts/build_static_files.py
 

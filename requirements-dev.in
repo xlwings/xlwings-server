@@ -1,4 +1,4 @@
-# List your own top-level dependencies in this file. After editing, run:
+# List your own dev-only dependencies in this file. After editing, run:
 # python run.py deps compile
 # This generates a series of requirements.txt files with all dependencies incl.
 # sub-dependencies pinned (a 'lock' file).
@@ -6,7 +6,10 @@
 # If you want to upgrade all packages to the latest version, run:
 # python run.py deps upgrade
 
--r requirements-core.txt  # Don't delete this line
-azure-functions; sys_platform != 'win32'
-numpy
-pandas
+-r requirements.txt  # Don't delete this line
+beautifulsoup4
+pre-commit
+pytest
+pytest-mock
+uv
+watchfiles
