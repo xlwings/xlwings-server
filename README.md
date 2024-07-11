@@ -26,7 +26,7 @@
 
 **Backend via Python directly:**
 
-- Install the dependencies: `pip install -r requirements.txt`
+- Install the dependencies: `pip install -r requirements-dev.txt`
 - Run the app: `python run.py`
 
 **Backend via Docker**:
@@ -61,6 +61,20 @@
   ```vb
   runPython("https://127.0.0.1:8000/xlwings/custom-scripts-call/hello_world")
   ```
+
+## Manage dependencies (requirements.txt)
+
+Add your own dependencies to `requirements.in` (note `.in`, not `.txt`). If you have a development dependency, add it to `requirements-dev.in` instead. If you need to pin a dependency to a certain version, you also do that in the `.in` version of your requirements file.
+
+After changing any dependencies via `.in` file, you need to run `python run.py deps compile`. This uses [uv](https://github.com/astral-sh/uv) under the hood to produce a series of `requirements.txt` files where the dependencies incl. sub-dependencies will be pinned.
+
+Here's an example of `requirements.in`:
+
+```
+-r requirements-core.txt  # Don't delete this line
+pandas
+numpy==1.26.4
+```
 
 ## Prod deployment
 

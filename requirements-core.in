@@ -1,0 +1,17 @@
+# Don't edit this file, use requirements.in or requirements-dev.in, respectively
+# These are the required top-level dependencies of xlwings Server
+
+aiocache
+fastapi-slim
+gunicorn; sys_platform != 'win32'
+httptools
+httpx
+jinja2
+jinja2-fragments
+joserfc
+pydantic-settings
+python-multipart
+python-socketio
+uvicorn
+uvloop; sys_platform != 'win32'
+xlwings
