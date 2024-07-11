@@ -174,7 +174,7 @@ az login
     and other Socket.io-related functionality is not supported with Azure Functions:
 
     ```bash
-    az functionapp config appsettings set --name xlwings-quickstart --resource-group xlwings-quickstart-rg --settings XLWINGS_LICENSE_KEY=<YOUR_LICENSE_KEY> XLWINGS_ENVIRONMENT=prod XLWINGS_ENABLE_SOCKETIO=false
+    az functionapp config appsettings set --name xlwings-quickstart --resource-group xlwings-quickstart-rg --settings XLWINGS_ENVIRONMENT=prod XLWINGS_ENABLE_SOCKETIO=false XLWINGS_LICENSE_KEY=<YOUR_LICENSE_KEY>
     ```
 
 5.  Run the following to enable the worker process to index the functions:
@@ -183,7 +183,7 @@ az login
     az functionapp config appsettings set --name xlwings-quickstart --resource-group xlwings-quickstart-rg --settings AzureWebJobsFeatureFlags=EnableWorkerIndexing
     ```
 
-6.  Deploy the function app (this is also the command to run to deploy an update):
+6.  Deploy the function app (this is also the command to deploy an update):
 
     ```bash
     func azure functionapp publish xlwings-quickstart
@@ -198,8 +198,6 @@ az login
        http_app_func - [httpTrigger]
           Invoke url: https://xlwings-quickstart.azurewebsites.net//{*route}
     ```
-
-8. On Azure portal, under Function App > Your Function App > CORS, set `Allowed Origins` to `*` if you want to be able to call the functions from Excel on the web. This step should not be required if you're only using the desktop version of Excel.
 
 ### Cleanup
 
