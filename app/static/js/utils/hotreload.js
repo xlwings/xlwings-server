@@ -1,4 +1,3 @@
-const socket = globalThis.socket;
-socket.on("reload", () => {
+globalThis.socket.on("reload", () => {
   location.reload();
 });
