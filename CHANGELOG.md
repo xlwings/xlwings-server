@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.4.4 (Jul 11, 2024)
+
+* Fixed an issue with custom functions when using the setting ``XLWINGS_ENABLE_SOCKETIO=false``.
+* Upgraded xlwings to 0.31.10.
+
 ## v0.4.3 (Jul 9, 2024)
 
 * Fixed `utils.trigger_script()` to only trigger the script 1x no matter how many times the file is open.

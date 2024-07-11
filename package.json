@@ -8,7 +8,7 @@
     "htmx-ext-loading-states": "2.0.0",
     "htmx.org": "2.0.0",
     "socket.io": "4.7.5",
-    "xlwings": "github:xlwings/xlwings#0.31.9"
+    "xlwings": "github:xlwings/xlwings#0.31.10"
   },
   "devDependencies": {
     "@types/alpinejs": "3.13.10",
