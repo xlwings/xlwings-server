@@ -1,13 +1,12 @@
 # This setup assumes that TLS certificates are handled seperatly, e.g., via nginx
 services:
   app:
-    build: .
-    command: >
-        gunicorn app.main:main_app
-        --bind 0.0.0.0:8000
-        --access-logfile -
-        --workers 1
-        --worker-class uvicorn.workers.UvicornWorker
+    build:
+      context: .
+      target: prod
+      dockerfile: Dockerfile
+      args:
+        - XLWINGS_DEVELOPER_KEY=${XLWINGS_DEVELOPER_KEY-}
     ports:
       - "8000:8000"
     env_file:
