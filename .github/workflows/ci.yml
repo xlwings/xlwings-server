@@ -35,7 +35,7 @@ jobs:
           pip install -r requirements-dev.txt
       - name: Run tests
         run: pytest -v
-      - name: Run tests that depend on env2.test
+      - name: Run tests that depend on env.test2
         env:
-          ENV_FILE: ".env2.test"
+          ENV_FILE: ".env.test2"
         run: pytest tests/test_env2.py
