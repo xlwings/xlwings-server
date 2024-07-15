@@ -1,6 +1,6 @@
 """
 Tests in this module use .env.test and have to be run via:
-ENV_FILE=".env2.test" pytest tests/test_env2.py
+ENV_FILE=".env.test2" pytest tests/test_env2.py
 
 This allows to test behavior that depends on the settings during loading the app, e.g.,
 conditional import statements or conditional dependency injections.

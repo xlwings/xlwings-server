@@ -9,8 +9,17 @@ from ..dependencies import authenticate
 
 logger = logging.getLogger(__name__)
 
+if settings.socketio_message_queue_url:
+    client_manager = socketio.AsyncRedisManager(
+        settings.socketio_message_queue_url, write_only=not settings.socketio_server_app
+    )
+else:
+    client_manager = None
+
+
 sio = socketio.AsyncServer(
     async_mode="asgi",
+    client_manager=client_manager,
     cors_allowed_origins=(
         settings.cors_allow_origins[0]
         if len(settings.cors_allow_origins) == 1
@@ -46,4 +55,5 @@ async def disconnect(sid):
 
 @sio.on("xlwings:function-call")
 async def sio_function_call(sid, data):
+    logger.info(f"""Function "{data['func_name']}" called by {sid}""")
     await xw.server.sio_custom_function_call(sid, data, custom_functions, sio)

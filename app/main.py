@@ -30,13 +30,16 @@ cors_app = CORSMiddleware(
     allow_origins=settings.cors_allow_origins,
     allow_methods=["POST"],
 )
+main_app = cors_app
 
 # Socket.io
 if settings.enable_socketio:
-    sio_app = socketio.ASGIApp(socketio_router.sio, cors_app)
-    main_app = sio_app
-else:
-    main_app = cors_app
+    sio_app = socketio.ASGIApp(
+        socketio_router.sio,
+        # Only forward ASGI traffic if there's no message queue and hence 1 worker setup
+        cors_app if not settings.socketio_message_queue_url else None,
+    )
+    main_app = sio_app if not settings.socketio_message_queue_url else cors_app
 
 
 # Routers

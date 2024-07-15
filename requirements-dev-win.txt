@@ -148,6 +148,8 @@ pytz==2024.1
     #   pandas
 pyyaml==6.0.1
     # via pre-commit
+redis==5.0.7
+    # via -r requirements.txt
 simple-websocket==1.0.0
     # via
     #   -r requirements.txt
