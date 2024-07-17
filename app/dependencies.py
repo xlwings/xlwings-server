@@ -49,6 +49,7 @@ async def authenticate(
         module = importlib.import_module(f"app.auth.{provider}")
         current_user = await module.validate_token(token_string)
     except (AttributeError, ModuleNotFoundError):
+        logger.exception(f"Auth provider '{provider}' implementation missing.")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Auth provider '{provider}' implementation missing.",

@@ -6,7 +6,6 @@ import logging
 import re
 
 import httpx
-from aiocache import Cache, cached
 from fastapi import Depends, Header, status
 from fastapi.exceptions import HTTPException
 from joserfc import jwt
@@ -14,6 +13,7 @@ from joserfc.jwk import KeySet
 from joserfc.jwt import JWTClaimsRegistry
 
 from ... import models
+from ...caching import cached
 from ...config import settings
 from . import jwks
 
@@ -24,8 +24,9 @@ OPENID_CONNECT_DISCOVERY_DOCUMENT_URL = (
 )
 
 
-@cached(ttl=60 * 60 * 24, cache=Cache.MEMORY)
+@cached(ttl=60 * 60 * 24, alias="default")
 async def get_jwks_json_default():
+    logger.info("Get default JWKS json for Entra ID")
     async with httpx.AsyncClient() as client:
         response = await client.get(OPENID_CONNECT_DISCOVERY_DOCUMENT_URL)
     jwks_uri = response.json()["jwks_uri"]
@@ -42,7 +43,7 @@ async def get_key_set():
     return key_set
 
 
-@cached(ttl=60 * 60, cache=Cache.MEMORY)
+@cached(ttl=60 * 60, alias="default")
 async def validate_token(token_string: str):
     """Validates the Entra ID access/id token. Returns a user object."""
     logger.debug(f"Validating token: {token_string}")
@@ -65,7 +66,14 @@ async def validate_token(token_string: str):
             detail="Auth error: Invalid token, must be in format 'Bearer xxxx'",
         )
     key_set = await get_key_set()
-    token = jwt.decode(token_string, key_set)
+    try:
+        token = jwt.decode(token_string, key_set)
+    except Exception:
+        logger.exception("Auth error: Failed to decode token")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Auth error: Failed to decode token",
+        )
     token_version = token.claims.get("ver")
     # https://learn.microsoft.com/en-us/azure/active-directory/develop/access-tokens#token-formats
     # Upgrade to 2.0:

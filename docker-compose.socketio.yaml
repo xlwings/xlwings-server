@@ -50,7 +50,7 @@ services:
   nginx:
     image: nginx:latest
     ports:
-      - "8888:443"
+      - "8000:443"
     volumes:
       - ./nginx/nginx-socketio.conf:/etc/nginx/conf.d/default.conf:ro
       - ./certs:/project/certs
