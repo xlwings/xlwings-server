@@ -37,6 +37,8 @@ class CustomSerializer(JsonSerializer):
             return None
         try:
             data = json.loads(obj)
+            if data is None:
+                return None
             if (
                 "id" in data
                 and "name" in data
