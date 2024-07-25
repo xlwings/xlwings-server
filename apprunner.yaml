@@ -1,0 +1,6 @@
+# AWS AppRunner config file
+run:
+  runtime-version: 3.11
+  pre-run:
+    - pip3 install -r requirements.txt
+  command: gunicorn app.main:main_app --bind 0.0.0.0:8000 --access-logfile - --workers 1 --worker-class uvicorn.workers.UvicornWorker
