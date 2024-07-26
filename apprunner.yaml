@@ -1,6 +1,22 @@
 # AWS AppRunner config file
+version: 1.0
+runtime: python311
+build:
+  commands:
+    build:
+      - echo "Build command..."
 run:
   runtime-version: 3.11
   pre-run:
     - pip3 install -r requirements.txt
   command: gunicorn app.main:main_app --bind 0.0.0.0:8000 --access-logfile - --workers 1 --worker-class uvicorn.workers.UvicornWorker
+  network:
+    port: 8000
+  env:
+    - name: XLWINGS_LICENSE_KEY
+      value: TODO
+    - name: XLWINGS_ENABLE_SOCKETIO
+      value: false
+  # secrets:
+  #   - name: XLWINGS_LICENSE_KEY
+  #     value_from: arn:aws:secretsmanager:region:aws_account_id:secret:secret-id

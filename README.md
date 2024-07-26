@@ -143,7 +143,7 @@ If you have your developer license key set as `XLWINGS_DEVELOPER_KEY` env var in
 
 ## Deployment to Azure Functions
 
-NOTE: Azure functions don't support streaming functions.
+NOTE: Azure functions doesn't support WebSockets, i.e. streaming functions and `trigger_script` won't work
 
 For the following walk through, you'll need to have the Azure CLI and Azure Functions Core Tools installed, see [here](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli).
 
@@ -220,3 +220,17 @@ After running this tutorial you can get rid of all the resources again by runnin
 ```bash
 az group delete --name xlwings-quickstart-rg
 ```
+
+## Deployment to AWS App Runner
+
+NOTE: AWS AppRunner doesn't support WebSockets, i.e. streaming functions and `trigger_script` won't work
+
+
+* In this repo, update `apprunner.yaml` with your `XLWINGS_LICENSE_KEY` either as `env` or `secret`
+* Under App Runner, click on `Create service`
+* Repository type: Source code repository
+* Source directory: `/`
+* Deployment trigger: Automatic
+* Configuration file: Use a configuration file
+* Service name: e.g. `xlwings-server`
+* Click on `Create & deploy`
