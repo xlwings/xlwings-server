@@ -21,7 +21,6 @@ from ..utils import trigger_script
 # cache key
 # accept a BOOK_ID from xlwings.conf sheet to make cache keys unique
 # allow to clear the cache manually, via expireat, (when workbook is closed everywhere)
-# xw.object
 # compression?
 # Refactor so you can provide own serializer/deserializer
 
@@ -44,11 +43,11 @@ class ObjectCache(Converter):
         }
 
 
-ObjectCache.register("object")
+ObjectCache.register("object", object)
 
 
 @server.func
-@server.arg("df", "object")
+@server.arg("df", object)
 @server.ret(index=False)
 def get_object(df):
     return df
@@ -56,7 +55,7 @@ def get_object(df):
 
 @server.func
 @server.arg("x", pd.DataFrame, index=False, parse_dates=["three"])
-@server.ret("object")
+@server.ret(object)
 def set_object(x):
     return x
 
