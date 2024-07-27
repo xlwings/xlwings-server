@@ -2,11 +2,13 @@ import importlib
 import logging
 from typing import Annotated, Union
 
+import redis
 import xlwings as xw
 from fastapi import Depends, Header, HTTPException, status
 
 from . import models
 from .config import settings
+from .database import get_redis_client
 
 logger = logging.getLogger(__name__)
 
@@ -79,3 +81,6 @@ async def get_user(current_user: models.User = Depends(authenticate)):
 
 
 User = Annotated[models.User, Depends(get_user)]
+
+# Redis
+RedisClient = Annotated[redis.Redis, Depends(get_redis_client)]

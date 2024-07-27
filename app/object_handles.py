@@ -3,9 +3,49 @@ import json
 from io import StringIO
 
 import pandas as pd
-import redis
+from xlwings import XlwingsError
+from xlwings.conversion import Converter
 
-r = redis.Redis(host="localhost", port=6379, db=0)
+from .config import settings
+
+# TODOs
+# Refactor so you can provide own serializer/deserializer
+# missing cache error
+# scope cache key to user? use Excel.Setting to store a UUID instead of workbook name?
+# 1-worker handling in memory?
+# allow to clear the cache manually / via expireat / when workbook is closed
+# compression?
+from .routers import xlwings as xlwings_router
+
+
+class ObjectCache(Converter):
+    @staticmethod
+    def read_value(values, options):
+        key = values  # this is the cell address
+        redis_client = xlwings_router.redis_client_context.get()
+        if not settings.cache_url:
+            raise XlwingsError(
+                "You must provide the 'XLWINGS_CACHE_URL' setting to use the object cache!"
+            )
+        obj = deserialize(redis_client.get(key).decode())
+        return obj
+
+    @staticmethod
+    def write_value(obj, options):
+        key = xlwings_router.caller_address_context.get()
+        redis_client = xlwings_router.redis_client_context.get()
+        if not settings.cache_url:
+            raise XlwingsError(
+                "You must provide the 'XLWINGS_CACHE_URL' setting to use the object cache!"
+            )
+        values = serialize(obj)
+        redis_client.set(key, values)
+        return {
+            "type": "Entity",
+            "text": options.get("display_name", obj.__class__.__name__),
+            "properties": {"length": {"type": "String", "basicValue": str(len(obj))}},
+            "layouts": {"compact": {"icon": options.get("icon", "Generic")}},
+        }
 
 
 def custom_encoder(obj):
@@ -64,21 +104,3 @@ def deserialize(data):
             raise ValueError(f"Unknown class for deserialization: {class_name}")
     else:
         return convert_iso_strings_to_datetime(obj)
-
-
-"""
-# Example usage
-import datetime as dt
-
-# data = pd.DataFrame({'A': [dt.datetime(2000, 12,1, 1, 1), dt.datetime(2000, 12,1), dt.datetime(2000, 12,1)], 'B': [4, 5, 6]})
-data = {"a": [1, 2, dt.datetime(2000, 12, 1, 12, 3)]}
-serialized_df = serialize(data)
-r.set("my_dataframe", serialized_df)
-
-# Retrieve and deserialize
-retrieved_data = r.get("my_dataframe").decode()
-deserialized_data = deserialize(retrieved_data)
-# deserialized_data = convert_iso_strings_to_datetime(deserialized_data)
-
-print(deserialized_data)
-"""
