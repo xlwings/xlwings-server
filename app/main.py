@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from xlwings import XlwingsError
 
 from . import settings
-from .object_handles import ObjectCache
+from .object_handles import ObjectCacheConverter
 from .routers import socketio as socketio_router
 from .routers.manifest import router as manifest_router
 from .routers.taskpane import router as taskpane_router
@@ -25,7 +25,7 @@ app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
 
 # Register ObjectHandler
-ObjectCache.register("object", object)
+ObjectCacheConverter.register("object", object)
 
 # CORS: Office Scripts and custom functions in Excel on the web require CORS
 # Using app.add_middleware won't add the CORS headers if you handle the root "Exception"

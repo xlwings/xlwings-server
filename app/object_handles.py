@@ -18,26 +18,30 @@ from .config import settings
 from .routers import xlwings as xlwings_router
 
 
-class ObjectCache(Converter):
+class ObjectCacheConverter(Converter):
     @staticmethod
-    def read_value(values, options):
-        key = values  # this is the cell address
-        redis_client = xlwings_router.redis_client_context.get()
+    def read_value(cell_address, options):
+        # For custom function args of type Entity, the frontend sends the cell address
+        # instead of the value
         if not settings.cache_url:
             raise XlwingsError(
                 "You must provide the 'XLWINGS_CACHE_URL' setting to use the object cache!"
             )
-        obj = deserialize(redis_client.get(key).decode())
+        redis_client = xlwings_router.redis_client_context.get()
+        value = redis_client.get(cell_address)
+        if not value:
+            raise XlwingsError("Object cache is empty")
+        obj = deserialize(value.decode())
         return obj
 
     @staticmethod
     def write_value(obj, options):
-        key = xlwings_router.caller_address_context.get()
-        redis_client = xlwings_router.redis_client_context.get()
         if not settings.cache_url:
             raise XlwingsError(
                 "You must provide the 'XLWINGS_CACHE_URL' setting to use the object cache!"
             )
+        key = xlwings_router.caller_address_context.get()
+        redis_client = xlwings_router.redis_client_context.get()
         values = serialize(obj)
         redis_client.set(key, values)
         return {
