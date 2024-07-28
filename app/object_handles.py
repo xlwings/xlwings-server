@@ -97,11 +97,7 @@ def deserialize(data):
         class_name = obj["class"]
         if class_name == "pd.DataFrame":
             df = pd.read_json(StringIO(obj["data"]))
-            dtypes = {
-                col: pd.api.types.pandas_dtype(dtype_str)
-                for col, dtype_str in obj["dtypes"].items()
-            }
-            for col, dtype in dtypes.items():
+            for col, dtype in obj["dtypes"].items():
                 df[col] = df[col].astype(dtype)
             return df
         else:
