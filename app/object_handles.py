@@ -18,7 +18,7 @@ class ObjectCacheConverter(Converter):
     @staticmethod
     def read_value(cell_address, options):
         # For custom function args of type Entity, the frontend sends the cell address
-        # instead of the value
+        # instead of the cell value
         if not settings.cache_url:
             raise XlwingsError(
                 "You must provide the 'XLWINGS_CACHE_URL' setting to use the object cache!"
