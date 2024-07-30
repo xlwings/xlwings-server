@@ -1,14 +1,17 @@
+import logging
+
 from xlwings import XlwingsError
 from xlwings.conversion import Converter
 
 from .config import settings
-
-# TODOs
-# scope cache key to user? use Excel.Setting to store a UUID instead of workbook name?
-# allow to clear the cache manually / via expireat / when workbook is closed
-# compression?
 from .routers import xlwings as xlwings_router
 from .serializers import deserialize, serialize
+
+# TODOs
+# use unload js event to clear cache?
+# allow to clear the cache manually / via expireat / when workbook is closed
+# compression?
+logger = logging.getLogger(__name__)
 
 # Used if Redis isn't configured. Only useful for 1-worker setups like dev.
 cache = {}
@@ -22,10 +25,11 @@ class ObjectCacheConverter(Converter):
         redis_client = xlwings_router.redis_client_context.get()
         if settings.cache_url and not redis_client:
             raise XlwingsError("Failed to connect to Redis")
+        key = f"object:{cell_address}"
         if settings.cache_url:
-            value = redis_client.get(cell_address).decode()
+            value = redis_client.get(key).decode()
         else:
-            value = cache.get(cell_address)
+            value = cache.get(key)
         if not value:
             raise XlwingsError("Object cache is empty")
         obj = deserialize(value)
@@ -36,11 +40,14 @@ class ObjectCacheConverter(Converter):
         redis_client = xlwings_router.redis_client_context.get()
         if settings.cache_url and not redis_client:
             raise XlwingsError("Failed to connect to Redis")
-        key = xlwings_router.caller_address_context.get()
+        key = f"object:{xlwings_router.caller_address_context.get()}"
         values = serialize(obj)
         if settings.cache_url:
             redis_client.set(key, values)
         else:
+            logger.info(
+                "Storing objects in memory. Configure `XLWINGS_CACHE_URL` for production use!"
+            )
             cache[key] = values
         return {
             "type": "Entity",
