@@ -45,7 +45,6 @@ async def connect(sid, environ, auth):
     except Exception as e:
         logger.info(f"Socket.io: authentication failed for sid {sid}: {repr(e)}")
         await sio.disconnect(sid)
-    logger.info(f"Socket.io: connect {sid}")
 
 
 @sio.on("disconnect")
