@@ -25,3 +25,24 @@ class PandasDataFrameSerializer(Serializer):
 
 
 PandasDataFrameSerializer.register(pd.DataFrame)
+
+
+class PandasSeriesSerializer(Serializer):
+    name = "pd.Series"
+
+    @classmethod
+    def serialize(cls, series):
+        return {
+            "serializer": cls.name,
+            "data": series.to_json(date_format="iso"),
+            "dtype": str(series.dtype),
+        }
+
+    @classmethod
+    def deserialize(cls, payload):
+        series = pd.read_json(StringIO(payload["data"]), typ="series")
+        series = series.astype(payload["dtype"])
+        return series
+
+
+PandasSeriesSerializer.register(pd.Series)

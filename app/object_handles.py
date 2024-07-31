@@ -1,6 +1,8 @@
 import logging
 import zlib
 
+import numpy as np
+import pandas as pd
 import redis
 from croniter import croniter
 from xlwings import XlwingsError
@@ -13,12 +15,11 @@ from .serializers import deserialize, serialize
 # TODOs
 # use unload js event to clear cache?
 # allow to clear the cache manually
-# numpy serializer
-# make redis package optional
-# xlwings.view()
+# make redis,numpy,pandas package optional
 logger = logging.getLogger(__name__)
 
-# Used if Redis isn't configured. Only useful for 1-worker setups like dev.
+# Used if XLWINGS_CACHE_URL, i.e., Redis isn't configured.
+# Only useful for 1-worker setups like during development.
 cache = {}
 
 
@@ -64,9 +65,45 @@ class ObjectCacheConverter(Converter):
                 "Storing objects in memory. Configure `XLWINGS_CACHE_URL` for production use!"
             )
             cache[key] = values
-        return {
+
+        def get_shape(obj):
+            if isinstance(obj, (pd.DataFrame, np.ndarray)):
+                return f"{obj.shape[0]} x {obj.shape[1]}"
+            elif isinstance(obj, (list, tuple)):
+                if obj and all(isinstance(i, (list, tuple)) for i in obj):
+                    nested_length = len(obj[0])
+                    return f"{len(obj)} x {nested_length}"
+                return str(len(obj))
+
+        obj_type = type(obj).__name__
+
+        result = {
             "type": "Entity",
-            "text": options.get("display_name", obj.__class__.__name__),
-            "properties": {"length": {"type": "String", "basicValue": str(len(obj))}},
+            "text": options.get("display_name", obj_type),
+            "properties": {
+                "Type": {
+                    "type": "String",
+                    "basicValue": obj_type,
+                },
+                **(
+                    {
+                        "Columns": {
+                            "type": "String",
+                            "basicValue": ", ".join(obj.columns),
+                        }
+                    }
+                    if isinstance(obj, pd.DataFrame)
+                    else {}
+                ),
+            },
             "layouts": {"compact": {"icon": options.get("icon", "Generic")}},
         }
+
+        shape_value = get_shape(obj)
+        if shape_value:
+            result["properties"]["Shape"] = {
+                "type": "String",
+                "basicValue": shape_value,
+            }
+
+        return result

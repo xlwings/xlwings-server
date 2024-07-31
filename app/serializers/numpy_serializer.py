@@ -5,7 +5,7 @@ from .framework import Serializer
 
 
 class NumpyArraySerializer(Serializer):
-    name = "np.Array"
+    name = "np.array"
 
     @classmethod
     def serialize(cls, arr: npt.NDArray):

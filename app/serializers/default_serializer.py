@@ -17,4 +17,4 @@ class DefaultSerializer(Serializer):
         return convert_iso_strings_to_datetime(payload["data"])
 
 
-DefaultSerializer.register(list, dict)
+DefaultSerializer.register()

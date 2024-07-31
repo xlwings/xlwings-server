@@ -15,16 +15,15 @@ from ..utils import trigger_script
 
 
 @server.func
-@server.arg("df", object)
-@server.ret(index=False)
-def get_object(df):
-    return df
+@server.arg("obj", object)
+def view(obj):
+    return obj
 
 
 @server.func
 @server.arg("x", pd.DataFrame, index=False, parse_dates=["three"])
 @server.ret(object)
-def set_object(x):
+def df(x):
     return x
 
 
