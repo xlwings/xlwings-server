@@ -1,6 +1,8 @@
 import datetime as dt
 
+import numpy as np
 import pandas as pd
+from numpy.testing import assert_array_equal
 from pandas.testing import assert_frame_equal
 
 from app.serializers import deserialize, serialize
@@ -37,5 +39,21 @@ def test_dict():
 
 
 def test_df():
-    data = pd.DataFrame({"a": [1, 2], "b": [3, 4]})
+    data = pd.DataFrame(
+        {
+            "ints": [1, 2],
+            "b": ["a", "b"],
+            "date time": [
+                dt.datetime(2022, 12, 1, 10, 33),
+                dt.datetime(2022, 12, 2, 10, 34),
+            ],
+            "bool": [True, False],
+            "floats": [1.1, 2.2],
+        }
+    )
     assert_frame_equal(data, deserialize(serialize(data)))
+
+
+def test_numpy():
+    data = np.array([[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]])
+    assert_array_equal(data, deserialize(serialize(data)))

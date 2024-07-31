@@ -1,6 +1,6 @@
 import json
 
-from . import default_serializer, pandas_serializer
+from . import default_serializer, numpy_serializer, pandas_serializer
 from .framework import Serializer, serializers
 from .helpers import datetime_encoder
 
