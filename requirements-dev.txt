@@ -35,6 +35,8 @@ click==8.1.7
     # via
     #   -r requirements.txt
     #   uvicorn
+croniter==3.0.3
+    # via -r requirements.txt
 cryptography==42.0.8
     # via
     #   -r requirements.txt
@@ -125,6 +127,7 @@ pytest-mock==3.14.0
 python-dateutil==2.9.0.post0
     # via
     #   -r requirements.txt
+    #   croniter
     #   pandas
 python-dotenv==1.0.1
     # via
@@ -141,6 +144,7 @@ python-socketio==5.11.3
 pytz==2024.1
     # via
     #   -r requirements.txt
+    #   croniter
     #   pandas
 pyyaml==6.0.1
     # via pre-commit

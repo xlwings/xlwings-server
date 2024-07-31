@@ -2,6 +2,7 @@ import logging
 import zlib
 
 import redis
+from croniter import croniter
 from xlwings import XlwingsError
 from xlwings.conversion import Converter
 
@@ -11,9 +12,10 @@ from .serializers import deserialize, serialize
 
 # TODOs
 # use unload js event to clear cache?
-# allow to clear the cache manually / via expireat / when workbook is closed
+# allow to clear the cache manually
 # numpy serializer
 # make redis package optional
+# xlwings.view()
 logger = logging.getLogger(__name__)
 
 # Used if Redis isn't configured. Only useful for 1-worker setups like dev.
@@ -30,7 +32,11 @@ class ObjectCacheConverter(Converter):
             raise XlwingsError("Failed to connect to Redis")
         key = f"object:{cell_address}"
         if settings.cache_url:
-            value = zlib.decompress(redis_client.get(key)).decode()
+            value = redis_client.get(key)
+            if settings.object_cache_enable_compression:
+                value = zlib.decompress(value).decode()
+            else:
+                value = value.decode()
         else:
             value = cache.get(key)
         if not value:
@@ -46,7 +52,13 @@ class ObjectCacheConverter(Converter):
         key = f"object:{xlwings_router.caller_address_context.get()}"
         values = serialize(obj)
         if settings.cache_url:
-            redis_client.set(key, zlib.compress(values.encode()))
+            expire_at = None
+            if settings.object_cache_expire_at:
+                cron = croniter(settings.object_cache_expire_at)
+                expire_at = int(cron.get_next())
+            if settings.object_cache_enable_compression:
+                values = zlib.compress(values.encode())
+            redis_client.set(key, values, exat=expire_at)
         else:
             logger.info(
                 "Storing objects in memory. Configure `XLWINGS_CACHE_URL` for production use!"

@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     app_path: str = ""
     base_dir: Path = Path(__file__).resolve().parent
     cache_url: Optional[str] = None
+    object_cache_expire_at: Optional[str] = "0 12 * * sun"
+    object_cache_enable_compression: bool = True
     cors_allow_origins: list[str] = ["*"]
     date_format: Optional[str] = None
     enable_alpinejs_csp: bool = True
