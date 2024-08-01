@@ -13,8 +13,6 @@ from .routers import xlwings as xlwings_router
 from .serializers import deserialize, serialize
 
 # TODOs
-# use unload js event to clear cache?
-# allow to clear the cache manually
 # make redis,numpy,pandas package optional
 logger = logging.getLogger(__name__)
 
