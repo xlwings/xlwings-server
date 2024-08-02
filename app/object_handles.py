@@ -32,14 +32,16 @@ class ObjectCacheConverter(Converter):
         key = f"object:{cell_address}"
         if settings.cache_url:
             value = redis_client.get(key)
+            if not value:
+                raise XlwingsError("Object cache is empty")
             if settings.object_cache_enable_compression:
                 value = zlib.decompress(value).decode()
             else:
                 value = value.decode()
         else:
             value = cache.get(key)
-        if not value:
-            raise XlwingsError("Object cache is empty")
+            if not value:
+                raise XlwingsError("Object cache is empty")
         obj = deserialize(value)
         return obj
 
@@ -77,7 +79,7 @@ class ObjectCacheConverter(Converter):
 
         result = {
             "type": "Entity",
-            "text": options.get("display_name", obj_type),
+            "text": options.get("display_name", obj_type) or obj_type,
             "properties": {
                 "Type": {
                     "type": "String",
@@ -94,7 +96,9 @@ class ObjectCacheConverter(Converter):
                     else {}
                 ),
             },
-            "layouts": {"compact": {"icon": options.get("icon", "Generic")}},
+            "layouts": {
+                "compact": {"icon": options.get("icon", "Generic") or "Generic"}
+            },
         }
 
         shape_value = get_shape(obj)
@@ -103,5 +107,4 @@ class ObjectCacheConverter(Converter):
                 "type": "String",
                 "basicValue": shape_value,
             }
-
         return result
