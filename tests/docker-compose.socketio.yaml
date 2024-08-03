@@ -1,6 +1,6 @@
 x-app-settings: &app-settings
-  build:
-    context: .
+  build: &build
+    context: ..
     target: dev
     dockerfile: Dockerfile
   command: >
@@ -9,10 +9,10 @@ x-app-settings: &app-settings
     --reload
     --reload-dir /project/app
   volumes:
-    - ./app:/project/app
-    - ./certs:/project/certs
+    - ../app:/project/app
+    - ../certs:/project/certs
   env_file:
-    - .env
+    - ../.env
   environment:
       XLWINGS_SOCKETIO_MESSAGE_QUEUE_URL: redis://redis:6379/0
 
@@ -24,20 +24,17 @@ services:
     <<: *app-settings
 
   socketio:
-    build:
-      context: .
-      target: dev
-      dockerfile: Dockerfile
+    build: *build
     command: >
       uvicorn app.main:sio_app
       --host 0.0.0.0 --port 8001
       --reload
       --reload-dir /project/app
     volumes:
-      - ./app:/project/app
-      - ./certs:/project/certs
+      - ../app:/project/app
+      - ../certs:/project/certs
     env_file:
-      - .env
+      - ../.env
     environment:
       XLWINGS_SOCKETIO_SERVER_APP: true
       XLWINGS_SOCKETIO_MESSAGE_QUEUE_URL: redis://redis:6379/0
@@ -52,5 +49,5 @@ services:
     ports:
       - "8000:443"
     volumes:
-      - ./nginx/nginx-socketio.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./certs:/project/certs
+      - ../nginx/nginx-socketio.conf:/etc/nginx/conf.d/default.conf:ro
+      - ../certs:/project/certs

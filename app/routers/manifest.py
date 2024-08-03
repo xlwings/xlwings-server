@@ -1,7 +1,7 @@
 import logging
 import os
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Header, Request
 
 from ..config import settings
 from ..templates import TemplateResponse
@@ -12,7 +12,9 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/manifest")
-async def manifest(request: Request):
+async def manifest(
+    request: Request, protocol: str = Header(default="", alias="X-Forwarded-Proto")
+):
     if settings.hostname:
         # Settings
         base_url = f"https://{settings.hostname}"
@@ -26,8 +28,9 @@ async def manifest(request: Request):
         # GitHub Codespaces
         base_url = f"https://{os.getenv('CODESPACE_NAME')}-8000.{os.getenv('GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN')}"
     else:
-        # Mostly localhost
-        base_url = request.base_url
+        base_url = str(request.base_url)
+        if protocol == "https":
+            base_url = base_url.replace("http://", "https://")
 
     base_url = str(base_url).rstrip("/")
 

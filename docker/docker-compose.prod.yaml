@@ -5,35 +5,35 @@ services:
     ports:
       - "443:443"
     volumes:
-      - ./nginx/nginx-prod.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./certs:/project/certs
+      - ../nginx/nginx-prod.conf:/etc/nginx/conf.d/default.conf:ro
+      - ../certs:/project/certs
 
   app:
     build: &build
       context: ..
       target: prod
       dockerfile: Dockerfile
+    restart: always
     command: >
       uvicorn app.main:main_app
       --host 0.0.0.0 --port 8000
     volumes:
-      - ./app:/project/app
-    restart: always
+      - ../app:/project/app
     env_file:
-      - .env
+      - ../.env
     environment:
       XLWINGS_SOCKETIO_MESSAGE_QUEUE_URL: redis://redis:6379/0
 
   socketio:
     build: *build
+    restart: always
     command: >
       uvicorn app.main:sio_app
       --host 0.0.0.0 --port 8000
-    restart: always
     volumes:
-      - ./app:/project/app
+      - ../app:/project/app
     env_file:
-      - .env
+      - ../.env
     environment:
       XLWINGS_SOCKETIO_SERVER_APP: true
       XLWINGS_SOCKETIO_MESSAGE_QUEUE_URL: redis://redis:6379/0
