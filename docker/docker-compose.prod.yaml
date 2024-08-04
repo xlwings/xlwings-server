@@ -14,11 +14,13 @@ services:
       target: prod
       dockerfile: Dockerfile
     restart: always
+    # Workers can be scaled to whatever meets the traffic
     command: >
-      uvicorn app.main:main_app
-      --host 0.0.0.0 --port 8000
-    volumes:
-      - ../app:/project/app
+       gunicorn app.main:main_app
+       --bind 0.0.0.0:8000
+       --access-logfile -
+       --workers 2
+       --worker-class uvicorn.workers.UvicornWorker
     env_file:
       - ../.env
     environment:
@@ -27,11 +29,13 @@ services:
   socketio:
     build: *build
     restart: always
+    # Workers must be exactly 1 as this is a stateful service
     command: >
-      uvicorn app.main:sio_app
-      --host 0.0.0.0 --port 8000
-    volumes:
-      - ../app:/project/app
+       gunicorn app.main:sio_app
+       --bind 0.0.0.0:8000
+       --access-logfile -
+       --workers 1
+       --worker-class uvicorn.workers.UvicornWorker
     env_file:
       - ../.env
     environment:
