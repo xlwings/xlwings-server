@@ -1,0 +1,24 @@
+# This is a minimal implementation without support for Socket.IO functionality
+# such as streaming functions or utils.trigger_script()
+services:
+  app:
+    build: &build
+      context: ..
+      target: prod
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "443:8000"
+    # Workers can be scaled to whatever meets the traffic
+    command: >
+       gunicorn app.main:main_app
+       --bind 0.0.0.0:8000
+       --keyfile ../certs/privkey.pem
+       --certfile ../certs/fullchain.pem
+       --access-logfile -
+       --workers 2
+       --worker-class uvicorn.workers.UvicornWorker
+    env_file:
+      - ../.env
+    environment:
+      - XLWINGS_ENABLE_SOCKETIO=false

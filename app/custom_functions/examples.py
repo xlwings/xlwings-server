@@ -22,14 +22,16 @@ def hello(name):
 
 @server.func
 async def hello_with_script(name):
-    """This function triggers a custom script (requires XLWINGS_ENABLE_SOCKETIO=true)"""
+    """This function triggers a custom script, requires XLWINGS_ENABLE_SOCKETIO=true"""
     await trigger_script(custom_scripts.hello_world, exclude="Sheet2")
     return f"Hello {name}!"
 
 
 @server.func
 async def streaming_random(rows, cols):
-    """This is a streaming function and must be provided as async generator"""
+    """This is a streaming function and must be provided as async generator,
+    requires XLWINGS_ENABLE_SOCKETIO=true
+    """
     rng = np.random.default_rng()
     while True:
         matrix = rng.standard_normal(size=(rows, cols))
