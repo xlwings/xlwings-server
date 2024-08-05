@@ -234,3 +234,39 @@ NOTE: AWS AppRunner doesn't support WebSockets, i.e. streaming functions and `tr
 * Configuration file: Use a configuration file
 * Service name: e.g. `xlwings-server`
 * Click on `Create & deploy`
+
+## Deployment via Docker Compose
+
+* Set the following environment variables either on your VM or in the `.env` file:
+
+  - `XLWINGS_LICENSE_KEY`
+  - `XLWINGS_ENVIRONMENT="prod"`
+
+* Store your TLS certificates in the `certs` folder with the following names:
+
+  - `privkey.pem`
+  - `fullchain.pem`
+
+* Whenever there are changes to your source code, in the root directory, run:
+
+  ```
+  docker compose -f docker/docker-compose.prod.yaml build
+  ```
+
+* To run the app:
+
+  ```
+  docker compose -f docker/docker-compose.prod.yaml up -d
+  ```
+
+* To check the logs:
+
+  ```
+  docker compose -f docker/docker-compose.prod.yaml logs -f
+  ```
+
+If you prefer a much more minimal setup that doesn't support streaming functions and the (upcoming) object handles, you can also run the following instead:
+
+```
+docker compose -f docker/docker-compose.prod-min.yaml up -d
+```
