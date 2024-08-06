@@ -6,6 +6,7 @@ import logging
 import re
 
 import httpx
+from aiocache import cached
 from fastapi import Depends, Header, status
 from fastapi.exceptions import HTTPException
 from joserfc import jwt
@@ -13,7 +14,6 @@ from joserfc.jwk import KeySet
 from joserfc.jwt import JWTClaimsRegistry
 
 from ... import models
-from ...caching import cached
 from ...config import settings
 from . import jwks
 
@@ -24,7 +24,7 @@ OPENID_CONNECT_DISCOVERY_DOCUMENT_URL = (
 )
 
 
-@cached(ttl=60 * 60 * 24, alias="default")
+@cached(ttl=60 * 60 * 24)
 async def get_jwks_json_default():
     logger.info("Get default JWKS json for Entra ID")
     async with httpx.AsyncClient() as client:
@@ -43,7 +43,7 @@ async def get_key_set():
     return key_set
 
 
-@cached(ttl=60 * 60, alias="default")
+@cached(ttl=60 * 60)
 async def validate_token(token_string: str):
     """Validates the Entra ID access/id token. Returns a user object."""
     logger.debug(f"Validating token: {token_string}")
