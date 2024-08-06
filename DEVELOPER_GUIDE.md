@@ -1,6 +1,6 @@
 # Run everything local
 
-To get a prod-like setup while runnign the app locally, run the following in separate terminals:
+To get a prod-like setup while running the app locally, run the following in separate terminals:
 
 * `docker compose -f tests/docker-compose.redis.yaml up`
 * `uvicorn app.main:main_app --host 0.0.0.0 --port 8000 --reload --ssl-keyfile ./certs/localhost+2-key.pem --ssl-certfile ./certs/localhost+2.pem`
