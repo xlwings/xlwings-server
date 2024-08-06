@@ -3,8 +3,8 @@ import redis  # TODO: import redis.asyncio as redis
 from .config import settings
 
 redis_pool = None
-if settings.cache_url:
-    redis_pool = redis.ConnectionPool.from_url(settings.cache_url)
+if settings.object_cache_url:
+    redis_pool = redis.ConnectionPool.from_url(settings.object_cache_url)
 
 
 def get_redis_client():

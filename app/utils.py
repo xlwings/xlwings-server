@@ -22,7 +22,7 @@ async def trigger_script(script, **options):
 
 
 async def clear_object_cache():
-    if settings.cache_url:
+    if settings.object_cache_url:
         redis_client: redis.Redis = xlwings_router.redis_client_context.get()
         keys = redis_client.scan_iter(match="object:*")
         for key in keys:

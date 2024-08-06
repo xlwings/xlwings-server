@@ -14,6 +14,7 @@ from .serializers import deserialize, serialize
 
 # TODOs
 # make redis,numpy,pandas package optional
+# provide enum for icon
 logger = logging.getLogger(__name__)
 
 # Used if XLWINGS_CACHE_URL, i.e., Redis isn't configured.
@@ -27,10 +28,10 @@ class ObjectCacheConverter(Converter):
         # For custom function args of type Entity, the frontend sends the cell address
         # instead of the cell value
         redis_client: redis.Redis = xlwings_router.redis_client_context.get()
-        if settings.cache_url and not redis_client:
+        if settings.object_cache_url and not redis_client:
             raise XlwingsError("Failed to connect to Redis")
         key = f"object:{cell_address}"
-        if settings.cache_url:
+        if settings.object_cache_url:
             value = redis_client.get(key)
             if not value:
                 raise XlwingsError("Object cache is empty")
@@ -48,11 +49,11 @@ class ObjectCacheConverter(Converter):
     @staticmethod
     def write_value(obj, options):
         redis_client: redis.Redis = xlwings_router.redis_client_context.get()
-        if settings.cache_url and not redis_client:
+        if settings.object_cache_url and not redis_client:
             raise XlwingsError("Failed to connect to Redis")
         key = f"object:{xlwings_router.caller_address_context.get()}"
         values = serialize(obj)
-        if settings.cache_url:
+        if settings.object_cache_url:
             expire_at = None
             if settings.object_cache_expire_at:
                 cron = croniter(settings.object_cache_expire_at)
