@@ -26,16 +26,3 @@ class User(BaseModel):
     async def is_authorized(self):
         """Here, you can implement a custom authorization logic"""
         return True
-
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "name": self.name,
-            "email": self.email,
-            "domain": self.domain,
-            "roles": self.roles,
-        }
-
-    @classmethod
-    def from_dict(cls, data):
-        return cls(**data)
