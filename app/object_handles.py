@@ -17,7 +17,7 @@ from .serializers import deserialize, serialize
 # provide enum for icon
 logger = logging.getLogger(__name__)
 
-# Used if XLWINGS_CACHE_URL, i.e., Redis isn't configured.
+# Used if XLWINGS_OBJECT_CACHE_URL, i.e., Redis isn't configured.
 # Only useful for 1-worker setups like during development.
 cache = {}
 
@@ -63,7 +63,8 @@ class ObjectCacheConverter(Converter):
             redis_client.set(key, values, exat=expire_at)
         else:
             logger.info(
-                "Storing objects in memory. Configure `XLWINGS_CACHE_URL` for production use!"
+                "Storing objects in memory. Configure XLWINGS_OBJECT_CACHE_URL "
+                "for production use!"
             )
             cache[key] = values
 

@@ -47,11 +47,11 @@ def correl(df):
 
 
 @server.func
-@server.ret(object)
+@server.ret(object, display_name=None, icon=None)
 async def get_df(length=3):
     """Object handle: Returns an object handle to the Excel cell (requires
-    XLWINGS_CACHE_URL for prod). You can supply `display_name` and `icon` keyword args
-    with the ret decorator"""
+    XLWINGS_OBJECT_CACHE_URL for prod). The `display_name` and `icon` keyword args are
+    optional"""
     return pd.DataFrame({"one": [1] * length, "two": ["one"] * length})
 
 
