@@ -14,11 +14,10 @@ from .serializers import deserialize, serialize
 
 # TODOs
 # make redis,numpy,pandas package optional
-# provide enum for icon
 logger = logging.getLogger(__name__)
 
 # Used if XLWINGS_OBJECT_CACHE_URL, i.e., Redis isn't configured.
-# Only useful for 1-worker setups like during development.
+# Only useful with 1-worker e.g,  during development.
 cache = {}
 
 
@@ -68,15 +67,6 @@ class ObjectCacheConverter(Converter):
             )
             cache[key] = values
 
-        def get_shape(obj):
-            if isinstance(obj, (pd.DataFrame, np.ndarray)):
-                return f"{obj.shape[0]} x {obj.shape[1]}"
-            elif isinstance(obj, (list, tuple)):
-                if obj and all(isinstance(i, (list, tuple)) for i in obj):
-                    nested_length = len(obj[0])
-                    return f"{len(obj)} x {nested_length}"
-                return str(len(obj))
-
         obj_type = type(obj).__name__
 
         result = {
@@ -87,26 +77,52 @@ class ObjectCacheConverter(Converter):
                     "type": "String",
                     "basicValue": obj_type,
                 },
-                **(
-                    {
-                        "Columns": {
-                            "type": "String",
-                            "basicValue": ", ".join(obj.columns),
-                        }
-                    }
-                    if isinstance(obj, pd.DataFrame)
-                    else {}
-                ),
             },
             "layouts": {
                 "compact": {"icon": options.get("icon", "Generic") or "Generic"}
             },
         }
 
+        # Shape
+        def get_shape(obj):
+            if isinstance(obj, (pd.DataFrame, np.ndarray)):
+                return f"{obj.shape[0]} x {obj.shape[1]}"
+            elif isinstance(obj, (list, tuple)):
+                if obj and all(isinstance(i, (list, tuple)) for i in obj):
+                    nested_length = len(obj[0])
+                    return f"{len(obj)} x {nested_length}"
+                return str(len(obj))
+
         shape_value = get_shape(obj)
         if shape_value:
             result["properties"]["Shape"] = {
                 "type": "String",
                 "basicValue": shape_value,
+            }
+
+        # Columns
+        cols_info = None
+        if isinstance(obj, pd.DataFrame):
+            cols_info = ", ".join(f"{col} [{obj[col].dtype}]" for col in obj.columns)
+        if cols_info:
+            result["properties"]["Columns"] = {
+                "type": "String",
+                "basicValue": cols_info,
+            }
+
+        # Index
+        index_info = None
+        if isinstance(obj, pd.DataFrame):
+            index_type = type(obj.index).__name__
+            index_length = len(obj.index)
+            index_start = obj.index[0]
+            index_end = obj.index[-1]
+            index_info = (
+                f"{index_type}: {index_length} entries, {index_start} to {index_end}"
+            )
+        if index_info:
+            result["properties"]["Index"] = {
+                "type": "String",
+                "basicValue": index_info,
             }
         return result
