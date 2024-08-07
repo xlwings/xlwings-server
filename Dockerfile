@@ -15,6 +15,7 @@ RUN pip install --no-cache-dir -r ./requirements-dev.txt
 
 # PROD STAGE
 FROM base AS prod
+COPY ./xlwings-0.31.10-py3-none-any.whl ./xlwings-0.31.10-py3-none-any.whl
 COPY ./requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r ./requirements.txt
 

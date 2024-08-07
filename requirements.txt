@@ -153,5 +153,5 @@ wsproto==1.2.0
     # via
     #   -r requirements-core.txt
     #   simple-websocket
-xlwings==0.31.10
+xlwings-0.31.10-py3-none-any.whl
     # via -r requirements-core.txt
