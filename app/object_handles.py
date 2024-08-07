@@ -1,8 +1,14 @@
 import logging
 import zlib
 
-import numpy as np
-import pandas as pd
+try:
+    import numpy as np
+except ImportError:
+    np = None
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
 import redis
 from croniter import croniter
 from xlwings import XlwingsError
@@ -13,7 +19,6 @@ from .routers import xlwings as xlwings_router
 from .serializers import deserialize, serialize
 
 # TODOs
-# make redis,numpy,pandas package optional
 logger = logging.getLogger(__name__)
 
 # Used if XLWINGS_OBJECT_CACHE_URL, i.e., Redis isn't configured.
@@ -85,7 +90,9 @@ class ObjectCacheConverter(Converter):
 
         # Shape
         def get_shape(obj):
-            if isinstance(obj, (pd.DataFrame, np.ndarray)):
+            if pd and isinstance(obj, pd.DataFrame):
+                return f"{obj.shape[0]} x {obj.shape[1]}"
+            if np and isinstance(obj, np.ndarray):
                 return f"{obj.shape[0]} x {obj.shape[1]}"
             elif isinstance(obj, (list, tuple)):
                 if obj and all(isinstance(i, (list, tuple)) for i in obj):
@@ -102,7 +109,7 @@ class ObjectCacheConverter(Converter):
 
         # Columns
         cols_info = None
-        if isinstance(obj, pd.DataFrame):
+        if pd and isinstance(obj, pd.DataFrame):
             cols_info = ", ".join(f"{col} [{obj[col].dtype}]" for col in obj.columns)
         if cols_info:
             result["properties"]["Columns"] = {
@@ -112,7 +119,7 @@ class ObjectCacheConverter(Converter):
 
         # Index
         index_info = None
-        if isinstance(obj, pd.DataFrame):
+        if pd and isinstance(obj, pd.DataFrame):
             index_type = type(obj.index).__name__
             index_length = len(obj.index)
             index_start = obj.index[0]
