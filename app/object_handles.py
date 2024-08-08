@@ -22,7 +22,7 @@ from .serializers import deserialize, serialize
 logger = logging.getLogger(__name__)
 
 # Used if XLWINGS_OBJECT_CACHE_URL, i.e., Redis isn't configured.
-# Only useful with 1-worker e.g,  during development.
+# Only useful with 1-worker e.g., during development.
 cache = {}
 
 
