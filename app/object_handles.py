@@ -76,7 +76,7 @@ class ObjectCacheConverter(Converter):
 
         result = {
             "type": "Entity",
-            "text": options.get("display_name", obj_type) or obj_type,
+            "text": options.get("text", obj_type) or obj_type,
             "properties": {
                 "Type": {
                     "type": "String",
