@@ -12,17 +12,17 @@ except ImportError:
 import redis
 from croniter import croniter
 from xlwings import XlwingsError
+from xlwings.constants import ObjectHandleIcons
 from xlwings.conversion import Converter
 
 from .config import settings
 from .routers import xlwings as xlwings_router
 from .serializers import deserialize, serialize
 
-# TODOs
 logger = logging.getLogger(__name__)
 
 # Used if XLWINGS_OBJECT_CACHE_URL, i.e., Redis isn't configured.
-# Only useful with 1-worker e.g., during development.
+# Only useful with a single worker e.g., during development.
 cache = {}
 
 
@@ -84,7 +84,10 @@ class ObjectCacheConverter(Converter):
                 },
             },
             "layouts": {
-                "compact": {"icon": options.get("icon", "Generic") or "Generic"}
+                "compact": {
+                    "icon": options.get("icon", ObjectHandleIcons.generic)
+                    or ObjectHandleIcons.generic
+                }
             },
         }
 
@@ -95,10 +98,15 @@ class ObjectCacheConverter(Converter):
             if np and isinstance(obj, np.ndarray):
                 return f"{obj.shape[0]} x {obj.shape[1]}"
             elif isinstance(obj, (list, tuple)):
-                if obj and all(isinstance(i, (list, tuple)) for i in obj):
+                if obj and isinstance(obj[0], (list, tuple)):
                     nested_length = len(obj[0])
                     return f"{len(obj)} x {nested_length}"
                 return str(len(obj))
+            else:
+                try:
+                    return str(len(obj))
+                except Exception:
+                    return None
 
         shape_value = get_shape(obj)
         if shape_value:

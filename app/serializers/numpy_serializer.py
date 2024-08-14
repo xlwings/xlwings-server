@@ -1,6 +1,5 @@
 try:
     import numpy as np
-    import numpy.typing as npt
 except ImportError:
     np = None
 
@@ -12,7 +11,7 @@ if np:
         name = "np.array"
 
         @classmethod
-        def serialize(cls, arr: npt.NDArray):
+        def serialize(cls, arr: np.ndarray):
             return {
                 "serializer": cls.name,
                 "data": arr.tolist(),

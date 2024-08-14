@@ -21,7 +21,7 @@ class Serializer:
             serializers[type] = cls
 
 
-# Helpers
+# Custom encoders/decoders
 def datetime_encoder(obj):
     if isinstance(obj, dt.datetime):
         return obj.isoformat()

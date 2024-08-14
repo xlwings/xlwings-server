@@ -24,8 +24,8 @@ logger = logging.getLogger(__name__)
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
 
-# Register ObjectHandler
-ObjectCacheConverter.register("object", object)
+# Register Converter
+ObjectCacheConverter.register(object, "object", "obj")
 
 # CORS: Office Scripts and custom functions in Excel on the web require CORS
 # Using app.add_middleware won't add the CORS headers if you handle the root "Exception"
