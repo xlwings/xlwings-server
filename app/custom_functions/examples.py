@@ -23,8 +23,8 @@ def hello(name):
 
 # 2) Returning a pandas DataFrame and function documentation
 # The function's doc string will turn up in the Function Wizard together with the
-# doc strings from the arg decorators. The sample also shows how suppress the index of a
-#  DataFrame via the ret decorator.
+# doc strings from the arg decorators. The sample also shows how to suppress the index
+# of a DataFrame via the ret decorator.
 @func
 @arg("rows", doc="The number of rows in the returned array.")
 @arg("cols", doc="The number of columns in the returned array.")
@@ -45,7 +45,7 @@ def correl(df):
     return df.corr()
 
 
-# 4) Type hints: this is the same example as before, but using type hints instead of
+# 4) Type hints: this is the same example as 3), but using type hints instead of
 # decorators. You could also use type hints and decorators together. In this sample, we
 # are storing the Annotated type hint outside of the function, so it is easy to reuse.
 Df = Annotated[pd.DataFrame, {"index": False}]
@@ -90,8 +90,8 @@ async def to_df(df: Df) -> object:
     return df
 
 
-# 8) Use a pandas DataFrame query by providing a DataFrame via object handle and the
-# query as string: [NAMESPACE].DF_QUERY(A1, "A > B")
+# 8) Object handles: use a pandas DataFrame query by providing a DataFrame via object
+# handle and the query as string: [NAMESPACE].DF_QUERY(A1, "A > B")
 @func
 async def df_query(df: object, query: str) -> Df:
     return df.query(query)
@@ -100,8 +100,9 @@ async def df_query(df: object, query: str) -> Df:
 # 9) Object handles: Generic function that turns an object handle into Excel values
 @func
 async def view(obj: object, head=None):
-    """Converts an object handle to cell values. head can be TRUE or an integer, which
-    represents the number of rows from the top that you want to see.
+    """Converts an object handle to cell values. `head` can be TRUE or an integer, which
+    represents the number of rows from the top that you want to see. TRUE returns the
+    first 5 rows.
     """
     if head and isinstance(head, bool):
         head = 5
@@ -121,7 +122,7 @@ async def clear_object_cache():
     return "Object cache cleared"
 
 
-# 11) Streaming functions (these are the modern version of RTD functions)
+# 11) Streaming functions (the modern version of RTD functions)
 @func
 async def streaming_random(rows, cols):
     """Streaming function: must be provided as async generator,
