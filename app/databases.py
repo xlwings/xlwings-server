@@ -1,7 +1,8 @@
-import redis  # TODO: import redis.asyncio as redis
+import redis  # TODO: use redis.asyncio when converters can be used async
 
 from .config import settings
 
+# Redis
 redis_pool = None
 if settings.object_cache_url:
     redis_pool = redis.ConnectionPool.from_url(settings.object_cache_url)

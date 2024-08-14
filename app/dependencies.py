@@ -8,7 +8,7 @@ from fastapi import Depends, Header, HTTPException, status
 
 from . import models
 from .config import settings
-from .database import get_redis_client
+from .databases import get_redis_client
 
 logger = logging.getLogger(__name__)
 

@@ -8,7 +8,7 @@ from typing import Annotated
 
 import numpy as np
 import pandas as pd
-from xlwings import ObjectHandleIcons
+from xlwings.constants import ObjectHandleIcons
 from xlwings.ext.sql import _sql
 from xlwings.server import arg, func, ret
 
