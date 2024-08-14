@@ -38,6 +38,7 @@ async def manifest(
         "dev": settings.manifest_id_dev,
         "qa": settings.manifest_id_qa,
         "uat": settings.manifest_id_uat,
+        "staging": settings.manifest_id_staging,
         "prod": settings.manifest_id_prod,
     }
     manifest_id = manifest_ids[settings.environment]
