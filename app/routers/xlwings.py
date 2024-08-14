@@ -50,16 +50,21 @@ async def custom_functions_code():
 
 
 socketio_id_context = contextvars.ContextVar("socketio_id_context")
+caller_address_context = contextvars.ContextVar("caller_address_context")
+redis_client_context = contextvars.ContextVar("redis_client_context")
 
 
 @router.post("/custom-functions-call")
 async def custom_functions_call(
     current_user: dep.User,
+    redis_client: dep.RedisClient,
     data: dict = Body,
     sid: Optional[str] = Header(default=None),
 ):
     logger.info(f"""Function "{data['func_name']}" called by {current_user.name}""")
     socketio_id_context.set(sid)  # For utils.trigger_script()
+    caller_address_context.set(data["caller_address"])  # For ObjectCache converter
+    redis_client_context.set(redis_client)  # For ObjectCache converter
     rv = await xlwings.server.custom_functions_call(data, custom_functions)
     return {"result": rv}
 

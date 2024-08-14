@@ -10,7 +10,8 @@
 - Supports SSO (Single Sign-On) authentication and RBAC (Role-Based Access Control) via Entra ID (previously known as Azure AD) simply by adding the Client and Tenant IDs to the `.env` file
 - The task pane is hot-reloaded with every code change during development
 - Tight security: uses the HTTP response headers recommended by OWASP including the most restrictive CSP header
-- Supports streaming functions out-of-the-box
+- Supports streaming functions
+- Supports object handles
 - Cache busting for static files is automatically done when using the Docker image
 - The manifest is a template that uses the correct URLs and IDs to prevent name clashing with different environments: it is shown under `/manifest`
 - Development can be done on GitHub Codespaces, saving you from installing Python or mkcert locally
@@ -265,8 +266,13 @@ NOTE: AWS AppRunner doesn't support WebSockets, i.e. streaming functions and `tr
   docker compose -f docker/docker-compose.prod.yaml logs -f
   ```
 
-If you prefer a much more minimal setup that doesn't support streaming functions and the (upcoming) object handles, you can also run the following instead:
+If you prefer a much more minimal setup, you can also run the following instead:
 
 ```
 docker compose -f docker/docker-compose.prod-min.yaml up -d
 ```
+
+NOTE:
+
+* The minimal setup doesn't support streaming functions
+* The minimal setup requires an external Redis service for object handles via `XLWINGS_OBJECT_CACHE_URL`

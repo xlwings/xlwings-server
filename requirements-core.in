@@ -2,6 +2,7 @@
 # These are the required top-level dependencies of xlwings Server
 
 aiocache
+croniter
 fastapi-slim
 gunicorn; sys_platform != 'win32'
 httptools

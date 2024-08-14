@@ -1,5 +1,6 @@
 # This is a minimal implementation without support for Socket.IO/Redis functionality
-# such as streaming functions, utils.trigger_script(), and (upcoming) object handles
+# such as streaming functions, utils.trigger_script(). To support object handles, you
+# will need to configure an external Redis service via `XLWINGS_OBJECT_CACHE_URL`
 services:
   app:
     build: &build

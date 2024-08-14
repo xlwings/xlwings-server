@@ -20,7 +20,9 @@ class Settings(BaseSettings):
     auth_entraid_multitenant: bool = False
     app_path: str = ""
     base_dir: Path = Path(__file__).resolve().parent
-    cache_url: Optional[str] = None
+    object_cache_url: Optional[str] = None
+    object_cache_expire_at: Optional[str] = "0 12 * * sat"
+    object_cache_enable_compression: bool = True
     cors_allow_origins: list[str] = ["*"]
     date_format: Optional[str] = None
     enable_alpinejs_csp: bool = True

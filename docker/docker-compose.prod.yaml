@@ -43,5 +43,6 @@ services:
       XLWINGS_SOCKETIO_MESSAGE_QUEUE_URL: redis://redis:6379/0
 
   redis:
+    # This can be replaced with an external Redis service
     image: redis:7.4.0
     restart: always
