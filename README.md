@@ -77,30 +77,6 @@ pandas
 numpy==1.26.4
 ```
 
-## Prod deployment
-
-- **Note that the web app _has_ to be served via https, not http!**
-- **The app could be deployed directly via Dockerfile using a service such as Render.com, Heroku, etc. and only requires the XLWINGS_LICENSE_KEY environment variable to be set.**
-
-**Backend via Python directly:**
-
-- Set the environment variable: `XLWINGS_LICENSE_KEY=...`
-- Install the dependencies: `pip install -r requirements.txt`
-- Run the app: `gunicorn app.main:main_app --bind 0.0.0.0:8000 --access-logfile - --workers 1 --worker-class uvicorn.workers.UvicornWorker`
-
-**Backend via Docker**:
-
-- Install Docker and Docker Compose
-- Copy `.env.template` to `.env` and update `XLWINGS_LICENSE_KEY=...`
-- `docker compose -f docker-compose.prod.yaml build`
-- `docker compose -f docker-compose.prod.yaml up -d`
-
-**Frontend via Office.js add-in:**
-
-- You will get the manifest content under your `URL/manifest`. For example, if you run this on localhost, you can go to https://127.0.0.1:8000/manifest. Copy the content into a file called `manifest.xml`.
-- If the manifest doesn't show the correct URL, set the `XLWINGS_HOSTNAME` settings in `.env` to the domain where your backend runs, e.g., `XLWINGS_HOSTNAME=xlwings.mycompany.com`.
-- The `manifest.xml` has to be deployed via the Office admin console, see: https://docs.xlwings.org/en/latest/pro/server/officejs_addins.html#production-deployment. The Office admin console also allows you to point directly to the `/manifest` endpoint.
-
 **Installing deploy keys automatically in Docker images**
 
 If you have your developer license key set as `XLWINGS_DEVELOPER_KEY` env var in your build environment, it will install the deploy key directly in the Docker image when running `docker build --build-arg XLWINGS_DEVELOPER_KEY=${XLWINGS_DEVELOPER_KEY} .`. This will happen automatically when running `docker compose build`.
@@ -142,13 +118,19 @@ If you have your developer license key set as `XLWINGS_DEVELOPER_KEY` env var in
      - Under Role, click on `None Selected` and select the desired role (if you don't see any role, wait a moment and reload the page). Confirm with `Select`.
      - Repeat the last step to give the user more roles
 
-## Deployment to Azure Functions
+## Production Deployment
+
+### Manifest
+
+The `manifest.xml` has to be deployed via the Office admin console, see: https://docs.xlwings.org/en/latest/pro/server/officejs_addins.html#production-deployment. The Office admin console also allows you to point directly to the `/manifest` endpoint.
+
+### Deployment to Azure Functions
 
 NOTE: Azure functions doesn't support WebSockets, i.e. streaming functions and `trigger_script` won't work
 
 For the following walk through, you'll need to have the Azure CLI and Azure Functions Core Tools installed, see [here](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli).
 
-### Create a function app
+#### Create a function app
 
 While you can run Azure functions locally, we're deploying the function app directly to Azure:
 
@@ -214,7 +196,7 @@ az login
           Invoke url: https://xlwings-quickstart.azurewebsites.net//{*route}
     ```
 
-### Cleanup
+#### Cleanup
 
 After running this tutorial you can get rid of all the resources again by running:
 
@@ -222,7 +204,7 @@ After running this tutorial you can get rid of all the resources again by runnin
 az group delete --name xlwings-quickstart-rg
 ```
 
-## Deployment to AWS App Runner
+### Deployment to AWS App Runner
 
 NOTE: AWS AppRunner doesn't support WebSockets, i.e. streaming functions and `trigger_script` won't work
 
@@ -236,7 +218,7 @@ NOTE: AWS AppRunner doesn't support WebSockets, i.e. streaming functions and `tr
 * Service name: e.g. `xlwings-server`
 * Click on `Create & deploy`
 
-## Deployment via Docker Compose
+### Deployment via Docker Compose
 
 * Set the following environment variables either on your VM or in the `.env` file:
 
