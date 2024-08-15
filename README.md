@@ -52,7 +52,8 @@
     xw-click="hello_world"
     xw-config='{"include": "Sheet1"}'
     class="btn btn-primary btn-sm"
-    type="button">
+    type="button"
+  >
     Hello World
   </button>
   ```
@@ -126,6 +127,16 @@ If you have your developer license key set as `XLWINGS_DEVELOPER_KEY` env var in
      - Under User, click on `None Selected` and select a user or group. Confirm with `Select`.
      - Under Role, click on `None Selected` and select the desired role (if you don't see any role, wait a moment and reload the page). Confirm with `Select`.
      - Repeat the last step to give the user more roles
+
+## Docker Hub
+
+A production docker image is published to https://hub.docker.com/r/xlwings/xlwings-server:
+
+```
+docker pull xlwings/xlwings-server:latest
+```
+
+It could be used for quickly spinning up an environment and to test-drive the contained examples.
 
 ## Production Deployment
 

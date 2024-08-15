@@ -5,7 +5,7 @@
 - Added support for object handles: https://docs.xlwings.org/en/latest/pro/server/officejs_custom_functions.html#object-handles
 - Added `staging` as additional environment name.
 - Dependencies are now split up into `requirements-core.in`, `requirements-dev.in`, and `requirements.in` and managed via `python run.py deps`, see README.
-- Added docker-compose production configuration under `docker` directory.
+- Added docker-compose production configuration under `docker` directory including Socket.IO and Redis services.
 - More custom function examples.
 - Bug fix: socket.io service now respects the `XLWINGS_APP_PATH`.
 - Added `XLWINGS_SECRET_KEY` setting.
