@@ -21,7 +21,7 @@
 ## Dev environment
 
 - Follow the steps under https://docs.xlwings.org/en/latest/pro/server/officejs_addins.html#quickstart (but using this repo instead of the one mentioned in the quickstart). Mainly, you need to install `mkcert` to create local certificates as Office.js requires the web app to be served via https (not http) even on localhost.
-- Alternatively, you can run this repo on GitHub Codepaces (make sure to expose the port 8000 publicly)
+- Alternatively, you can run this repo on GitHub Codespaces (make sure to expose the port 8000 publicly)
 - Run `python run.py init`: this copies `.env.template` over to `.env` (`.env` isn't tracked in Git) and replaces the default manifest UUIDs under `app/config.py` with your own ones. Make sure to commit `app/config.py` once it has your own UUIDs.
 - Advanced configuration is done via `.env` file, where the settings are explained (note that lines starting with `#` are comments)
 
@@ -62,6 +62,15 @@
   ```vb
   runPython("https://127.0.0.1:8000/xlwings/custom-scripts-call/hello_world")
   ```
+
+## Examples
+
+A good way to get started is to look at the examples:
+
+- Custom functions: `app/custom_functions/examples.py`
+- Custom scripts via button on task pane: `app/custom_scripts/examples.py`
+- Custom script via button on ribbon: `app/static/js/ribbon.js`
+- Task pane examples: `app/templates/examples`
 
 ## Manage dependencies (requirements.txt)
 
@@ -208,41 +217,40 @@ az group delete --name xlwings-quickstart-rg
 
 NOTE: AWS AppRunner doesn't support WebSockets, i.e. streaming functions and `trigger_script` won't work
 
-
-* In this repo, update `apprunner.yaml` with your `XLWINGS_LICENSE_KEY` either as `env` or `secret`
-* Under App Runner, click on `Create service`
-* Repository type: Source code repository
-* Source directory: `/`
-* Deployment trigger: Automatic
-* Configuration file: Use a configuration file
-* Service name: e.g. `xlwings-server`
-* Click on `Create & deploy`
+- In this repo, update `apprunner.yaml` with your `XLWINGS_LICENSE_KEY` either as `env` or `secret`
+- Under App Runner, click on `Create service`
+- Repository type: Source code repository
+- Source directory: `/`
+- Deployment trigger: Automatic
+- Configuration file: Use a configuration file
+- Service name: e.g. `xlwings-server`
+- Click on `Create & deploy`
 
 ### Deployment via Docker Compose
 
-* Set the following environment variables either on your VM or in the `.env` file:
+- Set the following environment variables either on your VM or in the `.env` file:
 
   - `XLWINGS_LICENSE_KEY`
   - `XLWINGS_ENVIRONMENT="prod"`
 
-* Store your TLS certificates in the `certs` folder with the following names:
+- Store your TLS certificates in the `certs` folder with the following names:
 
   - `privkey.pem`
   - `fullchain.pem`
 
-* Whenever there are changes to your source code, in the root directory, run:
+- Whenever there are changes to your source code, in the root directory, run:
 
   ```
   docker compose -f docker/docker-compose.prod.yaml build
   ```
 
-* To run the app:
+- To run the app:
 
   ```
   docker compose -f docker/docker-compose.prod.yaml up -d
   ```
 
-* To check the logs:
+- To check the logs:
 
   ```
   docker compose -f docker/docker-compose.prod.yaml logs -f
@@ -256,5 +264,5 @@ docker compose -f docker/docker-compose.prod-min.yaml up -d
 
 NOTE:
 
-* The minimal setup doesn't support streaming functions
-* The minimal setup requires an external Redis service for object handles via `XLWINGS_OBJECT_CACHE_URL`
+- The minimal setup doesn't support streaming functions
+- The minimal setup requires an external Redis service for object handles via `XLWINGS_OBJECT_CACHE_URL`
