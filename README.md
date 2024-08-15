@@ -79,7 +79,7 @@ numpy==1.26.4
 
 **Installing deploy keys automatically in Docker images**
 
-If you have your developer license key set as `XLWINGS_DEVELOPER_KEY` env var in your build environment, it will install the deploy key directly in the Docker image when running `docker build --build-arg XLWINGS_DEVELOPER_KEY=${XLWINGS_DEVELOPER_KEY} .`. This will happen automatically when running `docker compose build`.
+If you have your developer license key set as `XLWINGS_DEVELOPER_KEY` env var in your build environment, it will install the deploy key directly in the Docker image when running `docker build --build-arg XLWINGS_DEVELOPER_KEY=${XLWINGS_DEVELOPER_KEY} .`.
 
 ## Authentication & Authorization with Entra ID (previously called Azure AD)
 
