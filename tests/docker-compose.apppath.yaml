@@ -1,0 +1,36 @@
+# ######################################
+# This requires the following settings:
+#
+# XLWINGS_APP_PATH="/app"
+# XLWINGS_STATIC_URL_PATH="/app/static"
+# ######################################
+
+services:
+  nginx:
+    image: nginx:latest
+    ports:
+      - "8000:443"
+    volumes:
+      - ../nginx/nginx-apppath.conf:/etc/nginx/conf.d/default.conf:ro
+      - ../certs:/project/certs
+
+  app:
+    build:
+      context: ..
+      target: dev
+      dockerfile: Dockerfile
+    command: >
+      uvicorn app.main:main_app
+      --host 0.0.0.0 --port 8000
+      --ssl-keyfile /project/certs/localhost+2-key.pem
+      --ssl-certfile /project/certs/localhost+2.pem
+      --reload
+      --reload-dir /project/app
+    ports:
+      # Note port 8888
+      - "8888:8000"
+    volumes:
+      - ../app:/project/app
+      - ../certs:/project/certs
+    env_file:
+      - ../.env

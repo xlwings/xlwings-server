@@ -1,6 +1,13 @@
+// XLWINGS_APP_PATH setting
+const appPathElement = document.getElementById("app-path");
+const appPath = appPathElement ? JSON.parse(appPathElement.textContent) : null;
+
 // Socket.io
 try {
   globalThis.socket = io({
+    path:
+      (appPath && appPath.appPath !== "" ? `/${appPath.appPath}` : "") +
+      "/socket.io/",
     auth: async (callback) => {
       let token = await globalThis.getAuth();
       callback({
