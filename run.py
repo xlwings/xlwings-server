@@ -7,6 +7,7 @@ import uuid
 from pathlib import Path
 
 import uvicorn
+from cryptography.fernet import Fernet
 
 is_cloud = os.getenv("CODESPACES") or os.getenv("GITPOD_WORKSPACE_ID")
 
@@ -39,6 +40,21 @@ def replace_uuids():
 def create_dotenv():
     if not Path(".env").exists():
         shutil.copy(".env.template", ".env")
+        insert_secret_key()
+    else:
+        print("Didn't create an '.env' file as one already exists.")
+
+
+def insert_secret_key():
+    secret_key = Fernet.generate_key().decode()
+    with open(".env", "r") as file:
+        lines = file.readlines()
+    with open(".env", "w") as file:
+        for line in lines:
+            if line.startswith("XLWINGS_SECRET_KEY="):
+                file.write(f'XLWINGS_SECRET_KEY="{secret_key}"\n')
+            else:
+                file.write(line)
 
 
 def init():
