@@ -23,7 +23,6 @@ logger = logging.getLogger(__name__)
 # App
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
-
 # Register Converter
 ObjectCacheConverter.register(object, "object", "obj")
 

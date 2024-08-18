@@ -26,3 +26,11 @@ class User(BaseModel):
     async def is_authorized(self):
         """Here, you can implement a custom authorization logic"""
         return True
+
+
+class CurrentUser(User):
+    """
+    Will deliver the current user when used as type hint in a custom function/script
+    """
+
+    pass
