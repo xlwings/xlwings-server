@@ -13,6 +13,7 @@ from xlwings.ext.sql import _sql
 from xlwings.server import arg, func, ret
 
 from .. import custom_scripts, utils
+from ..models import CurrentUser
 
 
 # 1) This is the most basic custom function -- it only requires the @func decorator.
@@ -136,7 +137,14 @@ async def streaming_random(rows, cols):
         await asyncio.sleep(1)
 
 
-# 12) In-Excel SQL: query Excel ranges/tables via SQL (SQLite dialect)
+# 12) To access the current user object, simply add an argument with the CurrentUser
+# type hint
+@func
+def get_current_user(current_user: CurrentUser):
+    return f"{current_user}"
+
+
+# 13) In-Excel SQL: query Excel ranges/tables via SQL (SQLite dialect)
 @func
 @arg("tables", expand="table", ndim=2)
 def sql(query, *tables):
@@ -145,7 +153,7 @@ def sql(query, *tables):
     return _sql(query, *tables)
 
 
-# 13) Custom functions with side effects (experimental)
+# 14) Custom functions with side effects (experimental)
 @func
 async def hello_with_script(name):
     """This function triggers a custom script, requires XLWINGS_ENABLE_SOCKETIO=true"""

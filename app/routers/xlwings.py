@@ -2,11 +2,13 @@ import contextvars
 import logging
 from typing import Optional
 
+import xlwings as xw
 import xlwings.server
 from fastapi import APIRouter, Body, Header, Request, Response
 
 from .. import custom_functions, custom_scripts, dependencies as dep
 from ..config import settings
+from ..models import CurrentUser
 from ..templates import TemplateResponse
 
 logger = logging.getLogger(__name__)
@@ -35,7 +37,9 @@ async def alert(
 
 @router.get("/custom-functions-meta")
 async def custom_functions_meta():
-    return xlwings.server.custom_functions_meta(custom_functions)
+    return xlwings.server.custom_functions_meta(
+        custom_functions, typehinted_params_to_exclude=[CurrentUser]
+    )
 
 
 @router.get("/custom-functions-code")
@@ -65,12 +69,19 @@ async def custom_functions_call(
     socketio_id_context.set(sid)  # For utils.trigger_script()
     caller_address_context.set(data["caller_address"])  # For ObjectCache converter
     redis_client_context.set(redis_client)  # For ObjectCache converter
-    rv = await xlwings.server.custom_functions_call(data, custom_functions)
+
+    rv = await xlwings.server.custom_functions_call(
+        data, custom_functions, typehint_to_value={CurrentUser: current_user}
+    )
     return {"result": rv}
 
 
 @router.post("/custom-scripts-call/{script_name}")
 async def custom_scripts_call(script_name: str, book: dep.Book, current_user: dep.User):
     logger.info(f"""Script "{script_name}" called by {current_user.name}""")
-    book = await xlwings.server.custom_scripts_call(custom_scripts, script_name, book)
+    book = await xlwings.server.custom_scripts_call(
+        custom_scripts,
+        script_name,
+        typehint_to_value={CurrentUser: current_user, xw.Book: book},
+    )
     return book.json()
