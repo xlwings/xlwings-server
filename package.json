@@ -4,11 +4,11 @@
     "@microsoft/office-js": "1.1.93",
     "bootstrap": "5.3.3",
     "bootstrap-xlwings": "github:xlwings/bootstrap-xlwings#5.3.3-1",
-    "htmx-ext-head-support": "2.0.0",
+    "htmx-ext-head-support": "2.0.1",
     "htmx-ext-loading-states": "2.0.0",
     "htmx.org": "2.0.2",
     "socket.io": "4.7.5",
-    "xlwings": "github:xlwings/xlwings#0.32.0"
+    "xlwings": "github:xlwings/xlwings#0.32.1"
   },
   "devDependencies": {
     "@types/alpinejs": "3.13.10",
