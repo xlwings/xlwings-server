@@ -66,7 +66,7 @@ class ObjectCacheConverter(Converter):
                 values = zlib.compress(values.encode())
             redis_client.set(key, values, exat=expire_at)
         else:
-            logger.info(
+            logger.warning(
                 "Storing objects in memory. Configure XLWINGS_OBJECT_CACHE_URL "
                 "for production use!"
             )
