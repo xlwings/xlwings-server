@@ -8,5 +8,5 @@
 
 -r requirements-core.txt  # Don't delete this line
 azure-functions; sys_platform != 'win32'
-numpy
+numpy==2.0.1  # 2.1.0 doesn't offer a build for Python 3.9
 pandas
