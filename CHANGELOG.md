@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.5.1 (Aug 20, 2024)
+
+- Custom functions and custom scripts can now access the current user object by using a function parameter with the `CurrentUser` as type hint, see examples.
+- Custom functions now work with thousands of concurrent requests.
+- Upgraded dependencies incl. xlwings to 0.32.1.
+
 ## v0.5.0 (Aug 15, 2024)
 
 - Added support for object handles: https://docs.xlwings.org/en/latest/pro/server/officejs_custom_functions.html#object-handles
