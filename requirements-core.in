@@ -5,6 +5,7 @@ aiocache
 croniter
 fastapi-slim
 gunicorn; sys_platform != 'win32'
+hiredis
 httptools
 httpx
 jinja2

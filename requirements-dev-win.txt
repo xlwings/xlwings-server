@@ -59,6 +59,8 @@ h11==0.14.0
     #   httpcore
     #   uvicorn
     #   wsproto
+hiredis==3.0.0
+    # via -r requirements.txt
 httpcore==1.0.5
     # via
     #   -r requirements.txt
