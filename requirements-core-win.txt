@@ -31,6 +31,8 @@ h11==0.14.0
     #   httpcore
     #   uvicorn
     #   wsproto
+hiredis==3.0.0
+    # via -r requirements-core.in
 httpcore==1.0.5
     # via httpx
 httptools==0.6.1
