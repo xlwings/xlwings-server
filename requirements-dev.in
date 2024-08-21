@@ -8,8 +8,12 @@
 
 -r requirements.txt  # Don't delete this line
 beautifulsoup4
+furo
+myst-parser
 pre-commit
 pytest
 pytest-mock
+sphinx
+sphinx-autobuild
 uv
 watchfiles
