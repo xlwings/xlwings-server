@@ -2,8 +2,6 @@
 #    uv pip compile requirements-dev.in -o requirements-dev.txt --python-platform linux
 aiocache==0.12.2
     # via -r requirements.txt
-alabaster==1.0.0
-    # via sphinx
 annotated-types==0.7.0
     # via
     #   -r requirements.txt
@@ -16,12 +14,8 @@ anyio==4.4.0
     #   watchfiles
 azure-functions==1.20.0
     # via -r requirements.txt
-babel==2.16.0
-    # via sphinx
 beautifulsoup4==4.12.3
-    # via
-    #   -r requirements-dev.in
-    #   furo
+    # via -r requirements-dev.in
 bidict==0.23.1
     # via
     #   -r requirements.txt
@@ -31,21 +25,16 @@ certifi==2024.7.4
     #   -r requirements.txt
     #   httpcore
     #   httpx
-    #   requests
 cffi==1.17.0
     # via
     #   -r requirements.txt
     #   cryptography
 cfgv==3.4.0
     # via pre-commit
-charset-normalizer==3.3.2
-    # via requests
 click==8.1.7
     # via
     #   -r requirements.txt
     #   uvicorn
-colorama==0.4.6
-    # via sphinx-autobuild
 croniter==3.0.3
     # via -r requirements.txt
 cryptography==43.0.0
@@ -54,16 +43,10 @@ cryptography==43.0.0
     #   joserfc
 distlib==0.3.8
     # via virtualenv
-docutils==0.21.2
-    # via
-    #   myst-parser
-    #   sphinx
 fastapi-slim==0.112.1
     # via -r requirements.txt
 filelock==3.15.4
     # via virtualenv
-furo==2024.8.6
-    # via -r requirements-dev.in
 gunicorn==23.0.0
     # via -r requirements.txt
 h11==0.14.0
@@ -89,35 +72,20 @@ idna==3.7
     #   -r requirements.txt
     #   anyio
     #   httpx
-    #   requests
-imagesize==1.4.1
-    # via sphinx
 iniconfig==2.0.0
     # via pytest
 jinja2==3.1.4
     # via
     #   -r requirements.txt
     #   jinja2-fragments
-    #   myst-parser
-    #   sphinx
 jinja2-fragments==1.5.0
     # via -r requirements.txt
 joserfc==1.0.0
     # via -r requirements.txt
-markdown-it-py==3.0.0
-    # via
-    #   mdit-py-plugins
-    #   myst-parser
 markupsafe==2.1.5
     # via
     #   -r requirements.txt
     #   jinja2
-mdit-py-plugins==0.4.1
-    # via myst-parser
-mdurl==0.1.2
-    # via markdown-it-py
-myst-parser==4.0.0
-    # via -r requirements-dev.in
 nodeenv==1.9.1
     # via pre-commit
 numpy==2.0.1
@@ -129,7 +97,6 @@ packaging==24.1
     #   -r requirements.txt
     #   gunicorn
     #   pytest
-    #   sphinx
 pandas==2.2.2
     # via -r requirements.txt
 platformdirs==4.2.2
@@ -153,10 +120,6 @@ pydantic-core==2.20.1
     #   pydantic
 pydantic-settings==2.4.0
     # via -r requirements.txt
-pygments==2.18.0
-    # via
-    #   furo
-    #   sphinx
 pytest==8.3.2
     # via
     #   -r requirements-dev.in
@@ -186,13 +149,9 @@ pytz==2024.1
     #   croniter
     #   pandas
 pyyaml==6.0.2
-    # via
-    #   myst-parser
-    #   pre-commit
+    # via pre-commit
 redis==5.0.8
     # via -r requirements.txt
-requests==2.32.3
-    # via sphinx
 simple-websocket==1.0.0
     # via
     #   -r requirements.txt
@@ -206,38 +165,12 @@ sniffio==1.3.1
     #   -r requirements.txt
     #   anyio
     #   httpx
-snowballstemmer==2.2.0
-    # via sphinx
 soupsieve==2.6
     # via beautifulsoup4
-sphinx==8.0.2
-    # via
-    #   -r requirements-dev.in
-    #   furo
-    #   myst-parser
-    #   sphinx-autobuild
-    #   sphinx-basic-ng
-sphinx-autobuild==2024.4.16
-    # via -r requirements-dev.in
-sphinx-basic-ng==1.0.0b2
-    # via furo
-sphinxcontrib-applehelp==2.0.0
-    # via sphinx
-sphinxcontrib-devhelp==2.0.0
-    # via sphinx
-sphinxcontrib-htmlhelp==2.1.0
-    # via sphinx
-sphinxcontrib-jsmath==1.0.1
-    # via sphinx
-sphinxcontrib-qthelp==2.0.0
-    # via sphinx
-sphinxcontrib-serializinghtml==2.0.0
-    # via sphinx
 starlette==0.38.2
     # via
     #   -r requirements.txt
     #   fastapi-slim
-    #   sphinx-autobuild
 typing-extensions==4.12.2
     # via
     #   -r requirements.txt
@@ -248,24 +181,16 @@ tzdata==2024.1
     # via
     #   -r requirements.txt
     #   pandas
-urllib3==2.2.2
-    # via requests
 uv==0.3.0
     # via -r requirements-dev.in
 uvicorn==0.30.6
-    # via
-    #   -r requirements.txt
-    #   sphinx-autobuild
+    # via -r requirements.txt
 uvloop==0.20.0
     # via -r requirements.txt
 virtualenv==20.26.3
     # via pre-commit
 watchfiles==0.23.0
-    # via
-    #   -r requirements-dev.in
-    #   sphinx-autobuild
-websockets==13.0
-    # via sphinx-autobuild
+    # via -r requirements-dev.in
 wsproto==1.2.0
     # via
     #   -r requirements.txt

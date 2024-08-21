@@ -2,3 +2,5 @@ furo
 sphinx
 sphinx-copybutton
 sphinx-design
+sphinx-autobuild
+myst-parser
