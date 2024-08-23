@@ -1,3 +1,4 @@
+# .github/workflows/xlwings-*.yml
 node_modules
 .DS_Store
 .parcel-cache/
