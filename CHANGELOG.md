@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.5.2 (Aug 24, 2024)
+
+- Upstream GitHub Actions pipelines have been disabled on forks.
+- Simplified dependency management by getting rid of separate Windows `requirements` files.
+
 ## v0.5.1 (Aug 20, 2024)
 
 - Custom functions and custom scripts can now access the current user object by using a function parameter with the `CurrentUser` as type hint, see examples.
