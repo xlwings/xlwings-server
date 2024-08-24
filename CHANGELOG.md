@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.5.3 (Aug 24, 2024)
+
+- Avoid merge conflicts in `requirements` files when merging in upstream.
+
 ## v0.5.2 (Aug 24, 2024)
 
 - Upstream GitHub Actions pipelines have been disabled on forks.
