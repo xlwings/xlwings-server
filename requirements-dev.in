@@ -7,7 +7,6 @@
 # python run.py deps upgrade
 
 -r requirements.txt  # Don't delete this line
--r docs/requirements.txt
 beautifulsoup4
 pre-commit
 pytest
