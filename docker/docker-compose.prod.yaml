@@ -1,3 +1,4 @@
+# Requires fullchain.pem and privkey.pem in the certs folder
 services:
   nginx:
     image: nginx:1.27.0
