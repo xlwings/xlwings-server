@@ -1,4 +1,4 @@
-# This prevent merge conflicts in requirements files but it requires to run:
+# This prevents merge conflicts in requirements files but it requires to run:
 # git config --local merge.ours.driver true
 requirements.in merge=ours
 requirements*.txt merge=ours
