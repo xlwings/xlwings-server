@@ -25,5 +25,14 @@ clients
 :caption: Development
 :hidden:
 
-repo
+dev_environment
+upgrade
 ```
+
+
+```{toctree}
+:maxdepth: 2
+:caption: About
+:hidden:
+
+changelog
