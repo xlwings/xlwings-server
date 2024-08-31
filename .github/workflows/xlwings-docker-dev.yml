@@ -1,6 +1,6 @@
 # https://docs.github.com/en/actions/publishing-packages/publishing-docker-images
 
-name: Publish Docker image
+name: Publish Docker image (dev)
 
 on:
   push:
