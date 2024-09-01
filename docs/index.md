@@ -27,7 +27,7 @@ examples
 :caption: Server Development
 :hidden:
 
-initial_setup
+repo_setup
 dev_server
 dev_certificates
 tunneling
@@ -61,10 +61,18 @@ authentication
 missing_features
 performance
 ```
-
 ```{toctree}
 :maxdepth: 2
 :caption: Deployment
+:hidden:
+
+deployment
+```
+
+
+```{toctree}
+:maxdepth: 2
+:caption: Hosting
 :hidden:
 
 azure_functions
