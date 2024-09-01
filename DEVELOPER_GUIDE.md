@@ -34,3 +34,13 @@ globalThis.socket = io("https://127.0.0.1:8001", {
 - xlwings-server: `pip uninstall xlwings`
 - xlwings-server: `cd ~/dev/xlwings && python setup.py develop`
 - xlwings: undo deletion of `project.toml`
+
+# Build docs
+
+From the root dir, run:
+
+```
+sphinx-autobuild docs docs/_build/html  --port 9000
+```
+
+The requirements are currently under `docs/requirements.txt` and have not been included in `requirements-dev.txt` as there's an incompatibility with Python 3.9.
