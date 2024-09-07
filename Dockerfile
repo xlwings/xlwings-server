@@ -36,8 +36,9 @@ EXPOSE 8000
 # This is for a simple 1-worker-setup that handles both socket.io and
 # FastAPI traffic. Normally, you split them up so that you can scale
 # up the FastAPI workers.
-CMD ["gunicorn", "app.main:main_app", \
-     "--bind", "0.0.0.0:8000", \
-     "--access-logfile", "-", \
-     "--workers", "1", \
-     "--worker-class", "uvicorn.workers.UvicornWorker"]
+CMD ["sh", "-c", \
+     "gunicorn app.main:main_app \
+     --bind 0.0.0.0:${PORT:-8000} \
+     --access-logfile - \
+     --workers 1 \
+     --worker-class uvicorn.workers.UvicornWorker"]
