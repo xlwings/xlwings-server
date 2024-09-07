@@ -9,9 +9,6 @@ xlwings Server can be used with various clients:
 - [Office Scripts](clients.md#office-scripts)
 - [Google Apps Script for Google Sheets](clients.md#google-sheets)
 
-
-
-
 ```{toctree}
 :maxdepth: 2
 :caption: Introduction
@@ -20,6 +17,7 @@ xlwings Server can be used with various clients:
 quickstart
 features
 examples
+clients
 ```
 
 ```{toctree}
@@ -41,13 +39,23 @@ gitpod
 
 ```{toctree}
 :maxdepth: 2
-:caption: Client Development
+:caption: Office.js Client
 :hidden:
 
-clients
 manifest
+debugging
 taskpane
 client_configuration
+```
+
+```{toctree}
+:maxdepth: 2
+:caption: Other Clients
+:hidden:
+
+vba_client
+officescripts_client
+googleappscript_client
 ```
 
 ```{toctree}
@@ -61,6 +69,7 @@ authentication
 missing_features
 performance
 ```
+
 ```{toctree}
 :maxdepth: 2
 :caption: Deployment
@@ -68,7 +77,6 @@ performance
 
 deployment
 ```
-
 
 ```{toctree}
 :maxdepth: 2
@@ -81,7 +89,6 @@ aws_app_runner
 render
 ```
 
-
 ```{toctree}
 :maxdepth: 2
 :caption: About
@@ -91,3 +98,4 @@ changelog
 api_coverage
 limitations
 license
+```

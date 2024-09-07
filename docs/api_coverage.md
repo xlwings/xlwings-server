@@ -1,6 +1,5 @@
 # API coverage
 
-
 At the moment, xlwings Server doesn't cover yet 100% of the xlwings API. The following attributes are missing at the moment. If you need them, please reach out so we can prioritize their implementation:
 
 ```text

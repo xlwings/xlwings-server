@@ -3,10 +3,10 @@
 This example uses a Bootstrap form, adopted from:
 https://getbootstrap.com/docs/5.3/forms/overview/#overview
 
-* It sends the content of the input field (requires a "name" tag) to the backend using [htmx](https://htmx.org/)
-* On the backend, it calls a custom function and
-* returns the result via the `_greeting.html` template. The leading underscore means that it is a partial HTML snippet, not a full page.
-* Back on the frontend, htmx takes care of displaying that HTML snippet in the `#result` div via `hx-target` tag.
+- It sends the content of the input field (requires a "name" tag) to the backend using [htmx](https://htmx.org/)
+- On the backend, it calls a custom function and
+- returns the result via the `_greeting.html` template. The leading underscore means that it is a partial HTML snippet, not a full page.
+- Back on the frontend, htmx takes care of displaying that HTML snippet in the `#result` div via `hx-target` tag.
 
 To try it out, replace `app/routers/taskpane.py` with the following code:
 
