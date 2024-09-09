@@ -1,6 +1,6 @@
-# Clients
+# Clients Overview
 
-This page gives you an overview over the different clients that you can use to talk to xlwings Server. You can have various clients talk to the same server.
+This page gives you an overview over the different clients that you can use to talk to xlwings Server. Note that you can have various clients talk to the same server.
 
 ## Office.js add-in (recommended)
 
@@ -71,6 +71,7 @@ Google Sheets is a solid web-based spreadsheet with the option to run your Pytho
 
 **Cons**:
 
+- It's not Excel.
 - No support for custom functions (planned).
 - Does not work without an Internet connection.
 - Does not comply with privacy standards: content is hosted by Google.

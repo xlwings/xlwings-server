@@ -26,7 +26,7 @@ clients
 :hidden:
 
 repo_setup
-dev_server
+local_development
 dev_certificates
 tunneling
 server_configuration
@@ -34,6 +34,7 @@ dependencies
 upgrade
 dev_docker
 github_codespaces
+devcontainers
 gitpod
 ```
 
@@ -46,6 +47,7 @@ manifest
 debugging
 taskpane
 client_configuration
+sideload_manifest
 ```
 
 ```{toctree}
