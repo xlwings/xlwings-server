@@ -1,10 +1,15 @@
 # Custom Scripts
 
-Custom scripts can be connected to buttons on either the Ribbon or the task pane. They are the equivalent to a VBA `Sub`.
+Custom scripts can be connected to buttons on either the Ribbon or the task pane. They are the equivalent to a `Sub` in VBA.
 
 ## Basic syntax
 
-As you can see in the [examples](https://github.com/xlwings/xlwings-server/blob/main/app/custom_scripts/examples.py), the simplest custom script requires the `@script` decorator and a function argument with the `xw.Book` type hint:
+As you can see in the [examples](https://github.com/xlwings/xlwings-server/blob/main/app/custom_scripts/examples.py), the simplest custom script requires:
+
+- the `@script` decorator
+- a function argument with the `xw.Book` type hint
+
+Here is how this looks:
 
 ```python
 import xlwings as xw
@@ -64,7 +69,7 @@ The default task pane from the examples includes the full code: [`app/templates/
 
 To connect a button on the ribbon to your script, you need a bit more work:
 
-[`app/templates/manifest.xml`](https://github.com/xlwings/xlwings-server/blob/main/app/templates/manifest.xml) has a section where it defines a ribbon button that calls:
+[`app/templates/manifest.xml`](https://github.com/xlwings/xlwings-server/blob/main/app/templates/manifest.xml) has a section where it defines a ribbon button:
 
 ```xml
 <!-- Ribbon button that calls a function -->
@@ -90,7 +95,7 @@ To connect a button on the ribbon to your script, you need a bit more work:
 </Control>
 ```
 
-To make this work you need to provide some JavaScript code that you can find in [app/static/js/ribbon.js](https://github.com/xlwings/xlwings-server/blob/main/app/static/js/ribbon.js):
+To make this work, you need to provide a bit of JavaScript code that you can find in [app/static/js/ribbon.js](https://github.com/xlwings/xlwings-server/blob/main/app/static/js/ribbon.js):
 
 ```js
 async function helloRibbon(event) {
@@ -108,11 +113,13 @@ Office.actions.associate("hello-ribbon", helloRibbon);
 
 ## VBA, Office Scripts, and Google Apps Script clients
 
-If you want to call scripts from VBA, Office Scripts, or Google Apps Script, you will need to use the runPython function with the following endpoint:
+If you want to call a custom script from VBA, Office Scripts, or Google Apps Script, you will need to use the runPython function with the following endpoint:
 
 ```python
 runPython("https://127.0.0.1:8000/xlwings/custom-scripts-call/hello_world")
 ```
+
+Make sure to replace `hello_world` with the name of your custom script!
 
 ## Limitations
 
