@@ -22,6 +22,18 @@ clients
 
 ```{toctree}
 :maxdepth: 2
+:caption: Tutorials
+:hidden:
+
+custom_functions
+custom_scripts
+authentication
+missing_features
+performance
+```
+
+```{toctree}
+:maxdepth: 2
 :caption: Server Development
 :hidden:
 
@@ -58,18 +70,6 @@ sideload_manifest
 vba_client
 officescripts_client
 googleappscript_client
-```
-
-```{toctree}
-:maxdepth: 2
-:caption: Tutorials
-:hidden:
-
-custom_functions
-custom_scripts
-authentication
-missing_features
-performance
 ```
 
 ```{toctree}

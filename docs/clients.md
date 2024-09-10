@@ -52,9 +52,10 @@ If you have access to Office Scripts and aren't affected by the cons, this is a 
 - No support for custom functions.
 - No support for authentication.
 - Requires Microsoft 365 with OneDrive/SharePoint, does not work with the permanent versions of Office like Office 2024.
-- Cannot be used in PowerAutomate flows as running Office Scripts via PowerAutomate doesn't support calls the external servers.
+- Cannot be used in PowerAutomate flows as running Office Scripts via PowerAutomate doesn't support calls to the external servers.
 - Does not work without an Internet connection.
 - Does not comply with privacy standards: transmits content to Microsoft.
+- Developing requires a tunneling solution like ngrok.
 
 ## Google Sheets
 
@@ -75,3 +76,4 @@ Google Sheets is a solid web-based spreadsheet with the option to run your Pytho
 - No support for custom functions (planned).
 - Does not work without an Internet connection.
 - Does not comply with privacy standards: content is hosted by Google.
+- Developing requires a tunneling solution like ngrok.
