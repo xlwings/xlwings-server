@@ -8,6 +8,6 @@ A good way to get started is to look at the examples:
 
 Once you have your own code, you can switch off all the examples via the following setting:
 
-```
+```ini
 XLWINGS_ENABLE_EXAMPLES=false
 ```
