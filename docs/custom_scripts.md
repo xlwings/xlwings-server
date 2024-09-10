@@ -111,12 +111,22 @@ async function helloRibbon(event) {
 Office.actions.associate("hello-ribbon", helloRibbon);
 ```
 
-## VBA, Office Scripts, and Google Apps Script clients
+## Office Scripts and Google Apps Script clients
 
-If you want to call a custom script from VBA, Office Scripts, or Google Apps Script, you will need to use the runPython function with the following endpoint:
+If you want to call a custom script from Office Scripts or Google Apps Script, you will need to use the `runPython` function with the following endpoint:
 
-```python
-runPython("https://127.0.0.1:8000/xlwings/custom-scripts-call/hello_world")
+```js
+runPython("https://127.0.0.1:8000/xlwings/custom-scripts-call/hello_world");
+```
+
+Make sure to replace `hello_world` with the name of your custom script!
+
+## VBA
+
+If you want to call a custom script from VBA, you will need to use the `RunRemotePython` function with the following endpoint:
+
+```vb.net
+RunRemotePython("https://127.0.0.1:8000/xlwings/custom-scripts-call/hello_world")
 ```
 
 Make sure to replace `hello_world` with the name of your custom script!
