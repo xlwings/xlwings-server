@@ -10,6 +10,7 @@ RUN pip install --upgrade pip
 
 # DEV STAGE
 FROM base AS dev
+COPY ./scripts/start.sh ./scripts/start.sh
 COPY ./requirements-dev.txt ./requirements-dev.txt
 RUN pip install --no-cache-dir -r ./requirements-dev.txt
 
