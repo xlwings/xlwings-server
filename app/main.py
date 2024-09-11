@@ -68,7 +68,14 @@ async def add_security_headers(request, call_next):
     if settings.add_security_headers:
         data = read_security_headers()
 
+        # Extract file extension from request URL
+        file_ext = request.url.path.split(".")[-1].lower()
+        image_ext = ("jpg", "jpeg", "png", "gif", "bmp", "webp", "svg")
+
         for header in data["headers"]:
+            # Excel on Windows doesn't display the icons in the ribbon otherwise
+            if header["name"] == "Cache-Control" and file_ext in image_ext:
+                continue
             if header["name"] not in ("Permissions-Policy", "Clear-Site-Data"):
                 # Permissions-Policy headers are experimental
                 # Clear-Site-Data is too aggressive
