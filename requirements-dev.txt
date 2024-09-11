@@ -20,12 +20,12 @@ bidict==0.23.1
     # via
     #   -r requirements.txt
     #   python-socketio
-certifi==2024.7.4
+certifi==2024.8.30
     # via
     #   -r requirements.txt
     #   httpcore
     #   httpx
-cffi==1.17.0 ; platform_python_implementation != 'PyPy'
+cffi==1.17.1 ; platform_python_implementation != 'PyPy'
     # via
     #   -r requirements.txt
     #   cryptography
@@ -42,15 +42,15 @@ colorama==0.4.6 ; sys_platform == 'win32' or platform_system == 'Windows'
     #   pytest
 croniter==3.0.3
     # via -r requirements.txt
-cryptography==43.0.0
+cryptography==43.0.1
     # via
     #   -r requirements.txt
     #   joserfc
 distlib==0.3.8
     # via virtualenv
-fastapi-slim==0.112.1
+fastapi-slim==0.114.1
     # via -r requirements.txt
-filelock==3.15.4
+filelock==3.16.0
     # via virtualenv
 gunicorn==23.0.0 ; sys_platform != 'win32'
     # via -r requirements.txt
@@ -68,11 +68,11 @@ httpcore==1.0.5
     #   httpx
 httptools==0.6.1
     # via -r requirements.txt
-httpx==0.27.0
+httpx==0.27.2
     # via -r requirements.txt
 identify==2.6.0
     # via pre-commit
-idna==3.7
+idna==3.8
     # via
     #   -r requirements.txt
     #   anyio
@@ -108,7 +108,7 @@ packaging==24.1
     #   pytest
 pandas==2.2.2
     # via -r requirements.txt
-platformdirs==4.2.2
+platformdirs==4.3.2
     # via virtualenv
 pluggy==1.5.0
     # via pytest
@@ -118,18 +118,18 @@ pycparser==2.22 ; platform_python_implementation != 'PyPy'
     # via
     #   -r requirements.txt
     #   cffi
-pydantic==2.8.2
+pydantic==2.9.1
     # via
     #   -r requirements.txt
     #   fastapi-slim
     #   pydantic-settings
-pydantic-core==2.20.1
+pydantic-core==2.23.3
     # via
     #   -r requirements.txt
     #   pydantic
-pydantic-settings==2.4.0
+pydantic-settings==2.5.1
     # via -r requirements.txt
-pytest==8.3.2
+pytest==8.3.3
     # via
     #   -r requirements-dev.in
     #   pytest-mock
@@ -150,9 +150,9 @@ python-engineio==4.9.1
     #   python-socketio
 python-multipart==0.0.9
     # via -r requirements.txt
-python-socketio==5.11.3
+python-socketio==5.11.4
     # via -r requirements.txt
-pytz==2024.1
+pytz==2024.2
     # via
     #   -r requirements.txt
     #   croniter
@@ -176,7 +176,7 @@ sniffio==1.3.1
     #   httpx
 soupsieve==2.6
     # via beautifulsoup4
-starlette==0.38.2
+starlette==0.38.5
     # via
     #   -r requirements.txt
     #   fastapi-slim
@@ -190,21 +190,21 @@ tzdata==2024.1
     # via
     #   -r requirements.txt
     #   pandas
-uv==0.3.2
+uv==0.4.9
     # via -r requirements-dev.in
 uvicorn==0.30.6
     # via -r requirements.txt
 uvloop==0.20.0 ; sys_platform != 'win32'
     # via -r requirements.txt
-virtualenv==20.26.3
+virtualenv==20.26.4
     # via pre-commit
-watchfiles==0.23.0
+watchfiles==0.24.0
     # via -r requirements-dev.in
 wsproto==1.2.0
     # via
     #   -r requirements.txt
     #   simple-websocket
-xlwings==0.32.1
+xlwings==0.32.2
     # via -r requirements.txt
 
 # The following packages were excluded from the output:
