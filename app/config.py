@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Literal, Optional
+from typing import List, Literal, Optional
 
 from pydantic import UUID4, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -13,8 +13,8 @@ class Settings(BaseSettings):
         env_prefix="XLWINGS_", env_file=os.getenv("DOTENV_PATH", ".env"), extra="ignore"
     )
     add_security_headers: bool = True
-    auth_providers: Optional[list[str]] = []
-    auth_required_roles: Optional[list[str]] = []
+    auth_providers: Optional[List[str]] = []
+    auth_required_roles: Optional[List[str]] = []
     auth_entraid_client_id: Optional[str] = None
     auth_entraid_tenant_id: Optional[str] = None
     auth_entraid_multitenant: bool = False
@@ -23,7 +23,7 @@ class Settings(BaseSettings):
     object_cache_url: Optional[str] = None
     object_cache_expire_at: Optional[str] = "0 12 * * sat"
     object_cache_enable_compression: bool = True
-    cors_allow_origins: list[str] = ["*"]
+    cors_allow_origins: List[str] = ["*"]
     date_format: Optional[str] = None
     enable_alpinejs_csp: bool = True
     enable_bootstrap: bool = True
