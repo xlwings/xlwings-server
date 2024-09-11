@@ -7,7 +7,7 @@
 
 Install them by following the [official docs](https://docs.docker.com/engine/install/#server) under your Linux distribution (for RHEL, follow the CentOS instructions).
 
-If you're in a hurry, you can also use the convenience script provided by Docker:
+If you're on Linux and in a hurry, you can also use the convenience script provided by Docker:
 
 ```bash
 curl -fsSL https://get.docker.com -o get-docker.sh

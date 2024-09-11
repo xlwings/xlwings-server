@@ -2,7 +2,7 @@
 
 You will need basic familiarity with Git and have Git installed.
 
-1. Clone the xlwings Server repo. Replace `myproject` with the name of your project:
+1. Clone the xlwings Server repo. Replace `myproject` with the desired name of your project:
 
    ::::{tab-set}
    :::{tab-item} HTTPS
@@ -23,6 +23,10 @@ You will need basic familiarity with Git and have Git installed.
 
    :::
    ::::
+
+```{note}
+If you only want to play around with xlwings Server without committing any changes back to Git, you can continue with Step 7. If you want to commit your changes later, you can always come back and follow the Steps 2-6.
+```
 
 2. Change into the directory of your project:
 
@@ -64,7 +68,7 @@ You will need basic familiarity with Git and have Git installed.
 
 9. Open the `.env` file and add your xlwings license key under `XLWINGS_LICENSE_KEY` (top of the file). Note that `.env` is ignored by Git as it may contain sensitive credentials. You should therefore back it up in a secure location such as a password manager.
 
-10. Commit the changes and push everything to your own repo (feel free to use a Git UI instead of the following commands):
+10. Commit the changes and push everything to your own repo (feel free to use a Git UI instead of the following commands). If you just want to play around with xlwings Server, you can skip this step.
 
     ```text
     git add .

@@ -13,8 +13,15 @@ docker compose
 
 ## Running the development server
 
-1. If you want to use Office.js add-ins, you need to first [create development certificates](dev_certificates.md). If you will be using VBA, Office Scripts, or Google Apps Script, you can skip this step.
-2. In the root of the repo, run `docker compose up`. If you run this for the first time, it will build the development container first, then start the server. In the end, you should see something like this in your Terminal:
+1. [Clone the xlwings Server repo](repo_setup.md)
+2. If you want to use Office.js add-ins, you need to first [create development certificates](dev_certificates.md). If you will be using VBA, Office Scripts, or Google Apps Script, you can skip this step.
+3. In the root of the repo, run:
+
+   ```
+   docker compose up
+   ```
+
+   If you run this for the first time, it will build the development container first, then start the server. In the end, you should see something like this in your Terminal:
 
    ```
    ✔ Network xlwings-server_default  Created                                                                                                              0.0s
@@ -28,4 +35,4 @@ docker compose
    app-1  | INFO:     Application startup complete.
    ```
 
-3. Open https://127.0.0.1:8000 in a browser. You should see `{"status": "ok"}`.
+4. Open https://127.0.0.1:8000 in a browser. You should see `{"status": "ok"}`.

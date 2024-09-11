@@ -6,10 +6,10 @@ Get a [trial license key](https://www.xlwings.org/trial) as you will need it in 
 
 ## 2. Run the Server
 
-You can either create a development environment or deploy to "production".
+You can either create a development environment or deploy to "production":
 
-- A **development environment** makes it easy to play around with your own functions, but is only accessible to a single developer.
-- A **production environment** enables multiple users to explore xlwings Server by experimenting with the included examples. Making changes or adding own functions would require a re-deployment though.
+- **Development environment**: makes it easy to play around with your own functions, but is only accessible to a single developer.
+- **Production environment**: enables multiple users to explore xlwings Server by experimenting with the included examples. Making changes or adding own functions requires a re-deployment.
 
 ### Development environment
 
@@ -23,9 +23,9 @@ You can either create a development environment or deploy to "production".
 - [](docker_compose.md) shows you how to spin up xlwings Server via Docker Compose stack on a Linux VM.
 - There are many more ways how you can deploy to production according to your preferences, see the Hosting section in these docs.
 
-## 3. Install Client
+## 3. Install the Client
 
-xlwings Server supports multiple clients. While Office.js add-ins are recommended, you will find the pros and cons of all of them [here](clients.md).
+xlwings Server supports multiple clients. While Office.js add-ins are recommended, you will find the pros and cons of all of them in the [](clients.md).
 
 Once you know which client you're going to use, you can jump right into the corresponding docs:
 
