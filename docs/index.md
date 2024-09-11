@@ -69,7 +69,7 @@ sideload_manifest
 
 vba_client
 officescripts_client
-googleappscript_client
+googleappsscript_client
 ```
 
 ```{toctree}

@@ -89,7 +89,7 @@ wrap_text("Sheet2", "B2")
 
 ## Google Sheets
 
-Paste the following code in a Google App Script module:
+Paste the following code in a Google Apps Script module:
 
 ```js
 // The first parameter has to be the workbook, the others

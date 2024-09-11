@@ -3,7 +3,7 @@
 GitHub Codespaces offer a quick way to create a development environment without having to install anything.
 
 ```{note}
-Since you will have to expose the web server publicly, you should only use it for testing things out with non-sensitive content, like the provided examples.
+Since you will have to expose the web server publicly, you should only use it for testing things out with non-sensitive content, like the included examples.
 ```
 
 1. Go to the GitHub repo: https://github.com/xlwings/xlwings-server.
