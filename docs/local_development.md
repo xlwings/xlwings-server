@@ -16,7 +16,7 @@
 
    You should see something like this:
 
-   ```
+   ```text
    INFO:     Will watch for changes in these directories: ['/Users/username/dev/xlwings-server']
    INFO:     Uvicorn running on https://127.0.0.1:8000 (Press CTRL+C to quit)
    INFO:     Started reloader process [68315] using WatchFiles
@@ -26,3 +26,4 @@
    ```
 
 4. Open https://127.0.0.1:8000 in a browser. You should see `{"status": "ok"}`.
+5. Only if you are using the Office Scripts or Google Apps Script clients: set up [](tunneling.md). If you are using the Office.js or VBA clients, you can skip this step.

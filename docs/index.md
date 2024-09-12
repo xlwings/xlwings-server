@@ -55,11 +55,11 @@ gitpod
 :caption: Office.js Client
 :hidden:
 
+install_manifest
 manifest
 debugging
 taskpane
 client_configuration
-sideload_manifest
 ```
 
 ```{toctree}
@@ -97,7 +97,6 @@ render
 :hidden:
 
 changelog
-api_coverage
 limitations
 license
 ```

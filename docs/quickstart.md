@@ -23,7 +23,7 @@ You can either create a development environment or deploy to "production":
 - [](docker_compose.md) shows you how to spin up xlwings Server via Docker Compose stack on a Linux VM.
 - There are many more ways how you can deploy to production according to your preferences, see the Hosting section in these docs.
 
-## 3. Install the Client
+## 3. Install a Client
 
 xlwings Server supports multiple clients. While Office.js add-ins are recommended, you will find the pros and cons of all of them in the [](clients.md).
 

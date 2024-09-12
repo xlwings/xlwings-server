@@ -1,4 +1,12 @@
-# Sideload Manifest
+# Install Manifest
+
+Depending on whether you are developing/testing an add-in or want to deploy it internally or publicly, there are different procedures to follow.
+
+- **Development and testing**: install via [](#sideloading)
+- **Company-internal deployment**: Deploy via Microsoft 365 admin console
+- **Public deployment**: publish to Excel's add-in store
+
+## Sideloading
 
 Open the URL of your server in a web browser, which should show `{"status": "ok"}`. If you run this on localhost, the URL would be: https://127.0.0.1:8000.
 
