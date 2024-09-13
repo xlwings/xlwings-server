@@ -17,7 +17,7 @@ There are many different ways to create a development environment. Some of the m
 
 - [](github_codespaces.md): play around with a development environment in the cloud without having to install anything locally.
 - [](dev_docker.md): run xlwings Server locally via Docker Compose.
-- [](local_development.md): run xlwings Server via a locally installed Python installation.
+- [](local_development.md): run xlwings Server via a local Python installation.
 
 For more options, have a look at the `Server Development` section.
 
@@ -31,9 +31,9 @@ You can deploy xlwings Server on any platform that supports Python or Docker. So
 
 There are many more ways how you can deploy to production according to your preferences, see the `Hosting` section.
 
-## 3. Install a Client
+## 3. Prepare Excel
 
-xlwings Server supports various clients, i.e., Excel integrations. While Office.js add-ins are recommended, you will find the pros and cons of all of them in the [](clients.md).
+xlwings Server supports various _clients_ that connect Excel with your server. While Office.js add-ins are recommended, you will find the pros and cons of all of them in the [](clients.md).
 
 Once you know which client you're going to use, you can jump right into the corresponding docs:
 

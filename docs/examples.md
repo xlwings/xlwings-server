@@ -1,10 +1,20 @@
 # Examples
 
-A good way to get started is to look at the examples:
+A good way to get started with xlwings Server is to try out the examples:
 
-- Custom functions: [`app/custom_functions/examples.py`](https://github.com/xlwings/xlwings-server/blob/main/app/custom_functions/examples.py)
-- Custom scripts: [`app/custom_scripts/examples.py`](https://github.com/xlwings/xlwings-server/blob/main/app/custom_scripts/examples.py). Have a look at [](custom_scripts.md) to see how you can connect them to buttons.
-- Task pane examples: [`app/templates/examples`](https://github.com/xlwings/xlwings-server/tree/main/app/templates/examples)
+- Custom scripts: [`app/custom_scripts/examples.py`](https://github.com/xlwings/xlwings-server/blob/main/app/custom_scripts/examples.py).
+- Custom functions (only Office.js add-ins): [`app/custom_functions/examples.py`](https://github.com/xlwings/xlwings-server/blob/main/app/custom_functions/examples.py)
+- Task pane examples (only Office.js add-ins): [`app/templates/examples`](https://github.com/xlwings/xlwings-server/tree/main/app/templates/examples)
+
+Below are instructions on how to play around with them depending on which client you're using.
+
+## Office.js add-ins
+
+- Custom scripts: you can click the `Hello World` buttons on the ribbon and on the task pane. For an explanation of how everything works, have a look at [](custom_scripts.md).
+- Custom functions: in a cell, type: `=XLWINGS.HELLO("world")` ("prod" environment) or `=XLWINGS_DEV.HELLO("world")` ("dev" environment). You should see: `Hello world!`. There are quite a few other (more interesting) examples available that you see when typing `=XLWINGS.` or `=XLWINGS_DEV.` respectively. You can also look at [`app/custom_functions/examples.py`](https://github.com/xlwings/xlwings-server/blob/main/app/custom_functions/examples.py).
+- Task pane: every directory in [`app/templates/examples`](https://github.com/xlwings/xlwings-server/tree/main/app/templates/examples) corresponds to an example and has an own `README` with instructions.
+
+## How to disable the examples
 
 Once you have your own code, you can switch off all the examples via the following setting:
 
