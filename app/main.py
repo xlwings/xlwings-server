@@ -33,6 +33,8 @@ cors_app = CORSMiddleware(
     app=app,
     allow_origins=settings.cors_allow_origins,
     allow_methods=["POST"],
+    allow_headers=["*"],
+    allow_credentials=False,
 )
 main_app = cors_app
 
