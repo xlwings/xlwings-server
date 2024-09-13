@@ -7,22 +7,24 @@ For the following walk through, you'll need to have the following software insta
 - [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
 - [Azure Functions Core Tools](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local)
 
+If you deploy to Azure Functions using a different method, you should be able to adapt the instructions accordingly.
+
 Before you begin, you'll need to login to Azure:
 
-```bash
+```text
 az login
 ```
 
-## Files
+## Files for Azure functions
 
 The following files are part of Azure functions setup and may need to be tweaked:
 
-- `function_app.py`
 - `host.json`
+- `function_app.py`
 - `local.settings.json`
 - `.funcignore`
 
-## Deployment
+## Deployment to Azure functions
 
 In the commands below, we're going to use the following parameters that you should adjust to match your preferences:
 
@@ -31,45 +33,47 @@ In the commands below, we're going to use the following parameters that you shou
 - The storage account: `xlwingsserversa`
 - Region: `westeurope`
 
+You may also want to skip some of the steps, e.g., if you already have an existing resource group or storage account to deploy to.
+
 1.  Create a resource group:
 
-    ```bash
+    ```text
     az group create --name xlwings-server-rg --location westeurope
     ```
 
 2.  Create storage account:
 
-    ```bash
+    ```text
     az storage account create --name xlwingsserversa --location westeurope --resource-group xlwings-server-rg --sku Standard_LRS
     ```
 
 3.  Create the function app (if possible, use the same Python version locally as the one specified in this command):
 
-    ```bash
+    ```text
     az functionapp create --resource-group xlwings-server-rg --consumption-plan-location westeurope --runtime python --runtime-version 3.11 --functions-version 4 --name xlwings-server --os-type linux --storage-account xlwingsserversa
     ```
 
-4.  Set the required environment variables (you can get a free trial key [here](https://www.xlwings.org/trial)):
+4.  Set the required environment variables. Make sure to provide your own license key at the end of the command (you can get a free trial key [here](https://www.xlwings.org/trial)):
 
-    ```bash
+    ```text
     az functionapp config appsettings set --name xlwings-server --resource-group xlwings-server-rg --settings XLWINGS_ENVIRONMENT=prod XLWINGS_ENABLE_SOCKETIO=false XLWINGS_LICENSE_KEY=<YOUR_LICENSE_KEY>
     ```
 
 5.  Run the following to enable the worker process to index the functions:
 
-    ```bash
+    ```text
     az functionapp config appsettings set --name xlwings-server --resource-group xlwings-server-rg --settings AzureWebJobsFeatureFlags=EnableWorkerIndexing
     ```
 
 6.  Deploy the function app (this is also the command to deploy an update):
 
-    ```bash
+    ```text
     func azure functionapp publish xlwings-server
     ```
 
     It should terminate with the following message:
 
-    ```bash
+    ```text
     Remote build succeeded!
     [...] Syncing triggers...
     Functions in xlwings-server:
@@ -86,11 +90,11 @@ For app logs, in Azure portal go to:
 
 After running this tutorial you can get rid of all the resources again by running:
 
-```bash
+```text
 az group delete --name xlwings-server-rg
 ```
 
 ## Limitations
 
-- Azure functions don't support WebSockets, i.e., streaming functions and `trigger_script` won't work.
+- Azure functions don't support WebSockets, i.e., streaming functions won't work.
 - The function is always called `http_app_func`, see https://github.com/Azure-Samples/fastapi-on-azure-functions/issues/31

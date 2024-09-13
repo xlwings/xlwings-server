@@ -1,16 +1,18 @@
 # Install Manifest
 
-Depending on whether you are developing/testing an add-in or want to deploy it internally or publicly, there are different procedures to follow.
+There are 3 different ways how you install an Office.js add-in:
 
-- **Development and testing**: install via [](#sideloading)
-- **Company-internal deployment**: Deploy via Microsoft 365 admin console
-- **Public deployment**: publish to Excel's add-in store
+- **Development and testing**: install the manifest manually via [](#sideloading).
+- **Internal production deployment**: deploy the manifest centrally via [](#microsoft-365-admin-center).
+- **Public production deployment**: publish the manifest to the [](#office-add-in-store).
+
+```{note}
+Each xlwings Server environment (dev, qa, prod, ...) has its an own manifest.
+```
 
 ## Sideloading
 
-Open the URL of your server in a web browser, which should show `{"status": "ok"}`. If you run this on localhost, the URL would be: https://127.0.0.1:8000.
-
-Append `/manifest` to the URL so on localhost it would become https://127.0.0.1:8000/manifest. Copy the content and paste it in a file that you call`manifest-dev.xml` or something similar.
+In a browser, go to `https://YOUR_SERVER_URL/manifest` Copy the content and paste it in a file that you call`xlwings-server-dev.xml` or something similar.
 
 Sideload the manifest according to the following instructions:
 
@@ -18,4 +20,35 @@ Sideload the manifest according to the following instructions:
 - [Excel on macOS](https://learn.microsoft.com/en-us/office/dev/add-ins/testing/sideload-an-office-add-in-on-mac)
 - [Excel on the web](https://learn.microsoft.com/en-us/office/dev/add-ins/testing/sideload-office-add-ins-for-testing#manually-sideload-an-add-in-to-office-on-the-web)
 
-Note that for each environment (dev, qa, staging, prod), you will need an own manifest.
+In Excel, go to `Add-ins` on the ribbon's `Home` tab:
+
+- Windows: click on `More Add-ins` to see the add-in under the tab `Shared Folder` tab from where you can install it. Note that the add-in will stick around, even if you restart Excel.
+- macOS: you will see your add-in listed under Developer add-ins. Note that you will have to activate the add-in like this every time you restart Excel.
+
+## Microsoft 365 admin center
+
+- In your [Microsoft 365 admin center](https://admin.microsoft.com/), click on `Show all` > `Settings` > `Integrated Apps` > `Upload custom apps`.
+- As `App type` select `Office Add-in`.
+- `Choose how to upload app`: The easiest way is to activate `Provide link to manifest file` and point to `https://YOUR_SERVER_URL/manifest`. Click on `Validate`, then on `Next` where you'll be able to select the users you want to deploy the add-in to. Alternatively, you can also copy/paste the content of `https://<YOUR SERVER>/manifest` into a file that you call `xlwings-server-prod.xml` or something similar, then upload it via `Choose File`.
+
+The users should get the add-in to show up automatically. Alternatively, they can go to `Add-ins` on the ribbon's `Home` tab and click on `More Add-ins`. They will see the add-in under the tab `Admin Managed` from where they can install it.
+
+## Office add-in store
+
+To publish an add-in to the Office add-in store, you'll need to become a [Microsoft Partner](https://partner.microsoft.com/).
+
+Make sure that you set the following setting with xlwings Server:
+
+```ini
+XLWINGS_PUBLIC_ADDIN_STORE=true
+```
+
+For further details, see [Make your solutions available in Microsoft AppSource and within Office](https://learn.microsoft.com/en-us/partner-center/marketplace-offers/submit-to-appsource-via-partner-center).
+
+```{note}
+The Excel add-in store is sometimes also referred to as *AppSource*.
+```
+
+## Further reading
+
+- [Deploy and publish Office Add-ins](https://learn.microsoft.com/en-us/office/dev/add-ins/publish/publish)

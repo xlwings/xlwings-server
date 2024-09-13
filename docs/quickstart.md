@@ -13,23 +13,31 @@ You can either create a development environment or deploy to "production":
 
 ### Development environment
 
-- [](github_codespaces.md) is the easiest way to play around with a development environment in the cloud without having to install anything locally.
-- [](dev_docker.md) shows you how to run xlwings Server locally via Docker Compose.
-- [](local_development.md) shows you how to run xlwings Server via a locally installed Python installation.
+There are many different ways to create a development environment. Some of the more popular options include:
+
+- [](github_codespaces.md): play around with a development environment in the cloud without having to install anything locally.
+- [](dev_docker.md): run xlwings Server locally via Docker Compose.
+- [](local_development.md): run xlwings Server via a locally installed Python installation.
+
+For more options, have a look at the `Server Development` section.
 
 ### Production setup
 
-- [](render.md) is a cloud-based service that allows you to deploy xlwings Server to production in less than 1 minute by using the official Docker image.
-- [](docker_compose.md) shows you how to spin up xlwings Server via Docker Compose stack on a Linux VM.
-- There are many more ways how you can deploy to production according to your preferences, see the Hosting section in these docs.
+You can deploy xlwings Server on any platform that supports Python or Docker. Some good options to start with are:
+
+- [](render.md): cloud-based service that allows you to deploy xlwings Server for free in less than 1 minute by using the official Docker image.
+- [](azure_functions.md): a popular choice for companies that use Azure as their cloud platform.
+- [](docker_compose.md): spin up xlwings Server via Docker Compose on a Linux VM.
+
+There are many more ways how you can deploy to production according to your preferences, see the `Hosting` section.
 
 ## 3. Install a Client
 
-xlwings Server supports multiple clients. While Office.js add-ins are recommended, you will find the pros and cons of all of them in the [](clients.md).
+xlwings Server supports various clients, i.e., Excel integrations. While Office.js add-ins are recommended, you will find the pros and cons of all of them in the [](clients.md).
 
 Once you know which client you're going to use, you can jump right into the corresponding docs:
 
-- [Office.js Client (recommended)](sideload_manifest.md)
+- [Office.js Client (recommended)](install_manifest.md)
 - [](vba_client.md)
 - [](officescripts_client.md)
 - [](googleappsscript_client.md)
