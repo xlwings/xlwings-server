@@ -8,11 +8,10 @@ Get a [trial license key](https://www.xlwings.org/trial) as you will need it in 
 
 You can either create a development environment or deploy to "production":
 
-- **Development environment**: makes it easy to play around with your own functions, but is only accessible to a single developer.
-- **Production environment**: enables multiple users to explore xlwings Server by experimenting with the included examples. Making changes or adding own functions requires a re-deployment.
+::::{tab-set}
+:::{tab-item} Development
 
-### Development environment
-
+A development environment makes it easy to play around with your own functions, but is only accessible to a single developer.
 There are many different ways to create a development environment. Some of the more popular options include:
 
 - [](github_codespaces.md): play around with a development environment in the cloud without having to install anything locally.
@@ -21,8 +20,10 @@ There are many different ways to create a development environment. Some of the m
 
 For more options, have a look at the `Server Development` section.
 
-### Production setup
+:::
 
+:::{tab-item} Production
+A production environment enables multiple users to explore xlwings Server by experimenting with the included examples. Making changes or adding own functions requires a re-deployment.
 You can deploy xlwings Server on any platform that supports Python or Docker. Some good options to start with are:
 
 - [](render.md): cloud-based service that allows you to deploy xlwings Server for free in less than 1 minute.
@@ -31,11 +32,14 @@ You can deploy xlwings Server on any platform that supports Python or Docker. So
 
 There are many more ways how you can deploy to production according to your preferences, see the `Hosting` section.
 
+:::
+::::
+
 ## 3. Excel Integration
 
-xlwings Server supports various Excel integrations ("clients") that connect Excel with your server. While Office.js add-ins are recommended, you will find the pros and cons of all of them in the [](excel_integrations.md).
+xlwings Server supports various Excel integrations ("clients") that connect Excel with your server. While Office.js add-ins are recommended, you will find the pros and cons of all of them under [](excel_integrations.md).
 
-After selecting your client, you can dive straight into the relevant documentation:
+After selecting your Excel integration, you can dive straight into the relevant documentation:
 
 - [Office.js Add-ins (recommended)](install_manifest.md)
 - [](vba_client.md)

@@ -116,20 +116,20 @@ Office.actions.associate("hello-ribbon", helloRibbon);
 If you want to call a custom script from Office Scripts or Google Apps Script, you will need to use the `runPython` function with the following endpoint:
 
 ```js
-runPython("https://127.0.0.1:8000/xlwings/custom-scripts-call/hello_world");
+runPython("https://YOUR_SERVER/xlwings/custom-scripts-call/hello_world");
 ```
 
-Make sure to replace `hello_world` with the name of your custom script!
+Make sure to replace `hello_world` with the name of your custom script and `YOUR_SERVER` with your own URL, such as `127.0.0.1:8000`!
 
 ## VBA
 
 If you want to call a custom script from VBA, you will need to use the `RunRemotePython` function with the following endpoint:
 
 ```vb.net
-RunRemotePython("https://127.0.0.1:8000/xlwings/custom-scripts-call/hello_world")
+RunRemotePython("https://YOUR_SERVER/xlwings/custom-scripts-call/hello_world")
 ```
 
-Make sure to replace `hello_world` with the name of your custom script!
+Make sure to replace `hello_world` with the name of your custom script and `YOUR_SERVER` with your own URL, such as `127.0.0.1:8000`!
 
 ## Limitations
 

@@ -7,12 +7,14 @@ For the following walk through, you'll need to have the following software insta
 - [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
 - [Azure Functions Core Tools](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local)
 
-If you deploy to Azure Functions using a different method, you should be able to adapt the instructions accordingly.
-
 Before you begin, you'll need to login to Azure:
 
 ```text
 az login
+```
+
+```{note}
+If you deploy to Azure Functions using a different method, you should be able to adapt the instructions accordingly.
 ```
 
 ## Files for Azure functions

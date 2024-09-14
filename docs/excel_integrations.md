@@ -8,11 +8,11 @@ This is the recommended approach as it fits enterprise requirements the best.
 
 **Pros**:
 
-- SSO authentication and role-based access control (RBAC) via Microsoft Entra ID (formerly Azure AD)
+- Single sign-on (SSO) authentication and role-based access control (RBAC) via Microsoft Entra ID (formerly Azure AD)
 - Works on Windows, macOS, Excel on the Web, and Excel on iPad
-- No VBA required
+- No VBA or JavaScript required
 - Supports custom functions incl. streaming functions and object handles. All custom functions are async natively.
-- Central deployment of the Excel add-in via the Excel admin console (company internal) or via Excel's add-in store (public add-ins). There's no need to have end-users install the add-in manually.
+- Central deployment of the Excel add-in via the Microsoft 365 admin center (company internal) or via Excel's add-in store (public add-ins). There's no need to have end-users install the add-in manually.
 - Allows to build web-based task panes with virtually unlimited possibilities.
 
 **Cons**:
@@ -64,7 +64,7 @@ Google Sheets is a solid web-based spreadsheet with the option to run your Pytho
 **Pros**:
 
 - Best performing solution for online spreadsheets
-- SSO authentication via Google account
+- Single sign-on (SSO) authentication via Google account
 - Supports buttons on sheets
 - Supports custom menu items
 - Allows you to run your Python scripts via built-in scheduler (think cronjobs)

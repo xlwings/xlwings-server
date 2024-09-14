@@ -1,4 +1,4 @@
-# Dependencies
+# Python Dependencies
 
 ## How-to
 

@@ -1,6 +1,6 @@
 # Upgrade xlwings Server
 
-This guide assumes that you have set up your local Git repository according to [Development Environment](repo_setup.md).
+This guide assumes that you have set up your local Git repository according to [](repo_setup.md).
 
 1. Fetch changes from `upstream` and merge them. Make sure to replace `<VERSION>` with the desired version, such as `0.5.3` or `main` for the latest release (see [Changelog](changelog.md)).
 
