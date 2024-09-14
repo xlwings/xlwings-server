@@ -2,7 +2,7 @@
 
 ## Custom Scripts
 
-By default, custom scripts send the content of the entire workbook to the backend. Most of the time, this is not required, so you can include or exclude specific sheets via the `include` and `exclude` parameters, see [](client_configuration.md).
+By default, custom scripts send the content of the entire workbook to the backend. Most of the time, this is not required, so you can include or exclude specific sheets via the `include` and `exclude` parameters, see [](excel_integration_config.md).
 
 ## Custom Functions
 
