@@ -2,7 +2,9 @@
 
 ## Prerequisites
 
-For the following walk through, you'll need to have the following software installed:
+- Follow [](repo_setup.md) or simply clone the [xlwings Server Repo](https://github.com/xlwings/xlwings-server) if you just want to deploy xlwings Server for a quick test.
+
+Install the following software:
 
 - [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
 - [Azure Functions Core Tools](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local)
@@ -17,16 +19,16 @@ az login
 If you deploy to Azure Functions using a different method, you should be able to adapt the instructions accordingly.
 ```
 
-## Files for Azure functions
+## Files
 
 The following files are part of Azure functions setup and may need to be tweaked:
 
 - `host.json`
-- `function_app.py`
 - `local.settings.json`
+- `function_app.py`
 - `.funcignore`
 
-## Deployment to Azure functions
+## Deployment
 
 In the commands below, we're going to use the following parameters that you should adjust to match your preferences:
 
@@ -55,7 +57,7 @@ You may also want to skip some of the steps, e.g., if you already have an existi
     az functionapp create --resource-group xlwings-server-rg --consumption-plan-location westeurope --runtime python --runtime-version 3.11 --functions-version 4 --name xlwings-server --os-type linux --storage-account xlwingsserversa
     ```
 
-4.  Set the required environment variables. Make sure to provide your own license key at the end of the command (you can get a free trial key [here](https://www.xlwings.org/trial)):
+4.  Set the required environment variables. Make sure to provide your own license key at the end of this command (you can get a free trial key [here](https://www.xlwings.org/trial)). You'll also need to adjust the `XLWINGS_ENVIRONMENT` if this is not the `prod` environment:
 
     ```text
     az functionapp config appsettings set --name xlwings-server --resource-group xlwings-server-rg --settings XLWINGS_ENVIRONMENT=prod XLWINGS_ENABLE_SOCKETIO=false XLWINGS_LICENSE_KEY=<YOUR_LICENSE_KEY>

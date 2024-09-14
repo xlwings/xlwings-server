@@ -2,6 +2,10 @@
 
 ## Prerequisites
 
+- Follow [](repo_setup.md)
+
+Install the following software:
+
 - Docker
 - Docker Compose
 

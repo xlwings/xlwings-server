@@ -126,7 +126,7 @@ Make sure to replace `hello_world` with the name of your custom script and `YOUR
 If you want to call a custom script from VBA, you will need to use the `RunRemotePython` function with the following endpoint:
 
 ```vb.net
-RunRemotePython("https://YOUR_SERVER/xlwings/custom-scripts-call/hello_world")
+RunRemotePython "https://YOUR_SERVER/xlwings/custom-scripts-call/hello_world"
 ```
 
 Make sure to replace `hello_world` with the name of your custom script and `YOUR_SERVER` with your own URL, such as `127.0.0.1:8000`!

@@ -20,7 +20,7 @@ These clients only support custom scripts. Please have a look at the respective 
 
 - [](vba_client.md)
 - [](officescripts_client.md)
-- [](googleappsscript_client.mdmd)
+- [](googleappsscript_client.md)
 
 ## How to disable the examples
 

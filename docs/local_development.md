@@ -2,12 +2,11 @@
 
 ## Prerequisites
 
-- Install Python
+- Follow [](repo_setup.md).
+- If you want to use Office.js add-ins, you need to first [create development certificates](dev_certificates.md). If you will be using VBA, Office Scripts, or Google Apps Script, you can skip this.
 
 ## Running the development server
 
-1. [Clone the xlwings Server repo](repo_setup.md)
-2. If you want to use Office.js add-ins, you need to first [create development certificates](dev_certificates.md). If you will be using VBA, Office Scripts, or Google Apps Script, you can skip this step.
 3. In a Terminal/Command Prompt, with the correct Python environment activated, run:
 
    ```
@@ -26,4 +25,4 @@
    ```
 
 4. Open https://127.0.0.1:8000 in a browser. You should see `{"status": "ok"}`.
-5. Only if you are using the Office Scripts or Google Apps Script clients: set up [](tunneling.md). If you are using the Office.js or VBA clients, you can skip this step.
+5. If you are using the Office Scripts or Google Apps Script clients: set up [](tunneling.md). If you are using the Office.js or VBA clients, you can skip this step.

@@ -1,6 +1,6 @@
-# Quickstart
+# Quick Start
 
-## 1. License Key
+## 1. Get a License Key
 
 Get a [trial license key](https://www.xlwings.org/trial) as you will need it in the next step.
 
@@ -14,9 +14,9 @@ You can either create a development environment or deploy to "production":
 A development environment makes it easy to play around with your own functions, but is only accessible to a single developer.
 There are many different ways to create a development environment. Some of the more popular options include:
 
+- [](local_development.md): run xlwings Server via a local Python installation.
 - [](github_codespaces.md): play around with a development environment in the cloud without having to install anything locally.
 - [](dev_docker.md): run xlwings Server locally via Docker Compose.
-- [](local_development.md): run xlwings Server via a local Python installation.
 
 For more options, have a look at the `Server Development` section.
 
@@ -35,17 +35,19 @@ There are many more ways how you can deploy to production according to your pref
 :::
 ::::
 
-## 3. Excel Integration
+## 3. Set up an Excel Integration
 
-xlwings Server supports various Excel integrations ("clients") that connect Excel with your server. While Office.js add-ins are recommended, you will find the pros and cons of all of them under [](excel_integrations.md).
+xlwings Server supports various Excel integrations ("clients") that connect Excel to your server. While Office.js add-ins are recommended in an enterprise context, reviewing the [pros and cons](excel_integrations.md) of each integration will help you make the right choice. Note, however, that only Office.js add-ins support custom functions. Click on your desired integration to learn how to set it up:
 
-After selecting your Excel integration, you can dive straight into the relevant documentation:
-
-- [Office.js Add-ins (recommended)](install_manifest.md)
+- [Office.js add-ins (recommended)](install_manifest.md)
 - [](vba_client.md)
 - [](officescripts_client.md)
 - [](googleappsscript_client.md)
 
-## 4. Run the Examples
+## 4. Take it for a Spin!
 
 Now you are ready to play around with the provided [examples](examples.md)!
+
+## 5. Next steps
+
+Check out the tutorials on [](custom_functions.md) and [](custom_scripts.md) for more detailed information.

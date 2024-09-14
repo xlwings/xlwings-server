@@ -1,6 +1,11 @@
 # Git Repository Setup
 
-You will need basic familiarity with Git and have Git installed.
+## Prerequisites
+
+- You will need basic familiarity with Git and have Git installed.
+- This guide assumes that you have Python installed.
+
+## Setup
 
 1. Clone the xlwings Server repo. Replace `myproject` with the desired name of your project:
 

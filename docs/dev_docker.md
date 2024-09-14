@@ -36,4 +36,4 @@ docker compose
    ```
 
 4. Open https://127.0.0.1:8000 in a browser. You should see `{"status": "ok"}`.
-5. Only if you are using the Office Scripts or Google Apps Script clients: set up [](tunneling.md). If you are using the Office.js or VBA clients, you can skip this step.
+5. If you are using the Office Scripts or Google Apps Script clients: set up [](tunneling.md). If you are using the Office.js or VBA clients, you can skip this step.

@@ -1,8 +1,6 @@
 # xlwings Server
 
-xlwings Server adds Python support to Microsoft Excel without the need of a local Python installation. xlwings Server is self-hosted and runs on any platform that supports Python or Docker, including bare-metal servers, Linux-based VMs, Docker Compose, Kubernetes and serverless products like Azure functions or AWS Lambda.
-
-Here are a few highlights:
+xlwings Server adds Python support to Microsoft Excel without the need of a local Python installation. xlwings Server is self-hosted and runs on any platform that supports Python or Docker, including bare-metal servers, Linux-based VMs, Docker Compose, Kubernetes and serverless products like Azure functions or AWS Lambda. Here are a few highlights:
 
 - Compatible with Python 3.9+
 - Compatible with all Excel platforms, including Excel on Windows, Excel on macOS, and Excel on the web
@@ -47,15 +45,15 @@ performance
 
 repo_setup
 local_development
-dev_certificates
-tunneling
-server_configuration
-dependencies
-upgrade
 dev_docker
 github_codespaces
 devcontainers
 gitpod
+dev_certificates
+tunneling
+server_config
+dependencies
+upgrade
 ```
 
 ```{toctree}
@@ -67,7 +65,7 @@ install_manifest
 manifest
 debugging
 taskpane
-client_configuration
+excel_integration_config
 ```
 
 ```{toctree}

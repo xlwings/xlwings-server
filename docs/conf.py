@@ -15,7 +15,6 @@ author = "Zoomer Analytics GmbH"
 
 extensions = [
     "myst_parser",
-    "sphinx.ext.autosectionlabel",  # To make easy intra-page links
     "sphinx_copybutton",
     "sphinx_design",
 ]
