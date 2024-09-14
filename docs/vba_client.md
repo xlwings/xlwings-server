@@ -1,4 +1,4 @@
-# VBA Client
+# VBA
 
 You can either install the xlwings add-in or create standalone macro-enabled workbooks that do not depend on the xlwings add-in.
 

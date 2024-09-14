@@ -7,7 +7,8 @@ Here are a few highlights:
 - Compatible with Python 3.9+
 - Compatible with all Excel platforms, including Excel on Windows, Excel on macOS, and Excel on the web
 - Compatible with all Python packages, including custom ones and those from private registries
-- Supports multiple clients including Office.js add-ins, VBA, Office Scripts, and Google Apps Script
+- Allows you to develop modern Office.js add-ins by writing Python code instead of JavaScript
+- In addition to Office.js add-ins, you can also use VBA, Office Scripts, and Google Apps Script to talk from Excel to your server
 - Supports custom functions including streaming functions and object handles
 - Privacy-compliant: runs in air-gapped environments without Internet access or connection to any Microsoft servers
 - Supports SSO (Single Sign-On) authentication and RBAC (Role-Based Access Control) via Microsoft Entra ID (previously known as Azure AD)
@@ -24,7 +25,7 @@ Here are a few highlights:
 
 quickstart
 examples
-clients
+excel_integrations
 ```
 
 ```{toctree}

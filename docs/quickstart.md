@@ -25,45 +25,23 @@ For more options, have a look at the `Server Development` section.
 
 You can deploy xlwings Server on any platform that supports Python or Docker. Some good options to start with are:
 
-- [](render.md): cloud-based service that allows you to deploy xlwings Server for free in less than 1 minute by using the official Docker image.
+- [](render.md): cloud-based service that allows you to deploy xlwings Server for free in less than 1 minute.
 - [](azure_functions.md): a popular choice for companies that use Azure as their cloud platform.
 - [](docker_compose.md): spin up xlwings Server via Docker Compose on a Linux VM.
 
 There are many more ways how you can deploy to production according to your preferences, see the `Hosting` section.
 
-## 3. Prepare Excel
+## 3. Excel Integration
 
-xlwings Server supports various _clients_ that connect Excel with your server. While Office.js add-ins are recommended, you will find the pros and cons of all of them in the [](clients.md).
+xlwings Server supports various Excel integrations ("clients") that connect Excel with your server. While Office.js add-ins are recommended, you will find the pros and cons of all of them in the [](excel_integrations.md).
 
-Once you know which client you're going to use, you can jump right into the corresponding docs:
+After selecting your client, you can dive straight into the relevant documentation:
 
-- [Office.js Client (recommended)](install_manifest.md)
+- [Office.js Add-ins (recommended)](install_manifest.md)
 - [](vba_client.md)
 - [](officescripts_client.md)
 - [](googleappsscript_client.md)
 
-## 4. Play time
+## 4. Run the Examples
 
-Now you are ready to play around with the provided examples!
-
-### Office.js client
-
-- **Custom scripts**: you can click the `Hello World` buttons on the Ribbon and on the task pane. The source code is under [`app/custom_scripts/examples.py`](https://github.com/xlwings/xlwings-server/blob/main/app/custom_scripts/examples.py).
-- **Custom functions**: in a cell, type: `=XLWINGS.HELLO("world")`. You should see: `Hello world!`. There are a few other (more interesting) examples available that you should see when typing `=XLWINGS.`. The source code is under [`app/custom_functions/examples.py`](https://github.com/xlwings/xlwings-server/blob/main/app/custom_functions/examples.py).
-- **Task pane**: There are various examples of task pane functionality under [`app/templates/examples`](https://github.com/xlwings/xlwings-server/tree/main/app/templates/examples).
-
-### VBA, Office Scripts, and Google Apps Scripts clients
-
-- **Custom scripts**: If you want to call scripts from Office Scripts, or Google Apps Script, you will need to use the `runPython` function with the following endpoint (make sure to use your actual URL):
-
-  ```js
-  runPython("http://127.0.0.1:8000/xlwings/custom-scripts-call/hello_world");
-  ```
-
-  To call it from VBA, use:
-
-  ```vb.net
-  RunRemotePython("http://127.0.0.1:8000/xlwings/custom-scripts-call/hello_world")
-  ```
-
-- **Custom functions**: only supported with Office.js clients.
+Now you are ready to play around with the provided [examples](examples.md)!

@@ -1,4 +1,4 @@
-# Clients Overview
+# Excel Integrations
 
 This page gives you an overview over the different clients that you can use to talk to xlwings Server. Note that you can have various clients talk to the same server.
 

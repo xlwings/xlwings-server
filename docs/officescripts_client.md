@@ -1,4 +1,4 @@
-# Office Scripts Client
+# Office Scripts
 
 1. Run `xlwings copy os` in a Terminal/Command Prompt.
 2. In the `Automate` tab of Excel, click on `New Script`.

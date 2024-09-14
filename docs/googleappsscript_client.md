@@ -1,4 +1,4 @@
-# Google Apps Script Client
+# Google Apps Script
 
 1. Run `xlwings copy gs` in a Terminal/Command Prompt.
 2. In Google Sheets, click on `Extensions` > `Apps Script`. This will open a separate browser tab and open a file called `Code.gs` with a function stub. Replace this function stub with the copied code from the previous step and click on the `Save` icon.
