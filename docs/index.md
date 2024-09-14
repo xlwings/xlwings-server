@@ -1,13 +1,21 @@
 # xlwings Server
 
-xlwings Server adds Python support to Microsoft Excel without the need of a local Python installation. xlwings Server is self-hosted and runs everywhere where Python runs, including bare-metal servers, Linux-based VMs, Docker, Kubernetes and serverless products like Azure functions or AWS Lambda.
+xlwings Server adds Python support to Microsoft Excel without the need of a local Python installation. xlwings Server is self-hosted and runs on any platform that supports Python or Docker, including bare-metal servers, Linux-based VMs, Docker Compose, Kubernetes and serverless products like Azure functions or AWS Lambda.
 
-xlwings Server can be used with various clients:
+Here are a few highlights:
 
-- [Office.js (recommended)](clients.md#officejs-add-in-recommended)
-- [VBA](clients.md#vba)
-- [Office Scripts](clients.md#office-scripts)
-- [Google Apps Script for Google Sheets](clients.md#google-sheets)
+- Compatible with Python 3.9+
+- Compatible with all Excel platforms, including Excel on Windows, Excel on macOS, and Excel on the web
+- Compatible with all Python packages, including custom ones and those from private registries
+- Supports multiple clients including Office.js add-ins, VBA, Office Scripts, and Google Apps Script
+- Supports custom functions including streaming functions and object handles
+- Privacy-compliant: runs in air-gapped environments without Internet access or connection to any Microsoft servers
+- Supports SSO (Single Sign-On) authentication and RBAC (Role-Based Access Control) via Microsoft Entra ID (previously known as Azure AD)
+- Tight security: uses the HTTP response headers recommended by OWASP including the most restrictive CSP header
+- No dependency on Node.js or Webpack even when using Office.js add-ins
+- Is built with FastAPI, a high-performance, async web framework
+- Comes optionally with htmx (client-server interaction), Alpine.js (for client interactions), Socket.io (for streaming functions), and Bootstrap-xlwings (Bootstrap theme in the Excel look)
+- xlwings Server is free for non-commercial use
 
 ```{toctree}
 :maxdepth: 2
@@ -15,7 +23,6 @@ xlwings Server can be used with various clients:
 :hidden:
 
 quickstart
-features
 examples
 clients
 ```
