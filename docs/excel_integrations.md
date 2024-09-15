@@ -1,6 +1,6 @@
 # Excel Integrations
 
-This page gives you an overview over the different clients that you can use to talk to xlwings Server. Note that you can have various clients talk to the same server.
+This page gives you an overview over the different Excel integrations that you can use to talk to xlwings Server. Note that various integrations can talk to the same server.
 
 ## Office.js add-in (recommended)
 

@@ -3,16 +3,16 @@
 xlwings Server adds Python support to Microsoft Excel without the need of a local Python installation. xlwings Server is self-hosted and runs on any platform that supports Python or Docker, including bare-metal servers, Linux-based VMs, Docker Compose, Kubernetes and serverless products like Azure functions or AWS Lambda. Here are a few highlights:
 
 - Compatible with Python 3.9+
-- Compatible with all Excel platforms, including Excel on Windows, Excel on macOS, and Excel on the web
+- Compatible with all Excel platforms, including Excel on Windows and macOS, and Excel on the web
 - Compatible with all Python packages, including custom ones and those from private registries
 - Supports custom scripts and custom functions including streaming functions and object handles
 - Allows you to develop modern Office.js add-ins by writing Python code instead of JavaScript
 - In addition to Office.js add-ins, you can also use VBA, Office Scripts, and Google Apps Script to talk from Excel to your server. These, however, don't support custom functions.
-- Privacy-compliant: runs in air-gapped environments without Internet access or connection to any Microsoft servers
-- Supports SSO (Single Sign-On) authentication and RBAC (Role-Based Access Control) via Microsoft Entra ID (previously known as Azure AD)
-- Tight security: uses the HTTP response headers recommended by OWASP including the most restrictive CSP header
+- Runs in air-gapped environments without Internet access or connection to any Microsoft servers
+- Supports SSO (single sign-on) authentication and RBAC (role-based access control) via Microsoft Entra ID (previously known as Azure AD)
+- Tight security: uses the HTTP response headers recommended by OWASP
 - No dependency on Node.js or Webpack even when using Office.js add-ins
-- Is built with FastAPI, a high-performance, async web framework
+- Built with FastAPI, a high-performance, async web framework
 - Comes optionally with htmx (client-server interaction), Alpine.js (for client interactions), Socket.io (for streaming functions), and Bootstrap-xlwings (Bootstrap theme in the Excel look)
 - xlwings Server is free for non-commercial use
 
@@ -61,7 +61,7 @@ upgrade
 :caption: Office.js Add-ins
 :hidden:
 
-install_manifest
+install_officejs_addin
 manifest
 debugging
 taskpane
@@ -73,9 +73,9 @@ excel_integration_config
 :caption: Other integrations
 :hidden:
 
-vba_client
-officescripts_client
-googleappsscript_client
+vba_integration
+officescripts_integration
+googleappsscript_integration
 ```
 
 ```{toctree}

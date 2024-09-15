@@ -111,7 +111,7 @@ async function helloRibbon(event) {
 Office.actions.associate("hello-ribbon", helloRibbon);
 ```
 
-## Office Scripts and Google Apps Script clients
+## Office Scripts and Google Apps Script integrations
 
 If you want to call a custom script from Office Scripts or Google Apps Script, you will need to use the `runPython` function with the following endpoint:
 

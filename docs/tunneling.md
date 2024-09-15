@@ -1,8 +1,8 @@
 # Tunneling
 
-If you are developing on your local computer against the Office Scripts or Google Apps Script clients, you will need to expose your development server via a tunneling solution. This is because the Office Scripts and Google Apps Script can only connect to servers on the Internet, but not directly to your local computer.
+If you are developing on your local computer against the Office Scripts or Google Apps Script integrations, you will need to expose your development server via a tunneling solution. This is because the Office Scripts and Google Apps Script can only connect to servers on the Internet, but not directly to your local computer.
 
-This isn't necessary if you use the Office.js or VBA clients. However, if you develop with Office.js add-ins and experience issues installing [](dev_certificates.md), you might alternatively use a tunneling solution as it will expose your local web service via a https.
+This isn't necessary if you use the Office.js add-ins or VBA integrations. However, if you develop with Office.js add-ins and experience issues installing [](dev_certificates.md), you might alternatively use a tunneling solution as it will expose your local web service via a https.
 
 ```{note}
 Tunneling solutions work by creating a secure connection between your local development server and a public endpoint on the Internet. This allows external services, such as Office Scripts or Google Apps Script, to access your local server as if it were hosted online. However, it's important to trust the tunneling provider, as you are granting them access to route traffic to and from your local machine. Always ensure you are using a reputable provider to maintain the security of your development environment.

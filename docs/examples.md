@@ -6,7 +6,7 @@ A great way to get started with xlwings Server is to try out the examples, with 
 - Custom functions (only Office.js add-ins): [`app/custom_functions/examples.py`](https://github.com/xlwings/xlwings-server/blob/main/app/custom_functions/examples.py)
 - Task pane examples (only Office.js add-ins): [`app/templates/examples`](https://github.com/xlwings/xlwings-server/tree/main/app/templates/examples)
 
-Below are instructions on how to play around with them depending on which client you're using.
+Below are instructions on how to play around with them depending on which Excel integration you're using.
 
 ## Office.js add-ins
 
@@ -16,11 +16,11 @@ Below are instructions on how to play around with them depending on which client
 
 ## VBA, Office Scripts, and Google Apps Script
 
-These clients only support custom scripts. Please have a look at the respective tutorial on how to run the `hello_world` example:
+These Excel integrations only support custom scripts. Please have a look at the respective tutorial on how to run the `hello_world` example:
 
-- [](vba_client.md)
-- [](officescripts_client.md)
-- [](googleappsscript_client.md)
+- [](vba_integration.md)
+- [](officescripts_integration.md)
+- [](googleappsscript_integration.md)
 
 ## How to disable the examples
 
