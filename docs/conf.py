@@ -15,7 +15,6 @@ author = "Zoomer Analytics GmbH"
 
 extensions = [
     "myst_parser",
-    "sphinx.ext.autosectionlabel",  # To make easy intra-page links: :ref:`Title`
     "sphinx_copybutton",
     "sphinx_design",
 ]
@@ -25,6 +24,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 myst_heading_anchors = 3
 myst_enable_extensions = ["colon_fence", "linkify"]
+myst_links_external_new_tab = True
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output

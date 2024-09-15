@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.4 (Sep 11, 2024)
+
+- Fixed security headers so that Windows will show the icons on the ribbon correctly.
+- Made the HTTP port configurable in the default Dockerfile.
+- Upgraded dependencies incl. xlwings to 0.32.2.
+
 ## 0.5.3 (Aug 24, 2024)
 
 - Avoid merge conflicts in `requirements` files when merging in upstream.

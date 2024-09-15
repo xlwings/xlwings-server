@@ -1,6 +1,6 @@
-# Clients
+# Excel Integrations
 
-This page gives you an overview over the different clients that you can use to talk to xlwings Server. You can have various clients talk to the same server.
+This page gives you an overview over the different Excel integrations that you can use to talk to xlwings Server. Note that various integrations can talk to the same server.
 
 ## Office.js add-in (recommended)
 
@@ -8,11 +8,11 @@ This is the recommended approach as it fits enterprise requirements the best.
 
 **Pros**:
 
-- SSO authentication and role-based access control (RBAC) via Microsoft Entra ID (formerly Azure AD)
+- Single sign-on (SSO) authentication and role-based access control (RBAC) via Microsoft Entra ID (formerly Azure AD)
 - Works on Windows, macOS, Excel on the Web, and Excel on iPad
-- No VBA required
+- No VBA or JavaScript required
 - Supports custom functions incl. streaming functions and object handles. All custom functions are async natively.
-- Central deployment of the Excel add-in via the Excel admin console (company internal) or via Excel's add-in store (public add-ins). There's no need to have end-users install the add-in manually.
+- Central deployment of the Excel add-in via the Microsoft 365 admin center (company internal) or via Excel's add-in store (public add-ins). There's no need to have end-users install the add-in manually.
 - Allows to build web-based task panes with virtually unlimited possibilities.
 
 **Cons**:
@@ -52,9 +52,10 @@ If you have access to Office Scripts and aren't affected by the cons, this is a 
 - No support for custom functions.
 - No support for authentication.
 - Requires Microsoft 365 with OneDrive/SharePoint, does not work with the permanent versions of Office like Office 2024.
-- Cannot be used in PowerAutomate flows as running Office Scripts via PowerAutomate doesn't support calls the external servers.
+- Cannot be used in PowerAutomate flows as running Office Scripts via PowerAutomate doesn't support calls to the external servers.
 - Does not work without an Internet connection.
 - Does not comply with privacy standards: transmits content to Microsoft.
+- Developing requires a tunneling solution like ngrok.
 
 ## Google Sheets
 
@@ -63,7 +64,7 @@ Google Sheets is a solid web-based spreadsheet with the option to run your Pytho
 **Pros**:
 
 - Best performing solution for online spreadsheets
-- SSO authentication via Google account
+- Single sign-on (SSO) authentication via Google account
 - Supports buttons on sheets
 - Supports custom menu items
 - Allows you to run your Python scripts via built-in scheduler (think cronjobs)
@@ -71,6 +72,8 @@ Google Sheets is a solid web-based spreadsheet with the option to run your Pytho
 
 **Cons**:
 
+- It's not Excel.
 - No support for custom functions (planned).
 - Does not work without an Internet connection.
 - Does not comply with privacy standards: content is hosted by Google.
+- Developing requires a tunneling solution like ngrok.

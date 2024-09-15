@@ -36,7 +36,7 @@ repos:
     rev: v3.1.0
     hooks:
       - id: prettier
-        types_or: [html, javascript, css]
+        types_or: [html, javascript, css, markdown]
         args: [--write]
         additional_dependencies:
           - prettier@3.1.0

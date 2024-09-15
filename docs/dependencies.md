@@ -1,4 +1,4 @@
-# Dependencies
+# Python Dependencies
 
 ## How-to
 
@@ -11,9 +11,9 @@
 
 3. Update your local dev environment by running:
 
-    ```text
-    uv pip sync requirements-dev.txt
-    ```
+   ```text
+   uv pip sync requirements-dev.txt
+   ```
 
 4. Commit and push the changed `requirements` files to Git.
 
