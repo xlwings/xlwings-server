@@ -25,8 +25,17 @@ This guide assumes that you have set up your local Git repository according to [
    git push origin main
    ```
 
-5. Update your requirements locally:
+5. Update your requirements locally (if you use Docker, rebuild your container instead):
 
    ```text
    uv pip sync requirements-dev.txt
    ```
+
+```{admonition} Merge vs Rebase
+Merge is recommended over Rebase:
+
+- Potential merge conflicts can be resolves in a single step
+- There's no force push required
+- The history of your own commits is preserved
+- [](repo_setup.md) minimizes merge conflicts during merge operations via `.gitattributes`
+```

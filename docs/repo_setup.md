@@ -53,7 +53,7 @@ If you only want to play around with xlwings Server without committing any chang
    git remote add origin <URL>
    ```
 
-6. To reduce future merge conflicts, run:
+6. To reduce future merge conflicts with the help of `.gitattributes`, run:
 
    ```text
    git config --local merge.ours.driver true
