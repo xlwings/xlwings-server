@@ -37,3 +37,13 @@ docker compose
 
 4. Open https://127.0.0.1:8000 in a browser. You should see `{"status": "ok"}`.
 5. If you are using the Office Scripts or Google Apps Script integrations: set up [](tunneling.md). If you are using Office.js add-ins or the VBA integration, you can skip this step.
+
+## Docker Hub
+
+Alternatively, a docker image (prod configuration) is published to [Docker Hub](https://hub.docker.com/r/xlwings/xlwings-server):
+
+```
+docker pull xlwings/xlwings-server:latest
+```
+
+It could be used for quickly spinning up an environment and to test-drive the contained examples.
