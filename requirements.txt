@@ -40,7 +40,7 @@ cryptography==43.0.1
     # via
     #   -r requirements-core.txt
     #   joserfc
-fastapi-slim==0.114.1
+fastapi-slim==0.115.0
     # via -r requirements-core.txt
 gunicorn==23.0.0 ; sys_platform != 'win32'
     # via -r requirements-core.txt
@@ -60,7 +60,7 @@ httptools==0.6.1
     # via -r requirements-core.txt
 httpx==0.27.2
     # via -r requirements-core.txt
-idna==3.8
+idna==3.10
     # via
     #   -r requirements-core.txt
     #   anyio
@@ -95,16 +95,16 @@ pycparser==2.22 ; platform_python_implementation != 'PyPy'
     # via
     #   -r requirements-core.txt
     #   cffi
-pydantic==2.9.1
+pydantic==2.9.2
     # via
     #   -r requirements-core.txt
     #   fastapi-slim
     #   pydantic-settings
-pydantic-core==2.23.3
+pydantic-core==2.23.4
     # via
     #   -r requirements-core.txt
     #   pydantic
-pydantic-settings==2.5.1
+pydantic-settings==2.5.2
     # via -r requirements-core.txt
 python-dateutil==2.9.0.post0
     # via
