@@ -59,21 +59,31 @@ If you only want to play around with xlwings Server without committing any chang
    git config --local merge.ours.driver true
    ```
 
-7. In the desired Python environment, install the development dependencies:
+7. Install the `uv` package manager:
 
    ```text
-   pip install -r requirements-dev.txt
+   pip install uv
    ```
 
-8. Initialize the repo. This will create an `.env` file for configuration and will create unique UUIDs in the `app/config.py` file.
+8. In the desired Python environment, install the development dependencies:
+
+   ```text
+   uv pip sync -r requirements-dev.txt
+   ```
+
+9. Initialize the repo. This will create an `.env` file for configuration and will create unique UUIDs in the `app/config.py` file.
 
    ```text
    python run.py init
    ```
 
-9. Open the `.env` file and add your xlwings license key under `XLWINGS_LICENSE_KEY` (top of the file). Note that `.env` is ignored by Git as it may contain sensitive credentials. You should therefore back it up in a secure location such as a password manager.
+10. Open the `.env` file and add your xlwings license key under `XLWINGS_LICENSE_KEY` (top of the file).
 
-10. Commit the changes and push everything to your own repo (feel free to use a Git UI instead of the following commands). If you just want to play around with xlwings Server, you can skip this step.
+    ```{note}
+    `.env` is ignored by Git as it may contain sensitive credentials. You should therefore back it up in a secure location such as a password manager.
+    ```
+
+11. Commit the changes and push everything to your own repo (feel free to use a Git UI instead of the following commands). If you just want to play around with xlwings Server, you can skip this step.
 
     ```text
     git add .

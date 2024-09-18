@@ -40,3 +40,45 @@ numpy==1.26.4
 ```
 
 When you first clone xlwings Server, there will be a few dependencies in `requirements.in`. They are there to make the examples work out of the box, but you should replace them with your own top-level dependencies.
+
+## Conda environments
+
+If you'd like to use a Conda env because e.g., you have dependencies that are only available via Conda, do the following:
+
+1. Create a new Conda env. Make sure to replce `myenv` with the desired name of your environment:
+
+   ```text
+   conda create -n myenv python=3.12 -y
+   ```
+
+2. Activate the Conda env:
+
+   ```text
+   conda activate myenv
+   ```
+
+3. Install the `uv` package manager:
+
+   ```text
+   pip install uv
+   ```
+
+4. Install `requirements-dev.txt` (for development) or `requirements.txt` otherwise:
+
+   ```text
+   uv pip sync requirements-dev.txt
+   ```
+
+5. Install conda dependencies:
+
+   ```text
+   conda install blas
+   ```
+
+6. Export the environment into `environment.yml` (call it `environment-dev.yml` if this is a development environment):
+
+   ```text
+   conda env export > environment.yml
+   ```
+
+Commit `environment.yml` to Git. You can now use it to recreate this specific Conda environment whenever you need it via `conda env create -f environment.yml`.
