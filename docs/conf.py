@@ -34,8 +34,8 @@ html_static_path = ["_static"]
 html_favicon = "_static/favicon.png"
 html_theme_options = {
     "sidebar_hide_name": True,
-    "light_logo": "logo-light.svg",
-    "dark_logo": "logo-dark.svg",
+    "light_logo": "logo-server-light.svg",
+    "dark_logo": "logo-server-dark.svg",
     "light_css_variables": {
         "color-brand-primary": "black",
         "color-brand-content": "#28a745",
