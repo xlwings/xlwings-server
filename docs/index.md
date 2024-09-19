@@ -10,12 +10,12 @@ xlwings Server adds Python support to Microsoft Excel and Google Sheets without 
 - In addition to Office.js add-ins, you can also use VBA, Office Scripts, and Google Apps Script to talk from Excel to your server. These, however, don't support custom functions.
 - Runs in air-gapped environments without Internet access or connection to any Microsoft servers
 - Supports SSO (single sign-on) authentication and RBAC (role-based access control) via Microsoft Entra ID (previously known as Azure AD)
-- Tight security: uses the HTTP response headers recommended by OWASP
 - No sensitive credentials need to be stored on the end-user's computer or in the workbook
 - No dependency on Node.js or Webpack even when using Office.js add-ins
 - Built with FastAPI, a high-performance, async web framework
 - Comes optionally with htmx (client-server interaction), Alpine.js (for client interactions), Socket.io (for streaming functions), and Bootstrap-xlwings (Bootstrap theme in the Excel look)
-- xlwings Server is free for non-commercial use
+- Full source code is on [GitHub](https://github.com/xlwings/xlwings-server) allowing for complete customization
+- xlwings Server is free for non-commercial use---commercial use requires a [paid plan](https://www.xlwings.org/pricing)
 
 ```{toctree}
 :maxdepth: 2
