@@ -35,7 +35,7 @@ html_favicon = "_static/favicon.png"
 html_show_sourcelink = False
 html_copy_source = False
 html_js_files = [
-    "_static/plausible.js",
+    "plausible.js",
 ]
 html_theme_options = {
     "sidebar_hide_name": True,
