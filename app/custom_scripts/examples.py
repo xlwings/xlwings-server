@@ -25,21 +25,21 @@ def setup_custom_functions(book: xw.Book):
     if settings.environment != "prod":
         prefix += f"_{settings.environment}"
     sheet = book.sheets.add()
-    sheet["A1"].value = f'={prefix}.HELLO("xlwings")'
-    sheet["A3"].value = f"={prefix}.STANDARD_NORMAL(3, 4)"
-    sheet["A8"].value = f"={prefix}.CORREL(A3#)"
-    sheet["A14"].value = f"={prefix}.TO_DF(A3#)"
-    sheet["A16"].value = f"={prefix}.GET_HEALTHEXP()"
+    sheet["A3"].value = f'={prefix}.HELLO("xlwings")'
+    sheet["A5"].value = f"={prefix}.STANDARD_NORMAL(3, 4)"
+    sheet["A10"].value = f"={prefix}.CORREL(A5#)"
+    sheet["A16"].value = f"={prefix}.TO_DF(A5#)"
+    sheet["A18"].value = f"={prefix}.GET_HEALTHEXP()"
     sheet[
-        "A18"
-    ].value = f"""={prefix}.DF_QUERY(A16, "Country == 'Japan' and Year > 2017")"""
-    sheet["A23"].value = f"={prefix}.VIEW(A16, 3)"
-    sheet["A28"].value = f"={prefix}.STREAMING_RANDOM(3, 4)"
-    sheet["A33"].value = f"={prefix}.GET_CURRENT_USER()"
+        "A20"
+    ].value = f"""={prefix}.DF_QUERY(A18, "Country == 'Japan' and Year > 2017")"""
+    sheet["A25"].value = f"={prefix}.VIEW(A18, 3)"
+    sheet["A30"].value = f"={prefix}.STREAMING_RANDOM(3, 4)"
+    sheet["A35"].value = f"={prefix}.GET_CURRENT_USER()"
     sheet[
-        "A35"
+        "A37"
     ].value = (
-        f'={prefix}.SQL("SELECT Year, Country FROM a WHERE Spending_USD < 4600", A18#)'
+        f'={prefix}.SQL("SELECT Year, Country FROM a WHERE Spending_USD < 4600", A20#)'
     )
-    sheet["A37"].value = f'={prefix}.HELLO_WITH_SCRIPT("xlwings")'
+    sheet["A40"].value = f'={prefix}.HELLO_WITH_SCRIPT("xlwings")'
     sheet.activate()
