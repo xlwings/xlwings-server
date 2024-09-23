@@ -29,7 +29,7 @@ In Excel, go to `Add-ins` on the ribbon's `Home` tab:
 
 - In your [Microsoft 365 admin center](https://admin.microsoft.com/), click on `Show all` > `Settings` > `Integrated Apps` > `Upload custom apps`.
 - As `App type` select `Office Add-in`.
-- Choose how to upload app: the easiest way is to activate `Provide link to manifest file` and point to `https://YOUR_SERVER_URL/manifest`. Click on `Validate`, then on `Next` where you'll be able to select the users you want to deploy the add-in to. Alternatively, you can also copy/paste the content of `https://<YOUR SERVER>/manifest` into a file that you call `xlwings-server-prod.xml` or something similar, then upload it via `Choose File`.
+- Choose how to upload app: the easiest way is to activate `Provide link to manifest file` and point to `https://YOUR_SERVER_URL/manifest` (make sure that this endpoint is publicly accessible and not e.g., blocked for certain IP addresses). Click on `Validate`, then on `Next` where you'll be able to select the users you want to deploy the add-in to. Alternatively, you can also copy/paste the content of `https://<YOUR SERVER>/manifest` into a file that you call `xlwings-server-prod.xml` or something similar, then upload it via `Choose File`.
 
 The users should get the add-in to show up automatically. Alternatively, they can go to `Add-ins` on the ribbon's `Home` tab and click on `More Add-ins`. They will see the add-in under the tab `Admin Managed` from where they can install it.
 
