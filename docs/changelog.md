@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.5 (Sep 23, 2024)
+
+- Added a button to the default task pane to set up a sheet with custom functions examples.
+- Introduced dedicated docs at https://server.xlwings.org.
+- `docker compose up` now also works without dev certificates
+- Fixed a CORS issue when using the Office Scripts integration.
+- Upgraded dependencies incl. xlwings to 0.33.0.
+
 ## 0.5.4 (Sep 11, 2024)
 
 - Fixed security headers so that Windows will show the icons on the ribbon correctly.
