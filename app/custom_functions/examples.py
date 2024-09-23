@@ -157,5 +157,5 @@ def sql(query, *tables):
 @func
 async def hello_with_script(name):
     """This function triggers a custom script, requires XLWINGS_ENABLE_SOCKETIO=true"""
-    await utils.trigger_script(custom_scripts.hello_world, exclude="Sheet2")
+    await utils.trigger_script(custom_scripts.hello_world, exclude="MySheet")
     return f"Hello {name}!"
