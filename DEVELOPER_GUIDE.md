@@ -1,4 +1,6 @@
-# Run everything local
+# Developer Guide
+
+## Run everything local
 
 To get a prod-like setup while running the app locally, run the following in separate terminals:
 
@@ -27,7 +29,7 @@ globalThis.socket = io("https://127.0.0.1:8001", {
 });
 ```
 
-# Install the xlwings Python package from its repo into xlwings-server in editable mode
+## Install the xlwings Python package from its repo into xlwings-server in editable mode
 
 - xlwings: delete `project.toml` temporarily
 - xlwings: replace `version = "dev"` with the version from `xlwings.js`
@@ -35,7 +37,7 @@ globalThis.socket = io("https://127.0.0.1:8001", {
 - xlwings-server: `cd ~/dev/xlwings && python setup.py develop`
 - xlwings: undo deletion of `project.toml`
 
-# Build docs
+## Build docs
 
 From the root dir, run:
 
@@ -44,3 +46,24 @@ sphinx-autobuild docs docs/_build/html  --port 9000
 ```
 
 The requirements are currently under `docs/requirements.txt` and have not been included in `requirements-dev.txt` as there's an incompatibility with Python 3.9.
+
+## Upgrade npm dependencies
+
+Node.js isn't required to run the app as the relevant files are copied over from `node_modules` to `app/static/vendor`. It is, however required to upgrade the packages:
+
+1. Install Node.js
+2. `sudo npm install`
+
+Update a package:
+
+```
+npm install mypackage@latest
+```
+
+Or use the VS Code extension `Version Lens`, which allows you to update the packages directly from `packages.json` (click the `V` at the top right).
+
+After updating a package in `packages.json`, run `sudo npm upgrade` followed by `python scripts/copy_node_modules_to_static_folder.py` to copy over the files to the static folder.
+
+## Upgrading xlwings
+
+Upgrading xlwings requires to upgrade both the python and the npm package.
