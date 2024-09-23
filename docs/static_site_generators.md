@@ -14,7 +14,7 @@ In your `docusaurus.config.js` file, set the following config:
 
 ```
 url: 'https://...'
-baseUrl: '/docusaurus/'
+baseUrl: '/taskpane/'
 ```
 
 Then run:
@@ -27,12 +27,12 @@ Copy the `build` directory as we'll need it in the next section.
 
 ### xlwings Server setup
 
-1. Paste the copied `build` directory directly under `app` and rename it to `docusaurus`.
+1. Paste the copied `build` directory under `app/static` and rename it to `docusaurus` so that you end up with `app/static/docusaurus`.
 
-2. Add a new file `app/routers/docusaurus.py`:
+2. Replace `app/routers/taskpane.py` with:
 
    ```python
-   from fastapi import APIRouter, Request
+   from fastapi import APIRouter, HTTPException, Request
    from fastapi.responses import FileResponse
 
    from ..config import settings
@@ -40,10 +40,9 @@ Copy the `build` directory as we'll need it in the next section.
    router = APIRouter()
 
 
-   @router.get("/docusaurus/{path:path}")
-   async def docusaurus(path: str, request: Request):
-      base_path = settings.base_dir / "docusaurus"
-      full_path = base_path / path
+   @router.get("/taskpane/{path:path}")
+   async def taskpane(path: str, request: Request):
+      full_path = settings.static_dir / "docusaurus" / path
 
       if full_path.is_dir():
          full_path = full_path / "index.html"
@@ -51,28 +50,5 @@ Copy the `build` directory as we'll need it in the next section.
       if full_path.exists():
          return FileResponse(full_path)
       else:
-         return {"error": "File not found"}, 404
+         raise HTTPException(status_code=404, detail="File not found")
    ```
-
-3. Under `app/main.py`, add the following:
-
-   ```python
-   from .routers.docusaurus import router as docusaurus_router
-   # ...existing code...
-   app.include_router(docusaurus_router)
-   # ...existing code ...
-   app.mount(
-      "/docusaurus/",
-      StaticFiles(directory=settings.base_dir / "docusaurus"),
-      name="docusaurus",
-   )
-   ```
-
-4. In your `app/templates/manifest.xml`, set the task pane URL to:
-
-   ```xml
-   <bt:Url id="Taskpane.Url" DefaultValue="https://127.0.0.1:8000/docusaurus" />
-   ```
-
-5. Update your manifest with the content of `https://127.0.0.1:8000/manifest`.
-6. Restart Excel and reload your add-in.
