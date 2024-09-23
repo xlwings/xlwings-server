@@ -68,6 +68,7 @@ manifest
 debugging
 taskpane
 excel_integration_config
+static_site_generators
 ```
 
 ```{toctree}
