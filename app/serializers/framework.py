@@ -22,19 +22,25 @@ class Serializer:
 
 
 # Custom encoders/decoders
-def datetime_encoder(obj):
+def custom_encoder(obj):
     if isinstance(obj, dt.datetime):
         return obj.isoformat()
+    valid_types = tuple(cls for cls in serializers.keys() if isinstance(cls, type))
+    if isinstance(obj, valid_types):
+        serializer = serializers.get(type(obj))
+        if serializer:
+            return serializer.serialize(obj)
     raise TypeError(f"Object of type {type(obj)} is not JSON serializable")
 
 
-def convert_iso_strings_to_datetime(obj):
+def custom_decoder(obj):
     if isinstance(obj, list):
-        return [convert_iso_strings_to_datetime(item) for item in obj]
+        return [custom_decoder(item) for item in obj]
     elif isinstance(obj, dict):
-        return {
-            key: convert_iso_strings_to_datetime(value) for key, value in obj.items()
-        }
+        serializer = serializers.get(obj.get("serializer"))
+        if serializer:
+            return serializer.deserialize(obj)
+        return {key: custom_decoder(value) for key, value in obj.items()}
     elif isinstance(obj, str):
         try:
             return dt.datetime.fromisoformat(obj)

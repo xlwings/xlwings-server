@@ -1,4 +1,4 @@
-from .framework import Serializer, convert_iso_strings_to_datetime
+from .framework import Serializer, custom_decoder
 
 
 class DefaultSerializer(Serializer):
@@ -13,7 +13,7 @@ class DefaultSerializer(Serializer):
 
     @classmethod
     def deserialize(cls, payload):
-        return convert_iso_strings_to_datetime(payload["data"])
+        return custom_decoder(payload["data"])
 
 
 DefaultSerializer.register()
