@@ -24,9 +24,29 @@ htmx.on("htmx:responseError", function (event) {
       `Error ${errorCode}: Page not found`;
   } else if (errorCode === 500) {
     globalErrorAlert.querySelector("span").textContent = `Error ${errorCode}`;
+  } else if (errorCode === 401) {
+    globalErrorAlert.querySelector("span").textContent =
+      `Error ${errorCode}: Unauthorized`;
+  } else if (errorCode === 403) {
+    globalErrorAlert.querySelector("span").textContent =
+      `Error ${errorCode}: Forbidden`;
   } else {
     // Mostly 502/503/504 errors
     globalErrorAlert.querySelector("span").textContent =
       `Error ${errorCode}: Please reload the page!`;
   }
+});
+
+// Task pane authentication (see: https://htmx.org/examples/async-auth/)
+let authToken = null;
+
+htmx.on("htmx:confirm", async (event) => {
+  // Block the request until the token is returned
+  event.preventDefault();
+  authToken = await globalThis.getAuth();
+  event.detail.issueRequest();
+});
+
+htmx.on("htmx:configRequest", (event) => {
+  event.detail.headers["Authorization"] = authToken;
 });

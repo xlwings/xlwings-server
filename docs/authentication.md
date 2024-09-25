@@ -48,6 +48,8 @@ By default, there is no authentication provider configured (`XLWINGS_AUTH_PROVID
 Single sign-on (SSO) is only available for Office.js add-ins.
 ```
 
+SSO means that the user's identity within Office (either a Microsoft account or a Microsoft 365 identity) is used.
+
 ### Enable SSO
 
 1. [Register your add-in as an app on the Microsoft Identity Platform](https://learn.microsoft.com/en-us/office/dev/add-ins/develop/register-sso-add-in-aad-v2)
@@ -117,3 +119,11 @@ To make this work, you need to implement
 - `globalThis.getAuth` under [`app/static/auth.js`](https://github.com/xlwings/xlwings-server/blob/main/app/static/js/auth.js)
 
 Essentially, you will need to adjust `globalThis.getAuth` so that it returns the token that you will validate with the `validate_token` function on the backend.
+
+## Task pane authentication
+
+- The landing page of the task pane needs to be publicly available
+- The rest of the pages can be locked down using the `User` dependency injection
+- You will need to provide the `Authorization` header with every request
+
+There is an htmx sample included under [`app/templates/examples/auth`](https://github.com/xlwings/xlwings-server/tree/main/app/templates/examples/auth).
