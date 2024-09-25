@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.6 (Sep 25, 2024)
+
+- Object handles: added support for nested custom types, e.g., dicts containing pandas DataFrames.
+- Added an example that shows how to handle authentication with the task pane via htmx.
+
 ## 0.5.5 (Sep 23, 2024)
 
 - Added a button to the default task pane to set up a sheet with custom functions examples.
