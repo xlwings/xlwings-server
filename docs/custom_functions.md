@@ -639,7 +639,7 @@ This turns an existing Excel range into a DataFrame. Using an Excel table as you
 - For development purposes, you don't need Redis, but the cache is in-memory and thus only works with a single worker/process for as long as the app runs. More importantly, there won't be any automatic cache purging happening.
 ```
 
-Right now, you can return the majority of Python data types such as simple lists, dictionaries, and tuples. NumPy arrays and pandas DataFrames/Series are also supported. However, more complex objects like a dictionary that holds a pandas DataFrame isn't supported yet.
+You can return the majority of Python data types such as simple lists, dictionaries, and tuples. NumPy arrays and pandas DataFrames/Series are also supported. For unsupported data types, a custom serializer can be written and registered (see `app/serializers/pandas_serializer.py` for an example).
 
 The object handles are stored in the cache using a key that derives from the add-in installation, workbook name and cell address, i.e, objects are not shared across different Excel installations or users.
 

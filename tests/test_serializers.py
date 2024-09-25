@@ -77,3 +77,61 @@ def test_series(test_input):
 def test_numpy():
     data = np.array([[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]])
     assert_array_equal(data, deserialize(serialize(data)))
+
+
+def test_dict_of_df():
+    df1 = pd.DataFrame(
+        {
+            "ints": [1, 2],
+            "b": ["a", "b"],
+            "date time": [
+                dt.datetime(2022, 12, 1, 10, 33),
+                dt.datetime(2022, 12, 2, 10, 34),
+            ],
+            "bool": [True, False],
+            "floats": [1.1, 2.2],
+        }
+    )
+    df2 = pd.DataFrame(
+        {
+            "ints": [11, 22],
+            "b": ["a", "b"],
+            "date time": [
+                dt.datetime(2022, 12, 1, 10, 33),
+                dt.datetime(2022, 12, 2, 10, 34),
+            ],
+            "bool": [True, False],
+            "floats": [1.1, 2.2],
+        }
+    )
+    data = {"df1": df1, "df2": df2}
+    data2 = deserialize(serialize(data))
+    assert_frame_equal(data["df1"], data2["df1"])
+    assert_frame_equal(data["df2"], data2["df2"])
+
+
+def test_dict_of_ndarray():
+    arr1 = np.array([[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]])
+    arr2 = np.array([[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]])
+    data1 = {"arr1": arr1, "arr2": arr2}
+    data2 = deserialize(serialize(data1))
+    assert_array_equal(data1["arr1"], data2["arr1"])
+    assert_array_equal(data1["arr1"], data2["arr2"])
+
+
+def test_list_of_ndarray():
+    arr1 = np.array([[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]])
+    arr2 = np.array([[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]])
+    data1 = [arr1, arr2]
+    data2 = deserialize(serialize(data1))
+    assert_array_equal(data1[0], data2[0])
+    assert_array_equal(data1[1], data2[1])
+
+
+def test_tuple_of_ndarray():
+    arr1 = np.array([[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]])
+    arr2 = np.array([[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]])
+    data1 = (arr1, arr2)
+    data2 = deserialize(serialize(data1))
+    assert_array_equal(data1[0], data2[0])
+    assert_array_equal(data1[1], data2[1])
