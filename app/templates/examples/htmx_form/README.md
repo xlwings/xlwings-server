@@ -31,7 +31,7 @@ async def taskpane(request: Request):
 
 @router.post("/form-example")
 async def form_example(request: Request, name: str = Form(None)):
-    if name is None:
+    if name == "":
         error = "Please provide a name!"
     else:
         error = None
