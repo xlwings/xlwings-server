@@ -12,6 +12,8 @@
   },
   "devDependencies": {
     "@types/alpinejs": "3.13.10",
+    "@types/office-js": "1.0.430",
+    "office-addin-lint": "2.3.5",
     "prettier": "3.3.3",
     "prettier-plugin-jinja-template": "1.5.0"
   }
