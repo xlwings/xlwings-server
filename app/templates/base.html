@@ -61,6 +61,8 @@
       {% if settings.enable_socketio %}
         <script src="{{ settings.static_url_path }}/js/socketio-handlers.js" defer></script>
       {% endif %}
+      <script src="{{ settings.app_path }}/xlwings/custom-scripts-sheet-buttons" defer></script>
+      <script src="{{ settings.static_url_path }}/js/utils/sheet-buttons.js" defer></script>
       <script src="{{ settings.static_url_path }}/js/main.js" defer></script>
       <script src="{{ settings.static_url_path }}/js/ribbon.js" defer></script>
       {% if settings.environment == "dev" and settings.enable_socketio %}
