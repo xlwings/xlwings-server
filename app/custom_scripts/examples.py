@@ -9,7 +9,7 @@ from xlwings.server import script
 from ..config import settings
 
 
-@script
+@script(target_cell="[xlwings_button]Sheet1!B4")
 def hello_world(book: xw.Book):
     sheet = book.sheets.active
     cell = sheet["A1"]
