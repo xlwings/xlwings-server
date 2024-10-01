@@ -1,6 +1,6 @@
-# Excel Integrations
+# Integrations
 
-This page gives you an overview over the different Excel integrations that you can use to talk to xlwings Server. Note that various integrations can talk to the same server.
+This page gives you an overview over the different integrations that you can use to talk from Excel or Google Sheets to xlwings Server. Note that various integrations can talk to the same server.
 
 ## Office.js add-in (recommended)
 
@@ -8,7 +8,7 @@ This is the recommended approach as it fits enterprise requirements the best.
 
 **Pros**:
 
-- Single sign-on (SSO) authentication and role-based access control (RBAC) via Microsoft Entra ID (formerly Azure AD)
+- Single sign-on (SSO) authentication and role-based access control (RBAC) via [Microsoft Entra ID](https://www.microsoft.com/en-us/security/business/identity-access/microsoft-entra-id) (formerly Azure AD)
 - Works on Windows, macOS, Excel on the Web, and Excel on iPad
 - No VBA or JavaScript required
 - Supports custom functions incl. streaming functions and object handles. All custom functions are async natively.
@@ -17,8 +17,7 @@ This is the recommended approach as it fits enterprise requirements the best.
 
 **Cons**:
 
-- Office.js doesn't support buttons on a worksheet to run Python code. You either have to use buttons on the ribbon or on the task pane. As a workaround, you could style a cell like a button and run the code when the cell is clicked.
-- Setting up a local development environment for the first time is slightly harder as you need local TLS certificates to run the server on https instead of http.
+- Setting up a local development environment for the first time is slightly harder as you need development certificates to run the server on https instead of http. You could, however, use a cloud-based IDE such as GitHub codespaces that doesn't require this step.
 
 ## VBA
 
@@ -55,9 +54,9 @@ If you have access to Office Scripts and aren't affected by the cons, this is a 
 - Cannot be used in PowerAutomate flows as running Office Scripts via PowerAutomate doesn't support calls to the external servers.
 - Does not work without an Internet connection.
 - Does not comply with privacy standards: transmits content to Microsoft.
-- Developing requires a tunneling solution like ngrok.
+- Developing requires a [tunneling solution](tunneling.md) like ngrok.
 
-## Google Sheets
+## Google Apps Script
 
 Google Sheets is a solid web-based spreadsheet with the option to run your Python scripts via built-in scheduler.
 
@@ -76,4 +75,4 @@ Google Sheets is a solid web-based spreadsheet with the option to run your Pytho
 - No support for custom functions (planned).
 - Does not work without an Internet connection.
 - Does not comply with privacy standards: content is hosted by Google.
-- Developing requires a tunneling solution like ngrok.
+- Developing requires a [tunneling solution](tunneling.md) like ngrok.

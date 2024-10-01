@@ -16,7 +16,7 @@ Below are instructions on how to play around with them depending on which Excel 
 
 ## VBA, Office Scripts, and Google Apps Script
 
-These Excel integrations only support custom scripts. Please have a look at the respective tutorial on how to run the `hello_world` example:
+These integrations only support custom scripts. Please have a look at the respective tutorial on how to run the `hello_world` example:
 
 - [](vba_integration.md)
 - [](officescripts_integration.md)
@@ -24,7 +24,7 @@ These Excel integrations only support custom scripts. Please have a look at the 
 
 ## How to disable the examples
 
-Once you have your own code, you can switch off all the examples via the following setting:
+Once you have your own code, you can switch off all examples via the following [config](server_config.md):
 
 ```ini
 XLWINGS_ENABLE_EXAMPLES=false

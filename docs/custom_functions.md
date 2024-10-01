@@ -318,7 +318,7 @@ This function will be shown as `NUMPY.RANDOM.STANDARD_NORMAL` in Excel.
 
 ### Default namespace
 
-The default namespace is `XLWINGS`, but you can change it via the following setting:
+The default namespace is `XLWINGS`, but you can change it via the following [config](server_config.md):
 
 ```
 XLWINGS_FUNCTIONS_NAMESPACE="XLWINGS"
@@ -639,11 +639,11 @@ This turns an existing Excel range into a DataFrame. Using an Excel table as you
 - For development purposes, you don't need Redis, but the cache is in-memory and thus only works with a single worker/process for as long as the app runs. More importantly, there won't be any automatic cache purging happening.
 ```
 
-You can return the majority of Python data types such as simple lists, dictionaries, and tuples. NumPy arrays and pandas DataFrames/Series are also supported. For unsupported data types, a custom serializer can be written and registered (see `app/serializers/pandas_serializer.py` for an example).
+You can return the majority of Python data types such as simple lists, dictionaries, and tuples. NumPy arrays and pandas DataFrames/Series are also supported. For unsupported data types, a custom serializer can be written and registered (see [`app/serializers/pandas_serializer.py`](https://github.com/xlwings/xlwings-server/blob/main/app/serializers/pandas_serializer.py) for an example).
 
 The object handles are stored in the cache using a key that derives from the add-in installation, workbook name and cell address, i.e, objects are not shared across different Excel installations or users.
 
-## Custom functions vs. legacy UDFs
+## Custom functions vs. classic UDFs
 
 While Office.js-based custom functions are mostly compatible with the VBA-based UDFs, there are a few differences, which you should be aware of when switching from UDFs to custom functions or vice versa:
 
@@ -746,4 +746,4 @@ While Office.js-based custom functions are mostly compatible with the VBA-based 
 
 - Custom functions are only supported with Office.js add-in.
 - The Office.js Custom Functions API was introduced in 2018 and therefore requires at least Excel 2021 or Excel 365.
-- Note that some functionality requires specific build versions, such as error cells and date formatting, but if your version of Excel doesn't support these features, xlwings will fall back to either string-formatted error messages or unformatted date serials. For more details on which builds support which function, see [Custom Functions requirement sets](https://learn.microsoft.com/en-us/javascript/api/requirement-sets/excel/custom-functions-requirement-sets>).
+- Note that some functionality requires specific build versions, such as error cells and date formatting, but if your version of Excel doesn't support these features, xlwings will fall back to either string-formatted error messages or unformatted date serials. For more details on which builds support which function, see [Custom Functions requirement sets](https://learn.microsoft.com/en-us/javascript/api/requirement-sets/excel/custom-functions-requirement-sets).

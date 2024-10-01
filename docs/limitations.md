@@ -1,5 +1,9 @@
 # Limitations
 
+## Shared Runtime
+
+xlwings Server requires the shared runtime. Please consult the [official docs](https://learn.microsoft.com/en-us/javascript/api/requirement-sets/common/shared-runtime-requirement-sets) to see which Excel versions are supported.
+
 ## xlwings API coverage
 
 At the moment, xlwings Server doesn't cover yet 100% of the xlwings API. The following attributes are currently missing. If you need them, please reach out so we can prioritize their implementation. Alternatively, you can implement a [workaround](missing_features.md).

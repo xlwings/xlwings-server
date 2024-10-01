@@ -1,8 +1,12 @@
 # Upgrade xlwings Server
 
+## Prerequisites
+
 This guide assumes that you have set up your local Git repository according to [](repo_setup.md).
 
-1. Fetch changes from `upstream` and merge them. Make sure to replace `<VERSION>` with the desired version, such as `0.5.3` or `main` for the latest release (see [Changelog](changelog.md)).
+## Upgrade process
+
+1. Fetch changes from `upstream` and merge them. Make sure to replace `<VERSION>` with the desired version, such as `0.5.3` or `main` for bleeding edge (see [Changelog](changelog.md)).
 
    ```text
    git fetch upstream
@@ -17,7 +21,7 @@ This guide assumes that you have set up your local Git repository according to [
    python run.py deps compile
    ```
 
-4. Commit and push the `requirements` files to your repo:
+4. Commit and push the `requirements` files to your repo (feel free to use a Git UI instead):
 
    ```text
    git add .
@@ -25,17 +29,23 @@ This guide assumes that you have set up your local Git repository according to [
    git push origin main
    ```
 
-5. Update your requirements locally (if you use Docker, rebuild your container instead):
+5. Update your requirements locally:
 
    ```text
    uv pip sync requirements-dev.txt
    ```
 
-```{admonition} Merge vs Rebase
-Merge is recommended over Rebase:
+   If you use Docker, rebuild your container instead:
 
-- Potential merge conflicts can be resolves in a single step
+   ```text
+   docker compose build
+   ```
+
+## Merge vs. Rebase
+
+Merge is recommended over rebase:
+
+- Potential merge conflicts can be resolved in a single step
 - There's no force push required
 - The history of your own commits is preserved
 - [](repo_setup.md) minimizes merge conflicts during merge operations via `.gitattributes`
-```

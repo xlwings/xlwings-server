@@ -1,6 +1,6 @@
 # Custom Scripts
 
-Custom scripts can be connected to buttons on either the Ribbon or the task pane. They are the equivalent to a `Sub` in VBA.
+Custom scripts can be connected to buttons on either the Ribbon or the task pane. They are the equivalent to a `Sub` in VBA or an Office Script.
 
 ## Basic syntax
 
@@ -8,6 +8,8 @@ As you can see in the [examples](https://github.com/xlwings/xlwings-server/blob/
 
 - the `@script` decorator
 - a function argument with the `xw.Book` type hint
+
+Otherwise, they work like [classic xlwings Scripts](https://docs.xlwings.org).
 
 Here is how this looks:
 
@@ -44,93 +46,15 @@ if settings.enable_examples:
 from .myscripts import *
 ```
 
-## Office.js add-in
+## Running a Script
 
-With Office.js add-ins, you can either bind a button on the ribbon or on the task pane to a custom script. Since placing a button on the task pane is easier, we'll start with that!
+How you run a script depends on the integration you're using:
 
-### Bind a script to a button on the task pane
-
-On the task pane, connecting a button is as easy as adding the `xw-click` attribute with the name of the Python function. You can optionally configure it via `xw-config`:
-
-```html
-<button
-  xw-click="hello_world"
-  xw-config='{"include": "Sheet1"}'
-  class="btn btn-primary btn-sm"
-  type="button"
->
-  Hello World
-</button>
-```
-
-The default task pane from the examples includes the full code: [`app/templates/examples/hello_world/taskpane_hello.html`](https://github.com/xlwings/xlwings-server/blob/main/app/templates/examples/hello_world/taskpane_hello.html).
-
-### Bind a script to a button on the Ribbon
-
-To connect a button on the ribbon to your script, you need a bit more work:
-
-[`app/templates/manifest.xml`](https://github.com/xlwings/xlwings-server/blob/main/app/templates/manifest.xml) has a section where it defines a ribbon button:
-
-```xml
-<!-- Ribbon button that calls a function -->
-<Control xsi:type="Button" id="MyFunctionButton">
-    <!-- Label for your button. resid must point to a ShortString resource -->
-    <Label resid="MyFunctionButton.Label" />
-    <Supertip>
-    <!-- ToolTip title. resid must point to a ShortString resource -->
-    <Title resid="MyFunctionButton.Label" />
-    <!-- ToolTip description. resid must point to a LongString resource -->
-    <Description resid="MyFunctionButton.Tooltip" />
-    </Supertip>
-    <Icon>
-    <bt:Image size="16" resid="Icon.16x16" />
-    <bt:Image size="32" resid="Icon.32x32" />
-    <bt:Image size="80" resid="Icon.80x80" />
-    </Icon>
-    <!--Action type must be ExecuteFunction -->
-    <Action xsi:type="ExecuteFunction">
-    <!-- This is the name that you use in Office.actions.associate() to connect it to a function -->
-    <FunctionName>hello-ribbon</FunctionName>
-    </Action>
-</Control>
-```
-
-To make this work, you need to provide a bit of JavaScript code that you can find in [app/static/js/ribbon.js](https://github.com/xlwings/xlwings-server/blob/main/app/static/js/ribbon.js):
-
-```js
-async function helloRibbon(event) {
-  let token = await globalThis.getAuth();
-  xlwings.runPython(
-    // replace hello_world with the name of your script
-    window.location.origin + "/xlwings/custom-scripts-call/hello_world",
-    { auth: token },
-  );
-  event.completed();
-}
-// hello-ribbon must correspond to what is used as FunctionName in the manifest
-Office.actions.associate("hello-ribbon", helloRibbon);
-```
-
-## Office Scripts and Google Apps Script integrations
-
-If you want to call a custom script from Office Scripts or Google Apps Script, you will need to use the `runPython` function with the following endpoint:
-
-```js
-runPython("https://YOUR_SERVER/xlwings/custom-scripts-call/hello_world");
-```
-
-Make sure to replace `hello_world` with the name of your custom script and `YOUR_SERVER` with your own URL, such as `127.0.0.1:8000`!
-
-## VBA
-
-If you want to call a custom script from VBA, you will need to use the `RunRemotePython` function with the following endpoint:
-
-```vb.net
-RunRemotePython "https://YOUR_SERVER/xlwings/custom-scripts-call/hello_world"
-```
-
-Make sure to replace `hello_world` with the name of your custom script and `YOUR_SERVER` with your own URL, such as `127.0.0.1:8000`!
+- [Office.js add-ins](officejs_run_scripts.md)
+- [](vba_integration.md)
+- [](officescripts_integration.md)
+- [](googleappsscript_integration.md)
 
 ## Limitations
 
-- Currently, custom scripts don't accept arguments other than the special type-hinted ones (`xw.Book` and `app.models.user.CurrentUser`).
+Currently, custom scripts don't accept arguments other than the special type-hinted ones (`xw.Book` and `app.models.user.CurrentUser`).

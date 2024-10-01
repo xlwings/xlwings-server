@@ -9,4 +9,8 @@ Development TLS certificates are only required for Office.js add-ins as they req
 ./mkcert localhost 127.0.0.1 ::1
 ```
 
-This will generate two files `localhost+2.pem` and `localhost+2-key.pem`: move them from your current directory to the `certs` directory in your repo.
+This will generate two files `localhost+2.pem` and `localhost+2-key.pem`. Move them from your current directory to the `certs` directory in your repo.
+
+```{note}
+If you are unable to use `mkcert`, you can alternatively use [](tunneling.md) or an online development environment such as [](github_codespaces.md) to run your server on `https` rather than `http`.
+```

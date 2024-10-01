@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.0 (Oct 1, 2024)
+
+- Support buttons on sheets with Office.js add-ins.
+- Upgraded dependencies incl. xlwings to 0.33.1.
+
 ## 0.5.6 (Sep 25, 2024)
 
 - Object handles: added support for nested custom types, e.g., dicts containing pandas DataFrames.
