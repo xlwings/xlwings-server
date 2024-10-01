@@ -3,106 +3,73 @@
 xlwings Server adds Python support to Microsoft Excel and Google Sheets without the need of a local Python installation. xlwings Server is self-hosted and runs on any platform that supports Python or Docker, including bare-metal servers, Linux-based VMs, Docker Compose, Kubernetes and serverless products like Azure functions or AWS Lambda. Here are a few highlights:
 
 - Compatible with Python 3.9+
-- Compatible with all Excel platforms, including Excel on Windows and macOS, and Excel on the web
-- Compatible with all Python packages, including custom ones and those from private registries
-- Supports custom scripts and custom functions including streaming functions and object handles
-- Allows you to develop modern Office.js add-ins by writing Python code instead of JavaScript
-- In addition to Office.js add-ins, you can also use VBA, Office Scripts, and Google Apps Script to talk from Excel to your server. These, however, don't support custom functions.
-- Runs in air-gapped environments without Internet access or connection to any Microsoft servers
+- Compatible with all Excel platforms, including Excel on Windows and macOS, and Excel on the web as well as Google Sheets
+- Compatible with all Python packages, including your own ones and those from private registries
+- Supports [custom scripts](custom_scripts.md) and [custom functions](custom_functions.md) including [streaming functions](custom_functions.md#streaming-functions-rtd-functions) and [object handles](custom_functions.md#object-handles)
+- Allows you to develop modern Office.js add-ins by writing Python code instead of dealing with JavaScript, Node.js and Webpack
+- In addition to Office.js add-ins, you can also use VBA, Office Scripts, and Google Apps Script to talk from Excel or Google Sheets to your server. These integrations, however, don't support custom functions.
+- Highest security: runs in air-gapped environments without Internet access or connection to any Microsoft servers
 - Intellectual property protection: the Python source code can't be accessed by the Excel user.
 - Supports SSO (single sign-on) authentication and RBAC (role-based access control) via Microsoft Entra ID (previously known as Azure AD)
 - No sensitive credentials need to be stored on the end-user's computer or in the workbook
-- No dependency on Node.js or Webpack even when using Office.js add-ins
 - Built with FastAPI, a high-performance, async web framework
-- Comes optionally with htmx (client-server interaction), Alpine.js (for client interactions), Socket.io (for streaming functions), and Bootstrap-xlwings (Bootstrap theme in the Excel look)
+- Comes optionally with [htmx](https://htmx.org/) (client-server interaction), [Alpine.js](https://alpinejs.dev/) (for client interactions), Socket.io (for streaming functions), and [Bootstrap-xlwings](https://getbootstrap.com/) (Bootstrap theme in the Excel look)
 - Full source code is on [GitHub](https://github.com/xlwings/xlwings-server) allowing for complete customization
+- Your code runs in your computing environment that you may already have available at no additional costs and it allows you to pick the computer power that makes most sense, including GPUs
 - xlwings Server is free for non-commercial use---commercial use requires a [paid plan](https://www.xlwings.org/pricing)
 
 ```{toctree}
-:maxdepth: 2
-:caption: Introduction
 :hidden:
 
 quickstart
 examples
-excel_integrations
+integrations
 ```
 
 ```{toctree}
 :maxdepth: 2
-:caption: Tutorials
 :hidden:
 
-custom_functions
-custom_scripts
-authentication
-missing_features
-performance
+index_tutorials
 ```
 
 ```{toctree}
 :maxdepth: 2
-:caption: Server Development
 :hidden:
 
-repo_setup
-local_development
-dev_docker
-github_codespaces
-devcontainers
-gitpod
-dev_certificates
-tunneling
-server_config
-dependencies
-upgrade
+index_server_development
 ```
 
 ```{toctree}
 :maxdepth: 2
-:caption: Office.js Add-ins
 :hidden:
 
-install_officejs_addin
-manifest
-debugging
-taskpane
-excel_integration_config
-static_site_generators
+index_officejs_addins
 ```
 
 ```{toctree}
 :maxdepth: 2
-:caption: Other integrations
 :hidden:
 
-vba_integration
-officescripts_integration
-googleappsscript_integration
+index_other_integrations
 ```
 
 ```{toctree}
 :maxdepth: 2
-:caption: Deployment
 :hidden:
 
-deployment
+index_deployment
 ```
 
 ```{toctree}
 :maxdepth: 2
-:caption: Hosting
 :hidden:
 
-azure_functions
-docker_compose
-aws_app_runner
-render
+index_hosting
 ```
 
 ```{toctree}
 :maxdepth: 2
-:caption: About
 :hidden:
 
 changelog

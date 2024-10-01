@@ -6,7 +6,7 @@ GitHub Codespaces offer a quick way to create a development environment without 
 Since you will have to expose the web server publicly, you should only use it for testing things out with non-sensitive content, like the included examples.
 ```
 
-1. Go to the GitHub repo: https://github.com/xlwings/xlwings-server.
+1. Open the [xlwings Server repo](https://github.com/xlwings/xlwings-server) in a browser.
 2. Click on the green `Code` button, select the `Codespaces` tab, then click on `Create codespace on main`. After a couple of minutes, you will have VS Code running in your browser with all dependencies installed.
 3. In the Terminal at the bottom of VS Code, run: `python run.py init`.
 4. Open the `.env` file and paste your [xlwings trial key](https://www.xlwings.org/trial) at the top of the file, under `XLWINGS_LICENSE_KEY`.

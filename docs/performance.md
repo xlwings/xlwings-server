@@ -6,7 +6,7 @@ By default, custom scripts send the content of the entire workbook to the backen
 
 ## Custom Functions
 
-An easy way to make custom functions perform better is to reduce their number. And this can often be achieved by using dynamic arrays in place of many single-cell functions. Consider the following example:
+While xlwings can handle 10,000s of custom functions, there is an easy way to to make custom functions perform better: reduce their number. And this can often be achieved by using dynamic arrays in place of many single-cell functions. Consider the following example:
 
 ```python
 import numpy as np

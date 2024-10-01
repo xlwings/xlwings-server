@@ -1,6 +1,6 @@
 # Render
 
-[Render](https://render.com/) offers a free tier that can be used to test-drive xlwings Server. Their paid plan offers The fastest way (less than a minute) is to deploy the official Docker container. This means, however, that you will only be able to try out the examples that ship with xlwings Server. If you'd like to make changes to the repo, you would need to connect to your own repository. This means, you'll need to set up your own repo first and building the service might take up to a few minutes. Let's look at both of these options!
+[Render](https://render.com/) offers a free tier that can be used to test-drive xlwings Server. The fastest way (less than a minute) is to deploy the official Docker container. This means, however, that you will only be able to try out the examples that ship with xlwings Server. If you'd like to make changes to the repo, you would need to connect to your own repository. This means, you'll need to set up your own repo first and building the service might take up to a few minutes. Let's look at both of these options!
 
 ## Deploy a single Docker container
 

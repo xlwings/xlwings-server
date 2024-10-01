@@ -4,18 +4,19 @@ Docker is a great way to quickly fire up a local development environment without
 
 ## Prerequisites
 
-Install [Docker](https://www.docker.com/) and double-check that you can run the following two commands on a Terminal/Command Prompt:
+1. Install [Docker](https://www.docker.com/) and double-check that you can run the following two commands on a Terminal/Command Prompt:
 
-```
-docker
-docker compose
-```
+   ```
+   docker
+   docker compose
+   ```
+
+2. Follow [](repo_setup.md).
+3. If you want to use Office.js add-ins, you need to first [create development certificates](dev_certificates.md). If you will be using VBA, Office Scripts, or Google Apps Script, you can skip this step.
 
 ## Running the development server
 
-1. [Clone the xlwings Server repo](repo_setup.md)
-2. If you want to use Office.js add-ins, you need to first [create development certificates](dev_certificates.md). If you will be using VBA, Office Scripts, or Google Apps Script, you can skip this step.
-3. In the root of the repo, run:
+1. In the root of the repo, run:
 
    ```
    docker compose up
@@ -35,15 +36,5 @@ docker compose
    app-1  | INFO:     Application startup complete.
    ```
 
-4. Open https://127.0.0.1:8000 in a browser. You should see `{"status": "ok"}`.
-5. If you are using the Office Scripts or Google Apps Script integrations: set up [](tunneling.md). If you are using Office.js add-ins or the VBA integration, you can skip this step.
-
-## Docker Hub
-
-Alternatively, a docker image (prod configuration) is published to [Docker Hub](https://hub.docker.com/r/xlwings/xlwings-server):
-
-```
-docker pull xlwings/xlwings-server:latest
-```
-
-It could be used for quickly spinning up an environment and to test-drive the contained examples.
+2. Open https://127.0.0.1:8000 in a browser (use `http://` instead of `https://` if you didn't create the development certificates). You should see `{"status": "ok"}`.
+3. If you are using the Office Scripts or Google Apps Script integrations, set up [](tunneling.md). If you are using Office.js add-ins or the VBA integration, you can skip this step.

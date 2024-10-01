@@ -29,9 +29,9 @@
    :::
    ::::
 
-```{note}
-If you only want to play around with xlwings Server without committing any changes back to Git, you can continue with Step 7. If you want to commit your changes later, you can always come back and follow the Steps 2-6.
-```
+   ```{note}
+   If you only want to play around with xlwings Server without committing any changes back to Git, you can continue with Step 7. If you want to commit your changes later, you can always come back and follow the Steps 2-6.
+   ```
 
 2. Change into the directory of your project:
 
@@ -80,7 +80,7 @@ If you only want to play around with xlwings Server without committing any chang
 10. Open the `.env` file and add your xlwings license key under `XLWINGS_LICENSE_KEY` (top of the file).
 
     ```{note}
-    `.env` is ignored by Git as it may contain sensitive credentials. You should therefore back it up in a secure location such as a password manager.
+    The `.env` file is ignored by Git as it may contain sensitive credentials. You should therefore back it up in a secure location such as a password manager.
     ```
 
 11. Commit the changes and push everything to your own repo (feel free to use a Git UI instead of the following commands). If you just want to play around with xlwings Server, you can skip this step.
