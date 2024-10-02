@@ -33,7 +33,7 @@ Office.js doesn't offer a native way to connect a button on a sheet to a custom 
 
 1. On the Excel ribbon, go to `Insert` > `Shapes` and select e.g., a rounded rectangle. Then draw the shape on the sheet. Adjust colors and text to your liking.
 2. Select the shape. In the name box on the top left of the spreadsheet, give it a specific name, e.g., `xlwings_button`.
-3. Right-click on the shape and select `Hyperlink...`. On the tab `This Document`, where it says `Type in the cell reference`, write the name of a cell that is hidden below the shape, e.g., `B4`. Confirm by clicking on `OK`.
+3. Right-click on the shape and select `Hyperlink...`. On the tab `This Document`, where it says `Type in the cell reference`, write the name of a cell that lies below the shape, e.g., `B4`. Confirm by clicking on `OK`.
 4. Provide the following arguments in the `script` decorator (`config` is optional):
 
    ```python
@@ -45,7 +45,7 @@ Office.js doesn't offer a native way to connect a button on a sheet to a custom 
 5. Set the worksheet up so that it automatically loads the add-in when opened. This is required so that the buttons work automatically after opening a workbook, without the user having to load the task pane of the add-in first. You can do this by running the following command on the console of the Browser's development tools while the desired file is open:
 
    ```js
-   Office.addin.setStartupBehavior(Office.StartupBehavior.load);
+   await Office.addin.setStartupBehavior(Office.StartupBehavior.load);
    ```
 
    After running the command, make sure to save your workbook.
@@ -53,17 +53,17 @@ Office.js doesn't offer a native way to connect a button on a sheet to a custom 
    Should you ever want to disable this behavior again, use (again, make sure to save the workbook after running the command):
 
    ```js
-   Office.addin.setStartupBehavior(Office.StartupBehavior.none);
+   await Office.addin.setStartupBehavior(Office.StartupBehavior.none);
    ```
 
 6. Make sure that the `target_cell` isn't selected, then reload the add-in. Now you can click the button.
 
 How does it work? When the add-in loads, it registers an event handler that runs the custom script when the `target_cell` is selected. This happens when you click the button as we have set up a hyperlink. Immediately after the `target_cell` has been selected, it selects the cell below it to be ready for the next call.
 
-If you need to do some troubleshooting, make sure that you haven't initially selected the cell which is the `target_cell`. In doubt, reload the add-in so that the event handlers are properly registered.
+For troubleshooting, make sure that you haven't initially selected the cell which is the `target_cell`. Then reload the add-in so that the event handlers are properly registered.
 
 ```{note}
-Excel on the web doesn't allow you to add a hyperlink to a shape, however, workbooks that were set up on the desktop version of Excel work properly on the web version.
+Excel on the web doesn't allow you to add a hyperlink to a shape. However, workbooks that were set up on the desktop version of Excel also work with Excel on the web.
 ```
 
 ## Ribbon button

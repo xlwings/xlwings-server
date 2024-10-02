@@ -4,10 +4,10 @@ An Office.js add-in is defined via its _manifest_, which is a simple configurati
 
 - **Development and testing**: install the manifest manually via [](#sideloading).
 - **Internal production deployment**: deploy the manifest centrally via [](#microsoft-365-admin-center).
-- **Public production deployment**: publish the manifest to the [](#office-add-in-store-appsource) ("AppSource").
+- **Public production deployment**: publish the manifest to the [](#office-add-in-store-appsource).
 
 ```{note}
-Each xlwings Server environment (dev, qa, prod, ...) has its an own manifest.
+Each xlwings Server environment (`dev`, `prod`, ...) has an own manifest as exposed via `https://your.domain.com/manifest`.
 ```
 
 ## Sideloading
@@ -28,11 +28,11 @@ In Excel, go to `Add-ins` on the ribbon's `Home` tab:
 
 ## Microsoft 365 admin center
 
-- In your [Microsoft 365 admin center](https://admin.microsoft.com/), click on `Show all` > `Settings` > `Integrated Apps` > `Upload custom apps`.
+- In your [Microsoft 365 admin center](https://admin.microsoft.com/), click on [`Show all` > `Settings` > `Integrated Apps`](https://admin.microsoft.com/#/Settings/IntegratedApps), then click on `Upload custom apps`.
 - As `App type` select `Office Add-in`.
 - Choose how to upload the app: the easiest way is to activate `Provide link to manifest file` and point to `https://YOUR_SERVER_URL/manifest` (make sure that this endpoint is publicly accessible and not e.g., only accessible internally). Click on `Validate`, then on `Next` where you'll be able to select the users you want to deploy the add-in to. Alternatively, you can also copy/paste the content of `https://<YOUR SERVER>/manifest` into a file that you call `xlwings-server-prod.xml` or something similar, then upload it via `Choose File`.
 
-The users should get the add-in to show up automatically althought it may take a few minutes until they show up. Alternatively, they can go to `Add-ins` on the ribbon's `Home` tab and click on `More Add-ins`. They will see the add-in under the tab `Admin Managed` from where they can install it.
+The users should get the add-in to show up automatically although it may take a few minutes until they show up. Alternatively, they can go to `Add-ins` on the ribbon's `Home` tab and click on `More Add-ins`. They will see the add-in under the tab `Admin Managed` from where they can install it.
 
 ## Office add-in store ("AppSource")
 
@@ -47,6 +47,19 @@ XLWINGS_PUBLIC_ADDIN_STORE=true
 This ensures that the `office.js` library will be loaded via CDN as per Microsoft's requirements.
 
 For further details, see [Make your solutions available in Microsoft AppSource and within Office](https://learn.microsoft.com/en-us/partner-center/marketplace-offers/submit-to-appsource-via-partner-center).
+
+## Clearing the Office cache
+
+Sometimes, Excel gets confused when you update a manifest and it doesn't show the changes correctly or opens a different version of the add-in. In these cases, clear the office cache:
+
+- On Windows, in the Excel ribbon, go to `File` > `Options` > `Trust Center` > `Trust Center Settings` > `Trusted Add-in Catalogs`. Now select the checkbox `Next time Office starts, clear all previously-started web add-ins cache` and restart Excel.
+- On macOS, run the following in a Terminal:
+
+  ```
+  bash scripts/clear_office_cache_macos.sh
+  ```
+
+  then restart Excel.
 
 ## Further reading
 
