@@ -20,14 +20,41 @@ You'll have to edit the manifest template for the following reasons:
 
 - Adjust the infos towards the top of the file such as `Version`, `ProviderName`, etc.
 - Adjust URLs to icons
-- Change the groups and icons that you want to show on the ribbon
+- Change the groups and buttons etc. that you want to show on the ribbon
 - Change the ribbon location, see [](#ribbon-location-office-tab-vs-custom-tab)
 
 You should not need to change anything regarding custom functions, as everything is handled via settings.
 
+### Button to show task pane
+
+To show the task pane when clicking a button in the ribbon, you’ll need to configure the manifest accordingly. The relevant blocks are the following (these lines are out of context, so search for them in `manifest.xml`):
+
+```xml
+<!-- ... -->
+
+<Control xsi:type="Button" id="TaskpaneButton">
+  <!-- ... -->
+  <!-- Action type must be ShowTaskpane -->
+  <Action xsi:type="ShowTaskpane">
+    <TaskpaneId>ButtonId1</TaskpaneId>
+    <!-- resid must point to a Url Resource -->
+    <SourceLocation resid="Taskpane.Url"/>
+  </Action>
+</Control>
+
+<!-- ... -->
+
+<!-- This must point to the HTML document with the task pane -->
+<bt:Url id="Taskpane.Url" DefaultValue="{{ base_url_with_app_path }}/taskpane" />
+```
+
+### Button to call Python
+
+See [](officejs_run_scripts.md#ribbon-button).
+
 ## Ribbon location: Office tab vs. custom tab
 
-The sample ribbon has been set up as an custom tab in the ribbon. However, you can also integrate the add-in into an existing Excel tab, such as the `Home` tab, see [OfficeTab](https://learn.microsoft.com/en-us/javascript/api/manifest/officetab).
+The xlwings Server default ribbon has been set up as a custom tab in the ribbon. However, you can also integrate the add-in into an existing Excel tab, such as the `Home` tab, see [OfficeTab](https://learn.microsoft.com/en-us/javascript/api/manifest/officetab).
 
 ## Further reading
 

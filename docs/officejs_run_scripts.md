@@ -13,7 +13,7 @@ On the task pane, connecting a button is as easy as adding the `xw-click` attrib
 ```html
 <button
   xw-click="hello_world"
-  xw-config='{"include": "Sheet1"}'
+  xw-config='{"exclude": "MySheet"}'
   class="btn btn-primary btn-sm"
   type="button"
 >
@@ -22,6 +22,8 @@ On the task pane, connecting a button is as easy as adding the `xw-click` attrib
 ```
 
 The default task pane from the examples includes the full code: [`app/templates/examples/hello_world/taskpane_hello.html`](https://github.com/xlwings/xlwings-server/blob/main/app/templates/examples/hello_world/taskpane_hello.html).
+
+See also [](#config).
 
 ## Sheet button
 
@@ -66,9 +68,11 @@ For troubleshooting, make sure that you haven't initially selected the cell whic
 Excel on the web doesn't allow you to add a hyperlink to a shape. However, workbooks that were set up on the desktop version of Excel also work with Excel on the web.
 ```
 
+See also [](#config).
+
 ## Ribbon button
 
-Connecting a button on the ribbon to your script currently needs a bit more work:
+Connecting a button on the ribbon to your script [is awaiting a more developer-friendly implementation](https://github.com/xlwings/xlwings-server/issues/102), so currently, there's a bit of work to be done:
 
 [`app/templates/manifest.xml`](https://github.com/xlwings/xlwings-server/blob/main/app/templates/manifest.xml) has a section where it defines a ribbon button:
 
@@ -104,10 +108,28 @@ async function helloRibbon(event) {
   xlwings.runPython(
     // replace hello_world with the name of your script
     window.location.origin + "/xlwings/custom-scripts-call/hello_world",
-    { auth: token },
+    { auth: token, exclude: "MySheet" }, // Config
   );
   event.completed();
 }
 // hello-ribbon must correspond to what is used as FunctionName in the manifest
 Office.actions.associate("hello-ribbon", helloRibbon);
 ```
+
+Note that with Ribbon buttons, you currently need to explicitly provide the `auth` config unlike with task pane and sheet buttons, which handle this behind the scenes. The `auth` config provides the token via Authorization header to the backend.
+
+See also [](#config).
+
+## Config
+
+Here are the settings that you can provide in the config dictionary:
+
+- `exclude` (optional): By default, xlwings sends over the complete content of the whole workbook to the server. If you have sheets with big amounts of data, this can make the calls slow or timeout. If your backend doesn’t need the content of certain sheets, the exclude option will block the sheet’s content (e.g., values, pictures, etc.) from being sent to the backend. Currently, you can only exclude entire sheets as comma-delimited string like so: `"Sheet1, Sheet2"`.
+
+- `include` (optional): It’s the counterpart to exclude and allows you to submit the names of the sheets whose content (e.g., values, pictures, etc.) you want to send to the server. Like exclude, include accepts a comma-delimited string, e.g., `"Sheet1, Sheet2"`.
+
+- `headers` (optional): A dictionary with name/value pairs that will be provided as HTTP request headers. For example:
+
+  ```python
+  {"headers": {"key1": "value1", "key2": "value2"}}
+  ```

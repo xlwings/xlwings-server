@@ -52,7 +52,15 @@ For further details, see [Make your solutions available in Microsoft AppSource a
 
 Sometimes, Excel gets confused when you update a manifest and it doesn't show the changes correctly or opens a different version of the add-in. In these cases, clear the office cache:
 
-- On Windows, in the Excel ribbon, go to `File` > `Options` > `Trust Center` > `Trust Center Settings` > `Trusted Add-in Catalogs`. Now select the checkbox `Next time Office starts, clear all previously-started web add-ins cache` and restart Excel.
+- On Windows, delete the following folders if they exist:
+
+  ```text
+  %LOCALAPPDATA%\Microsoft\Office\16.0\Wef\
+  %USERPROFILE%\AppData\Local\Packages\Microsoft.Win32WebViewHost_cw5n1h2txyewy\AC\#!123\INetCache\
+  ```
+
+  then restart Excel.
+
 - On macOS, run the following in a Terminal:
 
   ```
@@ -60,6 +68,10 @@ Sometimes, Excel gets confused when you update a manifest and it doesn't show th
   ```
 
   then restart Excel.
+
+```{note}
+If you are sideloading an add-in and then want to move on to installing it via Microsoft 365 admin center or the Add-in Store, make sure to remove the sideloaded manifest and clearing the cache first!
+```
 
 ## Further reading
 

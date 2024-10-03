@@ -29,3 +29,31 @@ function onOpen() {
   ui.createMenu("My Menu").addItem("Run hello world", "helloWorld").addToUi();
 }
 ```
+
+## Triggers
+
+You can take advantage of the integrated Triggers (accessible from the menu on the left-hand side of the Apps Script editor). You can trigger your xlwings functions on a schedule or via event, such as opening or editing a sheet.
+
+## Config
+
+Here are the settings that you can provide in the config dictionary:
+
+- `exclude` (optional): By default, xlwings sends over the complete content of the whole workbook to the server. If you have sheets with big amounts of data, this can make the calls slow or timeout. If your backend doesn’t need the content of certain sheets, the exclude option will block the sheet’s content (e.g., values, pictures, etc.) from being sent to the backend. Currently, you can only exclude entire sheets as comma-delimited string like so: `"Sheet1, Sheet2"`.
+
+- `include` (optional): It’s the counterpart to exclude and allows you to submit the names of the sheets whose content (e.g., values, pictures, etc.) you want to send to the server. Like exclude, include accepts a comma-delimited string, e.g., `"Sheet1, Sheet2"`.
+
+- `headers` (optional): A dictionary with name/value pairs that will be provided as HTTP request headers.
+
+- `auth` (optional): This will set the Authorization HTTP request header, see [](authentication.md).
+
+Here is a complete example of how to provide a config along with your `runPython` call:
+
+```js
+function helloWorld() {
+  runPython("https://YOUR_SERVER/xlwings/custom-scripts-call/hello_world", {
+    auth: "xxx",
+    exclude: "Sheet1, Sheet2",
+    headers: { key1: "value1" },
+  });
+}
+```

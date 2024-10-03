@@ -29,9 +29,11 @@ This is a nice solution as you only need to give a macro-enabled workbook (`.xls
 - Currently, you have to run the standalone quickstart command on Windows. However, the created workbook works across Windows and macOS.
 ```
 
+For configuration, see [](#config) below.
+
 ## xlwings add-in
 
-This is a good solution if your users already have the xlwings add-in installed or if you want to use the same Python functionality with multiple workbooks, or if you just want to work with normal workbooks (`.xlsx`) instead of macro-enabled workbooks.
+This is a good solution if your users already have the classic, VBA-based xlwings add-in installed or if you want to use the same Python functionality with multiple workbooks, or if you just want to work with normal workbooks (`.xlsx`) instead of macro-enabled workbooks.
 
 1. Install the xlwings add-in locally by running `xlwings addin install` on a Terminal/Command Prompt. If you don't have Python with xlwings installed, you can also install the add-in manually.
 2. Create a quick start project by running `xlwings quickstart myproject --server` (make sure to replace `myproject` with your desired name).
@@ -50,3 +52,30 @@ Custom add-ins are a good option if you want to create your own white-labeled VB
 2. Follow steps 2. und 3. above under [](#standalone-workbooks), but to understand
 
 For more details on how to create a custom add-in, have a look at the [custom add-in docs](https://docs.xlwings.org/en/latest/customaddin.html).
+
+## Config
+
+Here are the settings that you can provide with the `RunRemotePython` call:
+
+- `exclude` (optional): By default, xlwings sends over the complete content of the whole workbook to the server. If you have sheets with big amounts of data, this can make the calls slow or timeout. If your backend doesn’t need the content of certain sheets, the exclude option will block the sheet’s content (e.g., values, pictures, etc.) from being sent to the backend. Currently, you can only exclude entire sheets as comma-delimited string like so: `"Sheet1, Sheet2"`.
+
+- `include` (optional): It’s the counterpart to exclude and allows you to submit the names of the sheets whose content (e.g., values, pictures, etc.) you want to send to the server. Like exclude, include accepts a comma-delimited string, e.g., `"Sheet1, Sheet2"`.
+
+- `headers` (optional): A dictionary with name/value pairs that will be provided as HTTP request headers.
+
+- `timeout` (optional): By default, the VBA integration has a timeout of 30s, you can change it by providing the timeout in milliseconds. E.g., for 40s, provide `timeout:=40000`.
+
+- `auth` (optional): This will set the Authorization HTTP request header, see [](authentication.md).
+
+Here is a complete example of how to provide a config along with your `RunRemotePython` call:
+
+```vb.net
+Sub Hello()
+    Dim headers As New Dictionary
+    headers.Add "key1", "value1"
+    RunRemotePython "https://YOUR_SERVER/xlwings/custom-scripts-call/hello_world", _
+        auth:="xxx", _
+        exclude:="Sheet1, Sheet2", _
+        headers:=headers
+End Sub
+```

@@ -4,10 +4,6 @@ This tutorial covers both authentication ("who is the user?") and authorization 
 
 The most comfortable authentication method is the built-in single sign-on (SSO) via Microsoft Entra ID (previously called Azure AD). You can, however, add your own custom authentication and authorization methods.
 
-```{note}
-The authentication described in this document protects the execution of custom scripts and custom functions, but it currently doesn't affect the Office.js task pane.
-```
-
 ## Authorization
 
 At the core of the authentication system is the `User` model. You can find it under [`app/models/user.py`](https://github.com/xlwings/xlwings-server/blob/main/app/models/user.py).
@@ -45,7 +41,8 @@ By default, there is no authentication provider configured (`XLWINGS_AUTH_PROVID
 ## SSO via Microsoft Entra ID
 
 ```{note}
-Single sign-on (SSO) is only available for Office.js add-ins.
+- Single sign-on (SSO) is only available for Office.js add-ins.
+- Enabling SSO authentication protects the execution of custom scripts and custom functions, but the task pane needs to be handled separately, see below under [](#task-pane-authentication).
 ```
 
 SSO means that the user's identity within Office (either a Microsoft account or a Microsoft 365 identity) is used.
@@ -107,18 +104,22 @@ The URL to retrieve the JWKS JSON file is: https://login.microsoftonline.com/com
 
 ## Custom authentication
 
+```{note}
+Enabling custom authentication protects the execution of custom scripts and custom functions, but the task pane needs to be handled separately, see below under [](#task-pane-authentication).
+```
+
 To use your own authentication method, activate the `custom` authentication provider:
 
 ```ini
 XLWINGS_AUTH_PROVIDERS=["custom"]
 ```
 
-To make this work, you need to implement
+To make this work on the backend, you need to implement the `validate_token()` function under [`app/auth/custom/__init__.py`](https://github.com/xlwings/xlwings-server/blob/main/app/auth/custom/__init__.py).
 
-- `validate_token` under [`app/auth/custom/__init__.py`](https://github.com/xlwings/xlwings-server/blob/main/app/auth/custom/__init__.py)
-- `globalThis.getAuth` under [`app/static/auth.js`](https://github.com/xlwings/xlwings-server/blob/main/app/static/js/auth.js)
+On the frontend, you need to provide the token depending on your integration:
 
-Essentially, you will need to adjust `globalThis.getAuth` so that it returns the token that you will validate with the `validate_token` function on the backend.
+- **Office.js add-ins**: Adjust `globalThis.getAuth` under [`app/static/auth.js`](https://github.com/xlwings/xlwings-server/blob/main/app/static/js/auth.js) so that it returns the token that you will validate with the `validate_token` function on the backend.
+- **Other integrations**: provide the token via the `auth` config, see your specific integration for more details: [Office.js Add-ins](officejs_run_scripts.md), [](vba_integration.md), [](googleappsscript_integration.md), or [](officescripts_integration.md).
 
 ## Task pane authentication
 

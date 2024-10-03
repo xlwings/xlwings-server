@@ -1,3 +1,0 @@
-# Excel Integration Config
-
-TODO
