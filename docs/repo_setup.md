@@ -68,7 +68,7 @@
 8. In the desired Python environment, install the development dependencies:
 
    ```text
-   uv pip sync -r requirements-dev.txt
+   uv pip sync requirements-dev.txt
    ```
 
 9. Initialize the repo. This will create an `.env` file for configuration and will create unique UUIDs in the `app/config.py` file.
