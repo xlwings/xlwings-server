@@ -1,5 +1,7 @@
 # Changelog
 
+- Changed the `<Version>` tag in the manifest to have the format `x.x.x.x` instead of `x.x.x`. This might resolve issues with custom functions.
+
 ## 0.6.0 (Oct 1, 2024)
 
 - Support buttons on sheets with Office.js add-ins.
