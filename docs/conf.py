@@ -25,6 +25,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 myst_heading_anchors = 3
 myst_enable_extensions = ["colon_fence", "linkify"]
 myst_links_external_new_tab = True
+myst_linkify_fuzzy_links = False  # Require links to start with http://
 
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output

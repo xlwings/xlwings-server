@@ -18,7 +18,7 @@ There are many different ways to create a development environment. Some of the m
 - [](dev_docker.md): run xlwings Server locally via Docker Compose.
 - [](github_codespaces.md): play around with a development environment in the cloud without having to install anything locally.
 
-For more options, have a look at [](index_server_development.md).
+For more options, have a look at [](index_server.md).
 
 :::
 
@@ -37,7 +37,7 @@ There are many more ways how you can deploy to production according to your pref
 
 ## 3. Set up an Integration
 
-xlwings Server supports various integrations ("clients") that connect Excel or Google Sheets to your server. While Office.js add-ins are recommended in an enterprise context, reviewing the [pros and cons](integrations.md) of each integration will help you make the right choice. Note, however, that only Office.js add-ins support custom functions. Click on your desired integration to learn how to set it up:
+xlwings Server supports various integrations ("clients") that connect Excel or Google Sheets to your server. While Office.js add-ins are recommended in an enterprise context, reviewing the [pros and cons](integrations.md) of each integration will help you make the right choice. Note, however, that only Office.js add-ins support custom functions and SSO authentication. Click on your desired integration to learn how to set it up:
 
 - [Office.js add-ins](install_officejs_addin.md)
 - [](vba_integration.md)

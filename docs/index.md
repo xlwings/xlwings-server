@@ -13,9 +13,9 @@ xlwings Server adds Python support to Microsoft Excel and Google Sheets without 
 - Supports SSO (single sign-on) authentication and RBAC (role-based access control) via Microsoft Entra ID (previously known as Azure AD)
 - No sensitive credentials need to be stored on the end-user's computer or in the workbook
 - Built with FastAPI, a high-performance, async web framework
-- Comes optionally with [htmx](https://htmx.org/) (client-server interaction), [Alpine.js](https://alpinejs.dev/) (for client interactions), Socket.io (for streaming functions), and [Bootstrap-xlwings](https://getbootstrap.com/) (Bootstrap theme in the Excel look)
+- Comes optionally with powerful tools for Office.js task pane development: [htmx](https://htmx.org/) (client-server interaction), [Alpine.js](https://alpinejs.dev/) (for client interactions), Socket.io (for streaming functions), and [Bootstrap-xlwings](https://getbootstrap.com/) (Bootstrap theme in the Excel look)
 - Full source code is on [GitHub](https://github.com/xlwings/xlwings-server) allowing for complete customization
-- Your code runs in your computing environment that you may already have available at no additional costs and it allows you to pick the computer power that makes most sense, including GPUs
+- Your code runs in your computing environment that you may already have available at no additional costs and it allows you to pick the computing power that you need, including GPUs
 - xlwings Server is free for non-commercial use---commercial use requires a [paid plan](https://www.xlwings.org/pricing)
 
 ```{toctree}
@@ -37,7 +37,21 @@ index_tutorials
 :maxdepth: 2
 :hidden:
 
-index_server_development
+index_dev_prerequisites
+```
+
+```{toctree}
+:maxdepth: 2
+:hidden:
+
+index_development_environment
+```
+
+```{toctree}
+:maxdepth: 2
+:hidden:
+
+index_server
 ```
 
 ```{toctree}
@@ -58,7 +72,7 @@ index_other_integrations
 :maxdepth: 2
 :hidden:
 
-index_deployment
+index_authentication
 ```
 
 ```{toctree}

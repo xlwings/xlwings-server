@@ -12,7 +12,7 @@ Docker is a great way to quickly fire up a local development environment without
    ```
 
 2. Follow [](repo_setup.md).
-3. If you want to use Office.js add-ins, you need to first [create development certificates](dev_certificates.md). If you will be using VBA, Office Scripts, or Google Apps Script, you can skip this step.
+3. If you want to use Office.js add-ins, you first need to [create development certificates](dev_certificates.md). If you will be using VBA, Office Scripts, or Google Apps Script, you can skip this step.
 
 ## Running the development server
 

@@ -7,7 +7,7 @@ If you are developing on your local computer with one of the following integrati
 
 you will need to expose your development server via a tunneling solution. This is because Office Scripts and Google Apps Script can only connect to servers on the Internet, but not directly to your local computer.
 
-Tunneling isn't necessary if you use an online development environment such as [](github_codespaces.md).
+Note that tunneling is never required if you use an online development environment such as [](github_codespaces.md).
 
 ```{note}
 It's important to trust the tunneling provider, as you are granting them access to route traffic to and from your local machine. Always ensure you are using a reputable provider to maintain the security of your development environment and check with your IT security department for allowed providers.

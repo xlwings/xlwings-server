@@ -1,9 +1,11 @@
 # Local Development
 
+Local development relies on a local Python installation.
+
 ## Prerequisites
 
 - Follow [](repo_setup.md).
-- If you want to use Office.js add-ins, you need to first [create development certificates](dev_certificates.md). If you will be using VBA, Office Scripts, or Google Apps Script, you can skip this.
+- If you want to use Office.js add-ins, you first need to [create development certificates](dev_certificates.md). If you will be using VBA, Office Scripts, or Google Apps Script, you can skip this.
 
 ## Running the development server
 

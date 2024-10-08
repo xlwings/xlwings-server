@@ -8,16 +8,16 @@ This is the recommended approach as it fits enterprise requirements the best.
 
 **Pros**:
 
-- Single sign-on (SSO) authentication and role-based access control (RBAC) via [Microsoft Entra ID](https://www.microsoft.com/en-us/security/business/identity-access/microsoft-entra-id) (formerly Azure AD)
-- Works on Windows, macOS, Excel on the Web, and Excel on iPad
+- Works on Windows, macOS, and Excel on the Web
 - No VBA or JavaScript required
 - Supports custom functions incl. streaming functions and object handles. All custom functions are async natively.
 - Central deployment of the Excel add-in via the Microsoft 365 admin center (company internal) or via Excel's add-in store (public add-ins). There's no need to have end-users install the add-in manually.
+- Single sign-on (SSO) authentication and role-based access control (RBAC) via [Microsoft Entra ID](https://www.microsoft.com/en-us/security/business/identity-access/microsoft-entra-id) (formerly Azure AD)
 - Allows to build web-based task panes with virtually unlimited possibilities.
 
 **Cons**:
 
-- Setting up a local development environment for the first time is slightly harder as you need development certificates to run the server on https instead of http. You could, however, use a cloud-based IDE such as GitHub codespaces that doesn't require this step.
+- Setting up a local development environment for the first time is slightly harder as you need development certificates to run the server on https instead of http. You could, however, use a cloud-based IDE such as GitHub Codespaces, which doesn't require this step.
 
 ## VBA
 

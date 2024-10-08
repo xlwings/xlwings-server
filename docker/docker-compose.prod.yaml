@@ -21,6 +21,7 @@ services:
        --bind 0.0.0.0:8000
        --access-logfile -
        --workers 2
+       --timeout 30
        --worker-class uvicorn.workers.UvicornWorker
     env_file:
       - ../.env

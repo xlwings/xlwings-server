@@ -1,6 +1,6 @@
 # VBA
 
-You can either install the classic, VBA-based xlwings add-in, create a custom VBA-based add-in, or create a standalone macro-enabled workbook that doesn't depend on any add-in. The standalone version is the easiest solution for the end-user, so let's start with this.
+You can either install the classic, VBA-based xlwings add-in, create a custom VBA-based add-in, or create a standalone macro-enabled workbook, which doesn't depend on any add-in. The standalone version is the easiest solution for the end-user, so let's start with this.
 
 ## Standalone workbooks
 

@@ -42,7 +42,7 @@ globalThis.socket = io("https://127.0.0.1:8001", {
 From the root dir, run:
 
 ```
-sphinx-autobuild docs docs/_build/html  --port 9000
+sphinx-autobuild docs docs/_build/html  --port 9000 -E
 ```
 
 The requirements are currently under `docs/requirements.txt` and have not been included in `requirements-dev.txt` as there's an incompatibility with Python 3.9.
@@ -62,7 +62,13 @@ npm install mypackage@latest
 
 Or use the VS Code extension `Version Lens`, which allows you to update the packages directly from `packages.json` (click the `V` at the top right).
 
-After updating a package in `packages.json`, run `sudo npm upgrade` followed by `python scripts/copy_node_modules_to_static_folder.py` to copy over the files to the static folder.
+After updating a package in `packages.json`, run `sudo npm upgrade` followed by:
+
+```
+python scripts/copy_node_modules_to_static_folder.py
+```
+
+to copy over the files to the static folder.
 
 ## Upgrading xlwings
 

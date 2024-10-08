@@ -1,8 +1,8 @@
 # Limitations
 
-## Shared Runtime
+## Office.js Shared Runtime
 
-xlwings Server requires the shared runtime. Please consult the [official docs](https://learn.microsoft.com/en-us/javascript/api/requirement-sets/common/shared-runtime-requirement-sets) to see which Excel versions are supported.
+When using xlwings Server with Office.js add-ins, they require the shared runtime. Please consult the [official docs](https://learn.microsoft.com/en-us/javascript/api/requirement-sets/common/shared-runtime-requirement-sets) to see which Excel versions are supported.
 
 ## xlwings API coverage
 

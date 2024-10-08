@@ -1,7 +1,7 @@
-# Deployment
+# Authentication
 
 ```{toctree}
 :maxdepth: 1
 
-deployment
+authentication
 ```

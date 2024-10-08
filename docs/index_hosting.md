@@ -1,4 +1,4 @@
-# Hosting
+# Hosting Solutions
 
 ```{toctree}
 :maxdepth: 1

@@ -5,7 +5,8 @@
 
 custom_functions
 custom_scripts
-authentication
+dependencies
 missing_features
 performance
+upgrade
 ```

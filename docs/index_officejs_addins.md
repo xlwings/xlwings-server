@@ -21,5 +21,4 @@ officejs_run_scripts
 manifest
 debugging
 taskpane
-static_site_generators
 ```
