@@ -16,7 +16,7 @@ class User(BaseModel):
     async def has_required_roles(self, required_roles: Optional[list[str]] = None):
         if required_roles:
             if set(required_roles).issubset(self.roles):
-                logger.info(f"User authorized: {self.name}")
+                logger.info(f"User has required roles: {self.name}")
                 return True
             else:
                 return False

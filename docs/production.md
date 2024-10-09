@@ -50,7 +50,7 @@ Before deploying to production, there's a few things that you should check for s
   XLWINGS_ADD_SECURITY_HEADERS=true
   ```
 
-- Enable authentication if appropriate, e.g., when using Microsoft Entra ID`:
+- Enable authentication if appropriate, e.g., when using Microsoft Entra ID:
 
   ```ini
   XLWINGS_AUTH_PROVIDERS=["entraid"]

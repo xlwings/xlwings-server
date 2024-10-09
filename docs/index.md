@@ -65,6 +65,13 @@ index_officejs_addins
 :maxdepth: 2
 :hidden:
 
+index_taskpane
+```
+
+```{toctree}
+:maxdepth: 2
+:hidden:
+
 index_other_integrations
 ```
 
@@ -88,5 +95,6 @@ index_hosting
 
 changelog
 limitations
+alternatives
 license
 ```

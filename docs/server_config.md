@@ -1,4 +1,4 @@
-# Overview
+# Config
 
 xlwings Server can be configured via a `.env` file in the root of the repository or via environment variables.
 
