@@ -1,4 +1,5 @@
-# This prevents merge conflicts in requirements files but it requires to run:
-# git config --local merge.ours.driver true
+# This prevents merge conflicts for the indicated files.
+# To make it work, run the following command: git config --local merge.ours.driver true
 requirements.in merge=ours
 requirements*.txt merge=ours
+app/templates/manifest.xml merge=ours
