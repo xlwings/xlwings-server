@@ -2,7 +2,7 @@
 
 ## 0.6.1. (Oct 11, 2024)
 
-- Enhanced the task pane buttons that use the `xw-click` tag: they now are disabled and show a spinner while the request is in progress. Also, errors are now shown at the top of the task pane instead of via alert window.
+- Enhanced the task pane buttons that use the `xw-click` tag: they are now disabled and show a spinner while the request is in progress. Also, errors are now shown at the top of the task pane instead of via alert window.
 - Changed the `<Version>` tag in the manifest to have the format `x.x.x.x` instead of `x.x.x`. This might resolve issues with custom functions.
 - Put manifest.xml template on `.gitattributes` with the git merge strategy `ours`.
 - Upgraded dependencies incl. xlwings to 0.33.2.
