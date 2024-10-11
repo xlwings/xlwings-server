@@ -35,7 +35,7 @@ h11==0.14.0
     #   wsproto
 hiredis==3.0.0
     # via -r requirements-core.in
-httpcore==1.0.5
+httpcore==1.0.6
     # via httpx
 httptools==0.6.1
     # via -r requirements-core.in
@@ -55,7 +55,7 @@ joserfc==1.0.0
     # via -r requirements-core.in
 lxml==5.3.0 ; platform_system == 'Darwin'
     # via appscript
-markupsafe==2.1.5
+markupsafe==3.0.1
     # via jinja2
 packaging==24.1 ; sys_platform != 'win32'
     # via gunicorn
@@ -81,9 +81,9 @@ python-socketio==5.11.4
     # via -r requirements-core.in
 pytz==2024.2
     # via croniter
-redis==5.1.0
+redis==5.1.1
     # via -r requirements-core.in
-simple-websocket==1.0.0
+simple-websocket==1.1.0
     # via python-engineio
 six==1.16.0
     # via python-dateutil
@@ -98,13 +98,13 @@ typing-extensions==4.12.2
     #   fastapi-slim
     #   pydantic
     #   pydantic-core
-uvicorn==0.31.0
+uvicorn==0.31.1
     # via -r requirements-core.in
 uvloop==0.20.0 ; sys_platform != 'win32'
     # via -r requirements-core.in
 wsproto==1.2.0
     # via simple-websocket
-xlwings==0.33.1
+xlwings==0.33.2
     # via -r requirements-core.in
 
 # The following packages were excluded from the output:
