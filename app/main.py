@@ -82,6 +82,10 @@ async def add_security_headers(request, call_next):
                 # Permissions-Policy headers are experimental
                 # Clear-Site-Data is too aggressive
                 response.headers[header["name"]] = header["value"]
+        # For example, Bootstrap alerts need this
+        response.headers["Content-Security-Policy"] = (
+            response.headers["Content-Security-Policy"] + "; img-src 'self' data:"
+        )
         if settings.enable_excel_online:
             response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
             response.headers["Content-Security-Policy"] = response.headers[

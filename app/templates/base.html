@@ -55,6 +55,7 @@
           rel="stylesheet"
           href="{{ settings.static_url_path }}/vendor/bootstrap-xlwings/dist/bootstrap-xlwings.min.css" />
         <script src="{{ settings.static_url_path }}/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="{{ settings.static_url_path }}/js/utils/bootstrap-customizations.js" defer></script>
       {% endif %}
       {# Own #}
       <link rel="stylesheet" href="{{ settings.static_url_path }}/css/style.css" />
@@ -74,6 +75,7 @@
   </head>
 
   <body hx-ext="head-support">
+    {# Not using alert-dismissible to left-align close button and avoid overlap with Office.js menu #}
     <div
       id="global-error-alert"
       class="alert alert-danger alert-dismissible fade show d-none"
