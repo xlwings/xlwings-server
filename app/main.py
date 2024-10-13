@@ -113,8 +113,8 @@ async def root():
     return {"status": "ok"}
 
 
-# Static files: in prod should be served via a HTTP server like nginx if possible
-# See also pending ASGI branch in https://github.com/evansd/whitenoise
+# Static files: in prod might be served by something like nginx or via
+# https://github.com/matthiask/blacknoise or https://github.com/Archmonger/ServeStatic
 app.mount(
     "/static",
     StaticFiles(directory=settings.static_dir),

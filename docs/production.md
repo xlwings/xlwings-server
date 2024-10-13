@@ -1,6 +1,23 @@
 # Production Checklist
 
-Before deploying to production, there's a few things that you should check for security and performance reasons.
+Before deploying to production, there's a few things that you should check for security, performance, and branding reasons.
+
+## Taskpane
+
+Replace the [example task pane](https://github.com/xlwings/xlwings-server/blob/main/app/templates/examples/hello_world/taskpane_hello.html) with your own. If you don't have any meaningful content, just leave it empty by providing the following:
+
+<!-- prettier-ignore-->
+```html
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="container-fluid pt-3 ps-3">
+    <h1>Name of your Add-in</h1>
+  </div>
+{% endblock content %}
+```
+
+Store this under `app/templates/taskpane.html` and update the `name` argument under [`app/routers/taskpane.py`](https://github.com/xlwings/xlwings-server/blob/main/app/routers/taskpane.py) to `"taskpane.html"`.
 
 ## Settings
 

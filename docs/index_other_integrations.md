@@ -1,4 +1,4 @@
-# Other integrations
+# VBA, Office Scripts, Google Apps Script Integrations
 
 ```{toctree}
 :maxdepth: 1

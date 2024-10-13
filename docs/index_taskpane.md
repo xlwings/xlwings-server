@@ -1,4 +1,4 @@
-# Task Pane
+# Office.js Task Pane
 
 ```{toctree}
 :maxdepth: 1

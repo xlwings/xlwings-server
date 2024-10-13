@@ -18,6 +18,7 @@ This is the recommended approach as it fits enterprise requirements the best.
 **Cons**:
 
 - Setting up a local development environment for the first time is slightly harder as you need development certificates to run the server on https instead of http. You could, however, use a cloud-based IDE such as GitHub Codespaces, which doesn't require this step.
+- Production deployment requires the help of an admin of the Microsoft 365 admin center
 
 ## VBA
 

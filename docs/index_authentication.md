@@ -1,4 +1,4 @@
-# Authentication
+# Authentication & Authorization
 
 ```{toctree}
 :maxdepth: 1

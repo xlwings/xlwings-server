@@ -1,4 +1,4 @@
-# Office.js add-ins
+# Office.js Add-ins
 
 Office.js add-ins are web apps that can interact with Excel. In their simplest form, they consist of just two files:
 
@@ -20,5 +20,4 @@ install_officejs_addin
 officejs_run_scripts
 manifest
 debugging
-taskpane
 ```
