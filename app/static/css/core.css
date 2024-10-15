@@ -1,3 +1,8 @@
+/**
+ * These are styles required by core functionality of xlwings Server.
+ * For your own CSS, use style.css instead.
+*/
+
 /* htmx IndicatorStyles */
 .htmx-indicator {
   opacity: 0;
@@ -9,4 +14,9 @@
 .htmx-request.htmx-indicator {
   opacity: 1;
   transition: opacity 200ms ease-in;
+}
+
+/* Custom */
+.z-index-1000 {
+  z-index: 1000;
 }
