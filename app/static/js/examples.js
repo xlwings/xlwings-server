@@ -1,4 +1,16 @@
 const exampleData = {
+  nameForm: {
+    firstName: "",
+    lastName: "",
+    fullName: "",
+    handleInput(event) {
+      this[event.target.id] = event.target.value;
+      this.updateFullName();
+    },
+    updateFullName() {
+      this.fullName = `${this.firstName} ${this.lastName}`;
+    },
+  },
   appLoader: {
     init: async function () {
       let bookName = await xlwings.getActiveBookName();
