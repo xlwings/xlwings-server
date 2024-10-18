@@ -10,30 +10,25 @@
         <script src="{{ settings.static_url_path }}/vendor/htmx.org/dist/htmx.min.js"></script>
         <script src="{{ settings.static_url_path }}/vendor/htmx-ext-head-support/head-support.js"></script>
         <script src="{{ settings.static_url_path }}/vendor/htmx-ext-loading-states/loading-states.js"></script>
-        <script src="{{ settings.static_url_path }}/js/htmx-handlers.js" defer></script>
+        <script src="{{ settings.static_url_path }}/js/core/htmx-handlers.js" defer></script>
       {% endif %}
-      <script src="{{ settings.static_url_path }}/js/utils/officejs-history-fix-part1.js"></script>
+      <script src="{{ settings.static_url_path }}/js/core/officejs-history-fix-part1.js"></script>
       {# Office.js #}
       {% if settings.public_addin_store %}
         <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
       {% else %}
         <script src="{{ settings.static_url_path }}/vendor/@microsoft/office-js/dist/office.js"></script>
       {% endif %}
-      <script src="{{ settings.static_url_path }}/js/utils/officejs-history-fix-part2.js"></script>
+      <script src="{{ settings.static_url_path }}/js/core/officejs-history-fix-part2.js"></script>
       {# Socket.io (must come before xlwings.js) #}
       {% if settings.enable_socketio %}
         <script src="{{ settings.static_url_path }}/vendor/socket.io/client-dist/socket.io.min.js"></script>
       {% endif %}
       {# xlwings.js (must come before custom-function-code) #}
       <script src="{{ settings.static_url_path }}/vendor/xlwings/xlwingsjs/dist/xlwings.min.js"></script>
-      {# Examples #}
-      {% if settings.enable_examples %}
-        <script src="{{ settings.static_url_path }}/js/examples.js" defer></script>
-      {% endif %}
-      {# Alpine.js CSP build (aplinejs-handlers must come first) #}
+      {# Alpine.js CSP boilerplate (must come before custom JS, which must come before alpinejs library) #}
       {% if settings.enable_alpinejs_csp %}
-        <script src="{{ settings.static_url_path }}/js/alpinejs-handlers.js" defer></script>
-        <script src="{{ settings.static_url_path }}/vendor/@alpinejs/csp/dist/cdn.min.js" defer></script>
+        <script src="{{ settings.static_url_path }}/js/core/alpinejs-csp-boilerplate.js" defer></script>
       {% endif %}
       {# Auth #}
       {% set auth_value = settings.auth_providers %}
@@ -54,20 +49,28 @@
           rel="stylesheet"
           href="{{ settings.static_url_path }}/vendor/bootstrap-xlwings/dist/bootstrap-xlwings.min.css" />
         <script src="{{ settings.static_url_path }}/vendor/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="{{ settings.static_url_path }}/js/utils/bootstrap-customizations.js" defer></script>
+        <script src="{{ settings.static_url_path }}/js/core/bootstrap-customizations.js" defer></script>
+      {% endif %}
+      {# Examples #}
+      {% if settings.enable_examples %}
+        <script src="{{ settings.static_url_path }}/js/core/examples.js" defer></script>
       {% endif %}
       {# Own #}
       <link rel="stylesheet" href="{{ settings.static_url_path }}/css/core.css" />
       <link rel="stylesheet" href="{{ settings.static_url_path }}/css/style.css" />
       {% if settings.enable_socketio %}
-        <script src="{{ settings.static_url_path }}/js/socketio-handlers.js" defer></script>
+        <script src="{{ settings.static_url_path }}/js/core/socketio-handlers.js" defer></script>
       {% endif %}
       <script src="{{ settings.app_path }}/xlwings/custom-scripts-sheet-buttons" defer></script>
-      <script src="{{ settings.static_url_path }}/js/utils/sheet-buttons.js" defer></script>
+      <script src="{{ settings.static_url_path }}/js/core/sheet-buttons.js" defer></script>
       <script src="{{ settings.static_url_path }}/js/main.js" defer></script>
       <script src="{{ settings.static_url_path }}/js/ribbon.js" defer></script>
       {% if settings.environment == "dev" and settings.enable_socketio %}
-        <script src="{{ settings.static_url_path }}/js/utils/hotreload.js" defer></script>
+        <script src="{{ settings.static_url_path }}/js/core/hotreload.js" defer></script>
+      {% endif %}
+      {# Alpine.js CSP build (must come after alpinejs-csp-boilerplate.js and custom code such as main.js) #}
+      {% if settings.enable_alpinejs_csp %}
+        <script src="{{ settings.static_url_path }}/vendor/@alpinejs/csp/dist/cdn.min.js" defer></script>
       {% endif %}
     {% endblock head %}
     {% block extra_head %}

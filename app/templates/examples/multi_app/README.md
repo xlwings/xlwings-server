@@ -31,4 +31,4 @@ async def taskpane(request: Request, app: str = None):
 
 The sample also depends on:
 
-- `app/static/js/examples.js`
+- `app/static/js/core/examples.js`
