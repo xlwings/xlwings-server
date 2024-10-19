@@ -55,6 +55,7 @@ async def custom_functions_code():
     )
 
 
+# ContextVars
 socketio_id_context = contextvars.ContextVar("socketio_id_context")
 caller_address_context = contextvars.ContextVar("caller_address_context")
 redis_client_context = contextvars.ContextVar("redis_client_context")
@@ -73,7 +74,10 @@ async def custom_functions_call(
     redis_client_context.set(redis_client)  # For ObjectCache converter
 
     rv = await xlwings.server.custom_functions_call(
-        data, custom_functions, typehint_to_value={CurrentUser: current_user}
+        data,
+        custom_functions,
+        current_user,
+        typehint_to_value={CurrentUser: current_user},
     )
     return {"result": rv}
 
@@ -84,6 +88,7 @@ async def custom_scripts_call(script_name: str, book: dep.Book, current_user: de
     book = await xlwings.server.custom_scripts_call(
         custom_scripts,
         script_name,
+        current_user,
         typehint_to_value={CurrentUser: current_user, xw.Book: book},
     )
     return book.json()
