@@ -96,7 +96,7 @@ class ObjectCacheConverter(Converter):
             if pd and isinstance(obj, pd.DataFrame):
                 return f"{obj.shape[0]} x {obj.shape[1]}"
             if np and isinstance(obj, np.ndarray):
-                return f"{obj.shape[0]} x {obj.shape[1]}"
+                return f"{obj.shape}"
             elif isinstance(obj, (list, tuple)):
                 if obj and isinstance(obj[0], (list, tuple)):
                     nested_length = len(obj[0])
