@@ -94,17 +94,16 @@ class ObjectCacheConverter(Converter):
         # Shape
         def get_shape(obj):
             if pd and isinstance(obj, pd.DataFrame):
-                return f"{obj.shape[0]} x {obj.shape[1]}"
+                return f"{obj.shape}"
             if np and isinstance(obj, np.ndarray):
                 return f"{obj.shape}"
             elif isinstance(obj, (list, tuple)):
                 if obj and isinstance(obj[0], (list, tuple)):
-                    nested_length = len(obj[0])
-                    return f"{len(obj)} x {nested_length}"
-                return str(len(obj))
+                    return f"({len(obj)}, {len(obj[0])})"
+                return f"({len(obj)},)"
             else:
                 try:
-                    return str(len(obj))
+                    return f"{len(obj)} (length)"
                 except Exception:
                     return None
 
