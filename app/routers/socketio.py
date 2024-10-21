@@ -60,5 +60,5 @@ async def sio_function_call(sid, data):
     current_user = session["current_user"]
     logger.info(f"""Function "{data['func_name']}" called by {sid}""")
     await xw.server.sio_custom_function_call(
-        sid, data, custom_functions, sio, {CurrentUser: current_user}
+        sid, data, custom_functions, current_user, sio, {CurrentUser: current_user}
     )
