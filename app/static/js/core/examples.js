@@ -10,7 +10,8 @@ const nameForm = {
 registerAlpineComponent("nameForm", nameForm);
 
 const appLoader = {
-  init: async function () {
+  url: "",
+  async init() {
     let bookName = await xlwings.getActiveBookName();
     // Works with both an unsaved book ("Book1") as well as a saved one "Book1.xlsx"
     if (bookName.includes("Book1")) {
@@ -23,6 +24,5 @@ const appLoader = {
       this.$dispatch("app:loadTaskpane");
     });
   },
-  url: "",
 };
 registerAlpineComponent("appLoader", appLoader);
