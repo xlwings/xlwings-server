@@ -1,6 +1,14 @@
 # Changelog
 
-## 0.6.1. (Oct 11, 2024)
+## 0.6.2 (Oct 21, 2024)
+
+- Function-specific RBAC: you can now use `required_roles=["role1", "role2"]` inside `@script` or `@func` decorators.
+- Code that uses the Alpine.js CSP build can now be registered in a simplified way by calling `registerAlpineComponent("name", function)`. Also added an Alpine.js CSP build example.
+- Bug fix: object handles with 1-dimensional NumPy arrays are now fixed.
+- Bug fix: removed inline style in sample task pane to be CSP header compliant.
+- Upgraded dependencies incl. xlwings to 0.33.3.
+
+## 0.6.1 (Oct 11, 2024)
 
 - Enhanced the task pane buttons that use the `xw-click` tag: they are now disabled and show a spinner while the request is in progress. Also, errors are now shown at the top of the task pane instead of via alert window.
 - Changed the `<Version>` tag in the manifest to have the format `x.x.x.x` instead of `x.x.x`. This might resolve issues with custom functions.
