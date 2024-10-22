@@ -25,7 +25,10 @@
         <script src="{{ settings.static_url_path }}/vendor/socket.io/client-dist/socket.io.min.js"></script>
       {% endif %}
       {# xlwings.js (must come before custom-function-code) #}
-      <script src="{{ settings.static_url_path }}/vendor/xlwings/xlwingsjs/dist/xlwings.min.js"></script>
+      <script type="module" src="{{ settings.static_url_path }}/js/core/xlwingsjs/xlwings.js" defer></script>
+      <script type="module" src="{{ settings.static_url_path }}/js/core/xlwingsjs/auth.js" defer></script>
+      <script type="module" src="{{ settings.static_url_path }}/js/core/xlwingsjs/utils.js" defer></script>
+      <script type="module" src="{{ settings.static_url_path }}/js/core/xlwingsjs/alert.js" defer></script>
       {# Alpine.js CSP boilerplate (must come before custom JS, which must come before alpinejs library) #}
       {% if settings.enable_alpinejs_csp %}
         <script src="{{ settings.static_url_path }}/js/core/alpinejs-csp-boilerplate.js" defer></script>
