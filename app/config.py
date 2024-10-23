@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from typing import List, Literal, Optional
 
+import xlwings as xw
 from pydantic import UUID4, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -48,6 +49,7 @@ class Settings(BaseSettings):
     socketio_server_app: bool = False
     static_url_path: str = "/static"
     license_key: Optional[str] = ""
+    xlwings_version: str = xw.__version__
 
     @computed_field
     @property

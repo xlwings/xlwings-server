@@ -33,14 +33,16 @@
       {% if settings.enable_alpinejs_csp %}
         <script src="{{ settings.static_url_path }}/js/core/alpinejs-csp-boilerplate.js" defer></script>
       {% endif %}
-      {# Auth #}
-      {% set auth_value = settings.auth_providers %}
+      {# JS Config #}
       <!-- prettier-ignore-start -->
       <script id="auth" type="application/json">
-        { "auth": {{ auth_value|tojson }} }
+        { "auth": {{ settings.auth_providers|tojson }} }
       </script>
       <script id="app-path" type="application/json">
         { "appPath": {{ settings.app_path|tojson }} }
+      </script>
+      <script id="xlwings-version" type="application/json">
+        { "xlwingsVersion": {{ settings.xlwings_version|tojson }} }
       </script>
       <!-- prettier-ignore-end -->
       <script src="{{ settings.static_url_path }}/js/auth.js"></script>
