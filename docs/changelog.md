@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.3 (Oct 23, 2024)
+
+- Bug fix: Fixed Jinja templates rendering to ensure content escaping.
+
 ## 0.6.2 (Oct 21, 2024)
 
 - Function-specific RBAC: you can now use `required_roles=["role1", "role2"]` inside `@script` or `@func` decorators.
