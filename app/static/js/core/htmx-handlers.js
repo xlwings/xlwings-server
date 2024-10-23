@@ -39,14 +39,40 @@ htmx.on("htmx:responseError", function (event) {
 
 // Task pane authentication (see: https://htmx.org/examples/async-auth/)
 let authToken = null;
+let bookData = null;
 
 htmx.on("htmx:confirm", async (event) => {
   // Block the request until the token is returned
   event.preventDefault();
+  // Auth
   authToken = await globalThis.getAuth();
+  // Book
+  let element = event.target;
+  let includeBook = element.getAttribute("xw-book");
+  if (includeBook === "true") {
+    let config = element.getAttribute("xw-config")
+      ? JSON.parse(element.getAttribute("xw-config"))
+      : {};
+    await Excel.run(async (context) => {
+      bookData = await xlwings.getBookData(context, config);
+    });
+  }
+
+  // Resume the request
   event.detail.issueRequest();
 });
 
 htmx.on("htmx:configRequest", (event) => {
   event.detail.headers["Authorization"] = authToken;
+  event.detail.parameters["bookData"] = JSON.stringify(bookData);
+});
+
+htmx.on("htmx:afterSwap", async (event) => {
+  const bookDataElement = document.getElementById("book-data");
+  if (bookDataElement) {
+    const bookDataJson = JSON.parse(bookDataElement.text);
+    await Excel.run(async (context) => {
+      xlwings.runActions(context, bookDataJson);
+    });
+  }
 });

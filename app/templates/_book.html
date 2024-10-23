@@ -1,0 +1,7 @@
+{% if book %}
+  <!-- prettier-ignore-start -->
+  <script id="book-data" type="application/json">
+    {{ book.json()|tojson }}
+  </script>
+  <!-- prettier-ignore-end -->
+{% endif %}

@@ -1,4 +1,4 @@
-// TODO: version string
+// TODO; use script/json tag instead of data-div
 import { xlAlert } from "./alert.js";
 import { getAccessToken } from "./auth.js";
 export { getAccessToken };
@@ -10,6 +10,8 @@ const xlwings = {
   runPython,
   getAccessToken,
   getActiveBookName,
+  getBookData,
+  runActions,
 };
 globalThis.xlwings = xlwings;
 
@@ -59,7 +61,11 @@ export function init() {
   });
 }
 
-const version = "0.33.3";
+const xlwingsVersion = JSON.parse(
+  document.getElementById("xlwings-version").text,
+);
+const version = xlwingsVersion.xlwingsVersion;
+// const version = "0.33.3"
 globalThis.callbacks = {};
 export async function runPython(
   url = "",
@@ -74,300 +80,13 @@ export async function runPython(
   await Office.onReady();
   try {
     await Excel.run(async (context) => {
-      // workbook
-      const workbook = context.workbook;
-      workbook.load("name");
-
-      // sheets
-      let worksheets = workbook.worksheets;
-      worksheets.load("items/name");
-      await context.sync();
-      let sheets = worksheets.items;
-
-      // Config
-      let configSheet = worksheets.getItemOrNullObject("xlwings.conf");
-      await context.sync();
-      let config = {};
-      if (!configSheet.isNullObject) {
-        const configRange = configSheet
-          .getRange("A1")
-          .getSurroundingRegion()
-          .load("values");
-        await context.sync();
-        const configValues = configRange.values;
-        configValues.forEach(
-          (el) => (config[el[0].toString()] = el[1].toString()),
-        );
-      }
-
-      if (auth === "") {
-        auth = config["AUTH"] || "";
-      }
-
-      if (include === "") {
-        include = config["INCLUDE"] || "";
-      }
-      let includeArray = [];
-      if (include !== "") {
-        includeArray = include.split(",").map((item) => item.trim());
-      }
-
-      if (exclude === "") {
-        exclude = config["EXCLUDE"] || "";
-      }
-      let excludeArray = [];
-      if (exclude !== "") {
-        excludeArray = exclude.split(",").map((item) => item.trim());
-      }
-      if (includeArray.length > 0 && excludeArray.length > 0) {
-        throw "Either use 'include' or 'exclude', but not both!";
-      }
-      if (includeArray.length > 0) {
-        sheets.forEach((sheet) => {
-          if (!includeArray.includes(sheet.name)) {
-            excludeArray.push(sheet.name);
-          }
-        });
-      }
-
-      if (Object.keys(headers).length === 0) {
-        for (const property in config) {
-          if (property.toLowerCase().startsWith("header_")) {
-            headers[property.substring(7)] = config[property];
-          }
-        }
-      }
-      if (!("Authorization" in headers) && auth.length > 0) {
-        headers["Authorization"] = auth;
-      }
-
-      // Standard headers
-      headers["Content-Type"] = "application/json";
-
-      // Request payload
-      let payload = {};
-      payload["client"] = "Office.js";
-      payload["version"] = version;
-      let activeSheet = worksheets.getActiveWorksheet().load("position");
-      let selection = workbook.getSelectedRange().load("address");
-      await context.sync();
-      payload["book"] = {
-        name: workbook.name,
-        active_sheet_index: activeSheet.position,
-        selection: selection.address.split("!").pop(),
-      };
-
-      // Names (book scope)
-      let names = [];
-      const namedItems = context.workbook.names.load("name, type");
-      await context.sync();
-
-      namedItems.items.forEach((namedItem, ix) => {
-        // Currently filtering to named ranges
-        if (namedItem.type === "Range") {
-          names.push({
-            name: namedItem.name,
-            sheet: namedItem.getRange().worksheet.load("position"),
-            range: namedItem.getRange().load("address"),
-            scope_sheet_name: null,
-            scope_sheet_index: null,
-            book_scope: true, // workbook.names contains only workbook scope!
-          });
-        }
-      });
-
-      await context.sync();
-
-      let names2 = [];
-      names.forEach((namedItem, ix) => {
-        names2.push({
-          name: namedItem.name,
-          sheet_index: namedItem.sheet.position,
-          address: namedItem.range.address.split("!").pop(),
-          scope_sheet_name: null,
-          scope_sheet_index: null,
-          book_scope: namedItem.book_scope,
-        });
-      });
-
-      payload["names"] = names2;
-
-      // Sheets
-      payload["sheets"] = [];
-      let sheetsLoader = [];
-      sheets.forEach((sheet) => {
-        sheet.load("name names");
-        let lastCell;
-        if (excludeArray.includes(sheet.name)) {
-          lastCell = null;
-        } else if (sheet.getUsedRange() !== undefined) {
-          lastCell = sheet.getUsedRange().getLastCell().load("address");
-        } else {
-          lastCell = sheet.getRange("A1").load("address");
-        }
-        sheetsLoader.push({
-          sheet: sheet,
-          lastCell: lastCell,
-        });
-      });
-
-      await context.sync();
-
-      sheetsLoader.forEach((item, ix) => {
-        if (!excludeArray.includes(item["sheet"].name)) {
-          let range;
-          range = item["sheet"]
-            .getRange(`A1:${item["lastCell"].address}`)
-            .load("values, numberFormatCategories");
-          sheetsLoader[ix]["range"] = range;
-          // Names (sheet scope)
-          sheetsLoader[ix]["names"] = item["sheet"].names.load("name, type");
-        }
-      });
-
-      await context.sync();
-
-      // Names (sheet scope)
-      let namesSheetScope = [];
-      sheetsLoader.forEach((item) => {
-        if (!excludeArray.includes(item["sheet"].name)) {
-          item["names"].items.forEach((namedItem) => {
-            namesSheetScope.push({
-              name: namedItem.name,
-              sheet: namedItem.getRange().worksheet.load("position"),
-              range: namedItem.getRange().load("address"),
-              scope_sheet: namedItem.worksheet.load("name, position"),
-              book_scope: false,
-            });
-          });
-        }
-      });
-
-      await context.sync();
-
-      let namesSheetsScope2 = [];
-      namesSheetScope.forEach((namedItem) => {
-        namesSheetsScope2.push({
-          name: namedItem.name,
-          sheet_index: namedItem.sheet.position,
-          address: namedItem.range.address.split("!").pop(),
-          scope_sheet_name: namedItem.scope_sheet.name,
-          scope_sheet_index: namedItem.scope_sheet.position,
-          book_scope: namedItem.book_scope,
-        });
-      });
-
-      // Add sheet scoped names to book scoped names
-      payload["names"] = payload["names"].concat(namesSheetsScope2);
-
-      // values
-      for (let item of sheetsLoader) {
-        let sheet = item["sheet"]; // TODO: replace item["sheet"] with sheet
-        let values;
-        if (excludeArray.includes(item["sheet"].name)) {
-          values = [[]];
-        } else {
-          values = item["range"].values;
-          if (Office.context.requirements.isSetSupported("ExcelApi", "1.12")) {
-            // numberFormatCategories requires Excel 2021/365
-            // i.e., dates aren't transformed to Python's datetime in Excel <=2019
-            let categories = item["range"].numberFormatCategories;
-            // Handle dates
-            // https://learn.microsoft.com/en-us/office/dev/scripts/resources/samples/excel-samples#dates
-            values.forEach((valueRow, rowIndex) => {
-              const categoryRow = categories[rowIndex];
-              valueRow.forEach((value, colIndex) => {
-                const category = categoryRow[colIndex];
-                if (
-                  (category.toString() === "Date" ||
-                    category.toString() === "Time") &&
-                  typeof value === "number"
-                ) {
-                  values[rowIndex][colIndex] = new Date(
-                    Math.round((value - 25569) * 86400 * 1000),
-                  ).toISOString();
-                }
-              });
-            });
-          }
-        }
-        // Tables
-        let tablesArray = [];
-        if (!excludeArray.includes(item["sheet"].name)) {
-          const tables = sheet.tables.load([
-            "name",
-            "showHeaders",
-            "dataBodyRange",
-            "showTotals",
-            "style",
-            "showFilterButton",
-          ]);
-          await context.sync();
-          let tablesLoader = [];
-          for (let table of sheet.tables.items) {
-            tablesLoader.push({
-              name: table.name,
-              showHeaders: table.showHeaders,
-              showTotals: table.showTotals,
-              style: table.style,
-              showFilterButton: table.showFilterButton,
-              range: table.getRange().load("address"),
-              dataBodyRange: table.getDataBodyRange().load("address"),
-              headerRowRange: table.showHeaders
-                ? table.getHeaderRowRange().load("address")
-                : null,
-              totalRowRange: table.showTotals
-                ? table.getTotalRowRange().load("address")
-                : null,
-            });
-          }
-          await context.sync();
-          for (let table of tablesLoader) {
-            tablesArray.push({
-              name: table.name,
-              range_address: table.range.address.split("!").pop(),
-              header_row_range_address: table.showHeaders
-                ? table.headerRowRange.address.split("!").pop()
-                : null,
-              data_body_range_address: table.dataBodyRange.address
-                .split("!")
-                .pop(),
-              total_row_range_address: table.showTotals
-                ? table.totalRowRange.address.split("!").pop()
-                : null,
-              show_headers: table.showHeaders,
-              show_totals: table.showTotals,
-              table_style: table.style,
-              show_autofilter: table.showFilterButton,
-            });
-          }
-        }
-
-        // Pictures
-        let picturesArray = [];
-        if (!excludeArray.includes(item["sheet"].name)) {
-          const shapes = sheet.shapes.load(["name", "width", "height", "type"]);
-          await context.sync();
-          for (let shape of sheet.shapes.items) {
-            if (shape.type == Excel.ShapeType.image) {
-              picturesArray.push({
-                name: shape.name,
-                height: shape.height,
-                width: shape.width,
-              });
-            }
-          }
-        }
-
-        payload["sheets"].push({
-          name: item["sheet"].name,
-          values: values,
-          pictures: picturesArray,
-          tables: tablesArray,
-        });
-      }
-
       // console.log(payload);
+      let payload = await getBookData(context, {
+        auth,
+        include,
+        exclude,
+        headers,
+      });
 
       // API call
       let response = await fetch(url, {
@@ -388,13 +107,7 @@ export async function runPython(
 
       // Run Functions
       if (rawData !== null) {
-        const forceSync = ["sheet"];
-        for (let action of rawData["actions"]) {
-          await globalThis.callbacks[action.func](context, action);
-          if (forceSync.some((el) => action.func.toLowerCase().includes(el))) {
-            await context.sync();
-          }
-        }
+        await runActions(context, rawData);
       }
     });
   } catch (error) {
@@ -407,6 +120,312 @@ export async function runPython(
         globalErrorAlert.classList.remove("d-none");
         globalErrorAlert.querySelector("span").textContent = error;
       }
+    }
+  }
+}
+
+// Helpers
+async function getBookData(
+  context,
+  { auth = "", include = "", exclude = "", headers = {} } = {},
+) {
+  // workbook
+  const workbook = context.workbook;
+  workbook.load("name");
+
+  // sheets
+  let worksheets = workbook.worksheets;
+  worksheets.load("items/name");
+  await context.sync();
+  let sheets = worksheets.items;
+
+  // Config
+  let configSheet = worksheets.getItemOrNullObject("xlwings.conf");
+  await context.sync();
+  let config = {};
+  if (!configSheet.isNullObject) {
+    const configRange = configSheet
+      .getRange("A1")
+      .getSurroundingRegion()
+      .load("values");
+    await context.sync();
+    const configValues = configRange.values;
+    configValues.forEach((el) => (config[el[0].toString()] = el[1].toString()));
+  }
+
+  if (auth === "") {
+    auth = config["AUTH"] || "";
+  }
+
+  if (include === "") {
+    include = config["INCLUDE"] || "";
+  }
+  let includeArray = [];
+  if (include !== "") {
+    includeArray = include.split(",").map((item) => item.trim());
+  }
+
+  if (exclude === "") {
+    exclude = config["EXCLUDE"] || "";
+  }
+  let excludeArray = [];
+  if (exclude !== "") {
+    excludeArray = exclude.split(",").map((item) => item.trim());
+  }
+  if (includeArray.length > 0 && excludeArray.length > 0) {
+    throw "Either use 'include' or 'exclude', but not both!";
+  }
+  if (includeArray.length > 0) {
+    sheets.forEach((sheet) => {
+      if (!includeArray.includes(sheet.name)) {
+        excludeArray.push(sheet.name);
+      }
+    });
+  }
+
+  if (Object.keys(headers).length === 0) {
+    for (const property in config) {
+      if (property.toLowerCase().startsWith("header_")) {
+        headers[property.substring(7)] = config[property];
+      }
+    }
+  }
+  if (!("Authorization" in headers) && auth.length > 0) {
+    headers["Authorization"] = auth;
+  }
+
+  // Standard headers
+  headers["Content-Type"] = "application/json";
+
+  // Request payload
+  let payload = {};
+  payload["client"] = "Office.js";
+  payload["version"] = version;
+  let activeSheet = worksheets.getActiveWorksheet().load("position");
+  let selection = workbook.getSelectedRange().load("address");
+  await context.sync();
+  payload["book"] = {
+    name: workbook.name,
+    active_sheet_index: activeSheet.position,
+    selection: selection.address.split("!").pop(),
+  };
+
+  // Names (book scope)
+  let names = [];
+  const namedItems = context.workbook.names.load("name, type");
+  await context.sync();
+
+  namedItems.items.forEach((namedItem, ix) => {
+    // Currently filtering to named ranges
+    if (namedItem.type === "Range") {
+      names.push({
+        name: namedItem.name,
+        sheet: namedItem.getRange().worksheet.load("position"),
+        range: namedItem.getRange().load("address"),
+        scope_sheet_name: null,
+        scope_sheet_index: null,
+        book_scope: true, // workbook.names contains only workbook scope!
+      });
+    }
+  });
+
+  await context.sync();
+
+  let names2 = [];
+  names.forEach((namedItem, ix) => {
+    names2.push({
+      name: namedItem.name,
+      sheet_index: namedItem.sheet.position,
+      address: namedItem.range.address.split("!").pop(),
+      scope_sheet_name: null,
+      scope_sheet_index: null,
+      book_scope: namedItem.book_scope,
+    });
+  });
+
+  payload["names"] = names2;
+
+  // Sheets
+  payload["sheets"] = [];
+  let sheetsLoader = [];
+  sheets.forEach((sheet) => {
+    sheet.load("name names");
+    let lastCell;
+    if (excludeArray.includes(sheet.name)) {
+      lastCell = null;
+    } else if (sheet.getUsedRange() !== undefined) {
+      lastCell = sheet.getUsedRange().getLastCell().load("address");
+    } else {
+      lastCell = sheet.getRange("A1").load("address");
+    }
+    sheetsLoader.push({
+      sheet: sheet,
+      lastCell: lastCell,
+    });
+  });
+
+  await context.sync();
+
+  sheetsLoader.forEach((item, ix) => {
+    if (!excludeArray.includes(item["sheet"].name)) {
+      let range;
+      range = item["sheet"]
+        .getRange(`A1:${item["lastCell"].address}`)
+        .load("values, numberFormatCategories");
+      sheetsLoader[ix]["range"] = range;
+      // Names (sheet scope)
+      sheetsLoader[ix]["names"] = item["sheet"].names.load("name, type");
+    }
+  });
+
+  await context.sync();
+
+  // Names (sheet scope)
+  let namesSheetScope = [];
+  sheetsLoader.forEach((item) => {
+    if (!excludeArray.includes(item["sheet"].name)) {
+      item["names"].items.forEach((namedItem) => {
+        namesSheetScope.push({
+          name: namedItem.name,
+          sheet: namedItem.getRange().worksheet.load("position"),
+          range: namedItem.getRange().load("address"),
+          scope_sheet: namedItem.worksheet.load("name, position"),
+          book_scope: false,
+        });
+      });
+    }
+  });
+
+  await context.sync();
+
+  let namesSheetsScope2 = [];
+  namesSheetScope.forEach((namedItem) => {
+    namesSheetsScope2.push({
+      name: namedItem.name,
+      sheet_index: namedItem.sheet.position,
+      address: namedItem.range.address.split("!").pop(),
+      scope_sheet_name: namedItem.scope_sheet.name,
+      scope_sheet_index: namedItem.scope_sheet.position,
+      book_scope: namedItem.book_scope,
+    });
+  });
+
+  // Add sheet scoped names to book scoped names
+  payload["names"] = payload["names"].concat(namesSheetsScope2);
+
+  // values
+  for (let item of sheetsLoader) {
+    let sheet = item["sheet"]; // TODO: replace item["sheet"] with sheet
+    let values;
+    if (excludeArray.includes(item["sheet"].name)) {
+      values = [[]];
+    } else {
+      values = item["range"].values;
+      if (Office.context.requirements.isSetSupported("ExcelApi", "1.12")) {
+        // numberFormatCategories requires Excel 2021/365
+        // i.e., dates aren't transformed to Python's datetime in Excel <=2019
+        let categories = item["range"].numberFormatCategories;
+        // Handle dates
+        // https://learn.microsoft.com/en-us/office/dev/scripts/resources/samples/excel-samples#dates
+        values.forEach((valueRow, rowIndex) => {
+          const categoryRow = categories[rowIndex];
+          valueRow.forEach((value, colIndex) => {
+            const category = categoryRow[colIndex];
+            if (
+              (category.toString() === "Date" ||
+                category.toString() === "Time") &&
+              typeof value === "number"
+            ) {
+              values[rowIndex][colIndex] = new Date(
+                Math.round((value - 25569) * 86400 * 1000),
+              ).toISOString();
+            }
+          });
+        });
+      }
+    }
+    // Tables
+    let tablesArray = [];
+    if (!excludeArray.includes(item["sheet"].name)) {
+      const tables = sheet.tables.load([
+        "name",
+        "showHeaders",
+        "dataBodyRange",
+        "showTotals",
+        "style",
+        "showFilterButton",
+      ]);
+      await context.sync();
+      let tablesLoader = [];
+      for (let table of sheet.tables.items) {
+        tablesLoader.push({
+          name: table.name,
+          showHeaders: table.showHeaders,
+          showTotals: table.showTotals,
+          style: table.style,
+          showFilterButton: table.showFilterButton,
+          range: table.getRange().load("address"),
+          dataBodyRange: table.getDataBodyRange().load("address"),
+          headerRowRange: table.showHeaders
+            ? table.getHeaderRowRange().load("address")
+            : null,
+          totalRowRange: table.showTotals
+            ? table.getTotalRowRange().load("address")
+            : null,
+        });
+      }
+      await context.sync();
+      for (let table of tablesLoader) {
+        tablesArray.push({
+          name: table.name,
+          range_address: table.range.address.split("!").pop(),
+          header_row_range_address: table.showHeaders
+            ? table.headerRowRange.address.split("!").pop()
+            : null,
+          data_body_range_address: table.dataBodyRange.address.split("!").pop(),
+          total_row_range_address: table.showTotals
+            ? table.totalRowRange.address.split("!").pop()
+            : null,
+          show_headers: table.showHeaders,
+          show_totals: table.showTotals,
+          table_style: table.style,
+          show_autofilter: table.showFilterButton,
+        });
+      }
+    }
+
+    // Pictures
+    let picturesArray = [];
+    if (!excludeArray.includes(item["sheet"].name)) {
+      const shapes = sheet.shapes.load(["name", "width", "height", "type"]);
+      await context.sync();
+      for (let shape of sheet.shapes.items) {
+        if (shape.type == Excel.ShapeType.image) {
+          picturesArray.push({
+            name: shape.name,
+            height: shape.height,
+            width: shape.width,
+          });
+        }
+      }
+    }
+
+    payload["sheets"].push({
+      name: item["sheet"].name,
+      values: values,
+      pictures: picturesArray,
+      tables: tablesArray,
+    });
+  }
+  return payload;
+}
+
+async function runActions(context, rawData) {
+  const forceSync = ["sheet"];
+  for (let action of rawData["actions"]) {
+    await globalThis.callbacks[action.func](context, action);
+    if (forceSync.some((el) => action.func.toLowerCase().includes(el))) {
+      await context.sync();
     }
   }
 }
