@@ -1,97 +1,12 @@
-"""
-Patched module from jinja2-fragments to make the API the same as the recently changed
-FastAPI/Starlette API
-
-The MIT License (MIT)
-
-Copyright © 2022 Sergi Pons Freixes and the jinja2-fragments contributors
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this
-software and associated documentation files (the “Software”), to deal in the Software
-without restriction, including without limitation the rights to use, copy, modify,
-merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to the following
-conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or
-substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
-PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT
-OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
-"""
+from __future__ import annotations
 
 import typing
 
-try:
-    from starlette.background import BackgroundTask
-    from starlette.requests import Request
-    from starlette.responses import HTMLResponse, Response
-    from starlette.templating import Jinja2Templates, _TemplateResponse
-except ModuleNotFoundError as e:
-    raise ModuleNotFoundError(
-        "Install Starlette to use jinja2_fragments.fastapi"
-    ) from e
-
-from jinja2 import Environment, FileSystemLoader
-from jinja2_fragments import render_block
+from fastapi import Request
+from jinja2_fragments.fastapi import Jinja2Blocks
+from starlette.background import BackgroundTask
 
 from .config import settings
-
-
-class InvalidContextError(Exception):
-    pass
-
-
-class Jinja2Blocks(Jinja2Templates):
-    def __init__(self, directory, **env_options):
-        # Fixed Starlette deprecation warning
-        env = Environment(loader=FileSystemLoader(directory), **env_options)
-        super().__init__(env=env)
-
-    def TemplateResponse(
-        self,
-        request: Request,
-        name: str,
-        context: dict,
-        status_code: int = 200,
-        headers: typing.Optional[typing.Mapping[str, str]] = None,
-        media_type: typing.Optional[str] = None,
-        background: typing.Optional[BackgroundTask] = None,
-        *,
-        block_name: typing.Optional[str] = None,
-    ) -> Response:
-        context["request"] = request
-        template = self.get_template(name)
-
-        if block_name:
-            content = render_block(
-                self.env,
-                name,
-                block_name,
-                context,
-            )
-            return HTMLResponse(
-                content=content,
-                status_code=status_code,
-                headers=headers,
-                media_type=media_type,
-                background=background,
-            )
-        return _TemplateResponse(
-            template,
-            context,
-            status_code=status_code,
-            headers=headers,
-            media_type=media_type,
-            background=background,
-        )
-
-
-# End patched module
 
 templates = Jinja2Blocks(
     directory=settings.base_dir / "templates",
@@ -99,4 +14,28 @@ templates = Jinja2Blocks(
     lstrip_blocks=True,
 )
 
-TemplateResponse = templates.TemplateResponse
+
+# Align with FastAPIs changes to the function signature
+def TemplateResponse(
+    request: Request,
+    name: str,
+    context: dict[str, typing.Any],
+    status_code: int = 200,
+    headers: typing.Mapping[str, str] | None = None,
+    media_type: str | None = None,
+    background: BackgroundTask | None = None,
+    block_names: str | list[str] | None = None,
+    **kwargs: typing.Any,
+):
+    context["request"] = request
+    return templates.TemplateResponse(
+        name,
+        context,
+        status_code,
+        headers,
+        media_type,
+        background,
+        block_name=block_names if isinstance(block_names, str) else None,
+        block_names=block_names if isinstance(block_names, list) else [],
+        **kwargs,
+    )
