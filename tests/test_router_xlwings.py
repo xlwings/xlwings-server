@@ -19,7 +19,7 @@ def test_get_alert():
         in response.text
     )
     assert '<h1 class="pt-4">Error</h1>' in response.text
-    assert "<p>Exception('test')</p>" in response.text
+    assert "<p>Exception(&#39;test&#39;)</p>" in response.text
 
     # Check script tag
     soup = BeautifulSoup(response.text, "html.parser")
