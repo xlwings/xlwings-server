@@ -30,6 +30,7 @@ RUN xlwings license update -k $(xlwings license deploy) || true
 COPY ./scripts/build_static_files.py ./scripts/build_static_files.py
 COPY ./app /project/app
 
+# Cache busting: add content hashes to the static file names
 RUN python ./scripts/build_static_files.py
 
 EXPOSE 8000

@@ -14,6 +14,16 @@ static_dir = this_dir.parent / "app" / "static"
 templates_dir = this_dir.parent / "app" / "templates"
 
 
+def replace_in_files(
+    directory: Path, pattern: str, old_text: str, new_text: str, excluded_dirs: list
+):
+    for file_path in directory.rglob(pattern):
+        if not any(excluded_dir in file_path.parts for excluded_dir in excluded_dirs):
+            contents = file_path.read_text()
+            new_contents = contents.replace(old_text, new_text)
+            file_path.write_text(new_contents)
+
+
 for source_path in static_dir.rglob("*"):
     if (
         source_path.is_file()
@@ -29,7 +39,8 @@ for source_path in static_dir.rglob("*"):
         new_filename = f"{source_path.stem}.{digest}{source_path.suffix}"
         new_path = source_path.with_name(new_filename)
         source_path.rename(new_path)
-        for html_path in templates_dir.rglob("*.html"):
-            contents = html_path.read_text()
-            new_contents = contents.replace(source_path.name, new_filename)
-            html_path.write_text(new_contents)
+
+        replace_in_files(templates_dir, "*.html", source_path.name, new_filename, [])
+        replace_in_files(
+            static_dir, "*.js", source_path.name, new_filename, excluded_dirs=["vendor"]
+        )

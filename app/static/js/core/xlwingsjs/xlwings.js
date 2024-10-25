@@ -1,4 +1,3 @@
-// TODO; use script/json tag instead of data-div
 import { xlAlert } from "./alert.js";
 import { getAccessToken } from "./auth.js";
 export { getAccessToken };
