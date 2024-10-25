@@ -24,10 +24,20 @@ async def form_example(request: Request, book: dep.Book, name: str = Form(None))
         error = None
     greeting = custom_functions.hello(name)
 
-    last_row = book.sheets.active["A1"].expand("down").last_cell.row
+    sheet = book.sheets.active
+    if not sheet["A1"].value:
+        last_row = 0
+    else:
+        last_row = sheet["A1"].expand("down").last_cell.row
     book.sheets.active[last_row, 0].value = name
     return TemplateResponse(
         request=request,
-        name="/examples/htmx_form/_greeting.html",
-        context={"greeting": greeting, "error": error, "book": book},
+        name="/examples/htmx_form/taskpane_htmx_form.html",
+        context={
+            "settings": settings,
+            "greeting": greeting,
+            "error": error,
+            "book": book,
+        },
+        block_names="content",
     )
