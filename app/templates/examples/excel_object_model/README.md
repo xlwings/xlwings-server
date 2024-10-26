@@ -7,7 +7,7 @@ To try it out, replace `app/routers/taskpane.py` with the following code:
 ```python
 from fastapi import APIRouter, Form, Request
 
-from .. import custom_functions, dependencies as dep
+from .. import dependencies as dep
 from ..config import settings
 from ..templates import TemplateResponse
 
@@ -33,8 +33,8 @@ async def form_example(request: Request, book: dep.Book, name: str = Form(None))
 
     # Excel manipulations
     sheet = book.sheets.active
-    last_row = sheet["A1"].end("down").row if sheet.range("A1").value else 0
-    book.sheets.active[last_row, 0].value = name
+    row_ix = sheet["A1"].end("down").row if sheet.range("A1").value else 0
+    book.sheets.active[row_ix, 0].value = name
 
     # Include your book object as "book" in the context
     return TemplateResponse(
