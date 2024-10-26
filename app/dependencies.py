@@ -5,7 +5,7 @@ from typing import Annotated, Optional, Union
 
 import redis
 import xlwings as xw
-from fastapi import Body, Depends, Form, Header, HTTPException, status
+from fastapi import Depends, Form, Header, HTTPException, Request, status
 
 from . import models
 from .config import settings
@@ -16,15 +16,18 @@ logger = logging.getLogger(__name__)
 
 # Book
 async def parse_book_input(
+    request: Request,
     form_data: Optional[str] = Form(None, alias="bookData"),
-    body_data: Optional[dict] = Body(None),
 ) -> dict:
     """Helper dependency to parse either form data (htmx)
-    or body (custom scripts & custom functions)"""
+    or body (custom scripts & custom functions) -- couldn't make Body() work"""
     if form_data:
         return json.loads(form_data)
-    elif body_data:
-        return body_data["data"]
+    else:
+        body_bytes = await request.body()
+        if body_bytes:
+            body_str = body_bytes.decode("utf-8")
+            return json.loads(body_str)
     raise HTTPException(status_code=400, detail="No book data provided")
 
 

@@ -64,7 +64,7 @@ const xlwingsVersion = JSON.parse(
   document.getElementById("xlwings-version").text,
 );
 const version = xlwingsVersion.xlwingsVersion;
-// const version = "0.33.3"
+
 globalThis.callbacks = {};
 export async function runPython(
   url = "",
