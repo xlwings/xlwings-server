@@ -38,6 +38,7 @@ class StaticFileHasher:
             "fonts/",
             "vendor/@microsoft/office-js/dist/",
             "images/ribbon/",
+            "custom-functions-code.js",
         }
 
         path_str = str(path)

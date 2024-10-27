@@ -2,6 +2,7 @@ import contextvars
 import inspect
 import json
 import logging
+from textwrap import dedent
 from typing import Optional
 
 import xlwings as xw
@@ -46,11 +47,29 @@ async def custom_functions_meta():
 
 @router.get("/custom-functions-code")
 async def custom_functions_code():
+    custom_functions_call_path = f"{settings.app_path}/xlwings/custom-functions-call"
+    js = (settings.static_dir / "js" / "core" / "custom-functions-code.js").read_text()
+    # format string would require to double all curly braces
+    js = js.replace("placeholder_xlwings_version", xw.__version__).replace(
+        "placeholder_custom_functions_call_path", custom_functions_call_path
+    )
+    for name, obj in inspect.getmembers(custom_functions):
+        if hasattr(obj, "__xlfunc__"):
+            xlfunc = obj.__xlfunc__
+            func_name = xlfunc["name"]
+            streaming = "true" if inspect.isasyncgenfunction(obj) else "false"
+            js += dedent(
+                f"""\
+            async function {func_name}() {{
+                let args = ["{func_name}", {streaming}]
+                args.push.apply(args, arguments);
+                return await base.apply(null, args);
+            }}
+            CustomFunctions.associate("{func_name.upper()}", {func_name});
+            """
+            )
     return Response(
-        content=xlwings.server.custom_functions_code(
-            custom_functions,
-            custom_functions_call_path=f"{settings.app_path}/xlwings/custom-functions-call",
-        ),
+        content=js,
         media_type="text/javascript",
     )
 
