@@ -52,6 +52,39 @@ Office.onReady(function (info) {
   contentLanguage = Office.context.contentLanguage;
 });
 
+function flattenVarargsArray(arr) {
+  // Turn [ [[0]], [ [[0]], [[0]] ] ] into:
+  // result: [ [[0]], [[0]], [[0]] ]
+  // indices: [ [ 0 ], [ 1, 0 ], [ 1, 1 ] ]
+  const result = [];
+  const indices = [];
+
+  function isTripleNested(item) {
+    return (
+      Array.isArray(item) && Array.isArray(item[0]) && Array.isArray(item[0][0])
+    );
+  }
+
+  for (let i = 0; i < arr.length; i++) {
+    const item = arr[i];
+
+    if (isTripleNested(item)) {
+      result.push(...item);
+      for (let j = 0; j < item.length; j++) {
+        indices.push([i, j]);
+      }
+    } else {
+      result.push(item);
+      indices.push([i]);
+    }
+  }
+
+  return {
+    result,
+    indices,
+  };
+}
+
 // Workbook name
 let cachedWorkbookName = null;
 
@@ -106,11 +139,25 @@ async function base() {
   const workbookName = await getWorkbookName();
   const officeApiClient = localStorage.getItem("Office API client");
 
-  // For arguments that are Entities, replace the arg with their address (cache key)
-  args.forEach((arg, index) => {
-    if (arg && arg[0] && arg[0][0] && arg[0][0].type === "Entity") {
+  // For arguments that are Entities, replace the arg with their address (cache key).
+  // The issues is that invocation.parameterAddresses returns a flat list while args
+  // contains a nested array for varargs (in Office.js called 'repeating').
+  const { result: flatArgs, indices } = flattenVarargsArray(args);
+
+  // Process each flattened item with respect to its path
+  flatArgs.forEach((item, index) => {
+    if (item && item[0][0]?.type === "Entity") {
       const address = `${officeApiClient}[${workbookName}]${invocation.parameterAddresses[index]}`;
-      args[index] = address;
+
+      let target = args;
+      const path = indices[index];
+
+      for (let i = 0; i < path.length - 1; i++) {
+        target = target[path[i]];
+      }
+
+      const lastIndex = path[path.length - 1];
+      target[lastIndex] = [address];
     }
   });
 
