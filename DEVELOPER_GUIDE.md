@@ -70,6 +70,6 @@ python scripts/copy_node_modules_to_static_folder.py
 
 to copy over the files to the static folder.
 
-## Upgrading xlwings
+## CSP header
 
-Upgrading xlwings requires to upgrade both the python and the npm package.
+To use the most restrictive CSP header, set `XLWINGS_ENABLE_EXCEL_ONLINE=false` for local development.
