@@ -29,13 +29,10 @@ async def taskpane(request: Request):
     )
 
 
-@router.post("/form-example")
-async def form_example(request: Request, name: str = Form(None)):
-    if name == "":
-        error = "Please provide a name!"
-    else:
-        error = None
-    greeting = custom_functions.hello(name)
+@router.post("/hello")
+async def hello(request: Request, fullname: str = Form()):
+    error = "Please provide a name!" if not fullname else None
+    greeting = custom_functions.hello(fullname)
     return TemplateResponse(
         request=request,
         name="/examples/htmx_form/_greeting.html",
