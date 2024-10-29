@@ -4,4 +4,5 @@
 :maxdepth: 1
 
 taskpane_intro
+htmx
 ```

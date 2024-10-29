@@ -10,5 +10,12 @@ module.exports = {
         bracketSameLine: true,
       },
     },
+    {
+      files: ["*.md"],
+      options: {
+        // Didn't find a way to make printWidth apply to code blocks inside md files
+        embeddedLanguageFormatting: "off",
+      },
+    },
   ],
 };

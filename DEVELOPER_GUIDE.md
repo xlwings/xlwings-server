@@ -73,3 +73,7 @@ to copy over the files to the static folder.
 ## CSP header
 
 To use the most restrictive CSP header, set `XLWINGS_ENABLE_EXCEL_ONLINE=false` for local development.
+
+## Prettier
+
+The VS Code extension prettier requires to set the configuration to `.prettierrc.js` explicitly.
