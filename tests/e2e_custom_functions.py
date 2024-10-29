@@ -944,3 +944,9 @@ def varargs_with_object_handles(x, *args: object):
     r3 = frame_equal(args[0], df)
     r4 = frame_equal(args[1], df)
     return r1 and r2 and r3 and r4
+
+
+@func(required_roles=["test"])
+def required_roles():
+    # Has to return an error cell
+    return True
