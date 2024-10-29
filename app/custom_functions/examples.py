@@ -4,6 +4,8 @@ from .example import *
 """
 
 import asyncio
+import sys
+from pathlib import Path
 from typing import Annotated
 
 import numpy as np
@@ -12,7 +14,7 @@ from xlwings.constants import ObjectHandleIcons
 from xlwings.ext.sql import _sql
 from xlwings.server import arg, func, ret
 
-from .. import custom_scripts, utils
+from .. import custom_scripts, settings, utils
 from ..models import CurrentUser
 
 
@@ -159,3 +161,9 @@ async def hello_with_script(name):
     """This function triggers a custom script, requires XLWINGS_ENABLE_SOCKETIO=true"""
     await utils.trigger_script(custom_scripts.hello_world, exclude="MySheet")
     return f"Hello {name}!"
+
+
+# Unit tests
+if settings.enable_tests:
+    sys.path.append(str(Path(__file__).parent.parent.resolve()))
+    from tests.e2e_custom_functions import *

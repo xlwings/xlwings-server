@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     enable_excel_online: bool = True
     enable_htmx: bool = True
     enable_socketio: bool = True
+    enable_tests: bool = False
     environment: Literal["dev", "qa", "uat", "staging", "prod"] = "prod"
     functions_namespace: str = "XLWINGS"
     hostname: Optional[str] = None
