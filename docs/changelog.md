@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.7.0 (Oct 29, 2024)
+
+- The task pane can now interact with the Excel object model via htmx, see the [docs](https://server.xlwings.org/en/latest/htmx/).
+- Added a favicon to silence an error in the dev tools console (Windows).
+- Tests now additionally run with Python 3.13.
+- Moved Office.js JavaScript code from xlwings to xlwings-server.
+- Bug fix: Object handles now also work with varargs.
+- Upgraded dependencies.
+
 ## 0.6.3 (Oct 23, 2024)
 
 - Bug fix: Fixed Jinja templates rendering to ensure content escaping.
