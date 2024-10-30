@@ -6,7 +6,7 @@ from fastapi import APIRouter, Header, Request
 from ..config import settings
 from ..templates import TemplateResponse
 
-router = APIRouter()
+router = APIRouter(prefix=settings.app_path)
 
 logger = logging.getLogger(__name__)
 

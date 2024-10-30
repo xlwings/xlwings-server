@@ -78,7 +78,7 @@ export async function xlAlert(prompt, title, buttons, mode, callback) {
   }
   Office.context.ui.displayDialogAsync(
     window.location.origin +
-      (appPath && appPath.appPath !== "" ? `/${appPath.appPath}` : "") +
+      (appPath && appPath.appPath !== "" ? `${appPath.appPath}` : "") +
       `/xlwings/alert?prompt=` +
       encodeURIComponent(`${prompt}`) +
       `&title=` +
