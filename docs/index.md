@@ -95,6 +95,7 @@ index_hosting
 
 changelog
 limitations
+troubleshooting
 alternatives
 license
 ```
