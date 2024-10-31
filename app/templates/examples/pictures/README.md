@@ -8,7 +8,7 @@ To try it out, replace `app/routers/taskpane.py` with the following code:
 ```python
 from fastapi import APIRouter, Form, Request
 
-from ..config import settings
+from .. import settings
 from ..templates import TemplateResponse
 
 router = APIRouter()
@@ -23,7 +23,7 @@ async def taskpane(request: Request):
     return TemplateResponse(
         request=request,
         name="/examples/pictures/taskpane_pictures.html",
-        context={"settings": settings, "picture_names": picture_names},
+        context={"picture_names": picture_names},
     )
 
 
@@ -32,7 +32,7 @@ async def picture(request: Request, picture_name: str = Form(None)):
     return TemplateResponse(
         request=request,
         name="/examples/pictures/_picture.html",
-        context={"settings": settings, "picture_name": picture_name},
+        context={"picture_name": picture_name},
     )
 ```
 

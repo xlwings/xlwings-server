@@ -8,7 +8,6 @@ To try it out, replace `app/routers/taskpane.py` with the following code:
 from fastapi import APIRouter, Form, Request
 
 from .. import dependencies as dep
-from ..config import settings
 from ..templates import TemplateResponse
 
 router = APIRouter()
@@ -19,21 +18,17 @@ async def taskpane(request: Request):
     return TemplateResponse(
         request=request,
         name="/examples/excel_object_model/add_name_form.html",
-        context={"settings": settings},
     )
 
 
 @router.post("/name")
-async def form_example(request: Request, book: dep.Book, name: str = Form(None)):
+async def name(request: Request, book: dep.Book, name: str = Form(None)):
     # Error handling
-    if name == "":
-        error = "Please provide a name!"
-    else:
-        error = None
+    error = "Please provide a name!" if name == "" else None
 
     # Excel manipulations
     sheet = book.sheets.active
-    row_ix = sheet["A1"].end("down").row if sheet.range("A1").value else 0
+    row_ix = sheet["A1"].end("down").row if sheet["A1"].value else 0
     book.sheets.active[row_ix, 0].value = name
 
     # Include your book object as "book" in the context
@@ -41,7 +36,6 @@ async def form_example(request: Request, book: dep.Book, name: str = Form(None))
         request=request,
         name="/examples/excel_object_model/add_name_form.html",
         context={
-            "settings": settings,
             "error": error,
             "book": book,
         },

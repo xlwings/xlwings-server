@@ -7,7 +7,6 @@ To try it out, replace `app/routers/taskpane.py` with the following code:
 ```python
 from fastapi import APIRouter, Request
 
-from ..config import settings
 from ..templates import TemplateResponse
 
 router = APIRouter()
@@ -25,7 +24,6 @@ async def taskpane(request: Request, app: str = None):
     return TemplateResponse(
         request=request,
         name=template,
-        context={"settings": settings},
     )
 ```
 
