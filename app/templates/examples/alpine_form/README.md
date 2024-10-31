@@ -16,7 +16,7 @@ router = APIRouter()
 async def taskpane(request: Request):
     return TemplateResponse(
         request=request,
-        name="/examples/alpine_form/taskpane_form.html",
+        name="examples/alpine_form/taskpane_form.html",
     )
 ```
 

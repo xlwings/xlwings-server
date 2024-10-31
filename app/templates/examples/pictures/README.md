@@ -22,7 +22,7 @@ async def taskpane(request: Request):
         picture_names.append(path.name)
     return TemplateResponse(
         request=request,
-        name="/examples/pictures/taskpane_pictures.html",
+        name="examples/pictures/taskpane_pictures.html",
         context={"picture_names": picture_names},
     )
 
@@ -31,7 +31,7 @@ async def taskpane(request: Request):
 async def picture(request: Request, picture_name: str = Form(None)):
     return TemplateResponse(
         request=request,
-        name="/examples/pictures/_picture.html",
+        name="examples/pictures/_picture.html",
         context={"picture_name": picture_name},
     )
 ```

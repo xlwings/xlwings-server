@@ -17,7 +17,7 @@ router = APIRouter()
 async def taskpane(request: Request, page: str = "one"):
     return TemplateResponse(
         request=request,
-        name=f"/examples/navigation/taskpane_{page}.html",
+        name=f"examples/navigation/taskpane_{page}.html",
         context={"page": page},
     )
 

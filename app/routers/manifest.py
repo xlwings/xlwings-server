@@ -45,7 +45,7 @@ async def manifest(
 
     return TemplateResponse(
         request=request,
-        name="/manifest.xml",
+        name="manifest.xml",
         context={
             "settings": settings,
             "base_url": base_url,

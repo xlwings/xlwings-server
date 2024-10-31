@@ -19,7 +19,7 @@ router = APIRouter()
 async def taskpane(request: Request):
     return TemplateResponse(
         request=request,
-        name="/examples/auth/public.html",
+        name="examples/auth/public.html",
     )
 
 
@@ -27,7 +27,7 @@ async def taskpane(request: Request):
 async def taskpane_protected(request: Request, current_user: dep.User):
     return TemplateResponse(
         request=request,
-        name="/examples/auth/protected.html",
+        name="examples/auth/protected.html",
         context={"current_user": current_user},
     )
 ```

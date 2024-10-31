@@ -8,5 +8,5 @@ router = APIRouter()
 @router.get("/taskpane")
 async def taskpane(request: Request):
     return TemplateResponse(
-        request=request, name="/examples/hello_world/taskpane_hello.html"
+        request=request, name="examples/hello_world/taskpane_hello.html"
     )

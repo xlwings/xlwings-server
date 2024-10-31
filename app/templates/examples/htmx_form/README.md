@@ -23,7 +23,7 @@ router = APIRouter()
 async def taskpane(request: Request):
     return TemplateResponse(
         request=request,
-        name="/examples/htmx_form/taskpane_htmx_form.html",
+        name="examples/htmx_form/taskpane_htmx_form.html",
     )
 
 
@@ -33,7 +33,7 @@ async def hello(request: Request, fullname: str = Form()):
     greeting = custom_functions.hello(fullname)
     return TemplateResponse(
         request=request,
-        name="/examples/htmx_form/_greeting.html",
+        name="examples/htmx_form/_greeting.html",
         context={"greeting": greeting, "error": error},
     )
 ```

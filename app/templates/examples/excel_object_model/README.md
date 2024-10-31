@@ -17,7 +17,7 @@ router = APIRouter()
 async def taskpane(request: Request):
     return TemplateResponse(
         request=request,
-        name="/examples/excel_object_model/add_name_form.html",
+        name="examples/excel_object_model/add_name_form.html",
     )
 
 
@@ -34,7 +34,7 @@ async def name(request: Request, book: dep.Book, name: str = Form(None)):
     # Include your book object as "book" in the context
     return TemplateResponse(
         request=request,
-        name="/examples/excel_object_model/add_name_form.html",
+        name="examples/excel_object_model/add_name_form.html",
         context={
             "error": error,
             "book": book,
