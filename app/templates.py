@@ -19,7 +19,7 @@ templates = Jinja2Blocks(
 def TemplateResponse(
     request: Request,
     name: str,
-    context: dict[str, typing.Any],
+    context: dict[str, typing.Any] | None = None,
     status_code: int = 200,
     headers: typing.Mapping[str, str] | None = None,
     media_type: str | None = None,
@@ -27,7 +27,10 @@ def TemplateResponse(
     block_names: str | list[str] | None = None,
     **kwargs: typing.Any,
 ):
+    if context is None:
+        context = {}
     context["request"] = request
+    context["settings"] = settings
     return templates.TemplateResponse(
         name,
         context,

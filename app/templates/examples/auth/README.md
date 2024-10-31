@@ -10,7 +10,6 @@ To try it out, replace `app/routers/taskpane.py` with the following code:
 from fastapi import APIRouter, Request
 
 from .. import dependencies as dep
-from ..config import settings
 from ..templates import TemplateResponse
 
 router = APIRouter()
@@ -21,7 +20,6 @@ async def taskpane(request: Request):
     return TemplateResponse(
         request=request,
         name="/examples/auth/public.html",
-        context={"settings": settings},
     )
 
 
@@ -30,7 +28,7 @@ async def taskpane_protected(request: Request, current_user: dep.User):
     return TemplateResponse(
         request=request,
         name="/examples/auth/protected.html",
-        context={"current_user": current_user, "settings": settings},
+        context={"current_user": current_user},
     )
 ```
 
