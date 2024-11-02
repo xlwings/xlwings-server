@@ -1,13 +1,33 @@
 const nameForm = {
   firstName: "",
   lastName: "",
-  fullName: "",
+  fullName: "(empty)",
   handleInput(event) {
-    this[event.target.id] = event.target.value;
-    this.fullName = `${this.firstName} ${this.lastName}`;
+    this[event.target.name] = event.target.value;
+    const fullName = `${this.firstName} ${this.lastName}`.trim();
+    this.fullName = !this.firstName && !this.lastName ? "(empty)" : fullName;
   },
 };
 registerAlpineComponent("nameForm", nameForm);
+
+const visibility = {
+  open: false,
+  label: "Show",
+
+  toggle(event) {
+    this.open = !this.open;
+    this.label = this.open ? "Hide" : "Show";
+  },
+};
+registerAlpineComponent("visibility", visibility);
+
+const slider = {
+  percentage: 50,
+  update(event) {
+    this.percentage = event.target.value;
+  },
+};
+registerAlpineComponent("slider", slider);
 
 const appLoader = {
   url: "",

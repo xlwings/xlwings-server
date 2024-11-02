@@ -1,32 +1,50 @@
 {% extends "base.html" %}
 
 {% block content %}
-  <div x-data="nameForm" class="container mt-4">
-    <form>
-      <div class="mb-3">
-        <label for="firstName" class="form-label">First Name</label>
-        <input
-          id="firstName"
-          type="text"
-          class="form-control"
-          :value="firstName"
-          @input="handleInput"
-          autocorrect="off" />
-      </div>
+  <div class="container-fluid pt-3 ps-3">
+    <h1>1. Names</h1>
+    <p>Concatenate the first and last name as you type.</p>
+    <div x-data="nameForm">
+      <form>
+        <div class="mb-3">
+          <label for="firstName" class="form-label">First Name</label>
+          <input
+            name="firstName"
+            type="text"
+            class="form-control"
+            :value="firstName"
+            @input="handleInput"
+            autocorrect="off" />
+        </div>
 
-      <div class="mb-3">
-        <label for="lastName" class="form-label">Last Name</label>
-        <input
-          id="lastName"
-          type="text"
-          class="form-control"
-          :value="lastName"
-          @input="handleInput"
-          autocorrect="off" />
-      </div>
+        <div class="mb-3">
+          <label for="lastName" class="form-label">Last Name</label>
+          <input
+            name="lastName"
+            type="text"
+            class="form-control"
+            :value="lastName"
+            @input="handleInput"
+            autocorrect="off" />
+        </div>
 
-      <p>Full Name</p>
-      <div x-text="fullName"></div>
-    </form>
+        <p>Full Name</p>
+        <p x-text="fullName"></p>
+      </form>
+    </div>
+
+    <h1 class="mt-4">2. Visibility</h1>
+    <p>Show/hide an element. You can also click outside of the button to hide again.</p>
+    <div x-data="visibility">
+      <button @click="toggle" class="btn btn-primary" x-text="label"></button>
+      <span class="ms-4" x-show="open">The Magic of Alpine.js!</span>
+    </div>
+
+    <h1 class="mt-4">3. Slider</h1>
+    <p>You can change the values either on the slider or as number and the other control will move in sync.</p>
+    <div x-data="slider" class="mt-4">
+      <input type="range" min="0" max="100" class="form-range" :value="percentage" @input="update" />
+      <input type="number" min="0" max="100" class="form-control mt-2" :value="percentage" @input="update" />
+    </div>
   </div>
 {% endblock content %}
