@@ -1,15 +1,3 @@
-const nameForm = {
-  firstName: "",
-  lastName: "",
-  fullName: "(empty)",
-  handleInput(event) {
-    this[event.target.name] = event.target.value;
-    const fullName = `${this.firstName} ${this.lastName}`.trim();
-    this.fullName = !this.firstName && !this.lastName ? "(empty)" : fullName;
-  },
-};
-registerAlpineComponent("nameForm", nameForm);
-
 const visibility = {
   open: false,
   label: "Show",
@@ -28,6 +16,18 @@ const slider = {
   },
 };
 registerAlpineComponent("slider", slider);
+
+const nameForm = {
+  firstName: "",
+  lastName: "",
+  fullName: "(empty)",
+  handleInput(event) {
+    this[event.target.name] = event.target.value;
+    const fullName = `${this.firstName} ${this.lastName}`;
+    this.fullName = !this.firstName && !this.lastName ? "(empty)" : fullName;
+  },
+};
+registerAlpineComponent("nameForm", nameForm);
 
 const appLoader = {
   url: "",
