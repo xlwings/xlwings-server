@@ -2,12 +2,7 @@
 
 ## Supported Versions
 
-The following versions of `xlwings-server` are actively maintained and supported with security patches:
-
-| Version      | Supported          |
-| ------------ | ------------------ |
-| latest       | ✅                 |
-| older        | ❌                 |
+Only the latest version of `xlwings-server` is actively maintained and supported with security patches.
 
 If you are using an unsupported version, we recommend upgrading to a supported release to receive security updates.
 
@@ -16,7 +11,7 @@ If you are using an unsupported version, we recommend upgrading to a supported r
 If you believe you have found a security vulnerability in `xlwings-server`, we appreciate your efforts to responsibly disclose the details. To report a vulnerability:
 
 1. **Do not open an issue:** Please avoid publicly disclosing security-related information by opening a GitHub issue. This helps us prevent potential malicious exploitation.
-  
+
 2. **Contact our security team:** Send a detailed report of the vulnerability to our security team via [info@zoomeranalytics.com](mailto:info@zoomeranalytics.com).
 
 3. **Include the following in your report:**
