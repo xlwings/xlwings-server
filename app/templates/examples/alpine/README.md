@@ -1,6 +1,6 @@
-# Alpine.js form sample
+# Alpine.js sample
 
-When you type in a name in the `First Name` and `Last Name` form fields, Alpine.js will live-update the `Full Name`.
+This example demonstrates a few common Alpine.js features. They are explained on the task pane itself.
 
 To try it out, replace `app/routers/taskpane.py` with the following code:
 
@@ -16,7 +16,7 @@ router = APIRouter()
 async def taskpane(request: Request):
     return TemplateResponse(
         request=request,
-        name="examples/alpine_form/taskpane_form.html",
+        name="examples/alpine/taskpane.html",
     )
 ```
 

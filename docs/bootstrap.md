@@ -1,6 +1,6 @@
 # Bootstrap
 
-xlwings Server uses Bootstrap 5 as its UI (user interface) toolkit. Bootstrap is responsible for making fonts, buttons, etc. look beautiful across different browsers, operating systems, and screen sizes. It also offers a range of useful components, such as navbars, dropdowns and many more.
+By default, xlwings Server uses Bootstrap 5 as its UI (user interface) toolkit. Bootstrap is responsible for making fonts, buttons, etc. look beautiful across different browsers and operating systems. It also offers a range of useful components, such as navbars, dropdowns and many more.
 
 It is _responsive_, which means that it can adopt to different screen sizes by rearranging components or by changing the size of pictures. This is useful as the task pane can be extended to cover half of Excel's grid.
 
@@ -22,7 +22,16 @@ To get a deeper understanding of Bootstrap, have a look at the following topics:
 - [Grid](https://getbootstrap.com/docs/5.3/layout/grid/)
 - Bootstrap is based on flexbox. Understanding it will help you position your components correctly on the screen. You can get an introduction on [mdn web doc](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_flexible_box_layout/Basic_concepts_of_flexbox) before having a look at the [Bootstrap-specific docs](https://getbootstrap.com/docs/5.3/utilities/flex/).
 
+## Alternatives
+
+- [Pico CSS](https://picocss.com/)
+- [Bulma](https://bulma.io/)
+- [Tailwind CSS](https://tailwindcss.com/)
+
+For more options, see [Awesome CSS Frameworks](https://github.com/troxler/awesome-css-frameworks).
+
 ## References
 
 - [Bootstrap Homepage](https://getbootstrap.com/)
 - [Boostrap Docs](https://getbootstrap.com/docs)
+- [Bootstrap-xlwings](https://github.com/xlwings/bootstrap-xlwings)

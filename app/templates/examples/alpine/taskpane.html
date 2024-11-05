@@ -5,8 +5,8 @@
     <h1 class="mt-4">1. Visibility</h1>
     <p>Show and hide an element.</p>
     <div x-data="visibility">
-      <button @click="toggle" class="btn btn-primary w-25" x-text="label"></button>
-      <span class="ms-4" x-show="open">The Magic of Alpine.js!</span>
+      <button @click="toggle" class="btn btn-primary w-25" x-text="label" x-init="testinit"></button>
+      <span class="ms-4" x-show="isOpen">The Magic of Alpine.js!</span>
     </div>
 
     <h1 class="mt-4">2. Slider</h1>
@@ -17,7 +17,10 @@
     </div>
 
     <h1>3. Names</h1>
-    <p>Concatenate the first and last name as you type.</p>
+    <p>
+      Concatenates the first and last name as you type. You can activate the First Name input box via the
+      <code>/</code> keyboard shortcut.
+    </p>
     <div x-data="nameForm">
       <form>
         <div class="mb-3">
@@ -28,6 +31,7 @@
             class="form-control"
             :value="firstName"
             @input="handleInput"
+            @keydown.window.slash.prevent="focus"
             autocorrect="off" />
         </div>
 

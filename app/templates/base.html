@@ -32,7 +32,7 @@
       <script type="module" src="{{ settings.static_url_path }}/js/core/xlwingsjs/alert.js" defer></script>
       {# Alpine.js CSP boilerplate (must come before custom JS, which must come before alpinejs library) #}
       {% if settings.enable_alpinejs_csp %}
-        <script src="{{ settings.static_url_path }}/js/core/alpinejs-csp-boilerplate.js" defer></script>
+        <script src="{{ settings.static_url_path }}/js/core/alpinejs-csp-boilerplate.js"></script>
       {% endif %}
       {# JS Config #}
       <!-- prettier-ignore-start -->
