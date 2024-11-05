@@ -20,7 +20,9 @@ extensions = [
 ]
 
 templates_path = ["_templates"]
+html_css_files = ["custom.css"]
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
+
 
 myst_heading_anchors = 3
 myst_enable_extensions = ["colon_fence", "linkify"]

@@ -29,7 +29,6 @@
             name="firstName"
             type="text"
             class="form-control"
-            :value="firstName"
             @input="handleInput"
             @keydown.window.slash.prevent="focus"
             autocorrect="off" />
@@ -37,13 +36,7 @@
 
         <div class="mb-3">
           <label for="lastName" class="form-label">Last Name</label>
-          <input
-            name="lastName"
-            type="text"
-            class="form-control"
-            :value="lastName"
-            @input="handleInput"
-            autocorrect="off" />
+          <input name="lastName" type="text" class="form-control" @input="handleInput" autocorrect="off" />
         </div>
 
         <p>Full Name</p>
