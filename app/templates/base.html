@@ -74,13 +74,14 @@
       {% if settings.environment == "dev" and settings.enable_socketio %}
         <script src="{{ settings.static_url_path }}/js/core/hotreload.js" defer></script>
       {% endif %}
+      {% block extra_head %}
+        {# This allows to selectively load Alpine.js components #}
+      {% endblock extra_head %}
       {# Alpine.js CSP build (must come after alpinejs-csp-boilerplate.js and custom code such as main.js) #}
       {% if settings.enable_alpinejs_csp %}
         <script src="{{ settings.static_url_path }}/vendor/@alpinejs/csp/dist/cdn.min.js" defer></script>
       {% endif %}
     {% endblock head %}
-    {% block extra_head %}
-    {% endblock extra_head %}
   </head>
 
   <body hx-ext="head-support">
