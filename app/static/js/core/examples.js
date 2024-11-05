@@ -1,10 +1,32 @@
+const visibility = {
+  isOpen: false,
+  label: "Show",
+  toggle() {
+    this.isOpen = !this.isOpen;
+    this.label = this.isOpen ? "Hide" : "Show";
+  },
+};
+registerAlpineComponent("visibility", visibility);
+
+const slider = {
+  percentage: 50,
+  update() {
+    this.percentage = this.$el.value;
+  },
+};
+registerAlpineComponent("slider", slider);
+
 const nameForm = {
   firstName: "",
   lastName: "",
-  fullName: "",
-  handleInput(event) {
-    this[event.target.id] = event.target.value;
-    this.fullName = `${this.firstName} ${this.lastName}`;
+  fullName: "(empty)",
+  focus() {
+    this.$el.focus();
+  },
+  handleInput() {
+    this[this.$el.name] = this.$el.value;
+    const fullName = `${this.firstName} ${this.lastName}`;
+    this.fullName = !this.firstName && !this.lastName ? "(empty)" : fullName;
   },
 };
 registerAlpineComponent("nameForm", nameForm);

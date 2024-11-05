@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="container-fluid ps-3">
+    <h1 class="mt-4">1. Visibility</h1>
+    <p>Show and hide an element.</p>
+    <div x-data="visibility">
+      <button @click="toggle" class="btn btn-primary w-25" x-text="label"></button>
+      <span class="ms-4" x-show="isOpen">The Magic of Alpine.js!</span>
+    </div>
+
+    <h1 class="mt-4">2. Slider</h1>
+    <p>You can change the values either on the slider or as number and the other control will move in sync.</p>
+    <div x-data="slider" class="mt-4 mb-4">
+      <input type="range" min="0" max="100" class="form-range" :value="percentage" @input="update" />
+      <input type="number" min="0" max="100" class="form-control mt-2" :value="percentage" @input="update" />
+    </div>
+
+    <h1>3. Names</h1>
+    <p>
+      Concatenates the first and last name as you type. You can activate the First Name input box via the
+      <code>/</code> keyboard shortcut.
+    </p>
+    <div x-data="nameForm">
+      <form>
+        <div class="mb-3">
+          <label for="firstName" class="form-label">First Name</label>
+          <input
+            name="firstName"
+            type="text"
+            class="form-control"
+            @input="handleInput"
+            @keydown.window.slash.prevent="focus"
+            autocorrect="off" />
+        </div>
+
+        <div class="mb-3">
+          <label for="lastName" class="form-label">Last Name</label>
+          <input name="lastName" type="text" class="form-control" @input="handleInput" autocorrect="off" />
+        </div>
+
+        <p>Full Name</p>
+        <p x-text="fullName"></p>
+      </form>
+    </div>
+  </div>
+{% endblock content %}

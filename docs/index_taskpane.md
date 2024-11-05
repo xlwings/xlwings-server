@@ -4,5 +4,8 @@
 :maxdepth: 1
 
 taskpane_intro
+jinja
+bootstrap
 htmx
+alpinejs
 ```

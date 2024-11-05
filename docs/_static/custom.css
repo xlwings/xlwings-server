@@ -1,0 +1,10 @@
+/* This fixes Alpine.js syntax such as "@" that would otherwise be highlighted in red */
+.highlight .err {
+  color: inherit !important;
+  border: none !important;
+}
+
+body[data-theme="dark"] .highlight .err {
+  color: inherit !important;
+  background-color: transparent !important;
+}

@@ -16,6 +16,12 @@
   transition: opacity 200ms ease-in;
 }
 
+/* Alpine.js */
+[x-cloak] {
+  /* https://alpinejs.dev/directives/cloak */
+  display: none !important;
+}
+
 /* Custom */
 .z-index-1000 {
   z-index: 1000;
