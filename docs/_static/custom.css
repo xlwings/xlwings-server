@@ -4,7 +4,7 @@
   border: none !important;
 }
 
-body[data-theme="dark"] .highlight .err {
+body:not([data-theme="light"]) .highlight .err {
   color: inherit !important;
   background-color: transparent !important;
 }

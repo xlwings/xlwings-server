@@ -69,3 +69,5 @@ html_theme_options = {
 
 copybutton_prompt_text = r">>> |\.\.\. |\$ |In \[\d*\]: | {2,5}\.\.\.: | {5,8}: "
 copybutton_prompt_is_regexp = True
+
+suppress_warnings = ["misc.highlighting_failure"]

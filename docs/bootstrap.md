@@ -12,7 +12,7 @@ To create your user interface, you can often get pretty far by going to the [Boo
 
 For example, if you want to add a dropdown button, you can copy code snippets from the [Dropdowns](https://getbootstrap.com/docs/5.3/components/dropdowns/) page in the docs.
 
-The next step would be to turn the copied snippet into a [](Jinja.md) template. Under [`app/templates/examples/pictures/taskpane_pictures.html`](https://github.com/xlwings/xlwings-server/blob/main/app/templates/examples/pictures/taskpane_pictures.html), you can see an example that does just that.
+The next step would be to turn the copied snippet into a [](jinja.md) template. Under [`app/templates/examples/pictures/taskpane_pictures.html`](https://github.com/xlwings/xlwings-server/blob/main/app/templates/examples/pictures/taskpane_pictures.html), you can see an example that does just that.
 
 ## Advanced Bootstrap
 
@@ -33,5 +33,5 @@ For more options, see [Awesome CSS Frameworks](https://github.com/troxler/awesom
 ## References
 
 - [Bootstrap Homepage](https://getbootstrap.com/)
-- [Boostrap Docs](https://getbootstrap.com/docs)
+- [Bootstrap Docs](https://getbootstrap.com/docs)
 - [Bootstrap-xlwings](https://github.com/xlwings/bootstrap-xlwings)
