@@ -11,6 +11,10 @@ from ..config import settings
 
 @script(target_cell="[xlwings_button]Sheet1!B4")
 def hello_world(book: xw.Book):
+    import time
+
+    time.sleep(2)
+    print("xxxxxxxxxxxxxxxxxxxxxxxx")
     sheet = book.sheets.active
     cell = sheet["A1"]
     if cell.value == "Hello xlwings!":

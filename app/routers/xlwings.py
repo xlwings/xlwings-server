@@ -104,12 +104,15 @@ async def custom_functions_call(
 @router.post("/custom-scripts-call/{script_name}")
 async def custom_scripts_call(script_name: str, book: dep.Book, current_user: dep.User):
     logger.info(f"""Script "{script_name}" called by {current_user.name}""")
+    empty_book = book
     book = await xlwings.server.custom_scripts_call(
         custom_scripts,
         script_name,
         current_user,
         typehint_to_value={CurrentUser: current_user, xw.Book: book},
     )
+    if isinstance(book, dict):
+        return empty_book.json()
     return book.json()
 
 
