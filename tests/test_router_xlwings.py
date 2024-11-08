@@ -11,7 +11,7 @@ client = TestClient(main_app)
 def test_get_alert():
     # String to the right of $_hostInfo added by Excel
     response = client.get(
-        "xlwings/alert?prompt=Exception(%27test%27)&title=Error&buttons=ok&mode=critical&callback=&_host_Info=Excel$Mac$16.01$en-US$telemetry$isDialog$$0"
+        f"{settings.app_path}/xlwings/alert?prompt=Exception(%27test%27)&title=Error&buttons=ok&mode=critical&callback=&_host_Info=Excel$Mac$16.01$en-US$telemetry$isDialog$$0"
     )
     assert response.status_code == 200
     assert (
@@ -33,7 +33,7 @@ def test_get_alert():
 
 
 def test_custom_functions_meta():
-    response = client.get("xlwings/custom-functions-meta")
+    response = client.get(f"{settings.app_path}/xlwings/custom-functions-meta")
     assert response.status_code == 200
     # run via: pytest -s tests/test_router_xlwings.py::test_custom_functions_meta
     # print(repr(response.text))
@@ -47,23 +47,14 @@ def test_custom_functions_meta():
 
 
 def test_custom_functions_code():
-    response = client.get("xlwings/custom-functions-code")
+    response = client.get(f"{settings.app_path}/xlwings/custom-functions-code")
     assert response.status_code == 200
-    assert 'window.location.origin + "/xlwings/custom-functions-call"' in response.text
-
-
-def test_custom_functions_code_with_app_path(mocker):
-    mocker.patch.object(settings, "app_path", "/x/y")
-    response = client.get("xlwings/custom-functions-code")
-    assert response.status_code == 200
-    assert (
-        'window.location.origin + "/x/y/xlwings/custom-functions-call"' in response.text
-    )
+    assert f"{settings.app_path}/xlwings/custom-functions-call" in response.text
 
 
 def test_custom_functions_call():
     response = client.post(
-        "/xlwings/custom-functions-call",
+        f"{settings.app_path}/xlwings/custom-functions-call",
         json={
             "func_name": "hello",
             "args": [[["xlwings"]]],
@@ -82,7 +73,7 @@ def test_custom_functions_call_with_invalid_entraid_token(mocker):
     mocker.patch("app.config.settings.auth_entraid_client_id", "mocked_client_id")
 
     response = client.post(
-        "/xlwings/custom-functions-call",
+        f"{settings.app_path}/xlwings/custom-functions-call",
         headers={"Authorization": "invalid token"},
         json={
             "func_name": "hello",
@@ -100,7 +91,7 @@ def test_custom_functions_call_missing_roles(mocker):
     mocker.patch("app.config.settings.auth_providers", ["custom"])
     mocker.patch("app.config.settings.auth_required_roles", ["role1"])
     response = client.post(
-        "/xlwings/custom-functions-call",
+        f"{settings.app_path}/xlwings/custom-functions-call",
         headers={"Authorization": ""},
         json={
             "func_name": "hello",
@@ -117,7 +108,7 @@ def test_custom_functions_call_missing_roles(mocker):
 
 def test_custom_functions_call_anonymous(mocker):
     response = client.post(
-        "/xlwings/custom-functions-call",
+        f"{settings.app_path}/xlwings/custom-functions-call",
         headers={"Authorization": ""},
         json={
             "func_name": "hello",
@@ -137,7 +128,7 @@ def test_custom_scripts_call_with_invalid_entraid_token(mocker):
     mocker.patch("app.config.settings.auth_entraid_client_id", "mocked_client_id")
 
     response = client.post(
-        "/xlwings/custom-scripts-call/hello_world",
+        f"{settings.app_path}/xlwings/custom-scripts-call/hello_world",
         headers={"Authorization": "invalid token"},
         json={
             "client": "Office.js",
@@ -161,7 +152,7 @@ def test_custom_scripts_call_missing_roles(mocker):
     mocker.patch("app.config.settings.auth_providers", ["custom"])
     mocker.patch("app.config.settings.auth_required_roles", ["role1"])
     response = client.post(
-        "/xlwings/custom-scripts-call/hello_world",
+        f"{settings.app_path}/xlwings/custom-scripts-call/hello_world",
         headers={"Authorization": "token"},
         json={
             "client": "Office.js",
@@ -186,7 +177,7 @@ def test_custom_scripts_call_missing_authorization(mocker):
     mocker.patch("app.config.settings.auth_providers", ["custom"])
     mocker.patch("app.models.User.is_authorized", return_value=False)
     response = client.post(
-        "/xlwings/custom-scripts-call/hello_world",
+        f"{settings.app_path}/xlwings/custom-scripts-call/hello_world",
         headers={"Authorization": "token"},
         json={
             "client": "Office.js",
@@ -209,7 +200,7 @@ def test_custom_scripts_call_missing_authorization(mocker):
 
 def test_custom_scripts_call_anonymous(mocker):
     response = client.post(
-        "/xlwings/custom-scripts-call/hello_world",
+        f"{settings.app_path}/xlwings/custom-scripts-call/hello_world",
         headers={"Authorization": ""},
         json={
             "client": "Office.js",
