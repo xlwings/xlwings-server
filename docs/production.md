@@ -137,7 +137,7 @@ With `XLWINGS_ENVIRONMENT="dev"`, you're running a single worker, i.e., process.
 
 Each worker runs an own instance of the xlwings Server app, and so with each additional worker, your memory requirements will increase. The exact number of workers depends on the amount of your traffic and the nature of your functions. [Gunicorn](https://gunicorn.org/), which is the HTTP server recommended for production, suggests a maximum of 2-4 workers per CPU-core. A pragmatic way of finding the right amount of workers is to start with a low number, say 2-4, then increase the number of workers up to a maximum of 4 workers per core if your users encounter performance issues.
 
-You can have a look at [`docker-compose.prod.yaml`](https://github.com/xlwings/xlwings-server/blob/main/docker/docker-compose.prod.yaml) to see the gunicorn command with the `workers` argument:
+You can have a look at [`docker-compose.prod.yaml`](https://github.com/xlwings/xlwings-server/blob/main/deployment/docker-compose.prod.yaml) to see the gunicorn command with the `workers` argument:
 
 ```text
 gunicorn app.main:main_app
@@ -157,7 +157,7 @@ If you are using one of the following features, you need to use a [Redis](https:
 - [Streaming functions](custom_functions.md#streaming-functions-rtd-functions): Redis connects the [app workers](#workers) with the [Socket.io](#socketio) service via its pub-sub functionality.
 - [Object handles](custom_functions.md#object-handles): Redis acts as an object cache that is shared across all [app workers](#workers).
 
-You can install Redis, make it part of your Docker compose stack, or use a hosted service. For reference, see [`docker-compose.prod.yaml`](https://github.com/xlwings/xlwings-server/blob/main/docker/docker-compose.prod.yaml).
+You can install Redis, make it part of your Docker compose stack, or use a hosted service. For reference, see [`docker-compose.prod.yaml`](https://github.com/xlwings/xlwings-server/blob/main/deployment/docker-compose.prod.yaml).
 
 ## Socket.io
 
@@ -175,5 +175,5 @@ Even if you don't use Socket.io in production, you should leave `XLWINGS_ENABLE_
 
 Under normal circumstances, HTTP requests time out if they do not receive a response within a certain time frame. When deploying xlwings Server, you usually have to deal with a timeout on two levels:
 
-- **gunicorn**: gunicorn serves the Python app and has a default timeout of 30 seconds. If you want to increase it to e.g., 60 seconds, provide the option `--timeout 60` in the gunicorn command, see e.g., [docker/docker-compose.prod.yaml](https://github.com/xlwings/xlwings-server/blob/main/docker/docker-compose.prod.yaml).
+- **gunicorn**: gunicorn serves the Python app and has a default timeout of 30 seconds. If you want to increase it to e.g., 60 seconds, provide the option `--timeout 60` in the gunicorn command, see e.g., [deployment/docker-compose.prod.yaml](https://github.com/xlwings/xlwings-server/blob/main/deployment/docker-compose.prod.yaml).
 - **Reverse proxy/load balancer**: in front of gunicorn, you usually have a reverse proxy, such as nginx. For Kubernetes or fully managed solutions like Azure functions, you usually deal with a load balancer. They all have their own timeouts, so you might need to adjust it for it to be at least as long as the gunicorn timeout. For example, for nginx, the default timeout is 60 seconds and can be adjusted using the `proxy_read_timeout 60s;` directive.
