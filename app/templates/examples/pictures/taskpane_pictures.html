@@ -10,7 +10,11 @@
       <ul class="dropdown-menu">
         {% for name in picture_names %}
           <li>
-            <a class="dropdown-item" hx-post="/picture" hx-target="#picture" hx-vals='{"picture_name": "{{ name }}"}'
+            <a
+              class="dropdown-item"
+              hx-post="{{ url_for('picture') }}"
+              hx-target="#picture"
+              hx-vals='{"picture_name": "{{ name }}"}'
               >{{ name }}</a
             >
           </li>

@@ -3,7 +3,7 @@
 {% block content %}
   <div class="container-fluid pt-3 ps-3" hx-target="this">
     {% include "_book.html" %}
-    <form xw-book="true" xw-config='{"exclude": "MySheet"}' hx-post="/name" hx-swap="outerHTML">
+    <form xw-book="true" xw-config='{"exclude": "MySheet"}' hx-post="{{ url_for('name') }}" hx-swap="outerHTML">
       <div class="mb-3">
         <label for="inputName" class="form-label">Name</label>
         <input class="form-control" name="name" id="inputName" autocorrect="off" />

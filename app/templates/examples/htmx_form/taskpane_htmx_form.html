@@ -2,7 +2,7 @@
 
 {% block content %}
   <div class="container-fluid pt-3 ps-3">
-    <form hx-post="/hello" hx-target="#result">
+    <form hx-post="{{ url_for('hello') }}" hx-target="#result">
       <div class="mb-3">
         <label for="inputName" class="form-label">Name</label>
         <input class="form-control" name="fullname" id="inputName" autocorrect="off" />

@@ -7,9 +7,10 @@ To try it out, replace `app/routers/taskpane.py` with the following code:
 ```python
 from fastapi import APIRouter, Request
 
+from ..config import settings
 from ..templates import TemplateResponse
 
-router = APIRouter()
+router = APIRouter(prefix=settings.app_path)
 
 
 @router.get("/taskpane")
@@ -20,7 +21,6 @@ async def taskpane(request: Request, page: str = "one"):
         name=f"examples/navigation/taskpane_{page}.html",
         context={"page": page},
     )
-
 ```
 
 This sample also depends on:
