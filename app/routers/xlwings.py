@@ -16,7 +16,7 @@ from ..templates import TemplateResponse
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/xlwings")
+router = APIRouter(prefix=f"{settings.app_path}/xlwings")
 
 
 @router.get("/alert")

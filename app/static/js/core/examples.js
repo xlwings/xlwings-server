@@ -37,6 +37,7 @@ const appLoader = {
     let bookName = await xlwings.getActiveBookName();
     // Works with both an unsaved book ("Book1") as well as a saved one "Book1.xlsx"
     if (bookName.includes("Book1")) {
+      // TODO: fix if app_path is provided
       this.url = "/taskpane?app=1";
     } else {
       this.url = "/taskpane?app=2";

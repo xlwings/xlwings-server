@@ -50,7 +50,7 @@ async function registerCellToButton(hyperlinkCellRef, scriptName, config) {
               : "";
           await xlwings.runPython(
             window.location.origin +
-              (appPath && appPath.appPath !== "" ? `/${appPath.appPath}` : "") +
+              (appPath && appPath.appPath !== "" ? `${appPath.appPath}` : "") +
               `/xlwings/custom-scripts-call/${scriptName}`,
             { ...config, auth: token },
           );

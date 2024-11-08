@@ -1,9 +1,9 @@
 <ul class="nav nav-underline pb-4" hx-boost="true">
   {%
     set pages = [
-      ('One', '/taskpane/one'),
-      ('Two', '/taskpane/two'),
-      ('Three', '/taskpane/three')
+      ('One', url_for('taskpane', page='one')),
+      ('Two', url_for('taskpane', page='two')),
+      ('Three', url_for('taskpane', page='three'))
     ]
   %}
   {% for name, url in pages %}

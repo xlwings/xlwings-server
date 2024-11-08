@@ -1,8 +1,4 @@
-{% extends "base.html" %}
-
-{% block extra_head %}
-  <script src="{{ settings.static_url_path }}/js/core/xlwings-alert.js" defer></script>
-{% endblock extra_head %}
+{% extends "alert_base.html" %}
 
 {% block content %}
   <div id="callback" data-callback="{{ callback }}"></div>

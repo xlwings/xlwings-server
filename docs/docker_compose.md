@@ -51,19 +51,19 @@ This setup includes the following containers:
 - Whenever there are changes to your source code, in the root directory, run:
 
   ```
-  docker compose -f docker/docker-compose.prod.yaml build
+  docker compose -f deployment/docker-compose.prod.yaml build
   ```
 
 - To run the app:
 
   ```
-  docker compose -f docker/docker-compose.prod.yaml up -d
+  docker compose -f deployment/docker-compose.prod.yaml up -d
   ```
 
 - To tail the logs (exit via `Ctrl-C`):
 
   ```
-  docker compose -f docker/docker-compose.prod.yaml logs -f
+  docker compose -f deployment/docker-compose.prod.yaml logs -f
   ```
 
 ## Minimalistic Setup
@@ -71,7 +71,7 @@ This setup includes the following containers:
 If you prefer a much more minimalistic setup with only the xlwings Server app container, you can also run the following instead:
 
 ```bash
-docker compose -f docker/docker-compose.prod-min.yaml up -d
+docker compose -f deployment/docker-compose.prod-min.yaml up -d
 ```
 
 Limitations:

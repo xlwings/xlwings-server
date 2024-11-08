@@ -9,7 +9,7 @@ from xlwings.server import script
 from ..config import settings
 
 
-@script(target_cell="[xlwings_button]Sheet1!B4")
+@script
 def hello_world(book: xw.Book):
     sheet = book.sheets.active
     cell = sheet["A1"]
@@ -17,6 +17,11 @@ def hello_world(book: xw.Book):
         cell.value = "Bye xlwings!"
     else:
         cell.value = "Hello xlwings!"
+
+
+@script
+def show_alert(book: xw.Book):
+    book.app.alert("This is an alert!", title="xlwings Server Alert")
 
 
 @script

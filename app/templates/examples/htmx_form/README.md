@@ -14,9 +14,10 @@ To try it out, replace `app/routers/taskpane.py` with the following code:
 from fastapi import APIRouter, Form, Request
 
 from .. import custom_functions
+from ..config import settings
 from ..templates import TemplateResponse
 
-router = APIRouter()
+router = APIRouter(prefix=settings.app_path)
 
 
 @router.get("/taskpane")

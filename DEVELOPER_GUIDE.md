@@ -77,3 +77,7 @@ To use the most restrictive CSP header, set `XLWINGS_ENABLE_EXCEL_ONLINE=false` 
 ## Prettier
 
 The VS Code extension prettier requires to set the configuration to `.prettierrc.js` explicitly.
+
+## Alert window
+
+When debugging the alert/dialog window, you need to open up a separate instance of the dev tools.

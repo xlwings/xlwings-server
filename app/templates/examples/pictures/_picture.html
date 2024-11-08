@@ -1,4 +1,4 @@
 <img
-  src="{{ settings.static_url_path }}/images/ribbon/examples/{{ picture_name }}"
+  src="{{ url_for('static', path='/images/ribbon/examples/' + picture_name) }}"
   class="img-fluid"
   alt="{{ picture_name }}" />

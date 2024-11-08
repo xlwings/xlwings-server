@@ -13,8 +13,10 @@ from . import settings
 from .object_handles import ObjectCacheConverter
 from .routers import socketio as socketio_router
 from .routers.manifest import router as manifest_router
+from .routers.root import router as root_router
 from .routers.taskpane import router as taskpane_router
 from .routers.xlwings import router as xlwings_router
+from .templates import templates
 
 # Logging
 logging.basicConfig(level=settings.log_level.upper())
@@ -22,6 +24,10 @@ logger = logging.getLogger(__name__)
 
 # App
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+
+# Starlette's url_for returns fully qualified URLs causing issues if the reverse proxy
+# handles TLS and the app runs on http (https://github.com/encode/starlette/issues/843)
+templates.env.globals["url_for"] = app.url_path_for
 
 # Register Converter
 ObjectCacheConverter.register(object, "object", "obj")
@@ -44,11 +50,13 @@ if settings.enable_socketio:
         socketio_router.sio,
         # Only forward ASGI traffic if there's no message queue and hence 1 worker setup
         cors_app if not settings.socketio_message_queue_url else None,
+        socketio_path=f"{settings.app_path}/socket.io",
     )
     main_app = sio_app if not settings.socketio_message_queue_url else cors_app
 
 
 # Routers
+app.include_router(root_router)
 app.include_router(xlwings_router)
 app.include_router(taskpane_router)
 app.include_router(manifest_router)
@@ -106,17 +114,10 @@ async def add_security_headers(request, call_next):
     return response
 
 
-# Endpoints
-@app.get("/")
-async def root():
-    # This endpoint could be used for a health check
-    return {"status": "ok"}
-
-
 # Static files: in prod might be served by something like nginx or via
 # https://github.com/matthiask/blacknoise or https://github.com/Archmonger/ServeStatic
 app.mount(
-    "/static",
+    settings.static_url_path,
     StaticFiles(directory=settings.static_dir),
     name="static",
 )

@@ -5,14 +5,17 @@
     <h1>Example Task Pane</h1>
     <div class="mb-3 d-flex flex-column gap-2">
       <button xw-click="hello_world" xw-config='{"exclude": "MySheet"}' class="btn btn-primary btn-sm" type="button">
-        Hello World
+        Write 'Hello/Bye xlwings!' to A1
       </button>
       <button
         xw-click="setup_custom_functions"
         xw-config='{"exclude": "MySheet"}'
         class="btn btn-primary btn-sm"
         type="button">
-        Insert custom functions
+        Insert sheet with custom functions
+      </button>
+      <button xw-click="show_alert" xw-config='{"exclude": "MySheet"}' class="btn btn-primary btn-sm" type="button">
+        Show an alert
       </button>
     </div>
   </div>

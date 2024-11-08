@@ -48,7 +48,7 @@ export function init() {
 
       await runPython(
         window.location.origin +
-          (appPath && appPath.appPath !== "" ? `/${appPath.appPath}` : "") +
+          (appPath && appPath.appPath !== "" ? `${appPath.appPath}` : "") +
           "/xlwings/custom-scripts-call/" +
           element.getAttribute("xw-click"),
         { ...config, auth: token, errorDisplayMode: "taskpane" },
