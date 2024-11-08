@@ -52,7 +52,7 @@
       <script src="{{ url_for('static', path='/js/auth.js') }}"></script>
       {# Load Custom Functions #}
       {% block custom_functions_code %}
-        <script src="xlwings/custom-functions-code" defer></script>
+        <script src="{{ url_for('custom_functions_code') }}" defer></script>
       {% endblock custom_functions_code %}
       {# Bootstrap with the xlwings theme #}
       {% if settings.enable_bootstrap %}
@@ -69,7 +69,7 @@
       {# Own #}
       <link rel="stylesheet" href="{{ url_for('static', path='/css/core.css') }}" />
       <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}" />
-      <script src="{{ settings.app_path }}/xlwings/custom-scripts-sheet-buttons" defer></script>
+      <script src="{{ url_for('custom_scripts_sheet_buttons') }}" defer></script>
       <script src="{{ url_for('static', path='/js/core/sheet-buttons.js') }}" defer></script>
       <script src="{{ url_for('static', path='/js/main.js') }}" defer></script>
       <script src="{{ url_for('static', path='/js/ribbon.js') }}" defer></script>
