@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.0 (Nov 8, 2024)
+
+- The `XLWINGS_APP_PATH` settings has been improved to be independent of a specific setup of an external service such as nginx.
+- Enhanced `TemplateResponse` by making the `context` argument optional and by providing `settings` behind the scenes.
+- New task pane docs, additionally covering Jinja, Bootstrap, and Alpine.js.
+- Breaking change: If you were using `XLWINGS_APP_PATH` in connection with nginx, you'll have to adjust your nginx config in line with [`nginx/nginx-apppath.conf`](https://github.com/xlwings/xlwings-server/blob/main/nginx/nginx-apppath.conf).
+
 ## 0.7.0 (Oct 29, 2024)
 
 - The task pane can now interact with the Excel object model via htmx, see the [docs](https://server.xlwings.org/en/latest/htmx/).
