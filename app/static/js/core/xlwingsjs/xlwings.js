@@ -10,7 +10,9 @@ const xlwings = {
   getAccessToken,
   getActiveBookName,
   getBookData,
+  getBookDataStandalone,
   runActions,
+  runActionsStandalone,
 };
 globalThis.xlwings = xlwings;
 
@@ -56,6 +58,14 @@ export function init() {
       element.removeAttribute("disabled");
     });
   });
+}
+
+async function getBookDataStandalone(config = {}) {
+  let bookData;
+  await Excel.run(async (context) => {
+    bookData = await xlwings.getBookData(context, config);
+  });
+  return JSON.stringify(bookData);
 }
 
 const version = config.xlwingsVersion;
@@ -422,6 +432,13 @@ async function runActions(context, rawData) {
       await context.sync();
     }
   }
+}
+
+async function runActionsStandalone(rawData) {
+  rawData = JSON.parse(rawData);
+  return await Excel.run(async (context) => {
+    await runActions(context, rawData);
+  });
 }
 
 async function getRange(context, action) {

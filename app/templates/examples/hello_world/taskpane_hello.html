@@ -3,20 +3,8 @@
 {% block content %}
   <div class="container-fluid pt-3 ps-3">
     <h1>Example Task Pane</h1>
-    <div class="mb-3 d-flex flex-column gap-2">
-      <button xw-click="hello_world" xw-config='{"exclude": "MySheet"}' class="btn btn-primary btn-sm" type="button">
-        Write 'Hello/Bye xlwings!' to A1
-      </button>
-      <button
-        xw-click="setup_custom_functions"
-        xw-config='{"exclude": "MySheet"}'
-        class="btn btn-primary btn-sm"
-        type="button">
-        Insert sheet with custom functions
-      </button>
-      <button xw-click="show_alert" xw-config='{"exclude": "MySheet"}' class="btn btn-primary btn-sm" type="button">
-        Show an alert
-      </button>
-    </div>
+    {# PyScript Test #}
+    <script type="py" src="/static/main.py" config="/static/pyscript.json"></script>
+    <button type="button" class="btn btn-primary btn-sm" py-click="test">PyScript Test</button>
   </div>
 {% endblock content %}

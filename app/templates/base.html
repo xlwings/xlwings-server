@@ -48,7 +48,7 @@
       <script src="{{ url_for('static', path='/js/auth.js') }}"></script>
       {# Load Custom Functions #}
       {% block custom_functions_code %}
-        <script src="{{ url_for('custom_functions_code') }}" defer></script>
+        <script src="/static/js/core/custom-functions-code.js" defer></script>
       {% endblock custom_functions_code %}
       {# Bootstrap with the xlwings theme #}
       {% if settings.enable_bootstrap %}
@@ -81,6 +81,8 @@
       {% if settings.enable_alpinejs_csp %}
         <script src="{{ url_for('static', path='/vendor/@alpinejs/csp/dist/cdn.min.js') }}" defer></script>
       {% endif %}
+      <link rel="stylesheet" href="https://pyscript.net/releases/2024.5.2/core.css" />
+      <script type="module" src="https://pyscript.net/releases/2024.5.2/core.js"></script>
     {% endblock head %}
   </head>
 

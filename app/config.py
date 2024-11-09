@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_prefix="XLWINGS_", env_file=os.getenv("DOTENV_PATH", ".env"), extra="ignore"
     )
-    add_security_headers: bool = True
+    add_security_headers: bool = False
     auth_providers: Optional[List[str]] = []
     auth_required_roles: Optional[List[str]] = []
     auth_entraid_client_id: Optional[str] = None
