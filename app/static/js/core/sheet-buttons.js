@@ -5,12 +5,8 @@ Office.onReady(async (info) => {
   }
 });
 
-async function registerCellToButton(hyperlinkCellRef, scriptName, config) {
+async function registerCellToButton(hyperlinkCellRef, scriptName, xwConfig) {
   // hyperlinkCellRef is in the form [ShapeName]Sheet1!A1, where [ShapeName] is optional
-  const appPathElement = document.getElementById("app-path");
-  const appPath = appPathElement
-    ? JSON.parse(appPathElement.textContent)
-    : null;
   await Excel.run(async (context) => {
     let shapeName = null;
     let sheetName, cellRef;
@@ -50,9 +46,9 @@ async function registerCellToButton(hyperlinkCellRef, scriptName, config) {
               : "";
           await xlwings.runPython(
             window.location.origin +
-              (appPath && appPath.appPath !== "" ? `${appPath.appPath}` : "") +
+              config.appPath +
               `/xlwings/custom-scripts-call/${scriptName}`,
-            { ...config, auth: token },
+            { ...xwConfig, auth: token },
           );
         } finally {
           sheet.getRange(selectedRangeAddress).getOffsetRange(1, 0).select();

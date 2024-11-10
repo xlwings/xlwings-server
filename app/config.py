@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import List, Literal, Optional
+from typing import Dict, List, Literal, Optional
 
 import xlwings as xw
 from pydantic import UUID4, computed_field
@@ -56,6 +56,15 @@ class Settings(BaseSettings):
     @property
     def static_dir(self) -> Path:
         return self.base_dir / "static"
+
+    @computed_field
+    @property
+    def jsconfig(self) -> Dict:
+        return {
+            "authProviders": self.auth_providers,
+            "appPath": self.app_path,
+            "xlwingsVersion": self.xlwings_version,
+        }
 
 
 settings = Settings()
