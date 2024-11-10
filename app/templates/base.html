@@ -6,6 +6,8 @@
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <title>Task pane</title>
       <link rel="icon" type="image/png" href="{{ url_for('static', path='/images/favicon.png') }}" />
+      {# Config #}
+      <script src="{{ url_for('static', path='/js/config.js') }}" defer></script>
       {# htmx #}
       {% if settings.enable_htmx %}
         <script src="{{ url_for('static', path='/vendor/htmx.org/dist/htmx.min.js') }}"></script>
@@ -38,17 +40,11 @@
         <script src="{{ url_for('static', path='/js/core/alpinejs-csp-boilerplate.js') }}"></script>
       {% endif %}
       {# JS Config #}
-      <!-- prettier-ignore-start -->
-      <script id="auth" type="application/json">
-        { "auth": {{ settings.auth_providers|tojson }} }
+      {# prettier-ignore-start #}
+      <script id="config" type="application/json">
+        {{ settings.jsconfig|tojson }}
       </script>
-      <script id="app-path" type="application/json">
-        { "appPath": {{ settings.app_path|tojson }} }
-      </script>
-      <script id="xlwings-version" type="application/json">
-        { "xlwingsVersion": {{ settings.xlwings_version|tojson }} }
-      </script>
-      <!-- prettier-ignore-end -->
+      {# prettier-ignore-end #}
       <script src="{{ url_for('static', path='/js/auth.js') }}"></script>
       {# Load Custom Functions #}
       {% block custom_functions_code %}

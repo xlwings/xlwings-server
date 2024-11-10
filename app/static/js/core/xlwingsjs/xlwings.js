@@ -42,17 +42,19 @@ export function init() {
         typeof globalThis.getAuth === "function"
           ? await globalThis.getAuth()
           : "";
-      let config = element.getAttribute("xw-config")
+      let xwConfig = element.getAttribute("xw-config")
         ? JSON.parse(element.getAttribute("xw-config"))
         : {};
-
-      await runPython(
+      const url =
         window.location.origin +
-          (appPath && appPath.appPath !== "" ? `${appPath.appPath}` : "") +
-          "/xlwings/custom-scripts-call/" +
-          element.getAttribute("xw-click"),
-        { ...config, auth: token, errorDisplayMode: "taskpane" },
-      );
+        config.appPath +
+        "/xlwings/custom-scripts-call/" +
+        element.getAttribute("xw-click");
+      await runPython(url, {
+        ...xwConfig,
+        auth: token,
+        errorDisplayMode: "taskpane",
+      });
 
       element.removeChild(spinner);
       element.removeAttribute("disabled");
@@ -60,10 +62,7 @@ export function init() {
   });
 }
 
-const xlwingsVersion = JSON.parse(
-  document.getElementById("xlwings-version").text,
-);
-const version = xlwingsVersion.xlwingsVersion;
+const version = config.xlwingsVersion;
 
 globalThis.callbacks = {};
 export async function runPython(
