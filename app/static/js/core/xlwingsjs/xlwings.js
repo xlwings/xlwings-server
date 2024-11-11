@@ -18,10 +18,6 @@ globalThis.xlwings = xlwings;
 document.addEventListener("DOMContentLoaded", init);
 
 export function init() {
-  const appPathElement = document.getElementById("app-path");
-  const appPath = appPathElement
-    ? JSON.parse(appPathElement.textContent)
-    : null;
   const elements = document.querySelectorAll("[xw-click]");
   elements.forEach((element) => {
     element.addEventListener("click", async (event) => {
