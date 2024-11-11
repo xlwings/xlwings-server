@@ -10,9 +10,7 @@ const xlwings = {
   getAccessToken,
   getActiveBookName,
   getBookData,
-  getBookDataStandalone,
   runActions,
-  runActionsStandalone,
 };
 globalThis.xlwings = xlwings;
 
@@ -60,14 +58,6 @@ export function init() {
   });
 }
 
-async function getBookDataStandalone(config = {}) {
-  let bookData;
-  await Excel.run(async (context) => {
-    bookData = await xlwings.getBookData(context, config);
-  });
-  return JSON.stringify(bookData);
-}
-
 const version = config.xlwingsVersion;
 
 globalThis.callbacks = {};
@@ -111,7 +101,7 @@ export async function runPython(
 
       // Run Functions
       if (rawData !== null) {
-        await runActions(context, rawData);
+        await runActions(rawData, context);
       }
     });
   } catch (error) {
@@ -130,9 +120,23 @@ export async function runPython(
 
 // Helpers
 async function getBookData(
-  context,
+  context = null,
   { auth = "", include = "", exclude = "", headers = {} } = {},
 ) {
+  // Context
+  let bookData;
+  if (!context) {
+    await Excel.run(async (innerContext) => {
+      bookData = await getBookData(innerContext, {
+        auth,
+        include,
+        exclude,
+        headers,
+      });
+    });
+    return JSON.stringify(bookData);
+  }
+
   // workbook
   const workbook = context.workbook;
   workbook.load("name");
@@ -424,7 +428,17 @@ async function getBookData(
   return payload;
 }
 
-async function runActions(context, rawData) {
+async function runActions(rawData, context = null) {
+  if (typeof rawData === "string") {
+    rawData = JSON.parse(rawData);
+  }
+
+  if (!context) {
+    return await Excel.run(async (innerContext) => {
+      await runActions(rawData, innerContext);
+    });
+  }
+
   const forceSync = ["sheet"];
   for (let action of rawData["actions"]) {
     await globalThis.callbacks[action.func](context, action);
@@ -432,13 +446,6 @@ async function runActions(context, rawData) {
       await context.sync();
     }
   }
-}
-
-async function runActionsStandalone(rawData) {
-  rawData = JSON.parse(rawData);
-  return await Excel.run(async (context) => {
-    await runActions(context, rawData);
-  });
 }
 
 async function getRange(context, action) {

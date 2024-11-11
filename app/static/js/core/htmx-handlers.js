@@ -72,7 +72,7 @@ htmx.on("htmx:afterSwap", async (event) => {
   if (bookDataElement) {
     const bookDataJson = JSON.parse(bookDataElement.text);
     await Excel.run(async (context) => {
-      xlwings.runActions(context, bookDataJson);
+      xlwings.runActions(bookDataJson, context);
     });
   }
 });

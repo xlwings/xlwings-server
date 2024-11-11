@@ -24,7 +24,7 @@ xwjs = window.xlwings
 async def test(event):
     """Called from task pane button"""
     # Instantiate Book hack
-    data = await xwjs.getBookDataStandalone()
+    data = await xwjs.getBookData()
     book = xw.Book(json=json.loads(data))
 
     # Usual xlwings API
@@ -38,7 +38,7 @@ async def test(event):
     # sheet1["A1"].select()
 
     # Process actions (this could be improved so methods are applied immediately)
-    xwjs.runActionsStandalone(json.dumps(book.json()))
+    xwjs.runActions(json.dumps(book.json()))
 
 
 async def hello(name):
