@@ -1,3 +1,6 @@
 {
-  "packages": ["xlwings", "sqlite3"]
+  "packages": ["xlwings", "sqlite3", "pydantic"],
+  "files": {
+    "/static/custom_functions.py": "./custom_functions.py"
+  }
 }

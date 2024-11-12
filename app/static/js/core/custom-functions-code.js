@@ -1,19 +1,3 @@
-// async function hello(name) {
-//   let r = await window.hello(name);
-//   return r.toJs();
-// }
-
-// CustomFunctions.associate("HELLO", hello);
-
-// async function sql(query, tables) {
-//   let r = await window.sql(query, tables);
-//   return r.toJs();
-// }
-
-// CustomFunctions.associate("SQL", sql);
-
-/////////////////////////////////////////
-
 const debug = false;
 let invocations = new Set();
 let bodies = new Set();
@@ -227,7 +211,7 @@ async function makeJsCall(body) {
     : [];
 
   // Call function with processed arguments
-  let r = await window[body.func_name](...processedArgs);
+  let r = await window.custom_functions_call(JSON.stringify(body));
   return r.toJs();
 }
 

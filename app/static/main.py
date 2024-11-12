@@ -7,18 +7,34 @@
 
 import json
 import os
-import sqlite3
+from typing import Optional
 
+os.environ["XLWINGS_LICENSE_KEY"] = "noncommercial"
 # To use matplotlib, add it to pyscript.json
 # import matplotlib as mpl
 # import matplotlib.pyplot as plt
 # mpl.use("agg")
-
-os.environ["XLWINGS_LICENSE_KEY"] = "noncommercial"
+import custom_functions
 import xlwings as xw  # noqa: E402
+from pydantic import BaseModel
 from pyscript import window  # noqa: E402
+from xlwings.server import (
+    custom_functions_call as xlwings_custom_functions_call,
+)
 
 xwjs = window.xlwings
+
+
+async def custom_functions_call(data):
+    current_user = User(id="n/a", name="Anonymous")
+    data = json.loads(data)
+    rv = xlwings_custom_functions_call(
+        data, module=custom_functions, current_user=current_user
+    )
+    return rv
+
+
+window.custom_functions_call = custom_functions_call
 
 
 async def test(event):
@@ -41,90 +57,22 @@ async def test(event):
     xwjs.runActions(json.dumps(book.json()))
 
 
-async def hello(name):
-    """Used as custom function (a.k.a. UDF)"""
-    return [[f"hello from Python, {name}!"]]
+class User(BaseModel):
+    id: str
+    name: str
+    email: Optional[str] = None
+    domain: Optional[str] = None
+    roles: Optional[list[str]] = []
 
+    async def has_required_roles(self, required_roles: Optional[list[str]] = None):
+        if required_roles:
+            if set(required_roles).issubset(self.roles):
+                return True
+            else:
+                return False
+        else:
+            return True
 
-window.hello = hello
-
-
-# @func
-# @arg("tables", expand="table", ndim=2)
-async def sql(query, *tables):
-    print("xx", query)
-    query = json.loads(query)[0][0]
-    print("yy", tables)
-    processed_tables = [
-        json.loads(table) if isinstance(table, str) else table
-        for table in tables  # TODO: remove ending [0] when converter applied
-    ]
-    print("zz", processed_tables)
-    res = _sql(query, *processed_tables)
-    print("rr", res)
-    return res
-
-
-window.sql = sql
-
-
-def conv_value(value, col_is_str):
-    if value is None:
-        return "NULL"
-    if col_is_str:
-        return repr(str(value))
-    elif isinstance(value, bool):
-        return 1 if value else 0
-    else:
-        return repr(value)
-
-
-def _sql(query, *tables):
-    conn = sqlite3.connect(":memory:")
-    print("t", tables)
-
-    c = conn.cursor()
-    for i, table in enumerate(tables):
-        # TODO: remove [0] in next 2 rows
-        cols = table[0][0]
-        rows = table[0][1:]
-        print(cols)
-        print(rows)
-        types = [any(isinstance(row[j], str) for row in rows) for j in range(len(cols))]
-        name = chr(65 + i)
-
-        stmt = "CREATE TABLE %s (%s)" % (
-            name,
-            ", ".join(
-                "'%s' %s" % (col, "STRING" if typ else "REAL")
-                for col, typ in zip(cols, types)
-            ),
-        )
-        c.execute(stmt)
-
-        if rows:
-            stmt = "INSERT INTO %s VALUES %s" % (
-                name,
-                ", ".join(
-                    "(%s)"
-                    % ", ".join(
-                        conv_value(value, type) for value, typ in zip(row, types)
-                    )
-                    for row in rows
-                ),
-            )
-            # Fixes values like these:
-            # sql('SELECT a FROM a', [['a', 'b'], ["""X"Y'Z""", 'd']])
-            stmt = stmt.replace("\\'", "''")
-            c.execute(stmt)
-
-    res = []
-    c.execute(query)
-    res.append([x[0] for x in c.description])
-    for row in c:
-        res.append(list(row))
-    print("marker3")
-    print(res)
-    print(type(res))
-
-    return res
+    async def is_authorized(self):
+        """Here, you can implement a custom authorization logic"""
+        return True
