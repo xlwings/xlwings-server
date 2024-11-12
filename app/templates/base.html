@@ -48,7 +48,7 @@
       <script src="{{ url_for('static', path='/js/auth.js') }}"></script>
       {# Load Custom Functions #}
       {% block custom_functions_code %}
-        <script src="/static/js/core/custom-functions-code.js" defer></script>
+        <script src="/static/js/core/custom-functions-code-wasm.js" defer></script>
       {% endblock custom_functions_code %}
       {# Bootstrap with the xlwings theme #}
       {% if settings.enable_bootstrap %}

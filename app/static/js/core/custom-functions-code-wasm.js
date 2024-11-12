@@ -177,7 +177,7 @@ async function base() {
     args: args,
     caller_address: `${officeApiClient}[${workbookName}]${invocation.address}`, // not available for streaming functions
     content_language: contentLanguage,
-    version: "placeholder_xlwings_version",
+    version: "0.33.3",
     runtime: runtime,
   };
 
@@ -237,7 +237,7 @@ async function makeServerCall(body) {
     await semaphore.acquire();
     try {
       let response = await fetch(
-        window.location.origin + "placeholder_custom_functions_call_path",
+        window.location.origin + "/xlwings/custom-functions-call",
         {
           method: "POST",
           headers: headers,
@@ -286,3 +286,87 @@ function showError(errorMessage) {
     return [[errorMessage]];
   }
 }
+async function clear_object_cache() {
+  let args = ["clear_object_cache", false];
+  args.push.apply(args, arguments);
+  return await base.apply(null, args);
+}
+CustomFunctions.associate("CLEAR_OBJECT_CACHE", clear_object_cache);
+async function correl() {
+  let args = ["correl", false];
+  args.push.apply(args, arguments);
+  return await base.apply(null, args);
+}
+CustomFunctions.associate("CORREL", correl);
+async function correl2() {
+  let args = ["correl2", false];
+  args.push.apply(args, arguments);
+  return await base.apply(null, args);
+}
+CustomFunctions.associate("CORREL2", correl2);
+async function df_query() {
+  let args = ["df_query", false];
+  args.push.apply(args, arguments);
+  return await base.apply(null, args);
+}
+CustomFunctions.associate("DF_QUERY", df_query);
+async function get_current_user() {
+  let args = ["get_current_user", false];
+  args.push.apply(args, arguments);
+  return await base.apply(null, args);
+}
+CustomFunctions.associate("GET_CURRENT_USER", get_current_user);
+async function get_df() {
+  let args = ["get_df", false];
+  args.push.apply(args, arguments);
+  return await base.apply(null, args);
+}
+CustomFunctions.associate("GET_DF", get_df);
+async function get_healthexp() {
+  let args = ["get_healthexp", false];
+  args.push.apply(args, arguments);
+  return await base.apply(null, args);
+}
+CustomFunctions.associate("GET_HEALTHEXP", get_healthexp);
+async function hello() {
+  let args = ["hello", false];
+  args.push.apply(args, arguments);
+  return await base.apply(null, args);
+}
+CustomFunctions.associate("HELLO", hello);
+async function hello_with_script() {
+  let args = ["hello_with_script", false];
+  args.push.apply(args, arguments);
+  return await base.apply(null, args);
+}
+CustomFunctions.associate("HELLO_WITH_SCRIPT", hello_with_script);
+async function sql() {
+  let args = ["sql", false];
+  args.push.apply(args, arguments);
+  return await base.apply(null, args);
+}
+CustomFunctions.associate("SQL", sql);
+async function standard_normal() {
+  let args = ["standard_normal", false];
+  args.push.apply(args, arguments);
+  return await base.apply(null, args);
+}
+CustomFunctions.associate("STANDARD_NORMAL", standard_normal);
+async function streaming_random() {
+  let args = ["streaming_random", true];
+  args.push.apply(args, arguments);
+  return await base.apply(null, args);
+}
+CustomFunctions.associate("STREAMING_RANDOM", streaming_random);
+async function to_df() {
+  let args = ["to_df", false];
+  args.push.apply(args, arguments);
+  return await base.apply(null, args);
+}
+CustomFunctions.associate("TO_DF", to_df);
+async function view() {
+  let args = ["view", false];
+  args.push.apply(args, arguments);
+  return await base.apply(null, args);
+}
+CustomFunctions.associate("VIEW", view);
