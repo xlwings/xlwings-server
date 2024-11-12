@@ -205,12 +205,18 @@ async function base() {
   return await makeJsCall(body);
 }
 
-async function makeJsCall(body) {
-  const processedArgs = body.args
-    ? body.args.map((arg) => JSON.stringify(arg))
-    : [];
+let pyDone = new Promise((resolve) => {
+  window.addEventListener(
+    "py:done",
+    () => {
+      resolve(true);
+    },
+    { once: true },
+  );
+});
 
-  // Call function with processed arguments
+async function makeJsCall(body) {
+  await pyDone;
   let r = await window.custom_functions_call(JSON.stringify(body));
   return r.toJs();
 }
