@@ -9,10 +9,15 @@ import xlwings as xw
 import xlwings.server
 from fastapi import APIRouter, Body, Header, Request, Response
 
-from .. import custom_functions, custom_scripts, dependencies as dep
+from .. import dependencies as dep
 from ..config import settings
 from ..models import CurrentUser
 from ..templates import TemplateResponse
+
+if settings.enable_wasm:
+    from ..wasm import custom_functions, custom_scripts
+else:
+    from .. import custom_functions, custom_scripts
 
 logger = logging.getLogger(__name__)
 

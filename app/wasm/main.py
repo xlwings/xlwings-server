@@ -12,6 +12,8 @@ TODO:
 - remove CDNs
 - automatic pyscript.json config?
 - ObjectConverter
+- static page CLI build command (code, meta, custom-scripts-sheet-buttons, etc.)
+- hotreloading doesn't have to restart python ever?
 """
 
 import json

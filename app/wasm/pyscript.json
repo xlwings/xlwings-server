@@ -1,0 +1,16 @@
+{
+  "packages": [
+    "xlwings",
+    "sqlite3",
+    "pydantic",
+    "numpy",
+    "pandas",
+    "matplotlib"
+  ],
+  "files": {
+    "/wasm/custom_functions/__init__.py": "./custom_functions/__init__.py",
+    "/wasm/custom_functions/examples.py": "./custom_functions/examples.py",
+    "/wasm/custom_scripts/__init__.py": "./custom_scripts/__init__.py",
+    "/wasm/custom_scripts/examples.py": "./custom_scripts/examples.py"
+  }
+}

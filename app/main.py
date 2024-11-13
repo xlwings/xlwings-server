@@ -124,6 +124,13 @@ app.mount(
 if settings.environment == "dev":
     # Don't cache static files
     StaticFiles.is_not_modified = lambda *args, **kwargs: False
+    if settings.enable_wasm:
+        # For WASM development
+        app.mount(
+            "/wasm",
+            StaticFiles(directory=settings.base_dir / "wasm"),
+            name="wasm",
+        )
 
 
 # Exception handlers

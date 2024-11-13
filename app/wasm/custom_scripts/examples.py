@@ -9,7 +9,7 @@ from xlwings.server import script
 # mpl.use("agg")
 
 
-@script
+@script(target_cell="[xlwings_button]Sheet1!B4", config={"exclude": "MySheet"})
 async def test(book: xw.Book):
     sheet1 = book.sheets[0]
     print(sheet1["A1:A2"].value)

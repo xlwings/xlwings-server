@@ -1,7 +1,0 @@
-{
-  "packages": ["xlwings", "sqlite3", "pydantic", "numpy", "pandas", "matplotlib"],
-  "files": {
-    "/static/python/custom_functions.py": "./custom_functions.py",
-    "/static/python/custom_scripts.py": "./custom_scripts.py"
-  }
-}

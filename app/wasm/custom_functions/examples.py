@@ -9,7 +9,7 @@ from xlwings.server import arg, func, ret
 # 1) This is the most basic custom function -- it only requires the @func decorator.
 @func
 def hello(name):
-    return f"Hello {name} from WASM!"
+    return f"Hello {name} from WASM"
 
 
 # 2) Returning a pandas DataFrame and function documentation
