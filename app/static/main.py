@@ -5,7 +5,11 @@
 - Check out https://docs.pyscript.net/2024.5.2/user-guide/workers/
 
 TODO:
+- support sheet buttons
+- getBookData switch order of args
 - make current_user optional
+- look into toJS vs json (func vs script)
+- ObjectConverter
 """
 
 import json
@@ -13,19 +17,15 @@ import os
 from typing import Optional
 
 os.environ["XLWINGS_LICENSE_KEY"] = "noncommercial"
-# To use matplotlib, add it to pyscript.json
-# import matplotlib as mpl
-# import matplotlib.pyplot as plt
-# mpl.use("agg")
 import custom_functions
+import custom_scripts
 import xlwings as xw  # noqa: E402
 from pydantic import BaseModel
 from pyscript import window  # noqa: E402
 from xlwings.server import (
     custom_functions_call as xlwings_custom_functions_call,
+    custom_scripts_call as xlwings_custom_scripts_call,
 )
-
-xwjs = window.xlwings
 
 
 async def custom_functions_call(data):
@@ -40,24 +40,19 @@ async def custom_functions_call(data):
 window.custom_functions_call = custom_functions_call
 
 
-async def test(event):
-    """Called from task pane button"""
-    # Instantiate Book hack
-    data = await xwjs.getBookData()
+async def custom_scripts_call(data, script_name):
     book = xw.Book(json=json.loads(data))
+    current_user = User(id="n/a", name="Anonymous")
+    book = await xlwings_custom_scripts_call(
+        module=custom_scripts,
+        script_name=script_name,
+        current_user=current_user,
+        typehint_to_value={xw.Book: book},
+    )
+    return json.dumps(book.json())
 
-    # Usual xlwings API
-    sheet1 = book.sheets[0]
-    print(sheet1["A1:A2"].value)
-    book.sheets[0]["A3"].value = "xxxxxxx"
 
-    # fig = plt.figure()
-    # plt.plot([1, 2, 3])
-    # sheet1.pictures.add(fig, name="MyPlot", update=True, anchor=sheet1["C5"])
-    # sheet1["A1"].select()
-
-    # Process actions (this could be improved so methods are applied immediately)
-    xwjs.runActions(json.dumps(book.json()))
+window.custom_scripts_call = custom_scripts_call
 
 
 class User(BaseModel):

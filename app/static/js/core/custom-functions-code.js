@@ -5,7 +5,7 @@ let runtime;
 let contentLanguage;
 let socket = null;
 
-let pyDone = new Promise((resolve) => {
+let pyscriptDone = new Promise((resolve) => {
   window.addEventListener(
     "py:done",
     () => {
@@ -267,7 +267,7 @@ async function makeServerCall(body) {
 }
 
 async function makeWasmCall(body) {
-  await pyDone;
+  await pyscriptDone;
   let r = await window.custom_functions_call(JSON.stringify(body));
   return r.toJs();
 }

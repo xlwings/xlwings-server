@@ -14,6 +14,17 @@ const xlwings = {
 };
 globalThis.xlwings = xlwings;
 
+let pyscriptDone = new Promise((resolve) => {
+  // Duplicated in custom-functions-code.js
+  window.addEventListener(
+    "py:ready",
+    () => {
+      resolve(true);
+    },
+    { once: true },
+  );
+});
+
 // Hook up buttons with the click event upon loading xlwings.js
 document.addEventListener("DOMContentLoaded", init);
 
@@ -46,11 +57,20 @@ export function init() {
         config.appPath +
         "/xlwings/custom-scripts-call/" +
         element.getAttribute("xw-click");
-      await runPython(url, {
-        ...xwConfig,
-        auth: token,
-        errorDisplayMode: "taskpane",
-      });
+      // await runPython(url, {
+      //   ...xwConfig,
+      //   auth: token,
+      //   errorDisplayMode: "taskpane",
+      // });
+      let body = await xlwings.getBookData(null, xwConfig);
+      await pyscriptDone;
+      let r = await window.custom_scripts_call(
+        body,
+        element.getAttribute("xw-click"),
+      );
+      r = JSON.parse(r);
+      // let actions = r.toJs();
+      await xlwings.runActions(r);
 
       element.removeChild(spinner);
       element.removeAttribute("disabled");
