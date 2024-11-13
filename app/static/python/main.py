@@ -5,12 +5,12 @@
 - Check out https://docs.pyscript.net/2024.5.2/user-guide/workers/
 
 TODO:
-- create wasm folder under static
 - support sheet buttons
 - make current_user optional
 - look into toJS vs json (func vs script)
 - run 10000 custom functions
 - remove CDNs
+- automatic pyscript.json config?
 - ObjectConverter
 """
 
@@ -23,7 +23,7 @@ import custom_functions
 import custom_scripts
 import xlwings as xw  # noqa: E402
 from pydantic import BaseModel
-from pyscript import window  # noqa: E402
+from pyscript import window  # type: ignore # noqa: E402
 from xlwings.server import (
     custom_functions_call as xlwings_custom_functions_call,
     custom_scripts_call as xlwings_custom_scripts_call,

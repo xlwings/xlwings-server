@@ -4,8 +4,7 @@
   <div class="container-fluid pt-3 ps-3">
     <h1>Example Task Pane</h1>
     {# PyScript Test #}
-    <script type="py" src="/static/main.py" config="/static/pyscript.json"></script>
-    <script type="py" src="/static/custom_functions.py" config="/static/pyscript.json"></script>
+    <script type="py" src="/static/python/main.py" config="/static/pyscript.json"></script>
     <button type="button" name="test" class="btn btn-primary btn-sm" py-click="test">PyScript Test</button>
     <button xw-click="test" xw-config='{"exclude": "MySheet"}' class="btn btn-primary btn-sm" type="button">
       WASM
