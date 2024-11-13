@@ -65,7 +65,7 @@ class Settings(BaseSettings):
             "authProviders": self.auth_providers,
             "appPath": self.app_path,
             "xlwingsVersion": self.xlwings_version,
-            "isWasm": self.enable_wasm,
+            "onWasm": self.enable_wasm,
         }
 
 

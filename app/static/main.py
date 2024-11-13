@@ -5,10 +5,12 @@
 - Check out https://docs.pyscript.net/2024.5.2/user-guide/workers/
 
 TODO:
+- create wasm folder under static
 - support sheet buttons
-- getBookData switch order of args
 - make current_user optional
 - look into toJS vs json (func vs script)
+- run 10000 custom functions
+- remove CDNs
 - ObjectConverter
 """
 

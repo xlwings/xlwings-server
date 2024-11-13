@@ -57,20 +57,23 @@ export function init() {
         config.appPath +
         "/xlwings/custom-scripts-call/" +
         element.getAttribute("xw-click");
-      // await runPython(url, {
-      //   ...xwConfig,
-      //   auth: token,
-      //   errorDisplayMode: "taskpane",
-      // });
-      let body = await xlwings.getBookData(null, xwConfig);
-      await pyscriptDone;
-      let r = await window.custom_scripts_call(
-        body,
-        element.getAttribute("xw-click"),
-      );
-      r = JSON.parse(r);
-      // let actions = r.toJs();
-      await xlwings.runActions(r);
+      if (config.onWasm) {
+        let body = await xlwings.getBookData(xwConfig);
+        await pyscriptDone;
+        let r = await window.custom_scripts_call(
+          body,
+          element.getAttribute("xw-click"),
+        );
+        r = JSON.parse(r);
+        // let actions = r.toJs();
+        await xlwings.runActions(r);
+      } else {
+        await runPython(url, {
+          ...xwConfig,
+          auth: token,
+          errorDisplayMode: "taskpane",
+        });
+      }
 
       element.removeChild(spinner);
       element.removeAttribute("disabled");
@@ -95,12 +98,15 @@ export async function runPython(
   try {
     await Excel.run(async (context) => {
       // console.log(payload);
-      let payload = await getBookData(context, {
-        auth,
-        include,
-        exclude,
-        headers,
-      });
+      let payload = await getBookData(
+        {
+          auth,
+          include,
+          exclude,
+          headers,
+        },
+        context,
+      );
 
       // API call
       let response = await fetch(url, {
@@ -140,19 +146,22 @@ export async function runPython(
 
 // Helpers
 async function getBookData(
-  context = null,
   { auth = "", include = "", exclude = "", headers = {} } = {},
+  context = null,
 ) {
   // Context
   let bookData;
   if (!context) {
     await Excel.run(async (innerContext) => {
-      bookData = await getBookData(innerContext, {
-        auth,
-        include,
-        exclude,
-        headers,
-      });
+      bookData = await getBookData(
+        {
+          auth,
+          include,
+          exclude,
+          headers,
+        },
+        innerContext,
+      );
     });
     return JSON.stringify(bookData);
   }
