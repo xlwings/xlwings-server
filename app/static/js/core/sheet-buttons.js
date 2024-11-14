@@ -44,12 +44,21 @@ async function registerCellToButton(hyperlinkCellRef, scriptName, xwConfig) {
             typeof globalThis.getAuth === "function"
               ? await globalThis.getAuth()
               : "";
-          await xlwings.runPython(
-            window.location.origin +
-              config.appPath +
-              `/xlwings/custom-scripts-call/${scriptName}`,
-            { ...xwConfig, auth: token },
-          );
+          if (config.onWasm) {
+            let body = await xlwings.getBookData(xwConfig);
+            await pyscriptDone;
+            let r = await window.custom_scripts_call(body, scriptName);
+            r = JSON.parse(r);
+            // let actions = r.toJs();
+            await xlwings.runActions(r);
+          } else {
+            await xlwings.runPython(
+              window.location.origin +
+                config.appPath +
+                `/xlwings/custom-scripts-call/${scriptName}`,
+              { ...xwConfig, auth: token },
+            );
+          }
         } finally {
           sheet.getRange(selectedRangeAddress).getOffsetRange(1, 0).select();
           await context.sync();

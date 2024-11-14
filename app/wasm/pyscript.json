@@ -4,8 +4,7 @@
     "sqlite3",
     "pydantic",
     "numpy",
-    "pandas",
-    "matplotlib"
+    "pandas"
   ],
   "files": {
     "/wasm/custom_functions/__init__.py": "./custom_functions/__init__.py",

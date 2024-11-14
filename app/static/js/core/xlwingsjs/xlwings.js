@@ -57,6 +57,7 @@ export function init() {
         config.appPath +
         "/xlwings/custom-scripts-call/" +
         element.getAttribute("xw-click");
+      // TODO: this is duplicated in sheet-buttons.js
       if (config.onWasm) {
         let body = await xlwings.getBookData(xwConfig);
         await pyscriptDone;

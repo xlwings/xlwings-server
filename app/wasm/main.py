@@ -5,7 +5,6 @@
 - Check out https://docs.pyscript.net/2024.5.2/user-guide/workers/
 
 TODO:
-- support sheet buttons
 - make current_user optional
 - look into toJS vs json (func vs script)
 - run 10000 custom functions

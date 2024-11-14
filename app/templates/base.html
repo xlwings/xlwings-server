@@ -85,6 +85,7 @@
       {% if settings.enable_wasm %}
         <link rel="stylesheet" href="https://pyscript.net/snapshots/2024.9.2/core.css" />
         <script type="module" src="https://pyscript.net/snapshots/2024.9.2/core.js"></script>
+        <script type="py" src="/wasm/main.py" config="/wasm/pyscript.json"></script>
       {% endif %}
     {% endblock head %}
   </head>
