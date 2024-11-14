@@ -7,12 +7,13 @@
 TODO:
 - make current_user optional
 - look into toJS vs json (func vs script)
+- .env file
+- when changing body of custom function, the function seem to call a cached version?
 - run 10000 custom functions
 - remove CDNs
 - automatic pyscript.json config?
 - ObjectConverter
 - static page CLI build command (code, meta, custom-scripts-sheet-buttons, etc.)
-- hotreloading doesn't have to restart python ever?
 """
 
 import json

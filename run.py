@@ -130,6 +130,9 @@ if __name__ == "__main__":
             port=8000,
             reload=True,
             reload_includes=[".py", ".env"],
+            reload_excludes=[
+                "./app/wasm/**/*.py",
+            ],
             ssl_keyfile=ssl_keyfile,
             ssl_certfile=ssl_certfile,
         )
