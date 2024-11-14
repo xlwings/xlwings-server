@@ -1,8 +1,7 @@
 {
   "packages": [
-    "xlwings",
+    "/static/xlwings-0.0.0-py3-none-any.whl",
     "sqlite3",
-    "pydantic",
     "numpy",
     "pandas"
   ],

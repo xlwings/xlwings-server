@@ -14,10 +14,10 @@ const xlwings = {
 };
 globalThis.xlwings = xlwings;
 
-let pyscriptDone = new Promise((resolve) => {
+let pyscriptAllDone = new Promise((resolve) => {
   // Duplicated in custom-functions-code.js
   window.addEventListener(
-    "py:ready",
+    "py:all-done",
     () => {
       resolve(true);
     },
@@ -60,7 +60,7 @@ export function init() {
       // TODO: this is duplicated in sheet-buttons.js
       if (config.onWasm) {
         let body = await xlwings.getBookData(xwConfig);
-        await pyscriptDone;
+        await pyscriptAllDone;
         let r = await window.custom_scripts_call(
           body,
           element.getAttribute("xw-click"),

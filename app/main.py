@@ -75,6 +75,9 @@ async def add_security_headers(request, call_next):
     # https://owasp.org/www-project-secure-headers/index.html#configuration-proposal
     # https://owasp.org/www-project-secure-headers/ci/headers_add.json
     response = await call_next(request)
+    if not settings.add_security_headers and settings.environment == "dev":
+        # Prevent caching in dev even if security headers are switched off
+        response.headers["Cache-Control"] = "no-store, max-age=0"
     if settings.add_security_headers:
         data = read_security_headers()
 

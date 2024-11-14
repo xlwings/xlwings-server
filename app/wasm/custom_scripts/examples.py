@@ -14,6 +14,7 @@ async def test(book: xw.Book):
     sheet1 = book.sheets[0]
     print(sheet1["A1:A2"].value)
     book.sheets[0]["A3"].value = random.random()
+    book.sheets[0]["A4"].value = xw.__version__
 
     # fig = plt.figure()
     # plt.plot([1, 2, 3])
