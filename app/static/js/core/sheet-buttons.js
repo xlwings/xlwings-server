@@ -49,7 +49,6 @@ async function registerCellToButton(hyperlinkCellRef, scriptName, xwConfig) {
             await pyscriptAllDone;
             let r = await window.custom_scripts_call(body, scriptName);
             r = JSON.parse(r);
-            // let actions = r.toJs();
             await xlwings.runActions(r);
           } else {
             await xlwings.runPython(

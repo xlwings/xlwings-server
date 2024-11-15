@@ -1,5 +1,3 @@
-import random
-
 # To use matplotlib, add it to pyscript.json
 # import matplotlib as mpl
 # import matplotlib.pyplot as plt
@@ -11,10 +9,8 @@ from xlwings.server import script
 
 @script(target_cell="[xlwings_button]Sheet1!B4", config={"exclude": "MySheet"})
 async def test(book: xw.Book):
-    sheet1 = book.sheets[0]
-    print(sheet1["A1:A2"].value)
-    book.sheets[0]["A3"].value = random.random()
-    book.sheets[0]["A4"].value = xw.__version__
+    sheet = book.sheets[0]
+    sheet["A15"].value = sheet["A10"].expand().value
 
     # fig = plt.figure()
     # plt.plot([1, 2, 3])

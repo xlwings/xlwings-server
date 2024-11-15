@@ -269,9 +269,7 @@ async function makeServerCall(body) {
 async function makeWasmCall(body) {
   await pyscriptAllDone;
   try {
-    let r = await window.custom_functions_call(JSON.stringify(body));
-    r = JSON.parse(r);
-    // r = r.toJs();
+    let r = await window.custom_functions_call(body);
     if (r.error) {
       console.error(r.details);
       throw new Error(r.error);

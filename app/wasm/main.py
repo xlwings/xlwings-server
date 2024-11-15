@@ -1,11 +1,11 @@
 """
 TODO:
-- !!look into toJS vs json (func vs script)
+- move wasm call from init to runPython
 - show pyscript loading in progress in task pane
+- remove CDNs
 - include enable_wasm in .env file
 - create xlwings.conf file in .env format for wasm runtime to set license key (python-dotenv)
 - run 10000 custom functions (also on Windows)
-- remove CDNs
 - automatic pyscript.json config?
 - static page CLI build command (code, meta, custom-scripts-sheet-buttons, etc.)
 - Check out https://docs.pyscript.net/2024.5.2/user-guide/workers/
@@ -21,7 +21,6 @@ PyScript Limitations:
 - No access to local file system, but there's a virtual file system where files can be created via URLs or via upload
 """
 
-import json
 import os
 import traceback
 
@@ -29,7 +28,7 @@ os.environ["XLWINGS_LICENSE_KEY"] = "noncommercial"
 import custom_functions
 import custom_scripts
 import xlwings as xw
-from pyscript import window  # type: ignore
+from pyscript import ffi, window  # type: ignore
 from xlwings.server import (
     custom_functions_call as xlwings_custom_functions_call,
     custom_scripts_call as xlwings_custom_scripts_call,
@@ -37,22 +36,22 @@ from xlwings.server import (
 
 
 async def custom_functions_call(data):
-    data = json.loads(data)
+    data = data.to_py()
     try:
         rv = await xlwings_custom_functions_call(
             data,
             module=custom_functions,
         )
     except Exception as e:
-        return json.dumps({"error": str(e), "details": traceback.format_exc()})
-    return json.dumps(rv)
+        return {"error": str(e), "details": traceback.format_exc()}
+    return ffi.to_js(rv)
 
 
 window.custom_functions_call = custom_functions_call
 
 
 async def custom_scripts_call(data, script_name):
-    book = xw.Book(json=json.loads(data))
+    book = xw.Book(json=data.to_py())
     try:
         book = await xlwings_custom_scripts_call(
             module=custom_scripts,
@@ -60,8 +59,9 @@ async def custom_scripts_call(data, script_name):
             typehint_to_value={xw.Book: book},
         )
     except Exception as e:
-        return json.dumps({"error": str(e), "details": traceback.format_exc()})
-    return json.dumps(book.json())
+        return {"error": str(e), "details": traceback.format_exc()}
+    # Note: converts None to undefined
+    return ffi.to_js(book.json())
 
 
 window.custom_scripts_call = custom_scripts_call

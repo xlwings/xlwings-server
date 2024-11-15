@@ -66,8 +66,6 @@ export function init() {
             body,
             element.getAttribute("xw-click"),
           );
-          r = JSON.parse(r);
-          // let actions = r.toJs();
           if (r.error) {
             console.error(r.details);
             throw new Error(r.error);
@@ -179,7 +177,7 @@ async function getBookData(
         innerContext,
       );
     });
-    return JSON.stringify(bookData);
+    return bookData;
   }
 
   // workbook
