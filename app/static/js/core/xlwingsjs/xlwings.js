@@ -61,13 +61,28 @@ export function init() {
       if (config.onWasm) {
         let body = await xlwings.getBookData(xwConfig);
         await pyscriptAllDone;
-        let r = await window.custom_scripts_call(
-          body,
-          element.getAttribute("xw-click"),
-        );
-        r = JSON.parse(r);
-        // let actions = r.toJs();
-        await xlwings.runActions(r);
+        try {
+          let r = await window.custom_scripts_call(
+            body,
+            element.getAttribute("xw-click"),
+          );
+          r = JSON.parse(r);
+          // let actions = r.toJs();
+          if (r.error) {
+            console.error(r.details);
+            throw new Error(r.error);
+          }
+          await xlwings.runActions(r);
+        } catch (error) {
+          // TODO: factor out
+          const globalErrorAlert = document.querySelector(
+            "#global-error-alert",
+          );
+          if (globalErrorAlert) {
+            globalErrorAlert.classList.remove("d-none");
+            globalErrorAlert.querySelector("span").textContent = error;
+          }
+        }
       } else {
         await runPython(url, {
           ...xwConfig,
