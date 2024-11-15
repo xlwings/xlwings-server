@@ -19,6 +19,11 @@ let pyscriptAllDone = new Promise((resolve) => {
   window.addEventListener(
     "py:all-done",
     () => {
+      // Hide status alert when py:all-done fires
+      const globalStatusAlert = document.querySelector("#global-status-alert");
+      if (globalStatusAlert) {
+        globalStatusAlert.classList.add("d-none");
+      }
       resolve(true);
     },
     { once: true },
@@ -29,6 +34,16 @@ let pyscriptAllDone = new Promise((resolve) => {
 document.addEventListener("DOMContentLoaded", init);
 
 export function init() {
+  // Pyscript status
+  if (config.onWasm) {
+    const globalStatusAlert = document.querySelector("#global-status-alert");
+    if (globalStatusAlert) {
+      globalStatusAlert.classList.remove("d-none");
+      globalStatusAlert.querySelector("span").textContent =
+        "PyScript is loading...";
+    }
+  }
+
   const elements = document.querySelectorAll("[xw-click]");
   elements.forEach((element) => {
     element.addEventListener("click", async (event) => {

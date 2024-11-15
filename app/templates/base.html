@@ -85,7 +85,7 @@
       {% if settings.enable_wasm %}
         <link rel="stylesheet" href="https://pyscript.net/snapshots/2024.9.2/core.css" />
         <script type="module" src="https://pyscript.net/snapshots/2024.9.2/core.js"></script>
-        <script type="py" src="/wasm/main.py" config="/wasm/pyscript.json"></script>
+        <script type="py" src="/wasm/main.py" config="/wasm/pyscript.json" defer></script>
       {% endif %}
     {% endblock head %}
   </head>
@@ -95,6 +95,10 @@
       id="global-error-alert"
       class="alert alert-danger alert-dismissible fade show d-none z-index-1000"
       role="alert">
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      <span></span>
+    </div>
+    <div id="global-status-alert" class="alert alert-warning alert-dismissible fade show d-none" role="alert">
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       <span></span>
     </div>

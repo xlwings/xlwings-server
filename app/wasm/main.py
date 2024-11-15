@@ -1,7 +1,6 @@
 """
 TODO:
 - move wasm call from init to runPython
-- show pyscript loading in progress in task pane
 - remove CDNs
 - include enable_wasm in .env file
 - create xlwings.conf file in .env format for wasm runtime to set license key (python-dotenv)
