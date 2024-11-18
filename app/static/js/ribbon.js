@@ -3,9 +3,10 @@
 // "hello-ribbon" is the identifier in manifest.xml
 async function helloRibbon(event) {
   let token = await globalThis.getAuth();
-  xlwings.runPython(
-    window.location.origin + "/xlwings/custom-scripts-call/hello_world",
-    { auth: token },
+  let scriptName = "hello_world";
+  await xlwings.runPython(
+    window.location.origin + `/xlwings/custom-scripts-call/${scriptName}`,
+    { auth: token, scriptName: scriptName },
   );
   event.completed();
 }

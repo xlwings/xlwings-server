@@ -67,43 +67,18 @@ export function init() {
       let xwConfig = element.getAttribute("xw-config")
         ? JSON.parse(element.getAttribute("xw-config"))
         : {};
+      let scriptName = element.getAttribute("xw-click");
       const url =
         window.location.origin +
         config.appPath +
         "/xlwings/custom-scripts-call/" +
-        element.getAttribute("xw-click");
-      // TODO: this is duplicated in sheet-buttons.js
-      if (config.onWasm) {
-        let body = await xlwings.getBookData(xwConfig);
-        await pyscriptAllDone;
-        try {
-          let r = await window.custom_scripts_call(
-            body,
-            element.getAttribute("xw-click"),
-          );
-          if (r.error) {
-            console.error(r.details);
-            throw new Error(r.error);
-          }
-          await xlwings.runActions(r);
-        } catch (error) {
-          // TODO: factor out
-          const globalErrorAlert = document.querySelector(
-            "#global-error-alert",
-          );
-          if (globalErrorAlert) {
-            globalErrorAlert.classList.remove("d-none");
-            globalErrorAlert.querySelector("span").textContent = error;
-          }
-        }
-      } else {
-        await runPython(url, {
-          ...xwConfig,
-          auth: token,
-          errorDisplayMode: "taskpane",
-        });
-      }
-
+        scriptName;
+      await runPython(url, {
+        ...xwConfig,
+        scriptName: scriptName,
+        auth: token,
+        errorDisplayMode: "taskpane",
+      });
       element.removeChild(spinner);
       element.removeAttribute("disabled");
     });
@@ -116,6 +91,7 @@ globalThis.callbacks = {};
 export async function runPython(
   url = "",
   {
+    scriptName = "",
     auth = "",
     include = "",
     exclude = "",
@@ -136,22 +112,29 @@ export async function runPython(
         },
         context,
       );
-
-      // API call
-      let response = await fetch(url, {
-        method: "POST",
-        headers: headers,
-        body: JSON.stringify(payload),
-      });
-
-      // Parse JSON response
       let rawData;
-      if (response.status !== 200) {
-        throw await response.text();
+      if (config.onWasm) {
+        await pyscriptAllDone;
+        rawData = await window.custom_scripts_call(payload, scriptName);
+        if (rawData.error) {
+          console.error(rawData.details);
+          throw new Error(rawData.error);
+        }
       } else {
-        rawData = await response.json();
+        // API call
+        let response = await fetch(url, {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify(payload),
+        });
+        // Parse JSON response
+        // TODO: align error handling with wasm
+        if (response.status !== 200) {
+          throw await response.text();
+        } else {
+          rawData = await response.json();
+        }
       }
-
       // console.log(rawData);
 
       // Run Functions

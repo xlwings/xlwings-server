@@ -1,10 +1,10 @@
 """
 TODO:
-- move wasm call from init to runPython
+- debug insert sheet with custom functions sample
 - automatic pyscript.json config?
 - static page CLI build command (code, meta, custom-scripts-sheet-buttons, etc.)
 - include enable_wasm in .env file
-- create xlwings.conf file in .env format for wasm runtime to set license key (python-dotenv)
+- create xlwings.conf file in .env format for wasm runtime to set license key and enable examples, etc. (python-dotenv)
 - run 10000 custom functions (also on Windows)
 - Check out https://docs.pyscript.net/2024.5.2/user-guide/workers/
 
