@@ -1,6 +1,5 @@
 """
 TODO:
-- run custom functions e2e tests
 - create xlwings.conf file in .env format for wasm runtime to set license key and enable examples, etc. (python-dotenv)
 - automatic pyscript.json config?
 - static page CLI build command (code, meta, custom-scripts-sheet-buttons, etc.)
@@ -36,6 +35,13 @@ from xlwings.server import (
     custom_functions_call as xlwings_custom_functions_call,
     custom_scripts_call as xlwings_custom_scripts_call,
 )
+
+try:
+    import matplotlib as mpl
+
+    mpl.use("agg")
+except ImportError:
+    mpl = None
 
 # Print Python and Pyodide versions
 print(f"Python version: {platform.python_version()}")

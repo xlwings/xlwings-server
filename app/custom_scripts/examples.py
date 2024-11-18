@@ -3,6 +3,11 @@ Make sure to import the desired functions under __init__.py, e.g.:
 from .example import *
 """
 
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    plt = None
+import numpy as np
 import xlwings as xw
 from xlwings.server import script
 
@@ -48,3 +53,23 @@ def setup_custom_functions(book: xw.Book):
     )
     sheet["A40"].value = f'={prefix}.HELLO_WITH_SCRIPT("xlwings")'
     sheet.activate()
+
+
+@script
+def show_plot(book: xw.Book):
+    """Adopted from
+    https://matplotlib.org/stable/plot_types/stats/hexbin.html#sphx-glr-plot-types-stats-hexbin-py
+    """
+    if not plt:
+        raise xw.XlwingsError("You need to install Matplotlib for this example")
+    plt.style.use("_mpl-gallery-nogrid")
+    rng = np.random.default_rng()
+    x = rng.standard_normal(5000)
+    y = 1.2 * x + rng.standard_normal(5000) / 3
+    fig, ax = plt.subplots()
+    ax.hexbin(x, y, gridsize=20)
+    ax.set(xlim=(-2, 2), ylim=(-3, 3))
+    book.sheets.active.pictures.add(
+        fig, anchor=book.sheets.active["A10"], update=True, name="mplot"
+    )
+    book.selection.select()

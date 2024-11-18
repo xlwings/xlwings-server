@@ -1,8 +1,7 @@
 {
-  "interpreter": "/static/vendor/pyodide/pyodide.mjs",
   "packages": [
-    "/static/xlwings-0.0.0-py3-none-any.whl"
-
+    "/static/xlwings-0.0.0-py3-none-any.whl",
+    "pandas"
   ],
   "files": {
     "/wasm/custom_functions/__init__.py": "./custom_functions/__init__.py",
