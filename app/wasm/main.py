@@ -24,14 +24,21 @@ import os
 import traceback
 
 os.environ["XLWINGS_LICENSE_KEY"] = "noncommercial"
+import platform
+
 import custom_functions
 import custom_scripts
+import pyodide_js  # type: ignore
 import xlwings as xw
 from pyscript import ffi, window  # type: ignore
 from xlwings.server import (
     custom_functions_call as xlwings_custom_functions_call,
     custom_scripts_call as xlwings_custom_scripts_call,
 )
+
+# Print Python and Pyodide versions
+print(f"Python version: {platform.python_version()}")
+print(f"Pyodide version: {pyodide_js.version}")
 
 
 async def custom_functions_call(data):

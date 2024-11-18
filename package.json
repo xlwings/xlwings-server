@@ -2,11 +2,13 @@
   "dependencies": {
     "@alpinejs/csp": "3.14.3",
     "@microsoft/office-js": "1.1.94",
+    "@pyscript/core": "0.6.18",
     "bootstrap": "5.3.3",
     "bootstrap-xlwings": "github:xlwings/bootstrap-xlwings#5.3.3-1",
     "htmx-ext-head-support": "2.0.2",
     "htmx-ext-loading-states": "2.0.0",
     "htmx.org": "2.0.3",
+    "pyodide": "0.26.3",
     "socket.io": "4.8.1"
   },
   "devDependencies": {
