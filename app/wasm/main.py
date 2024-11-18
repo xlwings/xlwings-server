@@ -1,12 +1,11 @@
 """
 TODO:
 - move wasm call from init to runPython
-- remove CDNs
+- automatic pyscript.json config?
+- static page CLI build command (code, meta, custom-scripts-sheet-buttons, etc.)
 - include enable_wasm in .env file
 - create xlwings.conf file in .env format for wasm runtime to set license key (python-dotenv)
 - run 10000 custom functions (also on Windows)
-- automatic pyscript.json config?
-- static page CLI build command (code, meta, custom-scripts-sheet-buttons, etc.)
 - Check out https://docs.pyscript.net/2024.5.2/user-guide/workers/
 
 xlwings Limitations:

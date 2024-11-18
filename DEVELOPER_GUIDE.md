@@ -81,3 +81,13 @@ The VS Code extension prettier requires to set the configuration to `.prettierrc
 ## Alert window
 
 When debugging the alert/dialog window, you need to open up a separate instance of the dev tools.
+
+## WASM
+
+- Offline mode: To activate offline mode, add this line to the `pyscript.json`:
+
+  ```
+  "interpreter": "/static/vendor/pyodide/pyodide.mjs",
+  ```
+
+  Make sure to install the correct version of Pyodide (`npm i pyodide@x.x.x`) for the given version of PyScript. To find out, use the CDN version of PyScript and check out the console logs where it prints the version of Pyodide.
