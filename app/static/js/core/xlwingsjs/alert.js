@@ -67,7 +67,6 @@ export async function xlAlert(prompt, title, buttons, mode, callback) {
     height = 30;
   }
 
-  // See xlwings-server repo for how app-path is provided
   if (dialog) {
     dialog.close();
     console.log("Closed perviously open dialog to prevent error 12007.");

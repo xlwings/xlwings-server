@@ -1,17 +1,19 @@
 """
 TODO:
+- run custom functions e2e tests
+- create xlwings.conf file in .env format for wasm runtime to set license key and enable examples, etc. (python-dotenv)
 - automatic pyscript.json config?
 - static page CLI build command (code, meta, custom-scripts-sheet-buttons, etc.)
 - include enable_wasm in .env file
-- create xlwings.conf file in .env format for wasm runtime to set license key and enable examples, etc. (python-dotenv)
+- config for switching between CDN and local wasm
 - run 10000 custom functions (also on Windows)
 - allow WASM to coexist with Python backend instead of either or
 - Check out https://docs.pyscript.net/2024.5.2/user-guide/workers/
 
 xlwings Limitations:
-- missing object handles
-- missing alert
-- only task pane buttons handle errors
+- missing object handles (depend on settings and serializers)
+- missing alert (depends on Jinja template)
+- only task pane buttons handle errors (because of missing alert)
 
 PyScript Limitations:
 - You can use pyscript.fetch, but often, you'll run into CORS issues (GitHub is fine though)
@@ -43,14 +45,14 @@ print(f"Pyodide version: {pyodide_js.version}")
 async def custom_functions_call(data):
     data = data.to_py()
     try:
-        rv = await xlwings_custom_functions_call(
+        result = await xlwings_custom_functions_call(
             data,
             module=custom_functions,
         )
     except Exception as e:
-        return {"error": str(e), "details": traceback.format_exc()}
+        result = {"error": str(e), "details": traceback.format_exc()}
     # Note: converts None to undefined
-    return ffi.to_js(rv)
+    return ffi.to_js(result)
 
 
 window.custom_functions_call = custom_functions_call
@@ -64,9 +66,10 @@ async def custom_scripts_call(data, script_name):
             script_name=script_name,
             typehint_to_value={xw.Book: book},
         )
+        result = book.json()
     except Exception as e:
-        return {"error": str(e), "details": traceback.format_exc()}
-    return ffi.to_js(book.json())
+        result = {"error": str(e), "details": traceback.format_exc()}
+    return ffi.to_js(result)
 
 
 window.custom_scripts_call = custom_scripts_call
