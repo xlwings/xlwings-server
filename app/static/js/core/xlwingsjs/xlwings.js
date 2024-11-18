@@ -138,7 +138,8 @@ export async function runPython(
       // console.log(rawData);
 
       // Run Functions
-      if (rawData !== null) {
+      // Note that PyScript returns undefined, so use != and == rather than !== and ===
+      if (rawData != null) {
         await runActions(rawData, context);
       }
     });
@@ -639,7 +640,7 @@ async function rangeClear(context, action) {
 
 async function addSheet(context, action) {
   let sheet;
-  if (action.args[1] !== null) {
+  if (action.args[1] != null) {
     sheet = context.workbook.worksheets.add(action.args[1].toString());
   } else {
     sheet = context.workbook.worksheets.add();
@@ -793,7 +794,7 @@ async function setRangeName(context, action) {
 async function namesAdd(context, action) {
   let name = action.args[0].toString();
   let refersTo = action.args[1].toString();
-  if (action.sheet_position === null) {
+  if (action.sheet_position == null) {
     context.workbook.names.add(name, refersTo);
   } else {
     let sheets = context.workbook.worksheets.load("items");
@@ -854,10 +855,10 @@ async function addTable(context, action) {
     action.args[0].toString(),
     Boolean(action.args[1]),
   );
-  if (action.args[2] !== null) {
+  if (action.args[2] != null) {
     mytable.style = action.args[2].toString();
   }
-  if (action.args[3] !== null) {
+  if (action.args[3] != null) {
     mytable.name = action.args[3].toString();
   }
 }
