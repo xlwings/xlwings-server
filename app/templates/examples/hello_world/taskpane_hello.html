@@ -14,9 +14,11 @@
         type="button">
         Insert sheet with custom functions
       </button>
-      <button xw-click="show_alert" xw-config='{"exclude": "MySheet"}' class="btn btn-primary btn-sm" type="button">
-        Show an alert
-      </button>
+      {% if not settings.enable_wasm %}
+        <button xw-click="show_alert" xw-config='{"exclude": "MySheet"}' class="btn btn-primary btn-sm" type="button">
+          Show an alert
+        </button>
+      {% endif %}
       <button xw-click="show_plot" xw-config='{"exclude": "MySheet"}' class="btn btn-primary btn-sm" type="button">
         Insert a Matplotlib Plot
       </button>

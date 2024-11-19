@@ -1,7 +1,7 @@
 """
 TODO:
-- create xlwings.conf file in .env format for wasm runtime to set license key and enable examples, etc. (python-dotenv)
-- automatic pyscript.json config?
+- add an example that raises an error
+- pyscript.json config as endpoint
 - static page CLI build command (code, meta, custom-scripts-sheet-buttons, etc.)
 - include enable_wasm in .env file
 - config for switching between CDN and local wasm
@@ -10,9 +10,10 @@ TODO:
 - Check out https://docs.pyscript.net/2024.5.2/user-guide/workers/
 
 xlwings Limitations:
-- missing object handles (depend on settings and serializers)
+- missing object handles (depend on settings, serializers, and redis expiry)
 - missing alert (depends on Jinja template)
-- only task pane buttons handle errors (because of missing alert)
+- only task pane buttons handle errors (depends on alert)
+- streaming functions (depend on socket.io)
 
 PyScript Limitations:
 - You can use pyscript.fetch, but often, you'll run into CORS issues (GitHub is fine though)
@@ -20,11 +21,10 @@ PyScript Limitations:
 - No access to local file system, but there's a virtual file system where files can be created via URLs or via upload
 """
 
-import os
-import traceback
-
-os.environ["XLWINGS_LICENSE_KEY"] = "noncommercial"
+# Settings
+import config  # noqa: F401, I001 Must be first import to load env vars
 import platform
+import traceback
 
 import custom_functions
 import custom_scripts

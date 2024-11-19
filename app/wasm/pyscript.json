@@ -1,9 +1,12 @@
 {
   "packages": [
     "/static/xlwings-0.0.0-py3-none-any.whl",
-    "pandas"
+    "pandas",
+    "python-dotenv"
   ],
   "files": {
+    "/wasm/xlwings.env": "./xlwings.env",
+    "/wasm/config.py": "./config.py",
     "/wasm/custom_functions/__init__.py": "./custom_functions/__init__.py",
     "/wasm/custom_functions/examples.py": "./custom_functions/examples.py",
     "/wasm/custom_scripts/__init__.py": "./custom_scripts/__init__.py",
