@@ -73,3 +73,8 @@ def show_plot(book: xw.Book):
         fig, anchor=book.sheets.active["A10"], update=True, name="mplot"
     )
     book.selection.select()
+
+
+@script
+def show_error(book: xw.Book):
+    raise xw.XlwingsError("This would be your error message")

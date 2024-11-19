@@ -1,6 +1,5 @@
 """
 TODO:
-- add an example that raises an error
 - pyscript.json config as endpoint
 - static page CLI build command (code, meta, custom-scripts-sheet-buttons, etc.)
 - include enable_wasm in .env file
@@ -8,6 +7,7 @@ TODO:
 - run 10000 custom functions (also on Windows)
 - allow WASM to coexist with Python backend instead of either or
 - Check out https://docs.pyscript.net/2024.5.2/user-guide/workers/
+- release xlwings
 
 xlwings Limitations:
 - missing object handles (depend on settings, serializers, and redis expiry)

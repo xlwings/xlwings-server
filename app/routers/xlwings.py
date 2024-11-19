@@ -2,6 +2,7 @@ import contextvars
 import inspect
 import json
 import logging
+from pathlib import Path
 from textwrap import dedent
 from typing import Optional
 
@@ -128,3 +129,27 @@ async def custom_scripts_sheet_buttons():
             buttons_info.append([target_cell, name, config])
     content = f"const cellsToScripts = {json.dumps(buttons_info)};"
     return Response(content=content, media_type="application/javascript")
+
+
+if settings.enable_wasm:
+
+    @router.get("/pyscript.json")
+    async def get_pyscript_config():
+        packages = (
+            Path(settings.base_dir / "wasm" / "requirements.txt")
+            .read_text()
+            .splitlines()
+        )
+        packages = [pkg.strip() for pkg in packages if pkg.strip()]
+        wasm_dir = Path(settings.base_dir / "wasm")
+        files = {}
+        for file_path in wasm_dir.rglob("*"):
+            if (
+                file_path.is_file()
+                and file_path.suffix != ".pyc"
+                and file_path.name != "requirements.txt"
+            ):
+                relative_path = file_path.relative_to(wasm_dir)
+                files[f"/wasm/{relative_path}"] = f"./{relative_path}"
+        response = {"packages": packages, "files": files}
+        return response
