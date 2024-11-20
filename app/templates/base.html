@@ -82,7 +82,7 @@
         <script src="{{ url_for('static', path='/vendor/@alpinejs/csp/dist/cdn.min.js') }}" defer></script>
       {% endif %}
       {# WASM #}
-      {% if settings.enable_wasm %}
+      {% if settings.enable_lite %}
         <link rel="stylesheet" href="{{ url_for('static', path='/vendor/@pyscript/core/dist/core.css') }}" />
         <script type="module" src="{{ url_for('static', path='/vendor/@pyscript/core/dist/core.js') }}"></script>
         <script type="py" src="/wasm/main.py" config="/xlwings/pyscript.json" defer></script>

@@ -3,7 +3,6 @@ TODO:
 - integrate make_static.py into CLI
 - static page CLI build command (code, meta, custom-scripts-sheet-buttons, etc.)
 - config for switching between CDN and local wasm
-- include enable_wasm in .env file
 - run 10000 custom functions (also on Windows)
 - allow WASM to coexist with Python backend instead of either or
 - Check out https://docs.pyscript.net/2024.5.2/user-guide/workers/

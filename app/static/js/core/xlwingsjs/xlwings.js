@@ -35,7 +35,7 @@ document.addEventListener("DOMContentLoaded", init);
 
 export function init() {
   // Pyscript status
-  if (config.onWasm) {
+  if (config.onLite) {
     const globalStatusAlert = document.querySelector("#global-status-alert");
     if (globalStatusAlert) {
       globalStatusAlert.classList.remove("d-none");
@@ -112,7 +112,7 @@ export async function runPython(
         context,
       );
       let rawData;
-      if (config.onWasm) {
+      if (config.onLite) {
         await pyscriptAllDone;
         rawData = await window.custom_scripts_call(payload, scriptName);
         if (rawData.error) {

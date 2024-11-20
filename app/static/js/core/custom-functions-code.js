@@ -212,7 +212,7 @@ async function base() {
   }
 
   // Normal functions communicate via REST API
-  if (config.onWasm) {
+  if (config.onLite) {
     return await makeWasmCall(body);
   } else {
     return await makeServerCall(body);

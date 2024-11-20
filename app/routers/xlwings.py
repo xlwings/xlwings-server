@@ -15,7 +15,7 @@ from ..config import settings
 from ..models import CurrentUser
 from ..templates import TemplateResponse
 
-if settings.enable_wasm:
+if settings.enable_lite:
     from ..wasm import custom_functions, custom_scripts
 else:
     from .. import custom_functions, custom_scripts
@@ -44,6 +44,7 @@ async def alert(
     )
 
 
+@router.get("/custom-functions-meta")
 @router.get("/custom-functions-meta.json")
 async def custom_functions_meta():
     return xlwings.server.custom_functions_meta(
@@ -51,6 +52,7 @@ async def custom_functions_meta():
     )
 
 
+@router.get("/custom-functions-code")
 @router.get("/custom-functions-code.js")
 async def custom_functions_code():
     custom_functions_call_path = f"{settings.app_path}/xlwings/custom-functions-call"
@@ -119,6 +121,7 @@ async def custom_scripts_call(script_name: str, book: dep.Book, current_user: de
     return book.json()
 
 
+@router.get("/custom-scripts-sheet-buttons")
 @router.get("/custom-scripts-sheet-buttons.js")
 async def custom_scripts_sheet_buttons():
     buttons_info = []
@@ -131,7 +134,7 @@ async def custom_scripts_sheet_buttons():
     return Response(content=content, media_type="application/javascript")
 
 
-if settings.enable_wasm:
+if settings.enable_lite:
 
     @router.get("/pyscript.json")
     async def get_pyscript_config():

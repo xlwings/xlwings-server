@@ -82,7 +82,7 @@ The VS Code extension prettier requires to set the configuration to `.prettierrc
 
 When debugging the alert/dialog window, you need to open up a separate instance of the dev tools.
 
-## WASM
+## xlwings Lite (Wasm)
 
 - Offline mode: To activate offline mode, add this line to the `pyscript.json`:
 

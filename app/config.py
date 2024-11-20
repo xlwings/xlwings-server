@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     enable_htmx: bool = True
     enable_socketio: bool = True
     enable_tests: bool = False
-    enable_wasm: bool = False
+    enable_lite: bool = False
     environment: Literal["dev", "qa", "uat", "staging", "prod"] = "prod"
     functions_namespace: str = "XLWINGS"
     hostname: Optional[str] = None
@@ -65,7 +65,7 @@ class Settings(BaseSettings):
             "authProviders": self.auth_providers,
             "appPath": self.app_path,
             "xlwingsVersion": self.xlwings_version,
-            "onWasm": self.enable_wasm,
+            "onLite": self.enable_lite,
         }
 
 
