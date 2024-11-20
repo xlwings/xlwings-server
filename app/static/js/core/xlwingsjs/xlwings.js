@@ -39,8 +39,7 @@ export function init() {
     const globalStatusAlert = document.querySelector("#global-status-alert");
     if (globalStatusAlert) {
       globalStatusAlert.classList.remove("d-none");
-      globalStatusAlert.querySelector("span").textContent =
-        "PyScript is loading...";
+      globalStatusAlert.querySelector("span").textContent = "Loading Python...";
     }
   }
 

@@ -44,14 +44,14 @@ async def alert(
     )
 
 
-@router.get("/custom-functions-meta")
+@router.get("/custom-functions-meta.json")
 async def custom_functions_meta():
     return xlwings.server.custom_functions_meta(
         custom_functions, typehinted_params_to_exclude=[CurrentUser]
     )
 
 
-@router.get("/custom-functions-code")
+@router.get("/custom-functions-code.js")
 async def custom_functions_code():
     custom_functions_call_path = f"{settings.app_path}/xlwings/custom-functions-call"
     js = (settings.static_dir / "js" / "core" / "custom-functions-code.js").read_text()
@@ -119,7 +119,7 @@ async def custom_scripts_call(script_name: str, book: dep.Book, current_user: de
     return book.json()
 
 
-@router.get("/custom-scripts-sheet-buttons")
+@router.get("/custom-scripts-sheet-buttons.js")
 async def custom_scripts_sheet_buttons():
     buttons_info = []
     for name, func in inspect.getmembers(custom_scripts, inspect.isfunction):
