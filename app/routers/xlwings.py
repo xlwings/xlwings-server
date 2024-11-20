@@ -138,12 +138,19 @@ if settings.enable_lite:
 
     @router.get("/pyscript.json")
     async def get_pyscript_config():
+        # requirements.txt
         packages = (
             Path(settings.base_dir / "lite" / "requirements.txt")
             .read_text()
             .splitlines()
         )
-        packages = [pkg.strip() for pkg in packages if pkg.strip()]
+        packages = [
+            pkg.replace("/static", settings.static_url_path).strip()
+            for pkg in packages
+            if pkg.strip()
+        ]
+
+        # files
         lite_dir = Path(settings.base_dir / "lite")
         files = {}
         for file_path in lite_dir.rglob("*"):
@@ -153,8 +160,12 @@ if settings.enable_lite:
                 and file_path.name != "requirements.txt"
             ):
                 relative_path = file_path.relative_to(lite_dir)
-                files[f"/lite/{relative_path}"] = f"./{relative_path}"
+                files[
+                    f"{settings.static_url_path.replace("static", "lite")}/{relative_path}"
+                ] = f"./{relative_path}"
         response = {"packages": packages, "files": files}
+
+        # Interpreter
         if settings.lite_local_pyodide:
             response["interpreter"] = (
                 f"{settings.static_url_path}/vendor/pyodide/pyodide.mjs"
