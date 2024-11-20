@@ -124,17 +124,19 @@ app.mount(
     StaticFiles(directory=settings.static_dir),
     name="static",
 )
+
+if settings.enable_lite:
+    # For xlwings Lite development
+    app.mount(
+        # Use the same path prefix as for static files
+        settings.static_url_path.replace("static", "lite"),
+        StaticFiles(directory=settings.base_dir / "lite"),
+        name="lite",
+    )
+
 if settings.environment == "dev":
     # Don't cache static files
     StaticFiles.is_not_modified = lambda *args, **kwargs: False
-    if settings.enable_lite:
-        # For xlwings Lite development
-        app.mount(
-            # Use the same path prefix as for static files
-            settings.static_url_path.replace("static", "lite"),
-            StaticFiles(directory=settings.base_dir / "lite"),
-            name="lite",
-        )
 
 
 # Exception handlers
