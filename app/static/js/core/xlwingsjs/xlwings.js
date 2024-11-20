@@ -127,7 +127,7 @@ export async function runPython(
           body: JSON.stringify(payload),
         });
         // Parse JSON response
-        // TODO: align error handling with wasm
+        // TODO: align error handling with xlwings Lite
         if (response.status !== 200) {
           throw await response.text();
         } else {

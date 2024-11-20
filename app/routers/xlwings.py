@@ -16,7 +16,7 @@ from ..models import CurrentUser
 from ..templates import TemplateResponse
 
 if settings.enable_lite:
-    from ..wasm import custom_functions, custom_scripts
+    from ..lite import custom_functions, custom_scripts
 else:
     from .. import custom_functions, custom_scripts
 
@@ -139,21 +139,21 @@ if settings.enable_lite:
     @router.get("/pyscript.json")
     async def get_pyscript_config():
         packages = (
-            Path(settings.base_dir / "wasm" / "requirements.txt")
+            Path(settings.base_dir / "lite" / "requirements.txt")
             .read_text()
             .splitlines()
         )
         packages = [pkg.strip() for pkg in packages if pkg.strip()]
-        wasm_dir = Path(settings.base_dir / "wasm")
+        lite_dir = Path(settings.base_dir / "lite")
         files = {}
-        for file_path in wasm_dir.rglob("*"):
+        for file_path in lite_dir.rglob("*"):
             if (
                 file_path.is_file()
                 and file_path.suffix != ".pyc"
                 and file_path.name != "requirements.txt"
             ):
-                relative_path = file_path.relative_to(wasm_dir)
-                files[f"/wasm/{relative_path}"] = f"./{relative_path}"
+                relative_path = file_path.relative_to(lite_dir)
+                files[f"/lite/{relative_path}"] = f"./{relative_path}"
         response = {"packages": packages, "files": files}
         if settings.lite_local_pyodide:
             response["interpreter"] = (

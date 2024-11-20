@@ -213,7 +213,7 @@ async function base() {
 
   // Normal functions communicate via REST API
   if (config.onLite) {
-    return await makeWasmCall(body);
+    return await makeLiteCall(body);
   } else {
     return await makeServerCall(body);
   }
@@ -266,7 +266,7 @@ async function makeServerCall(body) {
   }
 }
 
-async function makeWasmCall(body) {
+async function makeLiteCall(body) {
   await pyscriptAllDone;
   try {
     let r = await window.custom_functions_call(body);

@@ -29,9 +29,9 @@ class WebFilter(DefaultFilter):
         if path.suffix in (".html", ".css", ".js"):
             return True
 
-        # Only allow .py files in wasm subdirectory
+        # Only allow .py files in lite subdirectory
         if path.suffix == ".py":
-            return "wasm" in path.parts
+            return "lite" in path.parts
 
         return False
 

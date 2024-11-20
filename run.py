@@ -131,7 +131,7 @@ if __name__ == "__main__":
             reload=True,
             reload_includes=[".py", ".env"],
             reload_excludes=[
-                "./app/wasm/**/*.py",
+                "./app/lite/**/*.py",
             ],
             ssl_keyfile=ssl_keyfile,
             ssl_certfile=ssl_certfile,

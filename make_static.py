@@ -54,9 +54,9 @@ def copy_folder(source_dir: Path, dest_dir: Path, folder_name: str) -> None:
         print(f"No {folder_name} folder found to copy")
 
 
-# Copy static and wasm folders
+# Copy static and lite folders
 copy_folder(Path("app/static"), output_dir / "static", "Static")
-copy_folder(Path("app/wasm"), output_dir / "wasm", "WASM")
+copy_folder(Path("app/lite"), output_dir / "lite", "lite")
 
 
 # Cleanup
@@ -67,7 +67,7 @@ def remove_dir_if_exists(path: Path) -> None:
 
 
 # Remove cache and vendor directories
-remove_dir_if_exists(output_dir / "wasm" / "__pycache__")
+remove_dir_if_exists(output_dir / "lite" / "__pycache__")
 remove_dir_if_exists(output_dir / "static" / "vendor" / "socket.io")
 
 
