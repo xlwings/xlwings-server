@@ -85,7 +85,11 @@
       {% if settings.enable_lite %}
         <link rel="stylesheet" href="{{ url_for('static', path='/vendor/@pyscript/core/dist/core.css') }}" />
         <script type="module" src="{{ url_for('static', path='/vendor/@pyscript/core/dist/core.js') }}"></script>
-        <script type="py" src="/lite/main.py" config="/xlwings/pyscript.json" defer></script>
+        <script
+          type="py"
+          src="{{ url_for('lite', path='main.py') }}"
+          config="{{ url_for('get_pyscript_config') }}"
+          defer></script>
       {% endif %}
     {% endblock head %}
   </head>

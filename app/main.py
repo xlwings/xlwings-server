@@ -130,7 +130,8 @@ if settings.environment == "dev":
     if settings.enable_lite:
         # For xlwings Lite development
         app.mount(
-            "/lite",
+            # Use the same path prefix as for static files
+            settings.static_url_path.replace("static", "lite"),
             StaticFiles(directory=settings.base_dir / "lite"),
             name="lite",
         )
