@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     environment: Literal["dev", "qa", "uat", "staging", "prod"] = "prod"
     functions_namespace: str = "XLWINGS"
     hostname: Optional[str] = None
+    lite_local_pyodide: bool = False
     log_level: str = "INFO"
     # These UUIDs will be overwritten by: python run.py init
     manifest_id_dev: UUID4 = "0a856eb1-91ab-4f38-b757-23fbe1f73130"

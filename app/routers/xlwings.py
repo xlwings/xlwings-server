@@ -155,4 +155,8 @@ if settings.enable_lite:
                 relative_path = file_path.relative_to(wasm_dir)
                 files[f"/wasm/{relative_path}"] = f"./{relative_path}"
         response = {"packages": packages, "files": files}
+        if settings.lite_local_pyodide:
+            response["interpreter"] = (
+                f"{settings.static_url_path}/vendor/pyodide/pyodide.mjs"
+            )
         return response

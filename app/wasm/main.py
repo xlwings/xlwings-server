@@ -1,10 +1,6 @@
 """
 TODO:
 - integrate make_static.py into CLI
-- static page CLI build command (code, meta, custom-scripts-sheet-buttons, etc.)
-- config for switching between CDN and local wasm
-- run 10000 custom functions (also on Windows)
-- allow WASM to coexist with Python backend instead of either or
 - Check out https://docs.pyscript.net/2024.5.2/user-guide/workers/
 - release xlwings package
 
@@ -13,14 +9,14 @@ xlwings Limitations:
 - missing alert (depends on Jinja template)
 - only task pane buttons handle errors (depends on alert)
 - streaming functions (depend on socket.io)
+- either xlwings Server or xlwings Lite
 
 PyScript Limitations:
-- You can use pyscript.fetch, but often, you'll run into CORS issues (GitHub is fine though)
+- You can use requests/aiohttp / pyscript.fetch, but often, you'll run into CORS issues (GitHub is fine though). You could use a cors proxy to work around.
 - No support for TCP/IP connections, i.e., no connections with external databases like Postgres
 - No access to local file system, but there's a virtual file system where files can be created via URLs or via upload
 """
 
-# Settings
 import config  # noqa: F401, I001 Must be first import to load env vars
 import platform
 import traceback
