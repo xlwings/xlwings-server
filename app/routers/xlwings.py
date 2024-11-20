@@ -161,7 +161,7 @@ if settings.enable_lite:
             ):
                 relative_path = file_path.relative_to(lite_dir)
                 files[
-                    f"{settings.static_url_path.replace("static", "lite")}/{relative_path}"
+                    f"{settings.static_url_path.replace('static', 'lite')}/{relative_path}"
                 ] = f"./{relative_path}"
         response = {"packages": packages, "files": files}
 
