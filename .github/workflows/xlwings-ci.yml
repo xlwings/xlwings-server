@@ -35,9 +35,13 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements-dev.txt
-      - name: Run tests
+      - name: Run tests with xlwings Server and .env.test
         run: pytest -v
-      - name: Run tests that depend on env.test2
+      - name: Run tests with xlwings Server that depend on env.test2 (examples disabled)
         env:
           ENV_FILE: ".env.test2"
         run: pytest tests/test_env2.py
+      - name: Run tests with xlwings Lite
+        env:
+          ENV_FILE: ".env.lite"
+        run: pytest -v
