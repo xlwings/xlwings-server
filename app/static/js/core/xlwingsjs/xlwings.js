@@ -8,7 +8,6 @@ let pyscriptAllDone = new Promise((resolve) => {
   if (config.onLite === false) {
     resolve(false);
   } else {
-    // Duplicated in custom-functions-code.js
     window.addEventListener(
       "py:all-done",
       () => {

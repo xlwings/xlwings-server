@@ -1,10 +1,14 @@
 import argparse
+import logging
 import os
 import re
 import shutil
 import subprocess
 import uuid
+import zipfile
+from datetime import datetime
 from pathlib import Path
+from urllib.parse import urljoin, urlparse
 
 import uvicorn
 from cryptography.fernet import Fernet
@@ -74,6 +78,120 @@ def deps_compile(upgrade=False):
     )
 
 
+def lite_build(url, output_dir="./build", create_zip=False):
+    parsed = urlparse(url)
+    base_url = f"{parsed.scheme}://{parsed.netloc}".rstrip("/")
+    app_path = parsed.path.rstrip("/")
+
+    os.environ["XLWINGS_ENABLE_LITE"] = "true"
+    os.environ["XLWINGS_ENABLE_SOCKETIO"] = "false"
+    os.environ["XLWINGS_APP_PATH"] = app_path
+    os.environ["XLWINGS_STATIC_URL_PATH"] = f"{app_path}/static"
+
+    from fastapi.testclient import TestClient  # noqa: E402
+
+    from app.config import settings  # noqa: E402
+    from app.main import main_app  # noqa: E402
+
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    client = TestClient(main_app)
+
+    output_dir = Path(output_dir)
+    output_dir.mkdir(exist_ok=True)
+
+    # Clean output directory
+    if output_dir.exists():
+        shutil.rmtree(output_dir)
+        print("Output directory cleaned.")
+    output_dir.mkdir()
+
+    route_paths = [
+        "manifest.xml",
+        "taskpane.html",
+        "xlwings/custom-functions-meta.json",
+        "xlwings/custom-functions-code.js",
+        "xlwings/custom-scripts-sheet-buttons.js",
+        "xlwings/pyscript.json",
+    ]
+
+    base_path = f"{app_path}/" if app_path else "/"
+    routes = [urljoin(base_path, path) for path in route_paths]
+
+    for ix, route in enumerate(routes):
+        response = client.get(route)
+        if response.status_code == 200:
+            content = response.text
+            filename = Path(route_paths[ix])
+            if filename.name == "manifest.xml":
+                content = content.replace("http://testserver", base_url)
+
+            file_path = output_dir / filename
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            file_path.write_text(content)
+        else:
+            print(f"Failed to fetch {route} (status code: {response.status_code})")
+
+    # Add an index.html
+    index_path = output_dir / "index.html"
+    index_path.write_text("This is an xlwings Lite app!")
+
+    print("Static site generation complete.")
+
+    def copy_folder(source_dir: Path, dest_dir: Path, folder_name: str) -> None:
+        if source_dir.exists():
+            if dest_dir.exists():
+                shutil.rmtree(dest_dir)
+            shutil.copytree(source_dir, dest_dir)
+            print(f"{folder_name.capitalize()} folder contents copied.")
+        else:
+            print(f"No {folder_name} folder found to copy")
+
+    # Copy static and lite folders
+    copy_folder(Path("app/static"), output_dir / "static", "Static")
+    copy_folder(Path("app/lite"), output_dir / "lite", "lite")
+
+    # Cleanup
+    def remove_dir_if_exists(path: Path) -> None:
+        if path.exists():
+            shutil.rmtree(path)
+
+    # Remove cache and vendor directories
+    remove_dir_if_exists(output_dir / "static" / "vendor" / "socket.io")
+    if not settings.enable_alpinejs_csp:
+        remove_dir_if_exists(output_dir / "static" / "vendor" / "@alpinejs")
+    if not settings.public_addin_store:
+        remove_dir_if_exists(output_dir / "static" / "vendor" / "@microsoft")
+    if not settings.enable_bootstrap:
+        remove_dir_if_exists(output_dir / "static" / "vendor" / "bootstrap")
+        remove_dir_if_exists(output_dir / "static" / "vendor" / "bootstrap-xlwings")
+    if not settings.enable_htmx:
+        remove_dir_if_exists(output_dir / "static" / "vendor" / "htmx-ext-head-support")
+        remove_dir_if_exists(
+            output_dir / "static" / "vendor" / "htmx-ext-loading-states"
+        )
+        remove_dir_if_exists(output_dir / "static" / "vendor" / "htmx.org")
+    if not settings.lite_local_pyodide:
+        remove_dir_if_exists(output_dir / "static" / "vendor" / "pyodide")
+    # Remove all __pycache__ folders
+    for cache_dir in (output_dir / "lite").rglob("__pycache__"):
+        remove_dir_if_exists(cache_dir)
+
+    # Create zip file in output directory
+    if create_zip:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        zip_filename = output_dir / f"xlwings_lite_{timestamp}.zip"
+
+        try:
+            with zipfile.ZipFile(zip_filename, "w", zipfile.ZIP_DEFLATED) as zipf:
+                for file_path in output_dir.rglob("*"):
+                    if file_path.is_file() and file_path != zip_filename:
+                        arcname = file_path.relative_to(output_dir)
+                        zipf.write(file_path, arcname)
+            print(f"Created zip file: {zip_filename}")
+        except Exception as e:
+            print(f"Error creating zip file: {e}")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="subcommand")
@@ -94,6 +212,18 @@ if __name__ == "__main__":
     upgrade_parser = deps_subparsers.add_parser("upgrade", help="Upgrade dependencies.")
     update_parser = deps_subparsers.add_parser("update", help="Upgrade dependencies.")
 
+    # Lite command
+    lite_parser = subparsers.add_parser("lite", help="Build xlwings Lite distribution")
+    lite_parser.add_argument(
+        "url", help="URL of where the xlwings Lite app is going to be hosted"
+    )
+    lite_parser.add_argument(
+        "-o", "--output", help="Output directory path", type=str, default="./dist"
+    )
+    lite_parser.add_argument(
+        "-z", "--zip", help="Create zip archive", action="store_true"
+    )
+
     args = parser.parse_args()
 
     if args.subcommand == "init":
@@ -103,6 +233,8 @@ if __name__ == "__main__":
             deps_compile()
         elif args.deps_command in ("upgrade", "update"):
             deps_compile(upgrade=True)
+    elif args.subcommand == "lite":
+        lite_build(url=args.url, output_dir=args.output, create_zip=args.zip)
     else:
         ssl_keyfile_path = Path("certs/localhost+2-key.pem")
         ssl_certfile_path = Path("certs/localhost+2.pem")
