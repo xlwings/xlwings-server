@@ -3,28 +3,42 @@ import shutil
 import zipfile
 from datetime import datetime
 from pathlib import Path
+from urllib.parse import urlparse
+
+url = "https://fzumstein.github.io/lite"
+parsed = urlparse(url)
+base_url = f"{parsed.scheme}://{parsed.netloc}".rstrip("/")
+app_path = parsed.path.rstrip("/")
 
 os.environ["XLWINGS_ENABLE_SOCKETIO"] = "false"
-from fastapi.testclient import TestClient
+os.environ["XLWINGS_APP_PATH"] = app_path
+os.environ["XLWINGS_STATIC_URL_PATH"] = f"{app_path}/static"
 
-from app.main import main_app
+from fastapi.testclient import TestClient  # noqa: E402
 
-base_url = "https://test-4rk.pages.dev"
+from app.main import main_app  # noqa: E402
+
 client = TestClient(main_app)
 
 output_dir = Path("static_site")
 output_dir.mkdir(exist_ok=True)
 
 routes = [
-    ("/manifest.xml", "manifest.xml"),
-    ("/taskpane.html", "taskpane.html"),
-    ("/xlwings/custom-functions-meta.json", "xlwings/custom-functions-meta.json"),
-    ("/xlwings/custom-functions-code.js", "xlwings/custom-functions-code.js"),
+    (f"{app_path}/manifest.xml", "manifest.xml"),
+    (f"{app_path}/taskpane.html", "taskpane.html"),
     (
-        "/xlwings/custom-scripts-sheet-buttons.js",
+        f"{app_path}/xlwings/custom-functions-meta.json",
+        "xlwings/custom-functions-meta.json",
+    ),
+    (
+        f"{app_path}/xlwings/custom-functions-code.js",
+        "xlwings/custom-functions-code.js",
+    ),
+    (
+        f"{app_path}/xlwings/custom-scripts-sheet-buttons.js",
         "xlwings/custom-scripts-sheet-buttons.js",
     ),
-    ("/xlwings/pyscript.json", "xlwings/pyscript.json"),
+    (f"{app_path}/xlwings/pyscript.json", "xlwings/pyscript.json"),
 ]
 
 for route, filename in routes:

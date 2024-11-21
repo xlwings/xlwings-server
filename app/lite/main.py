@@ -1,7 +1,6 @@
 """
 TODO:
-- integrate make_static.py into CLI
-- Check out https://docs.pyscript.net/2024.5.2/user-guide/workers/
+- integrate make_static.py into CLI, handle deploy key generation
 - release xlwings package
 
 xlwings Limitations:
@@ -10,6 +9,7 @@ xlwings Limitations:
 - only task pane buttons handle errors (depends on alert)
 - streaming functions (depend on socket.io)
 - either xlwings Server or xlwings Lite
+- run on worker to not block the task pane
 
 PyScript Limitations:
 - You can use requests/aiohttp / pyscript.fetch, but often, you'll run into CORS issues (GitHub is fine though). You could use a cors proxy to work around.
