@@ -4,6 +4,28 @@ export { getAccessToken };
 import { getActiveBookName } from "./utils.js";
 export { getActiveBookName };
 
+let pyscriptAllDone = new Promise((resolve) => {
+  if (config.onLite === false) {
+    resolve(false);
+  } else {
+    // Duplicated in custom-functions-code.js
+    window.addEventListener(
+      "py:all-done",
+      () => {
+        // Hide status alert when py:all-done fires
+        const globalStatusAlert = document.querySelector(
+          "#global-status-alert",
+        );
+        if (globalStatusAlert) {
+          globalStatusAlert.classList.add("d-none");
+        }
+        resolve(true);
+      },
+      { once: true },
+    );
+  }
+});
+
 // Namespace
 const xlwings = {
   runPython,
@@ -11,24 +33,9 @@ const xlwings = {
   getActiveBookName,
   getBookData,
   runActions,
+  pyscriptAllDone,
 };
 globalThis.xlwings = xlwings;
-
-let pyscriptAllDone = new Promise((resolve) => {
-  // Duplicated in custom-functions-code.js
-  window.addEventListener(
-    "py:all-done",
-    () => {
-      // Hide status alert when py:all-done fires
-      const globalStatusAlert = document.querySelector("#global-status-alert");
-      if (globalStatusAlert) {
-        globalStatusAlert.classList.add("d-none");
-      }
-      resolve(true);
-    },
-    { once: true },
-  );
-});
 
 // Hook up buttons with the click event upon loading xlwings.js
 document.addEventListener("DOMContentLoaded", init);

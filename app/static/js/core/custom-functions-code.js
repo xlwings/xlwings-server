@@ -5,16 +5,6 @@ let runtime;
 let contentLanguage;
 let socket = null;
 
-let pyscriptAllDone = new Promise((resolve) => {
-  window.addEventListener(
-    "py:all-done",
-    () => {
-      resolve(true);
-    },
-    { once: true },
-  );
-});
-
 Office.onReady(function (info) {
   // Socket.io
   socket = globalThis.socket ? globalThis.socket : null;
@@ -267,7 +257,7 @@ async function makeServerCall(body) {
 }
 
 async function makeLiteCall(body) {
-  await pyscriptAllDone;
+  await xlwings.pyscriptAllDone;
   try {
     let result = await window.custom_functions_call(body);
     if (result.error) {
