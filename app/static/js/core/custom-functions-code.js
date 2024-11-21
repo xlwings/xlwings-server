@@ -269,12 +269,12 @@ async function makeServerCall(body) {
 async function makeLiteCall(body) {
   await pyscriptAllDone;
   try {
-    let r = await window.custom_functions_call(body);
-    if (r.error) {
-      console.error(r.details);
-      throw new Error(r.error);
+    let result = await window.custom_functions_call(body);
+    if (result.error) {
+      console.error(result.details);
+      throw new Error(result.error);
     }
-    return r;
+    return result;
   } catch (error) {
     showError(error);
   }

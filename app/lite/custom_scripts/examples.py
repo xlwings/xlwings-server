@@ -18,11 +18,6 @@ def hello_world(book: xw.Book):
 
 
 @script
-def show_alert(book: xw.Book):
-    book.app.alert("This is an alert!", title="xlwings Server Alert")
-
-
-@script
 def setup_custom_functions(book: xw.Book):
     prefix = "XLWINGS"
     prefix += "_DEV"

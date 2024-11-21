@@ -15,6 +15,7 @@ PyScript Limitations:
 - You can use requests/aiohttp / pyscript.fetch, but often, you'll run into CORS issues (GitHub is fine though). You could use a cors proxy to work around.
 - No support for TCP/IP connections, i.e., no connections with external databases like Postgres
 - No access to local file system, but there's a virtual file system where files can be created via URLs or via upload
+- Relative imports don't work
 """
 
 import config  # noqa: F401, I001 Must be first import to load env vars

@@ -78,7 +78,7 @@ async def add_security_headers(request, call_next):
     if not settings.add_security_headers and settings.environment == "dev":
         # Prevent caching in dev even if security headers are switched off
         response.headers["Cache-Control"] = "no-store, max-age=0"
-    if settings.add_security_headers:
+    if settings.add_security_headers and not settings.enable_lite:
         data = read_security_headers()
 
         # Extract file extension from request URL
