@@ -42,6 +42,7 @@ except ImportError:
 # Print Python and Pyodide versions
 print(f"Python version: {platform.python_version()}")
 print(f"Pyodide version: {pyodide_js.version}")
+print(f"xlwings version: {xw.__version__}")
 
 
 async def custom_functions_call(data):

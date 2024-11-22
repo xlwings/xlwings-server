@@ -17,8 +17,7 @@ from cryptography.fernet import Fernet
 is_cloud = os.getenv("CODESPACES") or os.getenv("GITPOD_WORKSPACE_ID")
 
 
-def update_lite_settings(key: str, value: str):
-    env_file = Path("app/lite/.env")
+def update_lite_settings(key: str, value: str, env_file: Path):
     # Read existing content
     if env_file.exists():
         content = env_file.read_text().splitlines()
@@ -125,14 +124,6 @@ def lite_build(url, output_dir="./build", create_zip=False):
     from app.config import settings  # noqa: E402
     from app.main import main_app  # noqa: E402
 
-    # Deploy key
-    os.environ["XLWINGS_LICENSE_KEY"] = settings.license_key
-    try:
-        deploy_key = xlwings.pro.LicenseHandler.create_deploy_key()
-    except xw.LicenseError:
-        deploy_key = settings.license_key
-    update_lite_settings("XLWINGS_LICENSE_KEY", deploy_key)
-
     output_dir = Path(output_dir)
     output_dir.mkdir(exist_ok=True)
 
@@ -189,6 +180,16 @@ def lite_build(url, output_dir="./build", create_zip=False):
 
     copy_folder(Path("app/static"), output_dir / "static", "Static")
     copy_folder(Path("app/lite"), output_dir / "lite", "lite")
+
+    # Deploy key
+    os.environ["XLWINGS_LICENSE_KEY"] = settings.license_key
+    try:
+        deploy_key = xlwings.pro.LicenseHandler.create_deploy_key()
+    except xw.LicenseError:
+        deploy_key = settings.license_key
+    update_lite_settings(
+        "XLWINGS_LICENSE_KEY", deploy_key, output_dir / "lite" / ".env"
+    )
 
     # Remove unused libraries
     def remove_dir_if_exists(path: Path) -> None:
@@ -291,8 +292,13 @@ if __name__ == "__main__":
         # TODO: This is currently only done when starting the server
         from app.config import settings  # noqa: E402
 
-        update_lite_settings("XLWINGS_LICENSE_KEY", settings.license_key)
-        update_lite_settings("XLWINGS_ENABLE_EXAMPLES", settings.enable_examples)
+        env_file = Path("app/lite/.env")
+        update_lite_settings(
+            "XLWINGS_LICENSE_KEY", f'"{settings.license_key}"', env_file
+        )
+        update_lite_settings(
+            "XLWINGS_ENABLE_EXAMPLES", str(settings.enable_examples).lower(), env_file
+        )
 
         ssl_keyfile_path = Path("certs/localhost+2-key.pem")
         ssl_certfile_path = Path("certs/localhost+2.pem")

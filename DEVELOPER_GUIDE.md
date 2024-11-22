@@ -90,3 +90,7 @@ For the offline usage of Pyodide, the following packages are always required to 
 
 - micropip
 - packaging
+
+## Script Lab
+
+Script Lab: figuring out the exact syntax for Office.js is easiest done in the Script Lab add-in that can be installed via Excel's add-in store.
