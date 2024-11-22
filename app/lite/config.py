@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 
-load_dotenv("xlwings.env")
+load_dotenv(".env")
 
 
 class Settings:

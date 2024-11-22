@@ -1,7 +1,7 @@
 """
 TODO:
-- integrate make_static.py into CLI, handle deploy key generation
 - release xlwings package
+- docs
 
 xlwings Limitations:
 - missing object handles (depend on settings, serializers, and redis expiry)

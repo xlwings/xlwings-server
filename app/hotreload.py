@@ -15,7 +15,7 @@ watching_frontend_files = False
 
 
 class WebFilter(DefaultFilter):
-    allowed_extensions = (".html", ".css", ".js", ".py")
+    allowed_extensions = (".html", ".css", ".js", ".py", ".txt", ".env")
 
     def __call__(self, change: Change, path: str) -> bool:
         if not super().__call__(change, path):
@@ -30,7 +30,7 @@ class WebFilter(DefaultFilter):
             return True
 
         # Only allow .py files in lite subdirectory
-        if path.suffix == ".py":
+        if path.suffix in (".py", ".txt", ".env"):
             return "lite" in path.parts
 
         return False
