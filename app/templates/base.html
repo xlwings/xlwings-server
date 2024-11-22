@@ -27,7 +27,6 @@
       {% block socketio %}
         {% if settings.enable_socketio %}
           <script src="{{ url_for('static', path='/vendor/socket.io/client-dist/socket.io.min.js') }}"></script>
-          <script src="{{ url_for('static', path='/js/core/socketio-handlers.js') }}" defer></script>
         {% endif %}
       {% endblock socketio %}
       {# xlwings.js (must come before custom-function-code) #}
@@ -35,6 +34,12 @@
       <script type="module" src="{{ url_for('static', path='/js/core/xlwingsjs/auth.js') }}" defer></script>
       <script type="module" src="{{ url_for('static', path='/js/core/xlwingsjs/utils.js') }}" defer></script>
       <script type="module" src="{{ url_for('static', path='/js/core/xlwingsjs/alert.js') }}" defer></script>
+      {% block socketio2 %}
+        {% if settings.enable_socketio %}
+          {# Must come after xlwings.js #}
+          <script src="{{ url_for('static', path='/js/core/socketio-handlers.js') }}" defer></script>
+        {% endif %}
+      {% endblock socketio2 %}
       {# Alpine.js CSP boilerplate (must come before custom JS, which must come before alpinejs library) #}
       {% if settings.enable_alpinejs_csp %}
         <script src="{{ url_for('static', path='/js/core/alpinejs-csp-boilerplate.js') }}"></script>

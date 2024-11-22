@@ -34,13 +34,13 @@ colorama==0.4.6 ; platform_system == 'Windows'
     # via
     #   -r requirements-core.txt
     #   click
-croniter==4.0.0
+croniter==5.0.1
     # via -r requirements-core.txt
 cryptography==43.0.3
     # via
     #   -r requirements-core.txt
     #   joserfc
-fastapi-slim==0.115.4
+fastapi-slim==0.115.5
     # via -r requirements-core.txt
 gunicorn==23.0.0 ; sys_platform != 'win32'
     # via -r requirements-core.txt
@@ -52,7 +52,7 @@ h11==0.14.0
     #   wsproto
 hiredis==3.0.0
     # via -r requirements-core.txt
-httpcore==1.0.6
+httpcore==1.0.7
     # via
     #   -r requirements-core.txt
     #   httpx
@@ -85,7 +85,7 @@ numpy==2.0.1
     # via
     #   -r requirements.in
     #   pandas
-packaging==24.1 ; sys_platform != 'win32'
+packaging==24.2 ; sys_platform != 'win32'
     # via
     #   -r requirements-core.txt
     #   gunicorn
@@ -95,16 +95,16 @@ pycparser==2.22 ; platform_python_implementation != 'PyPy'
     # via
     #   -r requirements-core.txt
     #   cffi
-pydantic==2.9.2
+pydantic==2.10.1
     # via
     #   -r requirements-core.txt
     #   fastapi-slim
     #   pydantic-settings
-pydantic-core==2.23.4
+pydantic-core==2.27.1
     # via
     #   -r requirements-core.txt
     #   pydantic
-pydantic-settings==2.6.0
+pydantic-settings==2.6.1
     # via -r requirements-core.txt
 python-dateutil==2.9.0.post0
     # via
@@ -119,7 +119,7 @@ python-engineio==4.10.1
     # via
     #   -r requirements-core.txt
     #   python-socketio
-python-multipart==0.0.16
+python-multipart==0.0.17
     # via -r requirements-core.txt
 python-socketio==5.11.4
     # via -r requirements-core.txt
@@ -143,7 +143,7 @@ sniffio==1.3.1
     #   -r requirements-core.txt
     #   anyio
     #   httpx
-starlette==0.41.2
+starlette==0.41.3
     # via
     #   -r requirements-core.txt
     #   fastapi-slim
@@ -155,7 +155,7 @@ typing-extensions==4.12.2
     #   pydantic-core
 tzdata==2024.2
     # via pandas
-uvicorn==0.32.0
+uvicorn==0.32.1
     # via -r requirements-core.txt
 uvloop==0.21.0 ; sys_platform != 'win32'
     # via -r requirements-core.txt
@@ -163,7 +163,7 @@ wsproto==1.2.0
     # via
     #   -r requirements-core.txt
     #   simple-websocket
-xlwings==0.33.3
+xlwings==0.33.4
     # via -r requirements-core.txt
 
 # The following packages were excluded from the output:

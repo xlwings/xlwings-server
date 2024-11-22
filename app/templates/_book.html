@@ -1,8 +1,8 @@
 {# Include this partial in your template if you are editing the Excel object model from a custom endpoint #}
 {% if book %}
-  <!-- prettier-ignore-start -->
+  {# prettier-ignore-start #}
   <script id="book-data" type="application/json">
     {{ book.json()|tojson }}
   </script>
-  <!-- prettier-ignore-end -->
+  {# prettier-ignore-end #}
 {% endif %}
