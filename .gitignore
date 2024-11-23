@@ -10,4 +10,4 @@ node_modules
 .coverage
 scratch*
 docs/_build/
-/dist
+/xlwings_lite_dist

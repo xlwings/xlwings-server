@@ -103,9 +103,7 @@ def deps_compile(upgrade=False):
     )
 
 
-def lite_build(url, output_dir="./build", create_zip=False):
-    import xlwings.pro
-
+def lite_build(url, output_dir, create_zip=False):
     logging.getLogger("httpx").setLevel(logging.WARNING)
     build_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
@@ -124,7 +122,11 @@ def lite_build(url, output_dir="./build", create_zip=False):
     from app.config import settings  # noqa: E402
     from app.main import main_app  # noqa: E402
 
-    output_dir = Path(output_dir)
+    # Take the license key from .env
+    os.environ["XLWINGS_LICENSE_KEY"] = settings.license_key
+    import xlwings.pro
+
+    output_dir = Path(output_dir) / "xlwings_lite_dist"
     output_dir.mkdir(exist_ok=True)
 
     # Clean output directory
@@ -182,7 +184,6 @@ def lite_build(url, output_dir="./build", create_zip=False):
     copy_folder(Path("app/lite"), output_dir / "lite", "lite")
 
     # Deploy key
-    os.environ["XLWINGS_LICENSE_KEY"] = settings.license_key
     try:
         deploy_key = xlwings.pro.LicenseHandler.create_deploy_key()
     except xw.LicenseError:
@@ -270,7 +271,7 @@ if __name__ == "__main__":
         "url", help="URL of where the xlwings Lite app is going to be hosted"
     )
     lite_parser.add_argument(
-        "-o", "--output", help="Output directory path", type=str, default="./dist"
+        "-o", "--output", help="Output directory path", type=str, default="."
     )
     lite_parser.add_argument(
         "-z", "--zip", help="Create zip archive", action="store_true"
@@ -320,6 +321,7 @@ if __name__ == "__main__":
                 "THIS WILL ONLY WORK WITH VBA AND OFFICE SCRIPTS, BUT NOT WITH "
                 "OFFICE.JS ADD-INS!"
             )
+        print(f"Running in '{'Lite' if settings.enable_lite else 'Server'}' mode.")
         uvicorn.run(
             "app.main:main_app",
             host="127.0.0.1",
