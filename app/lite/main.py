@@ -1,6 +1,5 @@
 """
 TODO:
-- release xlwings package
 - docs
 
 xlwings Limitations:
