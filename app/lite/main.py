@@ -1,22 +1,3 @@
-"""
-TODO:
-- docs
-
-xlwings Limitations:
-- missing object handles (depend on settings, serializers, and redis expiry)
-- missing alert (depends on Jinja template)
-- only task pane buttons handle errors (depends on alert)
-- streaming functions (depend on socket.io)
-- either xlwings Server or xlwings Lite
-- run on worker to not block the task pane
-
-PyScript Limitations:
-- You can use requests/aiohttp / pyscript.fetch, but often, you'll run into CORS issues (GitHub is fine though). You could use a cors proxy to work around.
-- No support for TCP/IP connections, i.e., no connections with external databases like Postgres
-- No access to local file system, but there's a virtual file system where files can be created via URLs or via upload
-- Relative imports don't work
-"""
-
 import config  # noqa: F401, I001 Must be first import to load env vars
 import platform
 import traceback

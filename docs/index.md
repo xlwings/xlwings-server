@@ -93,6 +93,13 @@ index_hosting
 :maxdepth: 2
 :hidden:
 
+index_lite
+```
+
+```{toctree}
+:maxdepth: 2
+:hidden:
+
 changelog
 limitations
 troubleshooting
