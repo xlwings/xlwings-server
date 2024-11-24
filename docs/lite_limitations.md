@@ -20,6 +20,7 @@ Currently, the following xlwings Server features aren't supported yet, but are l
 - Streaming functions
 - Error handling: ribbon buttons and sheet button currently don't handle errors, so use task pane buttons to call scripts.
 - Custom functions and custom scripts either have to run via xlwings Server or xlwings Lite. I.e., you can't run some functions on the server and others locally on Wasm.
+- Only Office.js add-ins are supported. All other [](integrations.md) are not supported.
 
 ## PyScript/Pyodide Limitations
 
@@ -32,3 +33,7 @@ xlwings Lite uses PyScript, which is based on Pyodide, and comes with the follow
 - Since Python runs in the browser, you don't have access to the local file system, but you could easily build a file uploader via the task pane or access them via web API.
 
 See the [Pyodide docs](https://pyodide.org/en/stable/usage/wasm-constraints.html) for further details.
+
+## Authentication
+
+Static HTML pages don't offer a way for secure authentication, so you can't use Single-sign on or any other authentication method with xlwings Lite.
