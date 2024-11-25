@@ -103,7 +103,7 @@ def deps_compile(upgrade=False):
     )
 
 
-def lite_build(url, output_dir, create_zip=False):
+def lite_build(url, output_dir, create_zip=False, clean=False):
     logging.getLogger("httpx").setLevel(logging.WARNING)
     build_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
@@ -126,14 +126,19 @@ def lite_build(url, output_dir, create_zip=False):
     os.environ["XLWINGS_LICENSE_KEY"] = settings.license_key
     import xlwings.pro
 
-    output_dir = Path(output_dir) / "xlwings_lite_dist"
+    output_dir = Path(output_dir)
     output_dir.mkdir(exist_ok=True)
 
     # Clean output directory
-    if output_dir.exists():
-        shutil.rmtree(output_dir)
-        print("Output directory cleaned.")
-    output_dir.mkdir()
+    if clean:
+        if output_dir.exists():
+            for filename in os.listdir(output_dir):
+                file_path = output_dir / filename
+                if file_path.is_file():
+                    file_path.unlink()
+                elif file_path.is_dir():
+                    shutil.rmtree(file_path)
+            print("Output directory cleaned.")
 
     # Endpoints
     client = TestClient(main_app)
@@ -271,10 +276,23 @@ if __name__ == "__main__":
         "url", help="URL of where the xlwings Lite app is going to be hosted"
     )
     lite_parser.add_argument(
-        "-o", "--output", help="Output directory path", type=str, default="."
+        "-o",
+        "--output",
+        help="Output directory path. Defaults to ./dist.",
+        type=str,
+        default="./dist",
     )
     lite_parser.add_argument(
-        "-z", "--zip", help="Create zip archive", action="store_true"
+        "-z",
+        "--zip",
+        help="Create zip archive in addition to the static files.",
+        action="store_true",
+    )
+    lite_parser.add_argument(
+        "-c",
+        "--clean",
+        help="Clean the output directory before building.",
+        action="store_true",
     )
 
     args = parser.parse_args()
@@ -287,7 +305,9 @@ if __name__ == "__main__":
         elif args.deps_command in ("upgrade", "update"):
             deps_compile(upgrade=True)
     elif args.subcommand == "lite":
-        lite_build(url=args.url, output_dir=args.output, create_zip=args.zip)
+        lite_build(
+            url=args.url, output_dir=args.output, create_zip=args.zip, clean=args.clean
+        )
     else:
         # Copy over required settings
         # TODO: This is currently only done when starting the server
