@@ -205,7 +205,7 @@ def lite_build(url, output_dir, create_zip=False, clean=False):
     remove_dir_if_exists(output_dir / "static" / "vendor" / "socket.io")
     if not settings.enable_alpinejs_csp:
         remove_dir_if_exists(output_dir / "static" / "vendor" / "@alpinejs")
-    if not settings.public_addin_store:
+    if not settings.cdn_officejs:
         remove_dir_if_exists(output_dir / "static" / "vendor" / "@microsoft")
     if not settings.enable_bootstrap:
         remove_dir_if_exists(output_dir / "static" / "vendor" / "bootstrap")
@@ -223,7 +223,7 @@ def lite_build(url, output_dir, create_zip=False, clean=False):
         with open(requirements_file, "r") as f:
             return any("/static/vendor/pyodide/" in line for line in f)
 
-    if not settings.lite_local_pyodide:
+    if not settings.cdn_pyodide:
         requirements_path = output_dir / "lite" / "requirements.txt"
         if not has_pyodide_requirement(requirements_path):
             remove_dir_if_exists(output_dir / "static" / "vendor" / "pyodide")

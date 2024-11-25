@@ -107,7 +107,7 @@ async def add_security_headers(request, call_next):
                 + "; font-src 'self' https://res-1.cdn.office.net; style-src 'self' 'unsafe-inline';"
             )
             del response.headers["X-Frame-Options"]
-        if settings.public_addin_store:
+        if settings.cdn_officejs:
             response.headers["Content-Security-Policy"] = (
                 response.headers["Content-Security-Policy"]
                 + "; script-src 'self' https://appsforoffice.microsoft.com;"

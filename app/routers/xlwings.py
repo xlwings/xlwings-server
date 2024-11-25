@@ -166,7 +166,7 @@ if settings.enable_lite:
         response = {"packages": packages, "files": files}
 
         # Interpreter
-        if settings.lite_local_pyodide:
+        if settings.cdn_pyodide:
             response["interpreter"] = (
                 f"{settings.static_url_path}/vendor/pyodide/pyodide.mjs"
             )

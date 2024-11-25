@@ -1,4 +1,5 @@
 import os
+import warnings
 from pathlib import Path
 from typing import Dict, List, Literal, Optional
 
@@ -9,6 +10,16 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     """See .env.template for documentation"""
+
+    def __init__(self, **values):
+        super().__init__(**values)
+        if self.public_addin_store is not None:
+            warnings.warn(
+                "The 'XLWINGS_PUBLIC_ADDIN_STORE' field is deprecated and will be removed in "
+                "future versions. Use 'XLWINGS_CDN_OFFICEJS' instead.",
+                DeprecationWarning,
+            )
+            self.cdn_officejs = self.public_addin_store
 
     model_config = SettingsConfigDict(
         env_prefix="XLWINGS_", env_file=os.getenv("DOTENV_PATH", ".env"), extra="ignore"
@@ -37,7 +48,8 @@ class Settings(BaseSettings):
     environment: Literal["dev", "qa", "uat", "staging", "prod"] = "prod"
     functions_namespace: str = "XLWINGS"
     hostname: Optional[str] = None
-    lite_local_pyodide: bool = False
+    cdn_pyodide: bool = True
+    cdn_officejs: bool = False
     log_level: str = "INFO"
     # These UUIDs will be overwritten by: python run.py init
     manifest_id_dev: UUID4 = "0a856eb1-91ab-4f38-b757-23fbe1f73130"

@@ -41,7 +41,7 @@ To publish an add-in to the Office add-in store, you will need to become a [Micr
 Make sure that you set the following setting with xlwings Server:
 
 ```ini
-XLWINGS_PUBLIC_ADDIN_STORE=true
+XLWINGS_CDN_OFFICEJS=true
 ```
 
 This ensures that the `office.js` library will be loaded via CDN as per Microsoft's requirements.
