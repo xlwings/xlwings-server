@@ -22,11 +22,15 @@ Custom functions and custom scripts have to be written in a different directory 
 - `app/lite/custom_functions`
 - `app/lite/custom_scripts`
 
+## Python version
+
+The Python version is dictated by Pyodide, so you can't choose it. The current version is printed in the console of the browser dev tools (right-click on the task pane and click `Inspect`).
+
 ## Dependencies
 
 You need to maintain a separate file for your dependencies under `app/lite/requirements.txt`. The requirements are installed automatically when you save the file, triggered by a task pane reload.
 
-Pyodide first checks for a package in the Pyodide repository and if there is none, downloads them from PyPI directly. Pyodide can only load pure Python wheels or wasm32/emscripten wheels built by Pyodide.
+Pyodide first checks PyPI for a compatible package (`whl` format). Pure Python packages are always compatible. If it doesn't find a compatible version, Pyodide checks their own packages.
 
 This means that not all packages are supported, e.g., Polars doesn't work. Some packages may need to be built specifically for Pyodide if they aren't available yet and if they aren't pure Python packages, see [Creating a Pyodide package](https://pyodide.org/en/stable/development/new-packages.html). For a list of "complex" packages that are available for Pyodide, see [Packages built in Pyodide](https://pyodide.org/en/stable/usage/packages-in-pyodide.html).
 
@@ -35,10 +39,6 @@ By default, Pyodide will download the packages directly from their CDN (content 
 ```{note}
 For packages from the Pyodide repository, such as pandas or Matplotlib, you can't just freely set the version, but need to use whatever version Pyodide is offering.
 ```
-
-## Python version
-
-The Python version is dictated by Pyodide, so you can't choose it. The current version is printed in the console of the browser dev tools (right-click on the task pane and click `Inspect`).
 
 ## Configuration
 

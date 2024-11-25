@@ -58,7 +58,7 @@ class Settings(BaseSettings):
     manifest_id_staging: UUID4 = "34041f4f-9cb4-4830-afb5-db44b2a70e0e"
     manifest_id_prod: UUID4 = "4f342d85-3a49-41cb-90a5-37b1f2219040"
     project_name: str = "xlwings Server"
-    public_addin_store: bool = False
+    public_addin_store: bool = False  # Deprecated. Use cdn_officejs instead.
     secret_key: Optional[str] = None
     socketio_message_queue_url: Optional[str] = None
     socketio_server_app: bool = False

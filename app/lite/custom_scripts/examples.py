@@ -6,8 +6,10 @@ import numpy as np
 import xlwings as xw
 from xlwings.server import script
 
+from . import settings
 
-@script(target_cell="[xlwings_button]Sheet1!B4", config={"exclude": "MySheet"})
+
+@script
 def hello_world(book: xw.Book):
     sheet = book.sheets.active
     cell = sheet["A1"]
@@ -19,8 +21,9 @@ def hello_world(book: xw.Book):
 
 @script
 def setup_custom_functions(book: xw.Book):
-    prefix = "XLWINGS"
-    prefix += "_DEV"
+    prefix = f"{settings.functions_namespace}"
+    if settings.environment != "prod":
+        prefix += f"_{settings.environment}"
     sheet = book.sheets.add()
     sheet["A3"].value = f'={prefix}.HELLO("xlwings")'
     sheet["A5"].value = f"={prefix}.STANDARD_NORMAL(3, 4)"

@@ -320,6 +320,10 @@ if __name__ == "__main__":
         update_lite_settings(
             "XLWINGS_ENABLE_EXAMPLES", str(settings.enable_examples).lower(), env_file
         )
+        update_lite_settings("XLWINGS_ENVIRONMENT", settings.environment, env_file)
+        update_lite_settings(
+            "XLWINGS_FUNCTIONS_NAMESPACE", settings.functions_namespace, env_file
+        )
 
         ssl_keyfile_path = Path("certs/localhost+2-key.pem")
         ssl_certfile_path = Path("certs/localhost+2.pem")
