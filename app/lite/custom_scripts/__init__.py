@@ -1,5 +1,5 @@
 try:
-    # PyScript doesn't work with relative imports
+    # PyScript doesn't work with parent relative imports
     from config import settings
 except ImportError:
     from ..config import settings

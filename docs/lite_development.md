@@ -5,7 +5,7 @@ xlwings Server acts as the development environment for xlwings Lite. So before a
 - Pick a development environment by following this guide: [](index_development_environment.md)
 - Install the Office.js add-in by following this guide: [](install_officejs_addin.md#sideloading)
 
-## Enable xlwings Lite
+## Switch to xlwings Lite
 
 Now that you have xlwings Server running, you can make the switch to xlwings Lite by setting the following setting under `app/.env`:
 
@@ -17,10 +17,12 @@ This will restart the uvicorn development server and reload the task pane. You s
 
 ## Custom functions and custom scripts
 
-Custom functions and custom scripts have to be written in a different directory compared with xlwings Server:
+Custom functions and custom scripts live in the following directories, which is different from xlwings Server:
 
 - `app/lite/custom_functions`
 - `app/lite/custom_scripts`
+
+As with xlwings Server, you'll need to import your functions into the `__init__.py` file in the above directories when adding your own modules. See [](custom_functions.md#adding-new-custom-functions).
 
 ## Python version
 
@@ -28,13 +30,13 @@ The Python version is dictated by Pyodide, so you can't choose it. The current v
 
 ## Dependencies
 
-You need to maintain a separate file for your dependencies under `app/lite/requirements.txt`. The requirements are installed automatically when you save the file, triggered by a task pane reload.
+You need to define your dependencies under `app/lite/requirements.txt`. Note that this is a seperate file and different from the xlwings Server `requirements.txt`, which lives in the root of the xlwings-server repo. The requirements are installed automatically when you save the file, triggered by a task pane reload.
 
-Pyodide first checks PyPI for a compatible package (`whl` format). Pure Python packages are always compatible. If it doesn't find a compatible version, Pyodide checks their own packages.
+Pyodide first checks PyPI for a compatible package in the `whl` format. If it doesn't find a compatible version (it needs to be a pure Python package), Pyodide checks their own repository where they host compatible wheels for many popular packages that aren't pure-Python packages.
 
-This means that not all packages are supported, e.g., Polars doesn't work. Some packages may need to be built specifically for Pyodide if they aren't available yet and if they aren't pure Python packages, see [Creating a Pyodide package](https://pyodide.org/en/stable/development/new-packages.html). For a list of "complex" packages that are available for Pyodide, see [Packages built in Pyodide](https://pyodide.org/en/stable/usage/packages-in-pyodide.html).
+This means that not all packages are supported, e.g., Polars doesn't work. For a list of non-pure Python packages that are available for Pyodide, see [Packages built in Pyodide](https://pyodide.org/en/stable/usage/packages-in-pyodide.html). To build a new non-pure Python package for use with Pyodide, see [Creating a Pyodide package](https://pyodide.org/en/stable/development/new-packages.html).
 
-By default, Pyodide will download the packages directly from their CDN (content deliver network). If you want to serve them from your own server, you need to copy the `.whl` files (the Python wheels) into the `app/static/vendor/pyodide` directory. You can download all available ones from their [GitHub release page](https://github.com/pyodide/pyodide/releases). The asset is called `pyodide-x.x.x.tar.bz2` and it needs to be from the correct Pyodide release. You can find the one used by xlwings Lite by looking at the console in the browser dev tools (right-click on the task pane and click `Inspect`) where it will be printed.
+By default, Pyodide will download the packages directly from their CDN (content deliver network). If you want to serve them from your own server, you need to copy the `.whl` files (the Python wheels) into the `app/static/vendor/pyodide` directory and reference them explicitly in `requirements.txt` via their path like so: `/static/vendor/pyodide/mypackage.whl`. You can download all available packages from their [GitHub release page](https://github.com/pyodide/pyodide/releases). The asset is called `pyodide-x.x.x.tar.bz2` and it needs to be from the correct Pyodide release. You can find the one used by xlwings Lite by looking at the console in the browser dev tools (right-click on the task pane and click `Inspect`) where it will be printed. You will also need to set `XLWINGS_CDN_PYODIDE=false` under `app/.env`.
 
 ```{note}
 For packages from the Pyodide repository, such as pandas or Matplotlib, you can't just freely set the version, but need to use whatever version Pyodide is offering.
@@ -42,13 +44,13 @@ For packages from the Pyodide repository, such as pandas or Matplotlib, you can'
 
 ## Configuration
 
-xlwings Lite is configured via `app/lite/.env`. Whenever you restart the server via `python run.py`, the required settings are copied from `app/.env` to `app/lite.env` (`XLWINGS_LICENSE_KEY` and `XLWINGS_ENABLE_EXAMPLES`). So unless you want to introduce your own settings, you don't have to edit the file manually.
-
-```{note}
-Even though `app/lite/.env` is ignored by Git, it will be included in your final xlwings Lite app and visible for everyone. xlwings developer keys will be replaced by deploy keys, that never expire.
-```
+xlwings Lite reads the configuration from `app/lite/.env`. This file is automatically updated from `app/.env` whenever you kill/restart the server via `python run.py`.
 
 To remain lightweight, xlwings Lite doesn't use `pydantic-settings` but only depends on `python-dotenv`, see `app/lite/config.py`.
+
+```{note}
+Even though `app/lite/.env` is ignored by Git, it will be included in your final xlwings Lite app and visible for everyone. However, xlwings developer keys are replaced by deploy keys when using the xlwings Lite build command.
+```
 
 ## Debugging
 
@@ -60,5 +62,3 @@ xlwings Lite uses PyScript/Pyodide under the hood, which don't offer a debugger.
 ## Task Pane
 
 If you want to deploy your xlwings Lite add-in as a simple static website, you are naturally restricted in what you can do with your task pane. For example, you wouldn't be able to use anything with backend dependency such as [](htmx.md). You could, however keep on using [](alpinejs).
-
-You could keep Python on the backend though for the sole purpose of serving the task pane app, while custom functions and custom scripts are handled by Pyodide via `XLWINGS_ENABLE_LITE=true`. Note that custom functions and custom scripts all have to be run via xlwings Lite or xlwings Server.
