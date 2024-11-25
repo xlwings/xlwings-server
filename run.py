@@ -223,7 +223,7 @@ def lite_build(url, output_dir, create_zip=False, clean=False):
         with open(requirements_file, "r") as f:
             return any("/static/vendor/pyodide/" in line for line in f)
 
-    if not settings.cdn_pyodide:
+    if settings.cdn_pyodide:
         requirements_path = output_dir / "lite" / "requirements.txt"
         if not has_pyodide_requirement(requirements_path):
             remove_dir_if_exists(output_dir / "static" / "vendor" / "pyodide")
