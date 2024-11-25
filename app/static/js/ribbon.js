@@ -5,7 +5,9 @@ async function helloRibbon(event) {
   let token = await globalThis.getAuth();
   let scriptName = "hello_world";
   await xlwings.runPython(
-    window.location.origin + `/xlwings/custom-scripts-call/${scriptName}`,
+    window.location.origin +
+      config.appPath +
+      `/xlwings/custom-scripts-call/${scriptName}`,
     { auth: token, scriptName: scriptName },
   );
   event.completed();
