@@ -13,20 +13,26 @@ Now that you have xlwings Server running, you can make the switch to xlwings Lit
 XLWINGS_ENABLE_LITE=true
 ```
 
-This will restart the uvicorn development server and reload the task pane. You should now see a yellow alert in the task pane that Python is loading. That's it, you are now running xlwings Lite in development mode!
+Start or restart your development server by running `python run.py`. You should now see a yellow alert in the task pane that Python is loading. That's it, you are now running xlwings Lite in development mode!
 
 ## Custom functions and custom scripts
 
-Custom functions and custom scripts live in the following directories, which is different from xlwings Server:
+You write your custom functions and custom scripts in the following directories:
 
-- `app/lite/custom_functions`
-- `app/lite/custom_scripts`
-
-As with xlwings Server, you'll need to import your functions into the `__init__.py` file in the above directories when adding your own modules. See [](custom_functions.md#adding-new-custom-functions).
+- `app/custom_functions`, see [](custom_functions.md)
+- `app/custom_scripts`, see [](custom_scripts.md)
 
 ## Python version
 
 The Python version is dictated by Pyodide, so you can't choose it. The current version is printed in the console of the browser dev tools (right-click on the task pane and click `Inspect`).
+
+If you're on macOS, this requires you to run the following command first in the Terminal:
+
+```
+defaults write com.microsoft.Excel OfficeWebAddinDeveloperExtras -bool true
+```
+
+see [](debugging.md#officejs-add-in-debugging) for more details.
 
 ## Dependencies
 
@@ -57,7 +63,7 @@ Even though `app/lite/.env` is ignored by Git, it will be included in your final
 xlwings Lite uses PyScript/Pyodide under the hood, which don't offer a debugger. So to debug your custom functions and custom scripts, you have two options:
 
 - Use `print()`, which will print to the console of the browser dev tools (not to the terminal where you run Python!).
-- In `app/.env`, switch back to `XLWINGS_ENABLE_LITE=false` and copy over your code from `app/lite/custom_functions` to `app/custom_functions` (same for `custom_scripts`). This allows you to run `run.py` by using the debug mode of your editor.
+- In `app/.env`, temporarily switch back to `XLWINGS_ENABLE_LITE=false`. This allows you to run `run.py` by using the debug mode of your editor and set breakpoints.
 
 ## Task Pane
 

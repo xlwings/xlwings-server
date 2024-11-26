@@ -25,9 +25,9 @@ For example, if your static file server serves the files at `https://my.domain.c
 $ python run.py lite https://my.domain.com
 ```
 
-Then copy the files from the `dist` directory to your static file server. Open up `https://my.domain.com` in a browser to make sure the deployment worked. Then use `https://my.domain.com/manifest` for installing the actual add-in, see [](install_officejs_addin.md).
+Then copy the files from the `dist` directory to your static file server. Open up `https://my.domain.com` in a browser to make sure the deployment worked. Then use `https://my.domain.com/manifest` to install the actual add-in, see [](install_officejs_addin.md).
 
-To get started, it is recommended to use the following settings under `app/.env` while building your xlwings Lite app :
+To get started, it is recommended to use the following settings under `app/.env` while building your xlwings Lite app to reduce the number of files you have to upload:
 
 ```ini
 XLWINGS_CDN_OFFICEJS=true
@@ -38,9 +38,7 @@ For more details, see [](#without-internet-access) below.
 
 ## Deploy to Cloudflare Pages
 
-[Cloudflare Pages](https://pages.cloudflare.com/) are great as you have unlimited traffic for free. To be sure, always check their current limits.
-
-You can either connect Cloudflare Pages to a Git repository or you can upload a ZIP file directly if you're just want to quickly try it out.
+You can either connect [Cloudflare Pages](https://pages.cloudflare.com/) to a Git repository or you can upload a ZIP file directly.
 
 After creating a project, you'll get a URL that looks something like this: `https://xxx.pages.dev`. Use it in the following command:
 
@@ -51,7 +49,7 @@ python run.py lite https://xxx.pages.dev --zip
 Now you can upload the ZIP file that you will find in the `dist` directory. Alternatively, create a new Git repo, connect it with Cloudflare Pages, and direct the build command towards a subdirectory in that Git repo:
 
 ```none
-python run.py lite https://xxx.pages.dev -o ./path/to/repo/app
+python run.py lite https://xxx.pages.dev -o /path/to/repo/xlwings_lite
 ```
 
 ## Deploy to GitHub Pages
@@ -59,7 +57,7 @@ python run.py lite https://xxx.pages.dev -o ./path/to/repo/app
 GitHub pages are usually hosted on `https://username.github.io/reponame`. Therefore, your build command should be:
 
 ```none
-python run.py lite https://username.github.io/reponame -o /path/to/repo/app
+python run.py lite https://username.github.io/reponame -o /path/to/repo/xlwings_lite
 ```
 
 Consult the [GitHub Pages docs](https://docs.github.com/en/pages) on how to deploy the page.
