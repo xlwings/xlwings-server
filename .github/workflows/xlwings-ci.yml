@@ -44,5 +44,5 @@ jobs:
       - name: Run tests with xlwings Lite
         if: matrix.python-version == '3.12'
         env:
-          ENV_FILE: ".env.lite"
+          ENV_FILE: ".env.testlite"
         run: pytest -v
