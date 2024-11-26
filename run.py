@@ -259,9 +259,6 @@ def lite_build(url, output_dir, create_zip=False, clean=False):
 
 
 if __name__ == "__main__":
-    lite_build("https://www.x.com", Path("./dist"), create_zip=False, clean=False)
-
-if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="subcommand")
     init_parser = subparsers.add_parser("init", help="Initialize the application.")
@@ -360,20 +357,13 @@ if __name__ == "__main__":
                 "OFFICE.JS ADD-INS!"
             )
         print(f"Running in '{'Lite' if settings.enable_lite else 'Server'}' mode.")
-        # Define base exclusions
-        reload_excludes = ["./app/lite/**/*.py"]
-        if settings.enable_lite:
-            reload_excludes.extend(
-                ["./app/custom_functions/**/*.py", "./app/custom_scripts/**/*.py"]
-            )
-
         uvicorn.run(
             "app.main:main_app",
             host="127.0.0.1",
             port=8000,
             reload=True,
-            reload_includes=[".py", ".env"],
-            reload_excludes=reload_excludes,
+            reload_includes=[".env"],
+            reload_excludes=None if not settings.enable_lite else ["**/*.py"],
             ssl_keyfile=ssl_keyfile,
             ssl_certfile=ssl_certfile,
         )
