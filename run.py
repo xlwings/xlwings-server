@@ -175,7 +175,7 @@ def lite_build(url, output_dir, create_zip=False, clean=False):
 
     print("Static site generation complete.")
 
-    # Copy static and lite folders
+    # Copy folders
     def copy_folder(source_dir: Path, dest_dir: Path, folder_name: str) -> None:
         if source_dir.exists():
             if dest_dir.exists():
@@ -187,6 +187,14 @@ def lite_build(url, output_dir, create_zip=False, clean=False):
 
     copy_folder(Path("app/static"), output_dir / "static", "Static")
     copy_folder(Path("app/lite"), output_dir / "lite", "lite")
+    copy_folder(
+        Path("app/custom_functions"),
+        output_dir / "custom_functions",
+        "custom_functions",
+    )
+    copy_folder(
+        Path("app/custom_scripts"), output_dir / "custom_scripts", "custom_scripts"
+    )
 
     # Deploy key
     try:
@@ -205,7 +213,7 @@ def lite_build(url, output_dir, create_zip=False, clean=False):
     remove_dir_if_exists(output_dir / "static" / "vendor" / "socket.io")
     if not settings.enable_alpinejs_csp:
         remove_dir_if_exists(output_dir / "static" / "vendor" / "@alpinejs")
-    if not settings.cdn_officejs:
+    if settings.cdn_officejs:
         remove_dir_if_exists(output_dir / "static" / "vendor" / "@microsoft")
     if not settings.enable_bootstrap:
         remove_dir_if_exists(output_dir / "static" / "vendor" / "bootstrap")
@@ -249,6 +257,9 @@ def lite_build(url, output_dir, create_zip=False, clean=False):
         except Exception as e:
             print(f"Error creating zip file: {e}")
 
+
+if __name__ == "__main__":
+    lite_build("https://www.x.com", Path("./dist"), create_zip=False, clean=False)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -321,9 +332,6 @@ if __name__ == "__main__":
             "XLWINGS_ENABLE_EXAMPLES", str(settings.enable_examples).lower(), env_file
         )
         update_lite_settings("XLWINGS_ENVIRONMENT", settings.environment, env_file)
-        update_lite_settings(
-            "XLWINGS_ENABLE_LITE", str(settings.enable_lite).lower(), env_file
-        )
         update_lite_settings(
             "XLWINGS_ENABLE_TESTS", str(settings.enable_tests).lower(), env_file
         )
