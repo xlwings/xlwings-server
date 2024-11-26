@@ -133,6 +133,18 @@ if settings.enable_lite:
         StaticFiles(directory=settings.base_dir / "lite"),
         name="lite",
     )
+    app.mount(
+        # Use the same path prefix as for static files
+        settings.static_url_path.replace("static", "custom_functions"),
+        StaticFiles(directory=settings.base_dir / "custom_functions"),
+        name="custom_functions",
+    )
+    app.mount(
+        # Use the same path prefix as for static files
+        settings.static_url_path.replace("static", "custom_scripts"),
+        StaticFiles(directory=settings.base_dir / "custom_scripts"),
+        name="custom_scripts",
+    )
 
 if settings.environment == "dev":
     # Don't cache static files

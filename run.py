@@ -322,6 +322,12 @@ if __name__ == "__main__":
         )
         update_lite_settings("XLWINGS_ENVIRONMENT", settings.environment, env_file)
         update_lite_settings(
+            "XLWINGS_ENABLE_LITE", str(settings.enable_lite).lower(), env_file
+        )
+        update_lite_settings(
+            "XLWINGS_ENABLE_TESTS", str(settings.enable_tests).lower(), env_file
+        )
+        update_lite_settings(
             "XLWINGS_FUNCTIONS_NAMESPACE", settings.functions_namespace, env_file
         )
 
@@ -346,15 +352,20 @@ if __name__ == "__main__":
                 "OFFICE.JS ADD-INS!"
             )
         print(f"Running in '{'Lite' if settings.enable_lite else 'Server'}' mode.")
+        # Define base exclusions
+        reload_excludes = ["./app/lite/**/*.py"]
+        if settings.enable_lite:
+            reload_excludes.extend(
+                ["./app/custom_functions/**/*.py", "./app/custom_scripts/**/*.py"]
+            )
+
         uvicorn.run(
             "app.main:main_app",
             host="127.0.0.1",
             port=8000,
             reload=True,
             reload_includes=[".py", ".env"],
-            reload_excludes=[
-                "./app/lite/**/*.py",
-            ],
+            reload_excludes=reload_excludes,
             ssl_keyfile=ssl_keyfile,
             ssl_certfile=ssl_certfile,
         )

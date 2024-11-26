@@ -10,15 +10,10 @@ import xlwings as xw
 import xlwings.server
 from fastapi import APIRouter, Body, Header, Request, Response
 
-from .. import dependencies as dep
+from .. import custom_functions, custom_scripts, dependencies as dep
 from ..config import settings
 from ..models import CurrentUser
 from ..templates import TemplateResponse
-
-if settings.enable_lite:
-    from ..lite import custom_functions, custom_scripts
-else:
-    from .. import custom_functions, custom_scripts
 
 logger = logging.getLogger(__name__)
 
@@ -150,19 +145,36 @@ if settings.enable_lite:
             if pkg.strip()
         ]
 
-        # files
-        lite_dir = Path(settings.base_dir / "lite")
+        # Files
+        def scan_directory(
+            base_dir: Path, dir_name: str, prepend_dir_name: bool = False
+        ) -> dict:
+            dir_path = Path(settings.base_dir / dir_name)
+            files = {}
+            if dir_path.exists():
+                for file_path in dir_path.rglob("*"):
+                    if (
+                        file_path.is_file()
+                        and file_path.suffix != ".pyc"
+                        and file_path.name != "requirements.txt"
+                    ):
+                        relative_path = file_path.relative_to(dir_path)
+                        files[
+                            f"{settings.static_url_path.replace('static', dir_name)}/{relative_path}"
+                        ] = (
+                            f"./{dir_name}/{relative_path}"
+                            if prepend_dir_name
+                            else f"./{relative_path}"
+                        )
+            return files
+
+        # Scan all directories
         files = {}
-        for file_path in lite_dir.rglob("*"):
-            if (
-                file_path.is_file()
-                and file_path.suffix != ".pyc"
-                and file_path.name != "requirements.txt"
-            ):
-                relative_path = file_path.relative_to(lite_dir)
-                files[
-                    f"{settings.static_url_path.replace('static', 'lite')}/{relative_path}"
-                ] = f"./{relative_path}"
+        files.update(scan_directory(settings.base_dir, "lite"))
+        for directory in ["custom_functions", "custom_scripts"]:
+            files.update(
+                scan_directory(settings.base_dir, directory, prepend_dir_name=True)
+            )
         response = {"packages": packages, "files": files}
 
         # Interpreter

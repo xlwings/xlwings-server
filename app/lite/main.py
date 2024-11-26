@@ -2,8 +2,13 @@ import config  # noqa: F401, I001 Must be first import to load env vars
 import platform
 import traceback
 
-import custom_functions
-import custom_scripts
+try:
+    # Via xlwings Server
+    from .. import custom_functions, custom_scripts
+except ImportError:
+    # Via PyScript
+    import custom_functions
+    import custom_scripts
 import pyodide_js  # type: ignore
 import xlwings as xw
 from pyscript import ffi, window  # type: ignore

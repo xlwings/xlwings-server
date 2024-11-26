@@ -31,7 +31,8 @@ class WebFilter(DefaultFilter):
 
         # Only allow .py files in lite subdirectory
         if path.suffix in (".py", ".txt", ".env"):
-            return "lite" in path.parts
+            allowed_dirs = ("lite", "custom_scripts", "custom_functions")
+            return any(dir_name in path.parts for dir_name in allowed_dirs)
 
         return False
 

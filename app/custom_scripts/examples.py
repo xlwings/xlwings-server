@@ -11,7 +11,7 @@ import numpy as np
 import xlwings as xw
 from xlwings.server import script
 
-from ..config import settings
+from . import settings
 
 
 @script
@@ -38,20 +38,19 @@ def setup_custom_functions(book: xw.Book):
     sheet["A3"].value = f'={prefix}.HELLO("xlwings")'
     sheet["A5"].value = f"={prefix}.STANDARD_NORMAL(3, 4)"
     sheet["A10"].value = f"={prefix}.CORREL(A5#)"
-    sheet["A16"].value = f"={prefix}.TO_DF(A5#)"
-    sheet["A18"].value = f"={prefix}.GET_HEALTHEXP()"
-    sheet[
-        "A20"
-    ].value = f"""={prefix}.DF_QUERY(A18, "Country == 'Japan' and Year > 2017")"""
-    sheet["A25"].value = f"={prefix}.VIEW(A18, 3)"
-    sheet["A30"].value = f"={prefix}.STREAMING_RANDOM(3, 4)"
-    sheet["A35"].value = f"={prefix}.GET_CURRENT_USER()"
-    sheet[
-        "A37"
-    ].value = (
-        f'={prefix}.SQL("SELECT Year, Country FROM a WHERE Spending_USD < 4600", A20#)'
-    )
-    sheet["A40"].value = f'={prefix}.HELLO_WITH_SCRIPT("xlwings")'
+    if not settings.enable_lite:
+        sheet["A16"].value = f"={prefix}.TO_DF(A5#)"
+        sheet["A18"].value = f"={prefix}.GET_HEALTHEXP()"
+        sheet[
+            "A20"
+        ].value = f"""={prefix}.DF_QUERY(A18, "Country == 'Japan' and Year > 2017")"""
+        sheet["A25"].value = f"={prefix}.VIEW(A18, 3)"
+        sheet["A30"].value = f"={prefix}.STREAMING_RANDOM(3, 4)"
+        sheet["A35"].value = f"={prefix}.GET_CURRENT_USER()"
+        sheet[
+            "A37"
+        ].value = f'={prefix}.SQL("SELECT Year, Country FROM a WHERE Spending_USD < 4600", A20#)'
+        sheet["A40"].value = f'={prefix}.HELLO_WITH_SCRIPT("xlwings")'
     sheet.activate()
 
 
