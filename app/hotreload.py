@@ -6,6 +6,8 @@ watch HTML, CSS, and JS files separately via Watchfiles. If these files change, 
 reload the browser without having to restart the Python app.
 """
 
+from pathlib import Path
+
 from watchfiles import Change, DefaultFilter, awatch
 
 browser_reload_triggered_by_backend = False
@@ -13,10 +15,26 @@ watching_frontend_files = False
 
 
 class WebFilter(DefaultFilter):
-    allowed_extensions = ".html", ".css", ".js"
+    allowed_extensions = (".html", ".css", ".js", ".py", ".txt", ".env")
 
     def __call__(self, change: Change, path: str) -> bool:
-        return super().__call__(change, path) and path.endswith(self.allowed_extensions)
+        if not super().__call__(change, path):
+            return False
+
+        path = Path(path)
+        if path.suffix not in self.allowed_extensions:
+            return False
+
+        # Allow HTML/CSS/JS files anywhere
+        if path.suffix in (".html", ".css", ".js"):
+            return True
+
+        # Only allow .py files in lite subdirectory
+        if path.suffix in (".py", ".txt", ".env"):
+            allowed_dirs = ("lite", "custom_scripts", "custom_functions")
+            return any(dir_name in path.parts for dir_name in allowed_dirs)
+
+        return False
 
 
 async def watch_frontend_files(sio, directory):

@@ -75,7 +75,10 @@ async def add_security_headers(request, call_next):
     # https://owasp.org/www-project-secure-headers/index.html#configuration-proposal
     # https://owasp.org/www-project-secure-headers/ci/headers_add.json
     response = await call_next(request)
-    if settings.add_security_headers:
+    if not settings.add_security_headers and settings.environment == "dev":
+        # Prevent caching in dev even if security headers are switched off
+        response.headers["Cache-Control"] = "no-store, max-age=0"
+    if settings.add_security_headers and not settings.enable_lite:
         data = read_security_headers()
 
         # Extract file extension from request URL
@@ -104,7 +107,7 @@ async def add_security_headers(request, call_next):
                 + "; font-src 'self' https://res-1.cdn.office.net; style-src 'self' 'unsafe-inline';"
             )
             del response.headers["X-Frame-Options"]
-        if settings.public_addin_store:
+        if settings.cdn_officejs:
             response.headers["Content-Security-Policy"] = (
                 response.headers["Content-Security-Policy"]
                 + "; script-src 'self' https://appsforoffice.microsoft.com;"
@@ -121,6 +124,28 @@ app.mount(
     StaticFiles(directory=settings.static_dir),
     name="static",
 )
+
+if settings.enable_lite:
+    # For xlwings Lite development
+    app.mount(
+        # Use the same path prefix as for static files
+        settings.static_url_path.replace("static", "lite"),
+        StaticFiles(directory=settings.base_dir / "lite"),
+        name="lite",
+    )
+    app.mount(
+        # Use the same path prefix as for static files
+        settings.static_url_path.replace("static", "custom_functions"),
+        StaticFiles(directory=settings.base_dir / "custom_functions"),
+        name="custom_functions",
+    )
+    app.mount(
+        # Use the same path prefix as for static files
+        settings.static_url_path.replace("static", "custom_scripts"),
+        StaticFiles(directory=settings.base_dir / "custom_scripts"),
+        name="custom_scripts",
+    )
+
 if settings.environment == "dev":
     # Don't cache static files
     StaticFiles.is_not_modified = lambda *args, **kwargs: False

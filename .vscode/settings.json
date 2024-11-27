@@ -2,6 +2,7 @@
     "files.associations": {
         // Requires "Better Jinja" extension [samuelcolvin.jinjahtml]
         "*.html": "jinja-html",
+        "*.env": "shellscript"
     },
     // Don't load .env files into Terminal as we handle them via config.py
     // or docker-compose, respectively. Terminal would always require a restart to apply

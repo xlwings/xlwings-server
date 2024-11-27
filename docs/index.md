@@ -1,6 +1,10 @@
 # xlwings Server
 
-xlwings Server adds Python support to Microsoft Excel and Google Sheets without the need of a local Python installation. xlwings Server is self-hosted and runs on any platform that supports Python or Docker, including bare-metal servers, Linux-based VMs, Docker Compose, Kubernetes and serverless products like Azure functions or AWS Lambda. Here are a few highlights:
+xlwings Server adds Python support to Microsoft Excel and Google Sheets without the need of a local Python installation. xlwings Server is self-hosted and runs on any platform that supports Python or Docker, including bare-metal servers, Linux-based VMs, Docker Compose, Kubernetes and serverless products like Azure functions or AWS Lambda.
+
+If you need an even simpler deployment, you can use [](index_lite.md), which allows you to deploy your app as a static website to free services like GitHub Pages or static file servers like nginx. The ease of deployment comes with certain [limitations](lite_limitations.md) though.
+
+Here are a few highlights of xlwings Server:
 
 - Compatible with Python 3.9+
 - Compatible with all Excel platforms, including Excel on Windows and macOS, and Excel on the web as well as Google Sheets
@@ -87,6 +91,13 @@ index_authentication
 :hidden:
 
 index_hosting
+```
+
+```{toctree}
+:maxdepth: 2
+:hidden:
+
+index_lite
 ```
 
 ```{toctree}

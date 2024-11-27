@@ -17,7 +17,7 @@
       {% endif %}
       <script src="{{ url_for('static', path='/js/core/officejs-history-fix-part1.js') }}"></script>
       {# Office.js #}
-      {% if settings.public_addin_store %}
+      {% if settings.cdn_officejs %}
         <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
       {% else %}
         <script src="{{ url_for('static', path='/vendor/@microsoft/office-js/dist/office.js') }}"></script>
@@ -27,7 +27,6 @@
       {% block socketio %}
         {% if settings.enable_socketio %}
           <script src="{{ url_for('static', path='/vendor/socket.io/client-dist/socket.io.min.js') }}"></script>
-          <script src="{{ url_for('static', path='/js/core/socketio-handlers.js') }}" defer></script>
         {% endif %}
       {% endblock socketio %}
       {# xlwings.js (must come before custom-function-code) #}
@@ -35,6 +34,12 @@
       <script type="module" src="{{ url_for('static', path='/js/core/xlwingsjs/auth.js') }}" defer></script>
       <script type="module" src="{{ url_for('static', path='/js/core/xlwingsjs/utils.js') }}" defer></script>
       <script type="module" src="{{ url_for('static', path='/js/core/xlwingsjs/alert.js') }}" defer></script>
+      {% block socketio2 %}
+        {% if settings.enable_socketio %}
+          {# Must come after xlwings.js #}
+          <script src="{{ url_for('static', path='/js/core/socketio-handlers.js') }}" defer></script>
+        {% endif %}
+      {% endblock socketio2 %}
       {# Alpine.js CSP boilerplate (must come before custom JS, which must come before alpinejs library) #}
       {% if settings.enable_alpinejs_csp %}
         <script src="{{ url_for('static', path='/js/core/alpinejs-csp-boilerplate.js') }}"></script>
@@ -81,6 +86,16 @@
       {% if settings.enable_alpinejs_csp %}
         <script src="{{ url_for('static', path='/vendor/@alpinejs/csp/dist/cdn.min.js') }}" defer></script>
       {% endif %}
+      {# xlwings Lite #}
+      {% if settings.enable_lite %}
+        <link rel="stylesheet" href="{{ url_for('static', path='/vendor/@pyscript/core/dist/core.css') }}" />
+        <script type="module" src="{{ url_for('static', path='/vendor/@pyscript/core/dist/core.js') }}"></script>
+        <script
+          type="py"
+          src="{{ url_for('lite', path='main.py') }}"
+          config="{{ url_for('get_pyscript_config') }}"
+          defer></script>
+      {% endif %}
     {% endblock head %}
   </head>
 
@@ -89,6 +104,10 @@
       id="global-error-alert"
       class="alert alert-danger alert-dismissible fade show d-none z-index-1000"
       role="alert">
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      <span></span>
+    </div>
+    <div id="global-status-alert" class="alert alert-warning alert-dismissible fade show d-none" role="alert">
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       <span></span>
     </div>

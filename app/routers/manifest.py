@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 @router.get("/manifest")
+@router.get("/manifest.xml")
 async def manifest(
     request: Request, protocol: str = Header(default="", alias="X-Forwarded-Proto")
 ):

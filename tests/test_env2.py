@@ -16,7 +16,7 @@ from app.main import main_app
 
 client = TestClient(main_app)
 
-if os.getenv("ENV_FILE") is None:
+if os.getenv("ENV_FILE") != ".env.test2":
     pytest.skip("ENV_FILE is not set", allow_module_level=True)
 
 

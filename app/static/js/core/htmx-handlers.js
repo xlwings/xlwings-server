@@ -53,8 +53,9 @@ htmx.on("htmx:confirm", async (event) => {
     let config = element.getAttribute("xw-config")
       ? JSON.parse(element.getAttribute("xw-config"))
       : {};
+    // TODO: use default context
     await Excel.run(async (context) => {
-      bookData = await xlwings.getBookData(context, config);
+      bookData = await xlwings.getBookData(config, context);
     });
   }
 
@@ -72,7 +73,7 @@ htmx.on("htmx:afterSwap", async (event) => {
   if (bookDataElement) {
     const bookDataJson = JSON.parse(bookDataElement.text);
     await Excel.run(async (context) => {
-      xlwings.runActions(context, bookDataJson);
+      xlwings.runActions(bookDataJson, context);
     });
   }
 });

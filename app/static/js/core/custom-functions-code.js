@@ -202,10 +202,14 @@ async function base() {
   }
 
   // Normal functions communicate via REST API
-  return await makeApiCall(body);
+  if (config.onLite) {
+    return await makeLiteCall(body);
+  } else {
+    return await makeServerCall(body);
+  }
 }
 
-async function makeApiCall(body) {
+async function makeServerCall(body) {
   const MAX_RETRIES = 5;
   let attempt = 0;
 
@@ -249,6 +253,20 @@ async function makeApiCall(body) {
     } finally {
       semaphore.release();
     }
+  }
+}
+
+async function makeLiteCall(body) {
+  await xlwings.pyscriptAllDone;
+  try {
+    let result = await window.custom_functions_call(body);
+    if (result.error) {
+      console.error(result.details);
+      throw new Error(result.error);
+    }
+    return result;
+  } catch (error) {
+    showError(error);
   }
 }
 

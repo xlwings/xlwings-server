@@ -4,9 +4,13 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from app.custom_functions.examples import view
+try:
+    from app.custom_functions.examples import view
+except ImportError:
+    view = None
 
 
+@pytest.mark.skipif(view is None, reason="xlwings Lite")
 @pytest.mark.anyio
 async def test_view():
     # Test with str

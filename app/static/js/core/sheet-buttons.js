@@ -48,7 +48,7 @@ async function registerCellToButton(hyperlinkCellRef, scriptName, xwConfig) {
             window.location.origin +
               config.appPath +
               `/xlwings/custom-scripts-call/${scriptName}`,
-            { ...xwConfig, auth: token },
+            { ...xwConfig, auth: token, scriptName: scriptName },
           );
         } finally {
           sheet.getRange(selectedRangeAddress).getOffsetRange(1, 0).select();

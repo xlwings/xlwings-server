@@ -1,15 +1,40 @@
 import argparse
+import logging
 import os
 import re
 import shutil
 import subprocess
 import uuid
+import zipfile
+from datetime import datetime
 from pathlib import Path
+from urllib.parse import urljoin, urlparse
 
 import uvicorn
+import xlwings as xw
 from cryptography.fernet import Fernet
 
 is_cloud = os.getenv("CODESPACES") or os.getenv("GITPOD_WORKSPACE_ID")
+
+
+def update_lite_settings(key: str, value: str, env_file: Path):
+    if env_file.exists():
+        content = env_file.read_text().splitlines()
+    else:
+        content = []
+
+    key_found = False
+    for i, line in enumerate(content):
+        if line.startswith(f"{key}="):
+            content[i] = f"{key}={value}"
+            key_found = True
+            break
+
+    if not key_found:
+        content.append(f"{key}={value}")
+
+    env_file.parent.mkdir(parents=True, exist_ok=True)
+    env_file.write_text("\n".join(content) + "\n")
 
 
 def replace_uuids():
@@ -74,6 +99,161 @@ def deps_compile(upgrade=False):
     )
 
 
+def lite_build(url, output_dir, create_zip=False, clean=False):
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    build_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    # Settings overrides
+    parsed = urlparse(url)
+    base_url = f"{parsed.scheme}://{parsed.netloc}".rstrip("/")
+    app_path = parsed.path.rstrip("/")
+
+    os.environ["XLWINGS_ENABLE_LITE"] = "true"
+    os.environ["XLWINGS_ENABLE_SOCKETIO"] = "false"
+    os.environ["XLWINGS_APP_PATH"] = app_path
+    os.environ["XLWINGS_STATIC_URL_PATH"] = f"{app_path}/static"
+
+    from fastapi.testclient import TestClient  # noqa: E402
+
+    from app.config import settings  # noqa: E402
+    from app.main import main_app  # noqa: E402
+
+    # Take the license key from .env
+    os.environ["XLWINGS_LICENSE_KEY"] = settings.license_key
+    import xlwings.pro
+
+    output_dir = Path(output_dir)
+    output_dir.mkdir(exist_ok=True)
+
+    # Clean output directory
+    if clean:
+        if output_dir.exists():
+            for filename in os.listdir(output_dir):
+                file_path = output_dir / filename
+                if file_path.is_file():
+                    file_path.unlink()
+                elif file_path.is_dir():
+                    shutil.rmtree(file_path)
+            print("Output directory cleaned.")
+
+    # Endpoints
+    client = TestClient(main_app)
+
+    route_paths = [
+        "manifest.xml",
+        "taskpane.html",  # TODO: cover all routes from taskpane.py
+        "xlwings/custom-functions-meta.json",
+        "xlwings/custom-functions-code.js",
+        "xlwings/custom-scripts-sheet-buttons.js",
+        "xlwings/pyscript.json",
+    ]
+
+    base_path = f"{app_path}/" if app_path else "/"
+    routes = [urljoin(base_path, path) for path in route_paths]
+
+    for ix, route in enumerate(routes):
+        response = client.get(route)
+        if response.status_code == 200:
+            content = response.text
+            filename = Path(route_paths[ix])
+            if filename.name == "manifest.xml":
+                content = content.replace("http://testserver", base_url)
+
+            file_path = output_dir / filename
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            file_path.write_text(content)
+        else:
+            print(f"Failed to fetch {route} (status code: {response.status_code})")
+
+    # Index.html
+    index_path = output_dir / "index.html"
+    index_path.write_text(f"This is an xlwings Lite app! ({build_timestamp})")
+
+    print("Static site generation complete.")
+
+    # Copy folders
+    def copy_folder(source_dir: Path, dest_dir: Path, folder_name: str) -> None:
+        if source_dir.exists():
+            if dest_dir.exists():
+                shutil.rmtree(dest_dir)
+            shutil.copytree(source_dir, dest_dir)
+            print(f"{folder_name.capitalize()} folder contents copied.")
+        else:
+            print(f"No {folder_name} folder found to copy")
+
+    copy_folder(Path("app/static"), output_dir / "static", "Static")
+    copy_folder(Path("app/lite"), output_dir / "lite", "lite")
+    copy_folder(
+        Path("app/custom_functions"),
+        output_dir / "custom_functions",
+        "custom_functions",
+    )
+    copy_folder(
+        Path("app/custom_scripts"), output_dir / "custom_scripts", "custom_scripts"
+    )
+
+    # Deploy key
+    try:
+        deploy_key = xlwings.pro.LicenseHandler.create_deploy_key()
+    except xw.LicenseError:
+        deploy_key = settings.license_key
+    update_lite_settings(
+        "XLWINGS_LICENSE_KEY", deploy_key, output_dir / "lite" / ".env"
+    )
+
+    # Remove unused libraries
+    def remove_dir_if_exists(path: Path) -> None:
+        if path.exists():
+            shutil.rmtree(path)
+
+    remove_dir_if_exists(output_dir / "static" / "vendor" / "socket.io")
+    if not settings.enable_alpinejs_csp:
+        remove_dir_if_exists(output_dir / "static" / "vendor" / "@alpinejs")
+    if settings.cdn_officejs:
+        remove_dir_if_exists(output_dir / "static" / "vendor" / "@microsoft")
+    if not settings.enable_bootstrap:
+        remove_dir_if_exists(output_dir / "static" / "vendor" / "bootstrap")
+        remove_dir_if_exists(output_dir / "static" / "vendor" / "bootstrap-xlwings")
+    if not settings.enable_htmx:
+        remove_dir_if_exists(output_dir / "static" / "vendor" / "htmx-ext-head-support")
+        remove_dir_if_exists(
+            output_dir / "static" / "vendor" / "htmx-ext-loading-states"
+        )
+        remove_dir_if_exists(output_dir / "static" / "vendor" / "htmx.org")
+
+    def has_pyodide_requirement(requirements_file):
+        if not requirements_file.exists():
+            return False
+        with open(requirements_file, "r") as f:
+            return any("/static/vendor/pyodide/" in line for line in f)
+
+    if settings.cdn_pyodide:
+        requirements_path = output_dir / "lite" / "requirements.txt"
+        if not has_pyodide_requirement(requirements_path):
+            remove_dir_if_exists(output_dir / "static" / "vendor" / "pyodide")
+
+    # Remove unwanted files
+    for cache_dir in (output_dir / "lite").rglob("__pycache__"):
+        remove_dir_if_exists(cache_dir)
+
+    for ds_store in output_dir.rglob(".DS_Store"):
+        ds_store.unlink(missing_ok=True)
+
+    # ZIP file
+    if create_zip:
+        zip_filename = output_dir / f"xlwings_lite_{build_timestamp}.zip"
+
+        try:
+            with zipfile.ZipFile(zip_filename, "w", zipfile.ZIP_DEFLATED) as zipf:
+                for file_path in output_dir.rglob("*"):
+                    if file_path.is_file() and file_path != zip_filename:
+                        arcname = file_path.relative_to(output_dir)
+                        zipf.write(file_path, arcname)
+            print(f"Created zip file: {zip_filename}")
+        except Exception as e:
+            print(f"Error creating zip file: {e}")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="subcommand")
@@ -94,6 +274,31 @@ if __name__ == "__main__":
     upgrade_parser = deps_subparsers.add_parser("upgrade", help="Upgrade dependencies.")
     update_parser = deps_subparsers.add_parser("update", help="Upgrade dependencies.")
 
+    # Lite command
+    lite_parser = subparsers.add_parser("lite", help="Build xlwings Lite distribution")
+    lite_parser.add_argument(
+        "url", help="URL of where the xlwings Lite app is going to be hosted"
+    )
+    lite_parser.add_argument(
+        "-o",
+        "--output",
+        help="Output directory path. Defaults to ./dist.",
+        type=str,
+        default="./dist",
+    )
+    lite_parser.add_argument(
+        "-z",
+        "--zip",
+        help="Create zip archive in addition to the static files.",
+        action="store_true",
+    )
+    lite_parser.add_argument(
+        "-c",
+        "--clean",
+        help="Clean the output directory before building.",
+        action="store_true",
+    )
+
     args = parser.parse_args()
 
     if args.subcommand == "init":
@@ -103,7 +308,30 @@ if __name__ == "__main__":
             deps_compile()
         elif args.deps_command in ("upgrade", "update"):
             deps_compile(upgrade=True)
+    elif args.subcommand == "lite":
+        lite_build(
+            url=args.url, output_dir=args.output, create_zip=args.zip, clean=args.clean
+        )
     else:
+        # Copy over required settings
+        # TODO: This is currently only done when starting the server
+        from app.config import settings  # noqa: E402
+
+        env_file = Path("app/lite/.env")
+        update_lite_settings(
+            "XLWINGS_LICENSE_KEY", f'"{settings.license_key}"', env_file
+        )
+        update_lite_settings(
+            "XLWINGS_ENABLE_EXAMPLES", str(settings.enable_examples).lower(), env_file
+        )
+        update_lite_settings("XLWINGS_ENVIRONMENT", settings.environment, env_file)
+        update_lite_settings(
+            "XLWINGS_ENABLE_TESTS", str(settings.enable_tests).lower(), env_file
+        )
+        update_lite_settings(
+            "XLWINGS_FUNCTIONS_NAMESPACE", settings.functions_namespace, env_file
+        )
+
         ssl_keyfile_path = Path("certs/localhost+2-key.pem")
         ssl_certfile_path = Path("certs/localhost+2.pem")
 
@@ -124,12 +352,14 @@ if __name__ == "__main__":
                 "THIS WILL ONLY WORK WITH VBA AND OFFICE SCRIPTS, BUT NOT WITH "
                 "OFFICE.JS ADD-INS!"
             )
+        print(f"Running in '{'Lite' if settings.enable_lite else 'Server'}' mode.")
         uvicorn.run(
             "app.main:main_app",
             host="127.0.0.1",
             port=8000,
             reload=True,
-            reload_includes=[".py", ".env"],
+            reload_includes=[".env"],
+            reload_excludes=None if not settings.enable_lite else ["**/*.py"],
             ssl_keyfile=ssl_keyfile,
             ssl_certfile=ssl_certfile,
         )

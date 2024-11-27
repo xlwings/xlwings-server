@@ -4,6 +4,27 @@ export { getAccessToken };
 import { getActiveBookName } from "./utils.js";
 export { getActiveBookName };
 
+let pyscriptAllDone = new Promise((resolve) => {
+  if (config.onLite === false) {
+    resolve(false);
+  } else {
+    window.addEventListener(
+      "py:all-done",
+      () => {
+        // Hide status alert when py:all-done fires
+        const globalStatusAlert = document.querySelector(
+          "#global-status-alert",
+        );
+        if (globalStatusAlert) {
+          globalStatusAlert.classList.add("d-none");
+        }
+        resolve(true);
+      },
+      { once: true },
+    );
+  }
+});
+
 // Namespace
 const xlwings = {
   runPython,
@@ -11,6 +32,7 @@ const xlwings = {
   getActiveBookName,
   getBookData,
   runActions,
+  pyscriptAllDone,
 };
 globalThis.xlwings = xlwings;
 
@@ -18,6 +40,15 @@ globalThis.xlwings = xlwings;
 document.addEventListener("DOMContentLoaded", init);
 
 export function init() {
+  // Pyscript status
+  if (config.onLite) {
+    const globalStatusAlert = document.querySelector("#global-status-alert");
+    if (globalStatusAlert) {
+      globalStatusAlert.classList.remove("d-none");
+      globalStatusAlert.querySelector("span").textContent = "Loading Python...";
+    }
+  }
+
   const elements = document.querySelectorAll("[xw-click]");
   elements.forEach((element) => {
     element.addEventListener("click", async (event) => {
@@ -41,17 +72,18 @@ export function init() {
       let xwConfig = element.getAttribute("xw-config")
         ? JSON.parse(element.getAttribute("xw-config"))
         : {};
+      let scriptName = element.getAttribute("xw-click");
       const url =
         window.location.origin +
         config.appPath +
         "/xlwings/custom-scripts-call/" +
-        element.getAttribute("xw-click");
+        scriptName;
       await runPython(url, {
         ...xwConfig,
+        scriptName: scriptName,
         auth: token,
         errorDisplayMode: "taskpane",
       });
-
       element.removeChild(spinner);
       element.removeAttribute("disabled");
     });
@@ -64,6 +96,7 @@ globalThis.callbacks = {};
 export async function runPython(
   url = "",
   {
+    scriptName = "",
     auth = "",
     include = "",
     exclude = "",
@@ -75,33 +108,44 @@ export async function runPython(
   try {
     await Excel.run(async (context) => {
       // console.log(payload);
-      let payload = await getBookData(context, {
-        auth,
-        include,
-        exclude,
-        headers,
-      });
-
-      // API call
-      let response = await fetch(url, {
-        method: "POST",
-        headers: headers,
-        body: JSON.stringify(payload),
-      });
-
-      // Parse JSON response
+      let payload = await getBookData(
+        {
+          auth,
+          include,
+          exclude,
+          headers,
+        },
+        context,
+      );
       let rawData;
-      if (response.status !== 200) {
-        throw await response.text();
+      if (config.onLite) {
+        await pyscriptAllDone;
+        rawData = await window.custom_scripts_call(payload, scriptName);
+        if (rawData.error) {
+          console.error(rawData.details);
+          throw new Error(rawData.error);
+        }
       } else {
-        rawData = await response.json();
+        // API call
+        let response = await fetch(url, {
+          method: "POST",
+          headers: headers,
+          body: JSON.stringify(payload),
+        });
+        // Parse JSON response
+        // TODO: align error handling with xlwings Lite
+        if (response.status !== 200) {
+          throw await response.text();
+        } else {
+          rawData = await response.json();
+        }
       }
-
       // console.log(rawData);
 
       // Run Functions
-      if (rawData !== null) {
-        await runActions(context, rawData);
+      // Note that PyScript returns undefined, so use != and == rather than !== and ===
+      if (rawData != null) {
+        await runActions(rawData, context);
       }
     });
   } catch (error) {
@@ -120,9 +164,26 @@ export async function runPython(
 
 // Helpers
 async function getBookData(
-  context,
   { auth = "", include = "", exclude = "", headers = {} } = {},
+  context = null,
 ) {
+  // Context
+  let bookData;
+  if (!context) {
+    await Excel.run(async (innerContext) => {
+      bookData = await getBookData(
+        {
+          auth,
+          include,
+          exclude,
+          headers,
+        },
+        innerContext,
+      );
+    });
+    return bookData;
+  }
+
   // workbook
   const workbook = context.workbook;
   workbook.load("name");
@@ -414,7 +475,17 @@ async function getBookData(
   return payload;
 }
 
-async function runActions(context, rawData) {
+async function runActions(rawData, context = null) {
+  if (typeof rawData === "string") {
+    rawData = JSON.parse(rawData);
+  }
+
+  if (!context) {
+    return await Excel.run(async (innerContext) => {
+      await runActions(rawData, innerContext);
+    });
+  }
+
   const forceSync = ["sheet"];
   for (let action of rawData["actions"]) {
     await globalThis.callbacks[action.func](context, action);
@@ -574,7 +645,7 @@ async function rangeClear(context, action) {
 
 async function addSheet(context, action) {
   let sheet;
-  if (action.args[1] !== null) {
+  if (action.args[1] != null) {
     sheet = context.workbook.worksheets.add(action.args[1].toString());
   } else {
     sheet = context.workbook.worksheets.add();
@@ -728,7 +799,7 @@ async function setRangeName(context, action) {
 async function namesAdd(context, action) {
   let name = action.args[0].toString();
   let refersTo = action.args[1].toString();
-  if (action.sheet_position === null) {
+  if (action.sheet_position == null) {
     context.workbook.names.add(name, refersTo);
   } else {
     let sheets = context.workbook.worksheets.load("items");
@@ -789,10 +860,10 @@ async function addTable(context, action) {
     action.args[0].toString(),
     Boolean(action.args[1]),
   );
-  if (action.args[2] !== null) {
+  if (action.args[2] != null) {
     mytable.style = action.args[2].toString();
   }
-  if (action.args[3] !== null) {
+  if (action.args[3] != null) {
     mytable.name = action.args[3].toString();
   }
 }

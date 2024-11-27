@@ -2,6 +2,7 @@ import contextvars
 import inspect
 import json
 import logging
+from pathlib import Path
 from textwrap import dedent
 from typing import Optional
 
@@ -39,6 +40,7 @@ async def alert(
 
 
 @router.get("/custom-functions-meta")
+@router.get("/custom-functions-meta.json")
 async def custom_functions_meta():
     return xlwings.server.custom_functions_meta(
         custom_functions, typehinted_params_to_exclude=[CurrentUser]
@@ -46,6 +48,7 @@ async def custom_functions_meta():
 
 
 @router.get("/custom-functions-code")
+@router.get("/custom-functions-code.js")
 async def custom_functions_code():
     custom_functions_call_path = f"{settings.app_path}/xlwings/custom-functions-call"
     js = (settings.static_dir / "js" / "core" / "custom-functions-code.js").read_text()
@@ -114,6 +117,7 @@ async def custom_scripts_call(script_name: str, book: dep.Book, current_user: de
 
 
 @router.get("/custom-scripts-sheet-buttons")
+@router.get("/custom-scripts-sheet-buttons.js")
 async def custom_scripts_sheet_buttons():
     buttons_info = []
     for name, func in inspect.getmembers(custom_scripts, inspect.isfunction):
@@ -123,3 +127,59 @@ async def custom_scripts_sheet_buttons():
             buttons_info.append([target_cell, name, config])
     content = f"const cellsToScripts = {json.dumps(buttons_info)};"
     return Response(content=content, media_type="application/javascript")
+
+
+if settings.enable_lite:
+
+    @router.get("/pyscript.json")
+    async def get_pyscript_config():
+        # requirements.txt
+        packages = (
+            Path(settings.base_dir / "lite" / "requirements.txt")
+            .read_text()
+            .splitlines()
+        )
+        packages = [
+            pkg.replace("/static", settings.static_url_path).strip()
+            for pkg in packages
+            if pkg.strip()
+        ]
+
+        # Files
+        def scan_directory(
+            base_dir: Path, dir_name: str, prepend_dir_name: bool = False
+        ) -> dict:
+            dir_path = Path(settings.base_dir / dir_name)
+            files = {}
+            if dir_path.exists():
+                for file_path in dir_path.rglob("*"):
+                    if (
+                        file_path.is_file()
+                        and file_path.suffix != ".pyc"
+                        and file_path.name != "requirements.txt"
+                    ):
+                        relative_path = file_path.relative_to(dir_path)
+                        files[
+                            f"{settings.static_url_path.replace('static', dir_name)}/{relative_path}"
+                        ] = (
+                            f"./{dir_name}/{relative_path}"
+                            if prepend_dir_name
+                            else f"./{relative_path}"
+                        )
+            return files
+
+        # Scan all directories
+        files = {}
+        files.update(scan_directory(settings.base_dir, "lite"))
+        for directory in ["custom_functions", "custom_scripts"]:
+            files.update(
+                scan_directory(settings.base_dir, directory, prepend_dir_name=True)
+            )
+        response = {"packages": packages, "files": files}
+
+        # Interpreter
+        if not settings.cdn_pyodide:
+            response["interpreter"] = (
+                f"{settings.static_url_path}/vendor/pyodide/pyodide.mjs"
+            )
+        return response

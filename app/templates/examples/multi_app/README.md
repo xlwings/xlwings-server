@@ -14,6 +14,7 @@ router = APIRouter(prefix=settings.app_path)
 
 
 @router.get("/taskpane")
+@router.get("/taskpane.html")
 async def taskpane(request: Request, app: str = None):
     if not app:
         template = "examples/multi_app/taskpane_loader.html"

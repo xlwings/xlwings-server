@@ -52,7 +52,7 @@ Store this under `app/templates/taskpane.html` and update the `name` argument un
 - If you want to publish the add-in to the public Excel add-in store ("App Source"), you need to set this to `true`. This will load the Office.js JS library from Microsoft's CDN as required by Microsoft:
 
   ```ini
-  XLWINGS_PUBLIC_ADDIN_STORE=true
+  XLWINGS_CDN_OFFICEJS=true
   ```
 
 - Make sure that the log level is not on `"DEBUG"` as this can log sensitive tokens:

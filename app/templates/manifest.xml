@@ -25,7 +25,7 @@
     </Sets>
   </Requirements>
   <DefaultSettings>
-    <SourceLocation DefaultValue="{{ base_url_with_app_path }}/taskpane" />
+    <SourceLocation DefaultValue="{{ base_url_with_app_path }}/taskpane.html" />
   </DefaultSettings>
   <Permissions>ReadWriteDocument</Permissions>
   <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
@@ -120,9 +120,9 @@
       </bt:Images>
       <bt:Urls>
         <!-- This must point to the HTML document with the task pane -->
-        <bt:Url id="Taskpane.Url" DefaultValue="{{ base_url_with_app_path }}/taskpane" />
-        <bt:Url id="Functions.Script.Url" DefaultValue="{{ base_url_with_app_path }}/xlwings/custom-functions-code" />
-        <bt:Url id="Functions.Metadata.Url" DefaultValue="{{ base_url_with_app_path }}/xlwings/custom-functions-meta" />
+        <bt:Url id="Taskpane.Url" DefaultValue="{{ base_url_with_app_path }}/taskpane.html" />
+        <bt:Url id="Functions.Script.Url" DefaultValue="{{ base_url_with_app_path }}/xlwings/custom-functions-code.js" />
+        <bt:Url id="Functions.Metadata.Url" DefaultValue="{{ base_url_with_app_path }}/xlwings/custom-functions-meta.json" />
       </bt:Urls>
       <bt:ShortStrings>
         <bt:String id="Functions.Namespace" DefaultValue="{{ settings.functions_namespace|upper }}{{ '_' if settings.functions_namespace and settings.environment != 'prod'}}{{ settings.environment | upper if settings.environment != 'prod'}}" />

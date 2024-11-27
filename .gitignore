@@ -10,3 +10,4 @@ node_modules
 .coverage
 scratch*
 docs/_build/
+/dist

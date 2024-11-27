@@ -13,7 +13,7 @@ from ..templates import TemplateResponse
 router = APIRouter(prefix=settings.app_path)
 
 
-@router.get("/taskpane")
+@router.get("/taskpane.html")
 @router.get("/taskpane/{page}")
 async def taskpane(request: Request, page: str = "one"):
     return TemplateResponse(
