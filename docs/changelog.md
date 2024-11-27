@@ -2,7 +2,7 @@
 
 ## 0.9.0 (Nov 27, 2024)
 
-- Launched xlwings Lite, allowing Python-based Office.js add-ins to be deployed as static websites. These add-ins run Python via WebAssembly (Wasm) in the add-in's browser engine, so Python doesn't need to be installed on neither the server nor the local machine. Learn more at [xlwings Lite](http://server.xlwings.org/index_lite.html).
+- Launched xlwings Lite, allowing Python-based Office.js add-ins to be deployed as static websites. These add-ins run Python via WebAssembly (Wasm) in the add-in's browser engine, so Python doesn't need to be installed on neither the server nor the local machine. Learn more at [xlwings Lite](index_lite.md).
 - The `XLWINGS_PUBLIC_ADDIN_STORE` setting is deprecated in favor of `XLWINGS_CDN_OFFICEJS`.
 - More script examples: show an error in the task pane and show a Matplotlib plot.
 - Upgraded dependencies incl. xlwings to 0.33.4.
