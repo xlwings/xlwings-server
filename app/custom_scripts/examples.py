@@ -7,6 +7,9 @@ try:
     import matplotlib.pyplot as plt
 except ImportError:
     plt = None
+import sys
+from pathlib import Path
+
 import numpy as np
 import xlwings as xw
 from xlwings.server import script
@@ -77,3 +80,9 @@ def show_plot(book: xw.Book):
 @script
 def show_error(book: xw.Book):
     raise xw.XlwingsError("This would be your error message")
+
+
+# Unit tests
+if settings.enable_tests:
+    sys.path.append(str(Path(__file__).parent.parent.resolve()))
+    from tests.e2e_custom_scripts import *
