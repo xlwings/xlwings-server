@@ -18,13 +18,11 @@ is_cloud = os.getenv("CODESPACES") or os.getenv("GITPOD_WORKSPACE_ID")
 
 
 def update_lite_settings(key: str, value: str, env_file: Path):
-    # Read existing content
     if env_file.exists():
         content = env_file.read_text().splitlines()
     else:
         content = []
 
-    # Find if key exists
     key_found = False
     for i, line in enumerate(content):
         if line.startswith(f"{key}="):
@@ -32,11 +30,9 @@ def update_lite_settings(key: str, value: str, env_file: Path):
             key_found = True
             break
 
-    # Add new line if key wasn't found
     if not key_found:
         content.append(f"{key}={value}")
 
-    # Write back to file
     env_file.parent.mkdir(parents=True, exist_ok=True)
     env_file.write_text("\n".join(content) + "\n")
 
