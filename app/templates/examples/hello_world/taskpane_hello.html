@@ -1,30 +1,14 @@
 {% extends "base.html" %}
 
+{% block extra_head %}
+  {# TODO: CDN XLWINGS_ADD_SECURITY_HEADERS=false #}
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+{% endblock extra_head %}
+
 {% block content %}
   <div class="container-fluid pt-3 ps-3">
-    <h1>Example Task Pane</h1>
-    <div class="mb-3 d-flex flex-column gap-2">
-      <button xw-click="hello_world" xw-config='{"exclude": "MySheet"}' class="btn btn-primary btn-sm" type="button">
-        Write 'Hello/Bye xlwings!' to A1
-      </button>
-      <button
-        xw-click="setup_custom_functions"
-        xw-config='{"exclude": "MySheet"}'
-        class="btn btn-primary btn-sm"
-        type="button">
-        Insert sheet with custom functions
-      </button>
-      {% if not settings.enable_lite %}
-        <button xw-click="show_alert" xw-config='{"exclude": "MySheet"}' class="btn btn-primary btn-sm" type="button">
-          Show an alert
-        </button>
-      {% endif %}
-      <button xw-click="show_plot" xw-config='{"exclude": "MySheet"}' class="btn btn-primary btn-sm" type="button">
-        Insert a Matplotlib Plot
-      </button>
-      <button xw-click="show_error" xw-config='{"exclude": "MySheet"}' class="btn btn-primary btn-sm" type="button">
-        Show an error message
-      </button>
-    </div>
+    <h1>Here's a Plotly graph!</h1>
+    <button xw-book="true" type="button" hx-post="/plotly" hx-target="#myplot" class="btn btn-primary">Plot</button>
+    <div id="myplot"></div>
   </div>
 {% endblock content %}
