@@ -1,9 +1,13 @@
 import { xlAlert } from "./alert.js";
 import { getAccessToken } from "./auth.js";
 export { getAccessToken };
-import { getActiveBookName } from "./utils.js";
+import { getActiveBookName, printSupportedApiVersions } from "./utils.js";
 export { getActiveBookName };
 
+// Prints the supported API versions into the Console
+printSupportedApiVersions();
+
+// xlwings Lite
 let pyscriptAllDone = new Promise((resolve) => {
   if (config.onLite === false) {
     resolve(false);
