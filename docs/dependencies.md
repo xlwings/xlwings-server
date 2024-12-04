@@ -1,6 +1,6 @@
 # Python Dependencies
 
-To prevent Git merge conflicts, the Python dependencies are split up into 3 files (note the `.in`. instead of `.txt` file extension):
+To prevent Git merge conflicts, the Python dependencies are split up into 3 files (note the `.in` instead of `.txt` file extension):
 
 - `requirements.in`: Your application-specific top-level dependencies. This is usually the only file you should edit.
 - `requirements-core.in`: Dependencies required by xlwings Server.
