@@ -1,6 +1,7 @@
 // Socket.io
 try {
   globalThis.socket = io({
+    transports: ["websocket", "polling"],
     path: `${config.appPath}/socket.io/`,
     auth: async (callback) => {
       let token = await globalThis.getAuth();

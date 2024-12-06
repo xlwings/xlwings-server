@@ -10,6 +10,8 @@ from pathlib import Path
 
 from watchfiles import Change, DefaultFilter, awatch
 
+from .config import settings
+
 browser_reload_triggered_by_backend = False
 watching_frontend_files = False
 
@@ -29,8 +31,8 @@ class WebFilter(DefaultFilter):
         if path.suffix in (".html", ".css", ".js"):
             return True
 
-        # Only allow .py files in lite subdirectory
-        if path.suffix in (".py", ".txt", ".env"):
+        # xlwings Lite
+        if settings.enable_lite and path.suffix in (".py", ".txt", ".env"):
             allowed_dirs = ("lite", "custom_scripts", "custom_functions")
             return any(dir_name in path.parts for dir_name in allowed_dirs)
 
