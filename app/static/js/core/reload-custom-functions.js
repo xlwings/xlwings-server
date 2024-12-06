@@ -1,6 +1,8 @@
 async function reloadCustomFunctions() {
   // Unofficial API: https://github.com/OfficeDev/office-js/issues/3486
   await Office.onReady();
+  let jsonMetadataString, code;
+
   if (Office.context.requirements.isSetSupported("CustomFunctions", "1.6")) {
     try {
       const [metadataResponse, codeResponse] = await Promise.all([
@@ -12,8 +14,8 @@ async function reloadCustomFunctions() {
         throw new Error("Failed to fetch custom functions data");
       }
 
-      const jsonMetadataString = await metadataResponse.text();
-      const code = await codeResponse.text();
+      jsonMetadataString = await metadataResponse.text();
+      code = await codeResponse.text();
 
       await Excel.CustomFunctionManager.register(jsonMetadataString, code);
     } catch (error) {

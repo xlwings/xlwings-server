@@ -51,7 +51,7 @@ async def start_browser_reload_watcher(sio, directory):
     """Needs to be called from the sio connect event on the backend"""
     global browser_reload_triggered_by_backend
     global watching_frontend_files
-    if not browser_reload_triggered_by_backend:
+    if not browser_reload_triggered_by_backend and not settings.enable_lite:
         await sio.emit("reload")
         browser_reload_triggered_by_backend = True
     if not watching_frontend_files:

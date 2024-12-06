@@ -359,7 +359,6 @@ if __name__ == "__main__":
             port=8000,
             reload=True,
             reload_includes=[".env"],
-            reload_excludes=None if not settings.enable_lite else ["**/*.py"],
             ssl_keyfile=ssl_keyfile,
             ssl_certfile=ssl_certfile,
         )
