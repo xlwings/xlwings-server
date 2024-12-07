@@ -15,6 +15,7 @@ import xlwings as xw
 from cryptography.fernet import Fernet
 
 is_cloud = os.getenv("CODESPACES") or os.getenv("GITPOD_WORKSPACE_ID")
+this_dir = Path(__file__).parent.resolve()
 
 
 def update_lite_settings(key: str, value: str, env_file: Path):
@@ -38,7 +39,7 @@ def update_lite_settings(key: str, value: str, env_file: Path):
 
 
 def replace_uuids():
-    file_path = "app/config.py"
+    file_path = this_dir / "app" / "config.py"
     with open(file_path, "r") as file:
         lines = file.readlines()
 
@@ -63,7 +64,7 @@ def replace_uuids():
 
 
 def create_dotenv():
-    if not Path(".env").exists():
+    if not (this_dir / ".env").exists():
         shutil.copy(".env.template", ".env")
         insert_secret_key()
     else:
@@ -181,15 +182,17 @@ def lite_build(url, output_dir, create_zip=False, clean=False):
         else:
             print(f"No {folder_name} folder found to copy")
 
-    copy_folder(Path("app/static"), output_dir / "static", "Static")
-    copy_folder(Path("app/lite"), output_dir / "lite", "lite")
+    copy_folder(this_dir / "app" / "static", output_dir / "static", "Static")
+    copy_folder(this_dir / "app" / "lite", output_dir / "lite", "lite")
     copy_folder(
-        Path("app/custom_functions"),
+        this_dir / "app" / "custom_functions",
         output_dir / "custom_functions",
         "custom_functions",
     )
     copy_folder(
-        Path("app/custom_scripts"), output_dir / "custom_scripts", "custom_scripts"
+        this_dir / "app" / "custom_scripts",
+        output_dir / "custom_scripts",
+        "custom_scripts",
     )
 
     # Deploy key
@@ -317,7 +320,7 @@ if __name__ == "__main__":
         # TODO: This is currently only done when starting the server
         from app.config import settings  # noqa: E402
 
-        env_file = Path("app/lite/.env")
+        env_file = this_dir / "app" / "lite" / ".env"
         update_lite_settings(
             "XLWINGS_LICENSE_KEY", f'"{settings.license_key}"', env_file
         )
@@ -332,8 +335,8 @@ if __name__ == "__main__":
             "XLWINGS_FUNCTIONS_NAMESPACE", settings.functions_namespace, env_file
         )
 
-        ssl_keyfile_path = Path("certs/localhost+2-key.pem")
-        ssl_certfile_path = Path("certs/localhost+2.pem")
+        ssl_keyfile_path = this_dir / "certs" / "localhost+2-key.pem"
+        ssl_certfile_path = this_dir / "certs" / "localhost+2.pem"
 
         ssl_keyfile = (
             str(ssl_keyfile_path)
