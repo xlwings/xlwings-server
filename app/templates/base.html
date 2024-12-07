@@ -54,6 +54,7 @@
       {# Load Custom Functions #}
       {% block custom_functions_code %}
         <script src="{{ url_for('custom_functions_code') }}" defer></script>
+        <script src="{{ url_for('static', path='/js/core/reload-custom-functions.js') }}" defer></script>
       {% endblock custom_functions_code %}
       {# Bootstrap with the xlwings theme #}
       {% if settings.enable_bootstrap %}

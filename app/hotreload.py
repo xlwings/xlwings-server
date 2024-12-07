@@ -10,6 +10,8 @@ from pathlib import Path
 
 from watchfiles import Change, DefaultFilter, awatch
 
+from .config import settings
+
 browser_reload_triggered_by_backend = False
 watching_frontend_files = False
 
@@ -29,8 +31,8 @@ class WebFilter(DefaultFilter):
         if path.suffix in (".html", ".css", ".js"):
             return True
 
-        # Only allow .py files in lite subdirectory
-        if path.suffix in (".py", ".txt", ".env"):
+        # xlwings Lite
+        if settings.enable_lite and path.suffix in (".py", ".txt", ".env"):
             allowed_dirs = ("lite", "custom_scripts", "custom_functions")
             return any(dir_name in path.parts for dir_name in allowed_dirs)
 
@@ -49,7 +51,7 @@ async def start_browser_reload_watcher(sio, directory):
     """Needs to be called from the sio connect event on the backend"""
     global browser_reload_triggered_by_backend
     global watching_frontend_files
-    if not browser_reload_triggered_by_backend:
+    if not browser_reload_triggered_by_backend and not settings.enable_lite:
         await sio.emit("reload")
         browser_reload_triggered_by_backend = True
     if not watching_frontend_files:

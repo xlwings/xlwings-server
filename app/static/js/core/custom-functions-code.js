@@ -175,7 +175,7 @@ async function base() {
   if (isStreaming) {
     if (socket === null) {
       console.error(
-        "To enable streaming functions, you need to load the socket.io js client before xlwings.min.js and custom-functions-code",
+        "To enable streaming functions, you need to load the socket.io js client before xlwings.js and custom-functions-code",
       );
       return;
     }
