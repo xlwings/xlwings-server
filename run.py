@@ -65,7 +65,7 @@ def replace_uuids():
 
 def create_dotenv():
     if not (this_dir / ".env").exists():
-        shutil.copy(".env.template", ".env")
+        shutil.copy(this_dir / ".env.template", this_dir / ".env")
         insert_secret_key()
     else:
         print("Didn't create an '.env' file as one already exists.")
@@ -73,9 +73,9 @@ def create_dotenv():
 
 def insert_secret_key():
     secret_key = Fernet.generate_key().decode()
-    with open(".env", "r") as file:
+    with open(this_dir / ".env", "r") as file:
         lines = file.readlines()
-    with open(".env", "w") as file:
+    with open(this_dir / ".env", "w") as file:
         for line in lines:
             if line.startswith("XLWINGS_SECRET_KEY="):
                 file.write(f'XLWINGS_SECRET_KEY="{secret_key}"\n')
@@ -361,6 +361,7 @@ if __name__ == "__main__":
             host="127.0.0.1",
             port=8000,
             reload=True,
+            reload_dirs=[this_dir],
             reload_includes=[".env"],
             ssl_keyfile=ssl_keyfile,
             ssl_certfile=ssl_certfile,
