@@ -22,7 +22,11 @@ class Settings(BaseSettings):
             self.cdn_officejs = self.public_addin_store
 
     model_config = SettingsConfigDict(
-        env_prefix="XLWINGS_", env_file=os.getenv("DOTENV_PATH", ".env"), extra="ignore"
+        env_prefix="XLWINGS_",
+        env_file=os.getenv(
+            "DOTENV_PATH", Path(__file__).parent.parent.resolve() / ".env"
+        ),
+        extra="ignore",
     )
     add_security_headers: bool = True
     auth_providers: Optional[List[str]] = []
