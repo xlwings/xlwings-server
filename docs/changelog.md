@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.9.1 (Dec 8, 2024)
+
+- Custom functions are now automatically reloaded every time you edit them without having to restart Excel or reloading the add-in.
+- Fixed path handling issues on Windows with `run.py` CLI and `.env`. This fixes issues with `run.py init`, dev server reloading, and loading `.env`.
+- Office.js API versions are now printed in the dev tools console.
+- Upgraded dependencies.
+
 ## 0.9.0 (Nov 27, 2024)
 
 - Launched xlwings Lite, allowing Python-based Office.js add-ins to be deployed as static websites. These add-ins run Python via WebAssembly (Wasm) in the add-in's browser engine, so Python doesn't need to be installed on neither the server nor the local machine. Learn more at [xlwings Lite](index_lite.md).

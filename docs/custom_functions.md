@@ -37,10 +37,6 @@ if settings.enable_examples:
 from .myfunctions import *
 ```
 
-```{note}
-After adding new functions or editing the function arguments, you will need to restart Excel. This is not required if you are just editing the body of an existing function.
-```
-
 ## pandas DataFrames
 
 By using the `@arg` and `@ret` decorators, you can apply converters and options to arguments and the return value, respectively.
