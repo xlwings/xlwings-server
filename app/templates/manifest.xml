@@ -46,7 +46,7 @@
             <Metadata>
               <SourceLocation resid="Functions.Metadata.Url" />
             </Metadata>
-            {% if settings.functions_namespace %}
+            {% if settings.functions_namespace or settings.environment != 'prod' %}
             <Namespace resid="Functions.Namespace" />
             {% endif %}
           </ExtensionPoint>
@@ -127,8 +127,8 @@
         <bt:Url id="Functions.Metadata.Url" DefaultValue="{{ base_url_with_app_path }}/xlwings/custom-functions-meta.json" />
       </bt:Urls>
       <bt:ShortStrings>
-        {% if settings.functions_namespace %}
-        <bt:String id="Functions.Namespace" DefaultValue="{{ settings.functions_namespace|upper }}{{ '_' if settings.functions_namespace and settings.environment != 'prod'}}{{ settings.environment | upper if settings.environment != 'prod'}}" />
+        {% if settings.functions_namespace or settings.environment != 'prod' %}
+        <bt:String id="Functions.Namespace" DefaultValue="{{ settings.functions_namespace|upper }}{{ '_' if settings.functions_namespace and settings.environment != 'prod'}}{{ settings.environment|upper if settings.environment != 'prod'}}" />
         {% endif %}
         <bt:String id="MyTab.TabLabel" DefaultValue="{{ settings.project_name }}{{ ' [' + settings.environment + ']' if settings.environment != 'prod'}}" />
         <bt:String id="MyCommandsGroup.Label" DefaultValue="MyGroup" />
@@ -144,7 +144,7 @@
     {% if "entraid" in settings.auth_providers %}
     <WebApplicationInfo>
       <Id>{{ settings.auth_entraid_client_id }}</Id>
-      <Resource>api://{{ base_url_with_app_path | replace("https://", "") }}/{{ settings.auth_entraid_client_id }}</Resource>
+      <Resource>api://{{ base_url_with_app_path|replace("https://", "") }}/{{ settings.auth_entraid_client_id }}</Resource>
       <Scopes>
         <Scope>openid</Scope>
         <Scope>profile</Scope>
