@@ -28,17 +28,11 @@ def test_get_manifest_prod(mocker):
     )
 
 
-def test_empty_function_namespace_prod(mocker):
+def test_empty_function_namespace(mocker):
     mocker.patch.object(settings, "environment", "prod")
     mocker.patch.object(settings, "functions_namespace", "")
     response = client.get(f"{settings.app_path}/manifest")
-    assert '<bt:String id="Functions.Namespace" DefaultValue="" />' in response.text
-
-
-def test_empty_function_namespace_nonprod(mocker):
-    mocker.patch.object(settings, "functions_namespace", "")
-    response = client.get(f"{settings.app_path}/manifest")
-    assert '<bt:String id="Functions.Namespace" DefaultValue="QA" />' in response.text
+    assert "Functions.Namespace" not in response.text
 
 
 def test_entraid_auth_deactivated():
