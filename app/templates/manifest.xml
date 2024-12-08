@@ -46,7 +46,9 @@
             <Metadata>
               <SourceLocation resid="Functions.Metadata.Url" />
             </Metadata>
+            {% if settings.functions_namespace %}
             <Namespace resid="Functions.Namespace" />
+            {% endif %}
           </ExtensionPoint>
         </AllFormFactors>
 
@@ -125,7 +127,9 @@
         <bt:Url id="Functions.Metadata.Url" DefaultValue="{{ base_url_with_app_path }}/xlwings/custom-functions-meta.json" />
       </bt:Urls>
       <bt:ShortStrings>
+        {% if settings.functions_namespace %}
         <bt:String id="Functions.Namespace" DefaultValue="{{ settings.functions_namespace|upper }}{{ '_' if settings.functions_namespace and settings.environment != 'prod'}}{{ settings.environment | upper if settings.environment != 'prod'}}" />
+        {% endif %}
         <bt:String id="MyTab.TabLabel" DefaultValue="{{ settings.project_name }}{{ ' [' + settings.environment + ']' if settings.environment != 'prod'}}" />
         <bt:String id="MyCommandsGroup.Label" DefaultValue="MyGroup" />
         <bt:String id="MyFunctionButton.Label" DefaultValue="Hello World" />
