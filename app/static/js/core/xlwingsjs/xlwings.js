@@ -49,7 +49,12 @@ export function init() {
     const globalStatusAlert = document.querySelector("#global-status-alert");
     if (globalStatusAlert) {
       globalStatusAlert.classList.remove("d-none");
-      globalStatusAlert.querySelector("span").textContent = "Loading Python...";
+      globalStatusAlert.querySelector("span").innerHTML = `
+        <div class="spinner-border spinner-border-sm text-alert me-1" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        Loading...
+      `;
     }
   }
 
