@@ -37,6 +37,10 @@ if settings.enable_examples:
 from .myfunctions import *
 ```
 
+```{note}
+During development, changes to the functions will be automatically reloaded in Excel. However, in production, if your changes include adding/deleting functions or editing the function arguments, you will need to restart Excel. A restart is not required if you're just editing the body of an existing function.
+```
+
 ## pandas DataFrames
 
 By using the `@arg` and `@ret` decorators, you can apply converters and options to arguments and the return value, respectively.

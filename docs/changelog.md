@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.2 (Dec 9, 2024)
+
+- Custom functions reloading (introduced with 0.9.1) is now only done during development.
+- Fixed an issue with the `manifest.xml` when there was no function namespace used in the `prod` environment.
+
 ## 0.9.1 (Dec 8, 2024)
 
 - Custom functions are now automatically reloaded every time you edit them without having to restart Excel or reloading the add-in.
