@@ -1,5 +1,13 @@
 async function reloadCustomFunctions() {
   // Unofficial API: https://github.com/OfficeDev/office-js/issues/3486
+  // This causes issues when opening a workbook in a running instance of Excel. If
+  // Excel is completely closed, it does load the add-in, but not if it is already
+  // running.
+  // Custom functions will show #NAME? until the task pane is opened
+  // manually. That's why this is only loaded in "dev" environment. While
+  // await Office.addin.setStartupBehavior(Office.StartupBehavior.load); would solve
+  // the issue, it would make every workbook, which is opened while the add-in is
+  // installed, look for the add-in when reopened.
   await Office.onReady();
   let jsonMetadataString, code;
 
