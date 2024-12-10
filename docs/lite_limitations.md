@@ -7,7 +7,7 @@ If any of the following limits are unacceptable, you can always switch to xlwing
 The most important thing to be aware of is that everything is public since the code runs on the end-user's machine. Most importantly this includes:
 
 - The entire Python code
-- Configuration from the `app/lite/.env` file (not from the `app/.env` file though, which is the configuration for xlwings Server)
+- Configuration from the `app/lite/.env` file (not from the `.env` file though, which is the configuration for xlwings Server)
 
 To see exactly what the user has access to, inspect the `dist` folder after running the `python run.py lite` command.
 

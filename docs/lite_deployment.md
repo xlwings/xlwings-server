@@ -27,7 +27,7 @@ $ python run.py lite https://my.domain.com
 
 Then copy the files from the `dist` directory to your static file server. Open up `https://my.domain.com` in a browser to make sure the deployment worked. Then use `https://my.domain.com/manifest` to install the actual add-in, see [](install_officejs_addin.md).
 
-To get started, it is recommended to use the following settings under `app/.env` while building your xlwings Lite app to reduce the number of files you have to upload:
+To get started, it is recommended to use the following settings under `.env` while building your xlwings Lite app to reduce the number of files you have to upload:
 
 ```ini
 XLWINGS_CDN_OFFICEJS=true
@@ -68,7 +68,7 @@ By default, xlwings Lite uses Pyodide via their CDN (Content Delivery Network). 
 
 This has the obvious advantage of being much easier to get started with as you don't need to serve the Python wheels yourself. The other advantage is that some of these wheels are really big and will be beyond the limit of what providers like Cloudflare or GitHub accept as individual file size.
 
-When building your xlwings Lite distribution for the first time, it is therefore recommended to use the following settings in `app/.env` as it will make it easier to get started (your `dist` folder will have both less files and smaller files):
+When building your xlwings Lite distribution for the first time, it is therefore recommended to use the following settings in `.env` as it will make it easier to get started (your `dist` folder will have both less files and smaller files):
 
 ```ini
 XLWINGS_CDN_OFFICEJS=true

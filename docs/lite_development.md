@@ -7,7 +7,7 @@ xlwings Server acts as the development environment for xlwings Lite. So before a
 
 ## Switch to xlwings Lite
 
-Now that you have xlwings Server running, you can make the switch to xlwings Lite by setting the following setting under `app/.env`:
+Now that you have xlwings Server running, you can make the switch to xlwings Lite by setting the following setting under `.env`:
 
 ```ini
 XLWINGS_ENABLE_LITE=true
@@ -42,7 +42,7 @@ Pyodide first checks PyPI for a compatible package in the `whl` format. If it do
 
 This means that not all packages are supported, e.g., Polars doesn't work. For a list of non-pure Python packages that are available for Pyodide, see [Packages built in Pyodide](https://pyodide.org/en/stable/usage/packages-in-pyodide.html). To build a new non-pure Python package for use with Pyodide, see [Creating a Pyodide package](https://pyodide.org/en/stable/development/new-packages.html).
 
-By default, Pyodide will download the packages directly from their CDN (content deliver network). If you want to serve them from your own server, you need to copy the `.whl` files (the Python wheels) into the `app/static/vendor/pyodide` directory and reference them explicitly in `requirements.txt` via their path like so: `/static/vendor/pyodide/mypackage.whl`. You can download all available packages from their [GitHub release page](https://github.com/pyodide/pyodide/releases). The asset is called `pyodide-x.x.x.tar.bz2` and it needs to be from the correct Pyodide release. You can find the one used by xlwings Lite by looking at the console in the browser dev tools (right-click on the task pane and click `Inspect`) where it will be printed. You will also need to set `XLWINGS_CDN_PYODIDE=false` under `app/.env`.
+By default, Pyodide will download the packages directly from their CDN (content deliver network). If you want to serve them from your own server, you need to copy the `.whl` files (the Python wheels) into the `app/static/vendor/pyodide` directory and reference them explicitly in `requirements.txt` via their path like so: `/static/vendor/pyodide/mypackage.whl`. You can download all available packages from their [GitHub release page](https://github.com/pyodide/pyodide/releases). The asset is called `pyodide-x.x.x.tar.bz2` and it needs to be from the correct Pyodide release. You can find the one used by xlwings Lite by looking at the console in the browser dev tools (right-click on the task pane and click `Inspect`) where it will be printed. You will also need to set `XLWINGS_CDN_PYODIDE=false` under `.env`.
 
 ```{note}
 For packages from the Pyodide repository, such as pandas or Matplotlib, you can't just freely set the version, but need to use whatever version Pyodide is offering.
@@ -50,7 +50,7 @@ For packages from the Pyodide repository, such as pandas or Matplotlib, you can'
 
 ## Configuration
 
-xlwings Lite reads the configuration from `app/lite/.env`. This file is automatically updated from `app/.env` whenever you kill/restart the server via `python run.py`.
+xlwings Lite reads the configuration from `app/lite/.env`. This file is automatically updated from `.env` whenever you kill/restart the server via `python run.py`.
 
 To remain lightweight, xlwings Lite doesn't use `pydantic-settings` but only depends on `python-dotenv`, see `app/lite/config.py`.
 
@@ -63,7 +63,7 @@ Even though `app/lite/.env` is ignored by Git, it will be included in your final
 xlwings Lite uses PyScript/Pyodide under the hood, which don't offer a debugger. So to debug your custom functions and custom scripts, you have two options:
 
 - Use `print()`, which will print to the console of the browser dev tools (not to the terminal where you run Python!).
-- In `app/.env`, temporarily switch back to `XLWINGS_ENABLE_LITE=false`. This allows you to run `run.py` by using the debug mode of your editor and set breakpoints.
+- In `.env`, temporarily switch back to `XLWINGS_ENABLE_LITE=false`. This allows you to run `run.py` by using the debug mode of your editor and set breakpoints.
 
 ## Task Pane
 
