@@ -18,7 +18,7 @@ jobs:
       - uses: pre-commit/action@v3.0.1
 
   test:
-    if: github.repository_owner == 'xlwings'
+    if: github.repository == 'xlwings/xlwings-server'
     runs-on: ubuntu-latest
     strategy:
       matrix:
