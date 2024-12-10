@@ -54,7 +54,7 @@ See [](officejs_run_scripts.md#ribbon-button).
 
 ## Ribbon location: Office tab vs. custom tab
 
-The xlwings Server default ribbon has been set up as a custom tab in the ribbon. However, you can also integrate the add-in into an existing Excel tab, such as the `Home` tab, see [OfficeTab](https://learn.microsoft.com/en-us/javascript/api/manifest/officetab).
+The xlwings Server default ribbon has been set up as a custom tab in the ribbon. However, you can also integrate the add-in into an existing Excel tab, such as the `Home` tab, see [OfficeTab](https://learn.microsoft.com/en-us/javascript/api/manifest/officetab). To find the `id` of a specific tab, see [Find the IDs of built-in Office ribbon tabs](https://learn.microsoft.com/en-us/office/dev/add-ins/develop/built-in-ui-ids).
 
 ## Further reading
 
