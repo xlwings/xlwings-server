@@ -9,7 +9,7 @@ on:
 name: Semgrep
 jobs:
   semgrep:
-    if: github.repository_owner == 'xlwings'
+    if: github.repository == 'xlwings/xlwings-server'
     name: semgrep/ci
     runs-on: ubuntu-20.04
     env:

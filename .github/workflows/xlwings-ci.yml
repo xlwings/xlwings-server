@@ -8,7 +8,7 @@ on:
 
 jobs:
   lint:
-    if: github.repository_owner == 'xlwings'
+    if: github.repository == 'xlwings/xlwings-server'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
