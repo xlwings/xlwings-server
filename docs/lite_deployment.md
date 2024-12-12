@@ -6,7 +6,7 @@ To turn your xlwings Lite app into a static website, use the `lite` command:
 
 ```none
 $ python run.py lite --help
-usage: run.py lite [-h] [-o OUTPUT] [-z] [-c] url
+usage: run.py lite [-h] [-o OUTPUT] [-z] [-c] [-e ENV] url
 
 positional arguments:
   url                   URL of where the xlwings Lite app is going to be hosted
@@ -17,6 +17,7 @@ options:
                         Output directory path. Defaults to ./dist.
   -z, --zip             Create zip archive in addition to the static files.
   -c, --clean           Clean the output directory before building.
+  -e ENV, --env ENV     Sets the XLWINGS_ENVIRONMENT. By default uses the one from .env file.
 ```
 
 For example, if your static file server serves the files at `https://my.domain.com`, run the following command:

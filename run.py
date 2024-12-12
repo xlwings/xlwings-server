@@ -18,6 +18,19 @@ is_cloud = os.getenv("CODESPACES") or os.getenv("GITPOD_WORKSPACE_ID")
 this_dir = Path(__file__).parent.resolve()
 
 
+def create_lite_settings(settings, env_file):
+    settings_map = {
+        "XLWINGS_LICENSE_KEY": f'"{settings.license_key}"',
+        "XLWINGS_ENABLE_EXAMPLES": str(settings.enable_examples).lower(),
+        "XLWINGS_ENVIRONMENT": settings.environment,
+        "XLWINGS_ENABLE_TESTS": str(settings.enable_tests).lower(),
+        "XLWINGS_FUNCTIONS_NAMESPACE": settings.functions_namespace,
+    }
+
+    for key, value in settings_map.items():
+        update_lite_settings(key, value, env_file)
+
+
 def update_lite_settings(key: str, value: str, env_file: Path):
     if env_file.exists():
         content = env_file.read_text().splitlines()
@@ -100,7 +113,7 @@ def deps_compile(upgrade=False):
     )
 
 
-def lite_build(url, output_dir, create_zip=False, clean=False):
+def lite_build(url, output_dir, create_zip=False, clean=False, environment=None):
     logging.getLogger("httpx").setLevel(logging.WARNING)
     build_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
@@ -114,10 +127,16 @@ def lite_build(url, output_dir, create_zip=False, clean=False):
     os.environ["XLWINGS_APP_PATH"] = app_path
     os.environ["XLWINGS_STATIC_URL_PATH"] = f"{app_path}/static"
 
+    if environment:
+        os.environ["XLWINGS_ENVIRONMENT"] = environment
+
     from fastapi.testclient import TestClient  # noqa: E402
 
     from app.config import settings  # noqa: E402
     from app.main import main_app  # noqa: E402
+
+    # Make sure settings is up-to-date
+    create_lite_settings(settings=settings, env_file=this_dir / "app" / "lite" / ".env")
 
     # Take the license key from .env
     os.environ["XLWINGS_LICENSE_KEY"] = settings.license_key
@@ -195,7 +214,7 @@ def lite_build(url, output_dir, create_zip=False, clean=False):
         "custom_scripts",
     )
 
-    # Deploy key
+    # .env
     try:
         deploy_key = xlwings.pro.LicenseHandler.create_deploy_key()
     except xw.LicenseError:
@@ -203,6 +222,10 @@ def lite_build(url, output_dir, create_zip=False, clean=False):
     update_lite_settings(
         "XLWINGS_LICENSE_KEY", deploy_key, output_dir / "lite" / ".env"
     )
+    if environment:
+        update_lite_settings(
+            "XLWINGS_ENVIRONMENT", environment, output_dir / "lite" / ".env"
+        )
 
     # Remove unused libraries
     def remove_dir_if_exists(path: Path) -> None:
@@ -301,6 +324,12 @@ if __name__ == "__main__":
         help="Clean the output directory before building.",
         action="store_true",
     )
+    lite_parser.add_argument(
+        "-e",
+        "--env",
+        help="Sets the XLWINGS_ENVIRONMENT. By default uses the one from .env file.",
+        type=str,
+    )
 
     args = parser.parse_args()
 
@@ -313,7 +342,11 @@ if __name__ == "__main__":
             deps_compile(upgrade=True)
     elif args.subcommand == "lite":
         lite_build(
-            url=args.url, output_dir=args.output, create_zip=args.zip, clean=args.clean
+            url=args.url,
+            output_dir=args.output,
+            create_zip=args.zip,
+            clean=args.clean,
+            environment=args.env,
         )
     else:
         # Copy over required settings
@@ -321,19 +354,7 @@ if __name__ == "__main__":
         from app.config import settings  # noqa: E402
 
         env_file = this_dir / "app" / "lite" / ".env"
-        update_lite_settings(
-            "XLWINGS_LICENSE_KEY", f'"{settings.license_key}"', env_file
-        )
-        update_lite_settings(
-            "XLWINGS_ENABLE_EXAMPLES", str(settings.enable_examples).lower(), env_file
-        )
-        update_lite_settings("XLWINGS_ENVIRONMENT", settings.environment, env_file)
-        update_lite_settings(
-            "XLWINGS_ENABLE_TESTS", str(settings.enable_tests).lower(), env_file
-        )
-        update_lite_settings(
-            "XLWINGS_FUNCTIONS_NAMESPACE", settings.functions_namespace, env_file
-        )
+        create_lite_settings(settings, env_file)
 
         ssl_keyfile_path = this_dir / "certs" / "localhost+2-key.pem"
         ssl_certfile_path = this_dir / "certs" / "localhost+2.pem"
