@@ -37,6 +37,10 @@ In the commands below, we're going to use the following parameters that you shou
 - The storage account: `xlwingsserversa`
 - Region: `westeurope`
 
+```{important}
+You need to replace `xlwings-server` with your own app name in all of the the following commands as the name needs to be globally unique.
+```
+
 You may also want to skip some of the steps, e.g., if you already have an existing resource group or storage account to deploy to.
 
 1.  Create a resource group:
@@ -71,6 +75,10 @@ You may also want to skip some of the steps, e.g., if you already have an existi
 
 6.  Deploy the function app (this is also the command to deploy an update):
 
+    ```{important}
+    This command must be run from the root of your xlwings-server repo.
+    ```
+
     ```text
     func azure functionapp publish xlwings-server
     ```
@@ -85,14 +93,19 @@ You may also want to skip some of the steps, e.g., if you already have an existi
           Invoke url: https://xlwings-server.azurewebsites.net//{*route}
     ```
 
+If there's nothing printed after `Functions in ...`, have a look at [](#logging) to find out the reason, otherwise go to the URL without the `//{*route}` part (in the example, that would be `https://xlwings-server.azurewebsites.net`) and you should see `{"status": "ok"}`.
+
 ## Logging
 
-For app logs, in Azure portal go to:
-`Function App` > `My Function App`. Then, under `http_app_func`, click on `Invocations and more`.
+- If your app correctly deploys including syncing triggers, you can look at the runtime logs in Azure portal like so:
+  `Function App` > `My Function App`. Then, under `http_app_func`, click on `Invocations and more`.
+
+- If your Azure functions doesn't manage to sync triggers, i.e., it doesn't print a URL after running `func azure functionapp publish`, you need to go to the Azure portal:
+  `Function App` > `My Function App`. In the left-hand menu, select `Diagnose and solve problems` > `Availability and Performance` and finally click on `Functions that are not triggered` on the left-hand side.
 
 ## Cleanup
 
-After running this tutorial you can get rid of all the resources again by running:
+After running this tutorial you can get rid of all the resources again by running:d
 
 ```text
 az group delete --name xlwings-server-rg
