@@ -2,7 +2,6 @@ const debug = false;
 let invocations = new Set();
 let bodies = new Set();
 let runtime;
-let contentLanguage;
 let socket = null;
 
 Office.onReady(function (info) {
@@ -47,9 +46,6 @@ Office.onReady(function (info) {
   } else {
     runtime = "1.1";
   }
-
-  // Content Language
-  contentLanguage = Office.context.contentLanguage;
 });
 
 function flattenVarargsArray(arr) {
@@ -98,6 +94,26 @@ async function getWorkbookName() {
   await context.sync();
   cachedWorkbookName = workbook.name;
   return cachedWorkbookName;
+}
+
+// Date format
+let cachedDateFormat = null;
+
+async function getDateFormat() {
+  if (cachedDateFormat) {
+    return cachedDateFormat;
+  }
+  if (!Office.context.requirements.isSetSupported("ExcelApi", "1.12")) {
+    return null;
+  }
+  const context = new Excel.RequestContext();
+  context.application.cultureInfo.datetimeFormat.load([
+    "shortDatePattern",
+    // "longTimePattern",
+  ]);
+  await context.sync();
+  cachedDateFormat = `${context.application.cultureInfo.datetimeFormat.shortDatePattern}`;
+  return cachedDateFormat;
 }
 
 class Semaphore {
@@ -166,7 +182,7 @@ async function base() {
     func_name: funcName,
     args: args,
     caller_address: `${officeApiClient}[${workbookName}]${invocation.address}`, // not available for streaming functions
-    content_language: contentLanguage,
+    date_format: await getDateFormat(),
     version: "placeholder_xlwings_version",
     runtime: runtime,
   };
