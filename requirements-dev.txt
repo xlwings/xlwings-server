@@ -79,7 +79,7 @@ idna==3.10
     #   httpx
 iniconfig==2.0.0
     # via pytest
-jinja2==3.1.4
+jinja2==3.1.5
     # via
     #   -r requirements.txt
     #   jinja2-fragments
