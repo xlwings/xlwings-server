@@ -20,7 +20,7 @@ bidict==0.23.1
     # via
     #   -r requirements.txt
     #   python-socketio
-certifi==2024.8.30
+certifi==2024.12.14
     # via
     #   -r requirements.txt
     #   httpcore
@@ -31,7 +31,7 @@ cffi==1.17.1 ; platform_python_implementation != 'PyPy'
     #   cryptography
 cfgv==3.4.0
     # via pre-commit
-click==8.1.7
+click==8.1.8
     # via
     #   -r requirements.txt
     #   uvicorn
@@ -40,7 +40,7 @@ colorama==0.4.6 ; sys_platform == 'win32' or platform_system == 'Windows'
     #   -r requirements.txt
     #   click
     #   pytest
-croniter==5.0.1
+croniter==6.0.0
     # via -r requirements.txt
 cryptography==44.0.0
     # via
@@ -70,7 +70,7 @@ httptools==0.6.4
     # via -r requirements.txt
 httpx==0.28.1
     # via -r requirements.txt
-identify==2.6.3
+identify==2.6.4
     # via pre-commit
 idna==3.10
     # via
@@ -79,11 +79,11 @@ idna==3.10
     #   httpx
 iniconfig==2.0.0
     # via pytest
-jinja2==3.1.4
+jinja2==3.1.5
     # via
     #   -r requirements.txt
     #   jinja2-fragments
-jinja2-fragments==1.6.0
+jinja2-fragments==1.7.0
     # via -r requirements.txt
 joserfc==1.0.1
     # via -r requirements.txt
@@ -118,16 +118,16 @@ pycparser==2.22 ; platform_python_implementation != 'PyPy'
     # via
     #   -r requirements.txt
     #   cffi
-pydantic==2.10.3
+pydantic==2.10.4
     # via
     #   -r requirements.txt
     #   fastapi-slim
     #   pydantic-settings
-pydantic-core==2.27.1
+pydantic-core==2.27.2
     # via
     #   -r requirements.txt
     #   pydantic
-pydantic-settings==2.6.1
+pydantic-settings==2.7.1
     # via -r requirements.txt
 pytest==8.3.4
     # via
@@ -144,13 +144,13 @@ python-dotenv==1.0.1
     # via
     #   -r requirements.txt
     #   pydantic-settings
-python-engineio==4.10.1
+python-engineio==4.11.2
     # via
     #   -r requirements.txt
     #   python-socketio
-python-multipart==0.0.19
+python-multipart==0.0.20
     # via -r requirements.txt
-python-socketio==5.11.4
+python-socketio==5.12.1
     # via -r requirements.txt
 pytz==2024.2
     # via
@@ -190,19 +190,19 @@ tzdata==2024.2
     # via
     #   -r requirements.txt
     #   pandas
-uvicorn==0.32.1
+uvicorn==0.34.0
     # via -r requirements.txt
 uvloop==0.21.0 ; sys_platform != 'win32'
     # via -r requirements.txt
 virtualenv==20.28.0
     # via pre-commit
-watchfiles==1.0.0
+watchfiles==1.0.3
     # via -r requirements-dev.in
 wsproto==1.2.0
     # via
     #   -r requirements.txt
     #   simple-websocket
-xlwings==0.33.4
+xlwings==0.33.5
     # via -r requirements.txt
 
 # The following packages were excluded from the output:

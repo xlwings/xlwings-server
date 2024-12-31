@@ -17,7 +17,7 @@ bidict==0.23.1
     # via
     #   -r requirements-core.txt
     #   python-socketio
-certifi==2024.8.30
+certifi==2024.12.14
     # via
     #   -r requirements-core.txt
     #   httpcore
@@ -26,7 +26,7 @@ cffi==1.17.1 ; platform_python_implementation != 'PyPy'
     # via
     #   -r requirements-core.txt
     #   cryptography
-click==8.1.7
+click==8.1.8
     # via
     #   -r requirements-core.txt
     #   uvicorn
@@ -34,7 +34,7 @@ colorama==0.4.6 ; platform_system == 'Windows'
     # via
     #   -r requirements-core.txt
     #   click
-croniter==5.0.1
+croniter==6.0.0
     # via -r requirements-core.txt
 cryptography==44.0.0
     # via
@@ -65,11 +65,11 @@ idna==3.10
     #   -r requirements-core.txt
     #   anyio
     #   httpx
-jinja2==3.1.4
+jinja2==3.1.5
     # via
     #   -r requirements-core.txt
     #   jinja2-fragments
-jinja2-fragments==1.6.0
+jinja2-fragments==1.7.0
     # via -r requirements-core.txt
 joserfc==1.0.1
     # via -r requirements-core.txt
@@ -95,16 +95,16 @@ pycparser==2.22 ; platform_python_implementation != 'PyPy'
     # via
     #   -r requirements-core.txt
     #   cffi
-pydantic==2.10.3
+pydantic==2.10.4
     # via
     #   -r requirements-core.txt
     #   fastapi-slim
     #   pydantic-settings
-pydantic-core==2.27.1
+pydantic-core==2.27.2
     # via
     #   -r requirements-core.txt
     #   pydantic
-pydantic-settings==2.6.1
+pydantic-settings==2.7.1
     # via -r requirements-core.txt
 python-dateutil==2.9.0.post0
     # via
@@ -115,13 +115,13 @@ python-dotenv==1.0.1
     # via
     #   -r requirements-core.txt
     #   pydantic-settings
-python-engineio==4.10.1
+python-engineio==4.11.2
     # via
     #   -r requirements-core.txt
     #   python-socketio
-python-multipart==0.0.19
+python-multipart==0.0.20
     # via -r requirements-core.txt
-python-socketio==5.11.4
+python-socketio==5.12.1
     # via -r requirements-core.txt
 pytz==2024.2
     # via
@@ -155,7 +155,7 @@ typing-extensions==4.12.2
     #   pydantic-core
 tzdata==2024.2
     # via pandas
-uvicorn==0.32.1
+uvicorn==0.34.0
     # via -r requirements-core.txt
 uvloop==0.21.0 ; sys_platform != 'win32'
     # via -r requirements-core.txt
@@ -163,7 +163,7 @@ wsproto==1.2.0
     # via
     #   -r requirements-core.txt
     #   simple-websocket
-xlwings==0.33.4
+xlwings==0.33.5
     # via -r requirements-core.txt
 
 # The following packages were excluded from the output:
