@@ -1,19 +1,19 @@
 {
   "dependencies": {
-    "@alpinejs/csp": "3.14.7",
-    "@microsoft/office-js": "1.1.97",
-    "@pyscript/core": "0.6.19",
+    "@alpinejs/csp": "3.14.8",
+    "@microsoft/office-js": "1.1.101",
+    "@pyscript/core": "0.6.24",
     "bootstrap": "5.3.3",
     "bootstrap-xlwings": "github:xlwings/bootstrap-xlwings#5.3.3-1",
-    "htmx-ext-head-support": "2.0.2",
+    "htmx-ext-head-support": "2.0.3",
     "htmx-ext-loading-states": "2.0.0",
-    "htmx.org": "2.0.3",
+    "htmx.org": "2.0.4",
     "pyodide": "0.26.3",
     "socket.io": "4.8.1"
   },
   "devDependencies": {
     "@types/alpinejs": "3.13.11",
-    "@types/office-js": "1.0.451",
+    "@types/office-js": "1.0.454",
     "office-addin-lint": "2.3.5",
     "prettier": "3.4.2",
     "prettier-plugin-jinja-template": "2.0.0"
