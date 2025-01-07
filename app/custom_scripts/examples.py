@@ -36,7 +36,7 @@ def show_alert(book: xw.Book):
 def setup_custom_functions(book: xw.Book):
     prefix = f"{settings.functions_namespace}"
     if settings.environment != "prod":
-        prefix += f"_{settings.environment}"
+        prefix += f"_{settings.environment}".upper()
     sheet = book.sheets.add()
     sheet["A3"].value = f'={prefix}.HELLO("xlwings")'
     sheet["A5"].value = f"={prefix}.STANDARD_NORMAL(3, 4)"

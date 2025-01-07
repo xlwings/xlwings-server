@@ -163,6 +163,7 @@ async function base() {
     args: args,
     caller_address: `${officeApiClient}[${workbookName}]${invocation.address}`, // not available for streaming functions
     culture_info_name: await xlwings.getCultureInfoName(),
+    date_format: await xlwings.getDateFormat(),
     version: "placeholder_xlwings_version",
     runtime: runtime,
   };
