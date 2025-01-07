@@ -1,8 +1,13 @@
 import { xlAlert } from "./alert.js";
 import { getAccessToken } from "./auth.js";
 export { getAccessToken };
-import { getActiveBookName, printSupportedApiVersions } from "./utils.js";
-export { getActiveBookName };
+import {
+  getActiveBookName,
+  printSupportedApiVersions,
+  getCultureInfoName,
+  getDateFormat,
+} from "./utils.js";
+export { getActiveBookName, getCultureInfoName, getDateFormat };
 
 // Prints the supported API versions into the Console
 printSupportedApiVersions();
@@ -37,6 +42,8 @@ const xlwings = {
   getBookData,
   runActions,
   pyscriptAllDone,
+  getCultureInfoName,
+  getDateFormat,
 };
 globalThis.xlwings = xlwings;
 

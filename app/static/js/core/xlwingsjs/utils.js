@@ -12,13 +12,49 @@ export async function getActiveBookName() {
   }
 }
 
+// Culture Info Name, e.g., en-DE
+let cachedCultureInfoName = null;
+export async function getCultureInfoName() {
+  if (cachedCultureInfoName) {
+    return cachedCultureInfoName;
+  }
+  if (!Office.context.requirements.isSetSupported("ExcelApi", "1.12")) {
+    return null;
+  }
+  const context = new Excel.RequestContext();
+  context.application.cultureInfo.load(["name"]);
+  await context.sync();
+  cachedCultureInfoName = `${context.application.cultureInfo.name}`;
+  return cachedCultureInfoName;
+}
+
+// Date format
+let cachedDateFormat = null;
+export async function getDateFormat() {
+  if (cachedDateFormat) {
+    return cachedDateFormat;
+  }
+  if (!Office.context.requirements.isSetSupported("ExcelApi", "1.12")) {
+    return null;
+  }
+  const context = new Excel.RequestContext();
+  context.application.cultureInfo.datetimeFormat.load(["shortDatePattern"]);
+  await context.sync();
+  cachedDateFormat = `${context.application.cultureInfo.datetimeFormat.shortDatePattern}`;
+  return cachedDateFormat;
+}
+
 export function printSupportedApiVersions() {
   const versions = [...Array(30)].map((_, i) => `1.${i}`);
 
-  function printBuildInfo() {
+  async function printBuildInfo() {
     if (Office.context.diagnostics) {
       console.log(`Office Build: ${Office.context.diagnostics.version}`);
       console.log(`Office Platform: ${Office.context.diagnostics.platform}`);
+      console.log(
+        `Culture Info Name: ${(await getCultureInfoName()) || "N/A"}`,
+      );
+      console.log(`Local Date Format: ${(await getDateFormat()) || "N/A"}`);
     }
   }
 
@@ -40,8 +76,8 @@ export function printSupportedApiVersions() {
     }
   }
 
-  Office.onReady(() => {
-    printBuildInfo();
+  Office.onReady(async () => {
+    await printBuildInfo();
     const apiNames = [
       "ExcelAPI",
       "SharedRuntime",

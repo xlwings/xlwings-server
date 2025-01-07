@@ -96,23 +96,6 @@ async function getWorkbookName() {
   return cachedWorkbookName;
 }
 
-// Culture Info Name, e.g., en-DE
-let cachedCultureInfoName = null;
-
-async function getCultureInfoName() {
-  if (cachedCultureInfoName) {
-    return cachedCultureInfoName;
-  }
-  if (!Office.context.requirements.isSetSupported("ExcelApi", "1.12")) {
-    return null;
-  }
-  const context = new Excel.RequestContext();
-  context.application.cultureInfo.load(["name"]);
-  await context.sync();
-  cachedCultureInfoName = `${context.application.cultureInfo.name}`;
-  return cachedCultureInfoName;
-}
-
 class Semaphore {
   constructor(maxConcurrency) {
     this.maxConcurrency = maxConcurrency;
@@ -179,7 +162,7 @@ async function base() {
     func_name: funcName,
     args: args,
     caller_address: `${officeApiClient}[${workbookName}]${invocation.address}`, // not available for streaming functions
-    culture_info_name: await getCultureInfoName(),
+    culture_info_name: await xlwings.getCultureInfoName(),
     version: "placeholder_xlwings_version",
     runtime: runtime,
   };
