@@ -259,7 +259,7 @@ def pytoday():
     return dt.date.today()
 ```
 
-By default, it will format the date according to the content language of your Excel instance, but you can also override this by explicitly providing the `date_format` option:
+By default, it will format the date according to the cultural info of your Excel instance, but you can also override this by explicitly providing the `date_format` option or the `XLWINGS_DATE_FORMAT` environment variable:
 
 ```python
 import datetime as dt

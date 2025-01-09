@@ -6,7 +6,7 @@ annotated-types==0.7.0
     # via
     #   -r requirements.txt
     #   pydantic
-anyio==4.7.0
+anyio==4.8.0
     # via
     #   -r requirements.txt
     #   httpx
@@ -70,7 +70,7 @@ httptools==0.6.4
     # via -r requirements.txt
 httpx==0.28.1
     # via -r requirements.txt
-identify==2.6.4
+identify==2.6.5
     # via pre-commit
 idna==3.10
     # via
@@ -118,7 +118,7 @@ pycparser==2.22 ; platform_python_implementation != 'PyPy'
     # via
     #   -r requirements.txt
     #   cffi
-pydantic==2.10.4
+pydantic==2.10.5
     # via
     #   -r requirements.txt
     #   fastapi-slim
@@ -194,7 +194,7 @@ uvicorn==0.34.0
     # via -r requirements.txt
 uvloop==0.21.0 ; sys_platform != 'win32'
     # via -r requirements.txt
-virtualenv==20.28.0
+virtualenv==20.28.1
     # via pre-commit
 watchfiles==1.0.3
     # via -r requirements-dev.in
@@ -202,7 +202,7 @@ wsproto==1.2.0
     # via
     #   -r requirements.txt
     #   simple-websocket
-xlwings==0.33.5
+xlwings==0.33.6
     # via -r requirements.txt
 
 # The following packages were excluded from the output:

@@ -1,8 +1,13 @@
 import { xlAlert } from "./alert.js";
 import { getAccessToken } from "./auth.js";
 export { getAccessToken };
-import { getActiveBookName, printSupportedApiVersions } from "./utils.js";
-export { getActiveBookName };
+import {
+  getActiveBookName,
+  printSupportedApiVersions,
+  getCultureInfoName,
+  getDateFormat,
+} from "./utils.js";
+export { getActiveBookName, getCultureInfoName, getDateFormat };
 
 // Prints the supported API versions into the Console
 printSupportedApiVersions();
@@ -37,6 +42,8 @@ const xlwings = {
   getBookData,
   runActions,
   pyscriptAllDone,
+  getCultureInfoName,
+  getDateFormat,
 };
 globalThis.xlwings = xlwings;
 
@@ -593,42 +600,6 @@ Object.assign(globalThis.callbacks, funcs);
 
 // Callbacks
 async function setValues(context, action) {
-  // Handle DateTime (TODO: backend should deliver indices with datetime obj)
-  let dt;
-  let dtString;
-  action.values.forEach((valueRow, rowIndex) => {
-    valueRow.forEach((value, colIndex) => {
-      if (
-        typeof value === "string" &&
-        value.length > 18 &&
-        value.includes("T")
-      ) {
-        dt = new Date(Date.parse(value));
-        // Excel on macOS does use the wrong locale if you set a custom one via
-        // macOS Settings > Date & Time > Open Language & Region > Apps
-        // as the date format seems to stick to the Region selected under General
-        // while toLocaleDateString then respects the specific selected language.
-        // Providing Office.context.contentLanguage fixes this but isn't available for
-        // Office Scripts
-        // https://learn.microsoft.com/en-us/office/dev/add-ins/develop/localization#match-datetime-format-with-client-locale
-        dtString = dt.toLocaleDateString(Office.context.contentLanguage);
-        // Note that adding the time will format the cell as Custom instead of Date/Time
-        // which xlwings currently doesn't translate to datetime when reading
-        if (dtString !== "Invalid Date") {
-          if (
-            dt.getHours() +
-              dt.getMinutes() +
-              dt.getSeconds() +
-              dt.getMilliseconds() !==
-            0
-          ) {
-            dtString += " " + dt.toLocaleTimeString();
-          }
-          action.values[rowIndex][colIndex] = dtString;
-        }
-      }
-    });
-  });
   let range = await getRange(context, action);
   range.values = action.values;
   await context.sync();

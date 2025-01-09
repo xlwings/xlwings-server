@@ -2,7 +2,6 @@ const debug = false;
 let invocations = new Set();
 let bodies = new Set();
 let runtime;
-let contentLanguage;
 let socket = null;
 
 Office.onReady(function (info) {
@@ -47,9 +46,6 @@ Office.onReady(function (info) {
   } else {
     runtime = "1.1";
   }
-
-  // Content Language
-  contentLanguage = Office.context.contentLanguage;
 });
 
 function flattenVarargsArray(arr) {
@@ -166,7 +162,8 @@ async function base() {
     func_name: funcName,
     args: args,
     caller_address: `${officeApiClient}[${workbookName}]${invocation.address}`, // not available for streaming functions
-    content_language: contentLanguage,
+    culture_info_name: await xlwings.getCultureInfoName(),
+    date_format: await xlwings.getDateFormat(),
     version: "placeholder_xlwings_version",
     runtime: runtime,
   };

@@ -6,7 +6,7 @@ annotated-types==0.7.0
     # via
     #   -r requirements-core.txt
     #   pydantic
-anyio==4.7.0
+anyio==4.8.0
     # via
     #   -r requirements-core.txt
     #   httpx
@@ -95,7 +95,7 @@ pycparser==2.22 ; platform_python_implementation != 'PyPy'
     # via
     #   -r requirements-core.txt
     #   cffi
-pydantic==2.10.4
+pydantic==2.10.5
     # via
     #   -r requirements-core.txt
     #   fastapi-slim
@@ -163,7 +163,7 @@ wsproto==1.2.0
     # via
     #   -r requirements-core.txt
     #   simple-websocket
-xlwings==0.33.5
+xlwings==0.33.6
     # via -r requirements-core.txt
 
 # The following packages were excluded from the output:

@@ -4,6 +4,7 @@ from .example import *
 """
 
 import asyncio
+import datetime as dt
 import sys
 from pathlib import Path
 from typing import Annotated
@@ -35,18 +36,20 @@ def hello(name):
 @func
 @arg("rows", doc="The number of rows in the returned array.")
 @arg("cols", doc="The number of columns in the returned array.")
-@ret(index=False)
 def standard_normal(rows, cols):
     """Returns an array of standard normally distributed pseudo random numbers"""
     rng = np.random.default_rng()
     matrix = rng.standard_normal(size=(rows, cols))
-    df = pd.DataFrame(matrix, columns=[f"col{i+1}" for i in range(matrix.shape[1])])
+    date_rng = pd.date_range(start=dt.datetime(2025, 6, 15), periods=rows, freq="D")
+    df = pd.DataFrame(
+        matrix, columns=[f"col{i+1}" for i in range(matrix.shape[1])], index=date_rng
+    )
     return df
 
 
 # 3) Reading a pandas DataFrames
 @func
-@arg("df", pd.DataFrame, index=False)
+@arg("df", pd.DataFrame)
 def correl(df):
     """Like CORREL, but it works on whole matrices instead of just 2 arrays."""
     return df.corr()
@@ -55,7 +58,7 @@ def correl(df):
 # 4) Type hints: this is the same example as 3), but using type hints instead of
 # decorators. You could also use type hints and decorators together. In this sample, we
 # are storing the Annotated type hint outside of the function, so it is easy to reuse.
-Df = Annotated[pd.DataFrame, {"index": False}]
+Df = Annotated[pd.DataFrame, {"index": True}]
 
 
 @func
