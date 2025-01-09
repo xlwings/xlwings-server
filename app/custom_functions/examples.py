@@ -37,7 +37,7 @@ def hello(name):
 @arg("rows", doc="The number of rows in the returned array.")
 @arg("cols", doc="The number of columns in the returned array.")
 def standard_normal(rows, cols):
-    """Returns an array of standard normally distributed pseudo random numbers with datetime index"""
+    """Returns an array of standard normally distributed pseudo random numbers"""
     rng = np.random.default_rng()
     matrix = rng.standard_normal(size=(rows, cols))
     date_rng = pd.date_range(start=dt.datetime(2025, 6, 15), periods=rows, freq="D")
