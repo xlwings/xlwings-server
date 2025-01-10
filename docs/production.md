@@ -154,8 +154,17 @@ Container-based platforms such as Kubernetes or Render.com allow you to scale th
 
 If you are using one of the following features, you need to use a [Redis](https://redis.io/) database or a compatible service such as [Valkey](https://valkey.io/).
 
-- [Streaming functions](custom_functions.md#streaming-functions-rtd-functions): Redis connects the [app workers](#workers) with the [Socket.io](#socketio) service via its pub-sub functionality.
-- [Object handles](custom_functions.md#object-handles): Redis acts as an object cache that is shared across all [app workers](#workers).
+- [Streaming functions](custom_functions.md#streaming-functions-rtd-functions): Redis connects the [app workers](#workers) with the [Socket.io](#socketio) service via its pub-sub functionality. To use Redis, provide the following setting (for more info, see `.env` file):
+
+  ```ini
+  XLWINGS_SOCKETIO_MESSAGE_QUEUE_URL=...
+  ```
+
+- [Object handles](custom_functions.md#object-handles): Redis acts as an object cache that is shared across all [app workers](#workers). To use Redis, provide the following setting (for more info, see `.env` file):
+
+  ```ini
+  XLWINGS_OBJECT_CACHE_URL=...
+  ```
 
 You can install Redis, make it part of your Docker compose stack, or use a hosted service. For reference, see [`docker-compose.prod.yaml`](https://github.com/xlwings/xlwings-server/blob/main/deployment/docker-compose.prod.yaml).
 
@@ -177,3 +186,31 @@ Under normal circumstances, HTTP requests time out if they do not receive a resp
 
 - **gunicorn**: gunicorn serves the Python app and has a default timeout of 30 seconds. If you want to increase it to e.g., 60 seconds, provide the option `--timeout 60` in the gunicorn command, see e.g., [deployment/docker-compose.prod.yaml](https://github.com/xlwings/xlwings-server/blob/main/deployment/docker-compose.prod.yaml).
 - **Reverse proxy/load balancer**: in front of gunicorn, you usually have a reverse proxy, such as nginx. For Kubernetes or fully managed solutions like Azure functions, you usually deal with a load balancer. They all have their own timeouts, so you might need to adjust it for it to be at least as long as the gunicorn timeout. For example, for nginx, the default timeout is 60 seconds and can be adjusted using the `proxy_read_timeout 60s;` directive.
+
+## HTTP caching
+
+Often, HTTP servers such as nginx or Cloudflare will add caching headers to the static files served. This means that when you deploy a new version of your server, users may still use the previous version of that file. To prevent this:
+
+Run `python scripts/build_static_files.py` as part of your deployment process. This will add content hashes to the file names and will therefore bust the caching when the content changes. Note that this is already done in the `Dockerfile`.
+
+This, however, will have no effect on files requested by the `manifest.xml`, which is especially critical for xlwings Lite, where every file is a static file. For xlwings Lite deployments, make sure that the following files don't allow caching by adding the the `Cache-Control: public, max-age=0, must-revalidate` header:
+
+```
+- .../xlwings/custom-functions-code.js
+- .../xlwings/custom-functions-meta.json
+- .../xlwings/taskpane.html
+```
+
+When you host your xlwings Lite app on Cloudflare Pages, you can achieve this by going to `Your Domain` > `Caching` > `Configuration` > `Browser Cache TTL` setting to `Respect Existing Headers`. You also have to include a file called `_headers` in the root of your deployed directory with the following content:
+
+```
+/xlwings/custom-functions-code.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+/xlwings/custom-functions-meta.json
+  Cache-Control: public, max-age=0, must-revalidate
+```
+
+```{note}
+The image URLs in the `manifest.xml` (for the icons) must not prevent caching, as on Windows, caching is required to properly display the icons in the ribbon. This means that when you need to change the icons, you will need to release a new version of `manifest.xml` with changed URLs to your icons.
+```
