@@ -356,13 +356,16 @@ async function getBookData(
   sheetsLoader.forEach((item) => {
     if (!excludeArray.includes(item["sheet"].name)) {
       item["names"].items.forEach((namedItem) => {
-        namesSheetScope.push({
-          name: namedItem.name,
-          sheet: namedItem.getRange().worksheet.load("position"),
-          range: namedItem.getRange().load("address"),
-          scope_sheet: namedItem.worksheet.load("name, position"),
-          book_scope: false,
-        });
+        // Currently filtering to named ranges like with workbook scope
+        if (namedItem.type === "Range") {
+          namesSheetScope.push({
+            name: namedItem.name,
+            sheet: namedItem.getRange().worksheet.load("position"),
+            range: namedItem.getRange().load("address"),
+            scope_sheet: namedItem.worksheet.load("name, position"),
+            book_scope: false,
+          });
+        }
       });
     }
   });
