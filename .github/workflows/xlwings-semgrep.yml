@@ -5,7 +5,7 @@ on:
     branches:
     - main
     paths:
-    - .github/workflows/semgrep.yml
+    - .github/workflows/xlwings-semgrep.yml
 name: Semgrep
 jobs:
   semgrep:
@@ -17,5 +17,5 @@ jobs:
     container:
       image: returntocorp/semgrep
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - run: semgrep ci
