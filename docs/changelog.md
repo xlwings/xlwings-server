@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.1 (Jan 17, 2025)
+
+- Fixed an issue with sheet-scoped named formulas that were causing the following error message: `This operation is not permitted for the current object`.
+
 ## 0.10.0 (Jan 9, 2025)
 
 - Datetime fixes both with custom scripts (day and month were misinterpreted with certain locales) and custom functions (the formatting of dates in custom functions now respects the specific format chosen on the system).
