@@ -286,19 +286,22 @@ async function getBookData(
   const namedItems = context.workbook.names.load("name, type");
   await context.sync();
 
-  namedItems.items.forEach((namedItem, ix) => {
+  for (const namedItem of namedItems.items) {
     // Currently filtering to named ranges
     if (namedItem.type === "Range") {
+      // Names pointing to multiple Ranges return null
+      let range = namedItem.getRangeOrNullObject();
+      await context.sync();
       names.push({
         name: namedItem.name,
-        sheet: namedItem.getRange().worksheet.load("position"),
-        range: namedItem.getRange().load("address"),
+        sheet: range.isNullObject ? null : range.worksheet.load("position"),
+        range: range.isNullObject ? null : range.load("address"),
         scope_sheet_name: null,
         scope_sheet_index: null,
         book_scope: true, // workbook.names contains only workbook scope!
       });
     }
-  });
+  }
 
   await context.sync();
 
@@ -306,8 +309,10 @@ async function getBookData(
   names.forEach((namedItem, ix) => {
     names2.push({
       name: namedItem.name,
-      sheet_index: namedItem.sheet.position,
-      address: namedItem.range.address.split("!").pop(),
+      sheet_index: namedItem.sheet ? namedItem.sheet.position : null,
+      address: namedItem.range
+        ? namedItem.range.address.split("!").pop()
+        : null,
       scope_sheet_name: null,
       scope_sheet_index: null,
       book_scope: namedItem.book_scope,
@@ -353,36 +358,40 @@ async function getBookData(
 
   // Names (sheet scope)
   let namesSheetScope = [];
-  sheetsLoader.forEach((item) => {
+  for (const item of sheetsLoader) {
     if (!excludeArray.includes(item["sheet"].name)) {
-      item["names"].items.forEach((namedItem) => {
-        // Currently filtering to named ranges like with workbook scope
+      for (const namedItem of item["names"].items) {
+        // Currently filtering to named ranges
         if (namedItem.type === "Range") {
+          let range = namedItem.getRangeOrNullObject();
+          await context.sync();
           namesSheetScope.push({
             name: namedItem.name,
-            sheet: namedItem.getRange().worksheet.load("position"),
-            range: namedItem.getRange().load("address"),
+            sheet: range.isNullObject ? null : range.worksheet.load("position"),
+            range: range.isNullObject ? null : range.load("address"),
             scope_sheet: namedItem.worksheet.load("name, position"),
             book_scope: false,
           });
         }
-      });
+      }
     }
-  });
+  }
 
   await context.sync();
 
   let namesSheetsScope2 = [];
-  namesSheetScope.forEach((namedItem) => {
+  for (const namedItem of namesSheetScope) {
     namesSheetsScope2.push({
       name: namedItem.name,
-      sheet_index: namedItem.sheet.position,
-      address: namedItem.range.address.split("!").pop(),
+      sheet_index: namedItem.sheet ? namedItem.sheet.position : null,
+      address: namedItem.range
+        ? namedItem.range.address.split("!").pop()
+        : null,
       scope_sheet_name: namedItem.scope_sheet.name,
       scope_sheet_index: namedItem.scope_sheet.position,
       book_scope: namedItem.book_scope,
     });
-  });
+  }
 
   // Add sheet scoped names to book scoped names
   payload["names"] = payload["names"].concat(namesSheetsScope2);
