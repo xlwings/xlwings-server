@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.2 (Jan 19, 2025)
+
+- Fixed another issue with multi-range named ranges that caused `This operation is not permitted for the current object` error.
+
 ## 0.10.1 (Jan 17, 2025)
 
 - Fixed an issue with sheet-scoped named formulas that were causing the following error message: `This operation is not permitted for the current object`.
