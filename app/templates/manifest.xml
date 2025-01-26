@@ -18,7 +18,6 @@
   <Hosts>
     <Host Name="Workbook" />
   </Hosts>
-  <!-- SharedRuntime for Custom Functions -->
   <Requirements>
     <Sets DefaultMinVersion="1.1">
       <Set Name="SharedRuntime" MinVersion="1.1" />
@@ -31,7 +30,6 @@
   <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
     <Hosts>
       <Host xsi:type="Workbook">
-        <!-- Custom Functions -->
         <Runtimes>
           <Runtime resid="Taskpane.Url" lifetime="long" />
         </Runtimes>
@@ -51,9 +49,7 @@
             {% endif %}
           </ExtensionPoint>
         </AllFormFactors>
-
         <DesktopFormFactor>
-          <!-- FunctionFile is used to bind functions directly to Ribbon buttons -->
           <FunctionFile resid="Taskpane.Url" />
           <ExtensionPoint xsi:type="PrimaryCommandSurface">
             <CustomTab id="MyTab">
@@ -64,15 +60,10 @@
                   <bt:Image size="32" resid="Icon.32x32" />
                   <bt:Image size="80" resid="Icon.80x80" />
                 </Icon>
-
-                <!-- Ribbon button that calls a function -->
                 <Control xsi:type="Button" id="MyFunctionButton">
-                  <!-- Label for your button. resid must point to a ShortString resource -->
                   <Label resid="MyFunctionButton.Label" />
                   <Supertip>
-                    <!-- ToolTip title. resid must point to a ShortString resource -->
                     <Title resid="MyFunctionButton.Label" />
-                    <!-- ToolTip description. resid must point to a LongString resource -->
                     <Description resid="MyFunctionButton.Tooltip" />
                   </Supertip>
                   <Icon>
@@ -80,14 +71,10 @@
                     <bt:Image size="32" resid="Icon.32x32" />
                     <bt:Image size="80" resid="Icon.80x80" />
                   </Icon>
-                  <!--Action type must be ExecuteFunction -->
                   <Action xsi:type="ExecuteFunction">
-                    <!-- This is the name that you use in Office.actions.associate() to connect it to a function -->
                     <FunctionName>hello-ribbon</FunctionName>
                   </Action>
                 </Control>
-
-                <!-- Ribbon button that opens the task pane -->
                 <Control xsi:type="Button" id="MyTaskpaneButton">
                   <Label resid="MyTaskpaneButton.Label" />
                   <Supertip>
@@ -99,10 +86,8 @@
                     <bt:Image size="32" resid="Icon.32x32" />
                     <bt:Image size="80" resid="Icon.80x80" />
                   </Icon>
-                  <!-- Action type must be ShowTaskpane -->
                   <Action xsi:type="ShowTaskpane">
                     <TaskpaneId>ButtonId1</TaskpaneId>
-                    <!-- resid must point to a Url Resource -->
                     <SourceLocation resid="Taskpane.Url" />
                   </Action>
                 </Control>
@@ -113,7 +98,6 @@
         </DesktopFormFactor>
       </Host>
     </Hosts>
-
     <Resources>
       <bt:Images>
         <bt:Image id="Icon.16x16" DefaultValue="{{ base_url }}{{ settings.static_url_path }}/images/ribbon/examples/xlwings-16.png" />
@@ -121,7 +105,6 @@
         <bt:Image id="Icon.80x80" DefaultValue="{{ base_url }}{{ settings.static_url_path }}/images/ribbon/examples/xlwings-80.png" />
       </bt:Images>
       <bt:Urls>
-        <!-- This must point to the HTML document with the task pane -->
         <bt:Url id="Taskpane.Url" DefaultValue="{{ base_url_with_app_path }}/taskpane.html" />
         <bt:Url id="Functions.Script.Url" DefaultValue="{{ base_url_with_app_path }}/xlwings/custom-functions-code.js" />
         <bt:Url id="Functions.Metadata.Url" DefaultValue="{{ base_url_with_app_path }}/xlwings/custom-functions-meta.json" />
@@ -140,7 +123,6 @@
         <bt:String id="MyTaskpaneButton.Tooltip" DefaultValue="Click to show the task pane" />
       </bt:LongStrings>
     </Resources>
-
     {% if "entraid" in settings.auth_providers %}
     <WebApplicationInfo>
       <Id>{{ settings.auth_entraid_client_id }}</Id>
