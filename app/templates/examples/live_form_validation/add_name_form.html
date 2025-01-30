@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div class="container-fluid pt-3 ps-3" id="mycontainer">
+    {% include "_book.html" %}
+    <form>
+      <div class="mb-3">
+        <label for="inputName" class="form-label">Name</label>
+        <input
+          class="form-control"
+          name="name"
+          id="inputName"
+          autocorrect="off"
+          hx-get="{{ url_for('validate_name_input') }}"
+          hx-target="next .invalid-feedback"
+          hx-trigger="keyup delay:300ms changed" />
+        <div class="invalid-feedback d-block">&nbsp;</div>
+      </div>
+      <button
+        type="submit"
+        class="btn btn-primary"
+        xw-book="true"
+        xw-config='{"exclude": "MySheet"}'
+        hx-post="{{ url_for('name') }}"
+        hx-swap="outerHTML"
+        hx-target="#mycontainer">
+        Add Name to Excel
+      </button>
+    </form>
+  </div>
+{% endblock content %}
