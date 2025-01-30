@@ -38,6 +38,7 @@ htmx.on("htmx:responseError", function (event) {
 });
 
 // Task pane authentication (see: https://htmx.org/examples/async-auth/)
+// and bookData handling
 let authToken = null;
 let bookData = null;
 
@@ -65,7 +66,11 @@ htmx.on("htmx:confirm", async (event) => {
 
 htmx.on("htmx:configRequest", (event) => {
   event.detail.headers["Authorization"] = authToken;
-  event.detail.parameters["bookData"] = JSON.stringify(bookData);
+  let element = event.target;
+  let includeBook = element.getAttribute("xw-book");
+  if (includeBook === "true") {
+    event.detail.parameters["bookData"] = JSON.stringify(bookData);
+  }
 });
 
 htmx.on("htmx:afterSwap", async (event) => {
