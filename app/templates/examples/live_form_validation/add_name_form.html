@@ -18,13 +18,15 @@
       </div>
       <button
         type="submit"
-        class="btn btn-primary"
+        class="btn btn-primary ps-4 pe-1"
         xw-book="true"
         xw-config='{"exclude": "MySheet"}'
         hx-post="{{ url_for('name') }}"
         hx-swap="outerHTML"
-        hx-target="#mycontainer">
+        hx-target="#mycontainer"
+        hx-disabled-elt="this">
         Add Name to Excel
+        <span class="spinner-border spinner-border-sm htmx-indicator" role="status" aria-hidden="true"></span>
       </button>
     </form>
   </div>

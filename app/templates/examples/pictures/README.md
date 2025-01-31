@@ -15,6 +15,7 @@ router = APIRouter(prefix=settings.app_path)
 
 
 @router.get("/taskpane")
+@router.get("/taskpane.html")
 async def taskpane(request: Request):
     directory = settings.static_dir / "images" / "ribbon" / "examples"
     picture_names = []

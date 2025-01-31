@@ -4,6 +4,6 @@
   <div class="container-fluid pt-3 ps-3">
     <h1>Protected Task Pane</h1>
     <p>Your are logged in as {{ current_user.name }}.</p>
-    <a hx-get="{{ url_for('taskpane') }}" hx-target="body" class="btn btn-primary">Home</a>
+    <a hx-get="{{ url_for('taskpane') }}" hx-target="body" class="link" role="button">Home</a>
   </div>
 {% endblock content %}

@@ -2,12 +2,19 @@
 
 {% block content %}
   <div class="container-fluid pt-3 ps-3">
-    <form hx-post="{{ url_for('hello') }}" hx-target="#result">
+    <form>
       <div class="mb-3">
         <label for="inputName" class="form-label">Name</label>
         <input class="form-control" name="fullname" id="inputName" autocorrect="off" />
       </div>
-      <button type="submit" class="btn btn-primary">Submit</button>
+      <button
+        type="submit"
+        class="btn btn-primary ps-4 pe-1"
+        hx-post="{{ url_for('hello') }}"
+        hx-target="#result"
+        hx-disabled-elt="this">
+        Submit <span class="spinner-border spinner-border-sm htmx-indicator" role="status" aria-hidden="true"></span>
+      </button>
     </form>
     <div id="result" class="mt-4"></div>
   </div>

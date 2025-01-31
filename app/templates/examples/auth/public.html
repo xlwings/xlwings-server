@@ -3,6 +3,6 @@
 {% block content %}
   <div class="container-fluid pt-3 ps-3">
     <h1>Public Task Pane</h1>
-    <a hx-get="{{ url_for('taskpane_protected') }}" hx-target="body" class="btn btn-primary">Go to Protected Area</a>
+    <a hx-get="{{ url_for('taskpane_protected') }}" hx-target="body" class="link" role="button">Go to Protected Area</a>
   </div>
 {% endblock content %}
