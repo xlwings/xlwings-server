@@ -52,30 +52,20 @@ registerAlpineComponent("appLoader", appLoader);
 
 const monacoEditor = {
   editor: null,
-  async init() {
+  init() {
     require.config({
       paths: {
-        vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.43.0/min/vs",
+        vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs",
       },
     });
 
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.type = "text/css";
-    link.href =
-      "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.43.0/min/vs/editor/editor.main.css";
-    document.head.appendChild(link);
-
-    return new Promise((resolve) => {
-      require(["vs/editor/editor.main"], () => {
-        this.editor = monaco.editor.create(this.$refs.editorContainer, {
-          value: "# Type your code here\n",
-          language: "python",
-          theme: "vs-light",
-          minimap: { enabled: false },
-          automaticLayout: true,
-        });
-        resolve();
+    require(["vs/editor/editor.main"], () => {
+      this.editor = monaco.editor.create(this.$refs.editorContainer, {
+        value: "# Type your code here\n",
+        language: "python",
+        theme: "vs-light",
+        minimap: { enabled: false },
+        automaticLayout: true,
       });
     });
   },
