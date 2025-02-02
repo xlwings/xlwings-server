@@ -50,8 +50,10 @@ const appLoader = {
 };
 registerAlpineComponent("appLoader", appLoader);
 
+// Must not be reactive, i.e., must not be inside the monacoEditor component
+let editorInstance = null;
+
 const monacoEditor = {
-  editor: null,
   init() {
     require.config({
       paths: {
@@ -60,7 +62,7 @@ const monacoEditor = {
     });
 
     require(["vs/editor/editor.main"], () => {
-      this.editor = monaco.editor.create(this.$refs.editorContainer, {
+      editorInstance = monaco.editor.create(this.$refs.editorContainer, {
         value: "# Type your code here\n",
         language: "python",
         theme: "vs-light",
@@ -68,6 +70,9 @@ const monacoEditor = {
         automaticLayout: true,
       });
     });
+  },
+  save() {
+    console.log(editorInstance.getValue());
   },
 };
 registerAlpineComponent("monacoEditor", monacoEditor);

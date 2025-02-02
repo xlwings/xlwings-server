@@ -7,21 +7,25 @@
 {% block content %}
   <div class="container-fluid p-0">
     <h1 class="my-3 ps-3">xlwings Lite</h1>
-
-    <ul class="nav nav-tabs">
-      <li class="nav-item">
-        <a class="nav-link active" aria-current="page" href="#">main.py</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="#">utils.py</a>
-      </li>
-    </ul>
-    <div class="tab-content">
-      <div class="tab-pane fade show active" id="editor-pane" role="tabpanel">
-        <div x-data="monacoEditor" x-ref="editorContainer" class="vh-100"></div>
+    <div x-data="monacoEditor">
+      <div class="d-flex justify-content-end pe-3 mb-2">
+        <button class="btn btn-primary btn-sm" @click="save">Save</button>
       </div>
-      <div class="tab-pane fade" id="output-pane" role="tabpanel">
-        <div class="vh-100 border p-3">Output will appear here</div>
+      <ul class="nav nav-tabs">
+        <li class="nav-item">
+          <a class="nav-link active" aria-current="page" href="#">main.py</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#">utils.py</a>
+        </li>
+      </ul>
+      <div class="tab-content">
+        <div class="tab-pane fade show active" id="editor-pane" role="tabpanel">
+          <div x-ref="editorContainer" class="vh-100"></div>
+        </div>
+        <div class="tab-pane fade" id="output-pane" role="tabpanel">
+          <div class="vh-100 border p-3">Output will appear here</div>
+        </div>
       </div>
     </div>
   </div>
