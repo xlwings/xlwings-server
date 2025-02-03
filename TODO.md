@@ -1,7 +1,7 @@
+- Clear errors and stdout with next Run
 - spinner/disable button
-- Show output for print etc.
+- split.js for output/editor
 - handle requirements.txt
-- Clear error alert with next Run
 - "Saved" indicator
 - Ability to choose Pyodide version
 - Choose function to run

@@ -5,23 +5,27 @@
 {% endblock extra_head %}
 
 {% block content %}
-  <div class="container-fluid p-0">
-    <h1 class="my-3  px-3">xlwings Lite</h1>
-    <div x-data="monacoEditor">
+  <div class="container-fluid p-0 d-flex flex-column vh-100">
+    <h1 class="my-3 px-3">xlwings Lite</h1>
+    <div x-data="monacoEditor" class="d-flex flex-column flex-grow-1">
       <div class="ps-3 pb-3">
         <button class="btn btn-primary btn-sm" @click="run">▶ Run</button>
       </div>
-      <div id="output"></div>
       <ul class="nav nav-tabs">
         <li class="nav-item">
           <a class="nav-link active" aria-current="page" href="#">main.py</a>
         </li>
       </ul>
-      <div class="tab-content">
-        <div class="tab-pane fade show active" id="editor-pane" role="tabpanel">
-          <div x-ref="editorContainer" class="vh-100"></div>
+      <div class="tab-content flex-grow-1">
+        <div class="tab-pane fade show active h-100" id="editor-pane" role="tabpanel">
+          <div x-ref="editorContainer" class="h-100"></div>
         </div>
       </div>
+      <p class="text-muted small mb-1 ms-3">Output</p>
+      <div
+        id="output"
+        style="height: 6rem; overflow-y: auto; font-family: monospace;"
+        class="border-top py-2 px-3 bg-light"></div>
     </div>
   </div>
 {% endblock content %}
