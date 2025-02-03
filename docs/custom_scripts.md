@@ -20,7 +20,7 @@ from xlwings.server import script
 @script
 def hello_world(book: xw.Book):
     sheet = book.sheets[0]
-    sheet["A1"].value == "Hello xlwings!"
+    sheet["A1"].value = "Hello xlwings!"
 ```
 
 ```{note}
