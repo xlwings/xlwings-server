@@ -1,8 +1,11 @@
+- spinner/disable button
 - Show output for print etc.
 - handle requirements.txt
 - Clear error alert with next Run
 - "Saved" indicator
 - Ability to choose Pyodide version
-- Remove PyScript dependency?
 - Choose function to run
 - 3rd party licenses
+- allow to upload files
+- Pyodide version handling
+- Remove PyScript dependency?

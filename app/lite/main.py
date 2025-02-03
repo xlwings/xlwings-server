@@ -3,6 +3,8 @@ import platform
 import traceback
 import importlib.util
 import sys
+import contextlib
+from io import StringIO
 
 try:
     # Via xlwings Server
@@ -13,7 +15,7 @@ except ImportError:
     import custom_scripts
 import pyodide_js  # type: ignore
 import xlwings as xw
-from pyscript import ffi, window  # type: ignore
+from pyscript import document, ffi, window  # type: ignore
 from xlwings.server import (
     custom_functions_call as xlwings_custom_functions_call,
     custom_scripts_call as xlwings_custom_scripts_call,
@@ -25,6 +27,23 @@ try:
     mpl.use("agg")
 except ImportError:
     mpl = None
+
+
+class HtmlOutput:
+    def __init__(self, div_id):
+        self.div_id = div_id
+        self.buffer = StringIO()
+
+    def write(self, text):
+        # Write to buffer and update div content
+        self.buffer.write(text)
+        document.getElementById(self.div_id).innerHTML = self.buffer.getvalue().replace(
+            "\n", "<br>"
+        )
+
+    def flush(self):
+        pass
+
 
 # Print Python and Pyodide versions
 print(f"Python version: {platform.python_version()}")
@@ -49,6 +68,7 @@ window.custom_functions_call = custom_functions_call
 
 
 async def custom_scripts_call(data, script_name, module_string=None):
+    html_output = HtmlOutput("output")
     if module_string:
         spec = importlib.util.spec_from_loader(
             "dynamic_module",
@@ -59,18 +79,20 @@ async def custom_scripts_call(data, script_name, module_string=None):
         compile(
             module_string, "main.py", "exec"
         )  # TODO: module name (displayed in Traceback)
-        exec(module_string, module.__dict__)
+        with contextlib.redirect_stdout(html_output):
+            exec(module_string, module.__dict__)
         sys.modules["dynamic_module"] = module
     else:
         module = custom_scripts
 
     book = xw.Book(json=data.to_py())
     try:
-        book = await xlwings_custom_scripts_call(
-            module=module,
-            script_name=script_name,
-            typehint_to_value={xw.Book: book},
-        )
+        with contextlib.redirect_stdout(html_output):
+            book = await xlwings_custom_scripts_call(
+                module=module,
+                script_name=script_name,
+                typehint_to_value={xw.Book: book},
+            )
         result = book.json()
     except Exception as e:
         result = {"error": str(e), "details": traceback.format_exc()}
