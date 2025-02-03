@@ -1,6 +1,8 @@
 import config  # noqa: F401, I001 Must be first import to load env vars
 import platform
 import traceback
+import importlib.util
+import sys
 
 try:
     # Via xlwings Server
@@ -46,11 +48,26 @@ async def custom_functions_call(data):
 window.custom_functions_call = custom_functions_call
 
 
-async def custom_scripts_call(data, script_name):
+async def custom_scripts_call(data, script_name, module_string=None):
+    if module_string:
+        spec = importlib.util.spec_from_loader(
+            "dynamic_module",
+            loader=None,
+            origin="main.py",  # TODO: module name (displayed in Traceback)
+        )
+        module = importlib.util.module_from_spec(spec)
+        compile(
+            module_string, "main.py", "exec"
+        )  # TODO: module name (displayed in Traceback)
+        exec(module_string, module.__dict__)
+        sys.modules["dynamic_module"] = module
+    else:
+        module = custom_scripts
+
     book = xw.Book(json=data.to_py())
     try:
         book = await xlwings_custom_scripts_call(
-            module=custom_scripts,
+            module=module,
             script_name=script_name,
             typehint_to_value={xw.Book: book},
         )

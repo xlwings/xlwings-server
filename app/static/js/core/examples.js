@@ -71,8 +71,15 @@ const monacoEditor = {
       });
     });
   },
-  save() {
-    console.log(editorInstance.getValue());
+  async run() {
+    let code = editorInstance.getValue();
+    await xlwings.runPython("", {
+      ...{},
+      scriptName: "main", // TODO: allow to specify
+      auth: "",
+      errorDisplayMode: "taskpane",
+      moduleString: code,
+    });
   },
 };
 registerAlpineComponent("monacoEditor", monacoEditor);
