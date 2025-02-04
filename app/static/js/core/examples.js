@@ -1,55 +1,3 @@
-const visibility = {
-  isOpen: false,
-  label: "Show",
-  toggle() {
-    this.isOpen = !this.isOpen;
-    this.label = this.isOpen ? "Hide" : "Show";
-  },
-};
-registerAlpineComponent("visibility", visibility);
-
-const slider = {
-  percentage: 50,
-  update() {
-    this.percentage = this.$el.value;
-  },
-};
-registerAlpineComponent("slider", slider);
-
-const nameForm = {
-  firstName: "",
-  lastName: "",
-  fullName: "(empty)",
-  focus() {
-    this.$el.focus();
-  },
-  handleInput() {
-    this[this.$el.name] = this.$el.value;
-    const fullName = `${this.firstName} ${this.lastName}`;
-    this.fullName = !this.firstName && !this.lastName ? "(empty)" : fullName;
-  },
-};
-registerAlpineComponent("nameForm", nameForm);
-
-const appLoader = {
-  url: "",
-  async init() {
-    let bookName = await xlwings.getActiveBookName();
-    // Works with both an unsaved book ("Book1") as well as a saved one "Book1.xlsx"
-    if (bookName.includes("Book1")) {
-      // TODO: fix if app_path is provided
-      this.url = "/taskpane?app=1";
-    } else {
-      this.url = "/taskpane?app=2";
-    }
-    this.$nextTick(() => {
-      htmx.process(this.$el);
-      this.$dispatch("app:loadTaskpane");
-    });
-  },
-};
-registerAlpineComponent("appLoader", appLoader);
-
 // Must not be reactive, i.e., must not be inside the monacoEditor component
 let editorInstance = null;
 
@@ -66,7 +14,7 @@ const monacoEditor = {
   async init() {
     await Office.onReady();
     let savedContent = await this.loadContent();
-
+    this.resizeOutputPanel();
     require.config({
       paths: {
         vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs",
@@ -93,6 +41,33 @@ const monacoEditor = {
           this.saveContent();
         }, 1000);
       });
+    });
+  },
+
+  resizeOutputPanel() {
+    const resizer = this.$refs.resizer;
+    const editorPane = this.$refs["editor-pane"];
+    const outputContainer = this.$refs["output-container"];
+
+    resizer.addEventListener("mousedown", (e) => {
+      let startY = e.clientY;
+      let startEditorHeight = editorPane.getBoundingClientRect().height;
+      let startOutputHeight = outputContainer.getBoundingClientRect().height;
+
+      const onMouseMove = (e) => {
+        const dy = e.clientY - startY;
+        editorPane.style.height = `${startEditorHeight + dy}px`;
+        outputContainer.style.height = `${startOutputHeight - dy}px`;
+      };
+
+      const onMouseUp = () => {
+        document.removeEventListener("mousemove", onMouseMove);
+        document.removeEventListener("mouseup", onMouseUp);
+      };
+
+      document.addEventListener("mousemove", onMouseMove);
+      document.addEventListener("mouseup", onMouseUp);
+      e.preventDefault();
     });
   },
 

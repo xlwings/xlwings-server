@@ -18,17 +18,16 @@
           <a class="nav-link active" aria-current="page" href="#">main.py</a>
         </li>
       </ul>
-      <div class="tab-content flex-grow-1">
-        <div class="tab-pane fade show active h-100" id="editor-pane" role="tabpanel">
+      <!-- Wrap the editor and output container in a resizable container -->
+      <div class="d-flex flex-column flex-grow-1" id="resizable-container">
+        <div class="flex-grow-1" x-ref="editor-pane" role="tabpanel">
           <div x-ref="editorContainer" class="h-100"></div>
         </div>
+        <div class="resizer" x-ref="resizer"></div>
+        <div x-ref="output-container" style="height: 150px;" class="d-flex flex-column">
+          <div class="px-3 py-2 flex-grow-1" id="output" x-ref="output">Output Console</div>
+        </div>
       </div>
-      <p class="text-muted small mb-1 ms-3">Output</p>
-      <div
-        id="output"
-        x-ref="output"
-        style="height: 6rem; overflow: auto; font-family: monospace; white-space: nowrap; font-size: 0.7rem;"
-        class="border-top py-2 px-3 bg-light"></div>
     </div>
   </div>
 {% endblock content %}

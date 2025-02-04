@@ -67,23 +67,20 @@ window.custom_functions_call = custom_functions_call
 
 
 async def custom_scripts_call(data, script_name, module_string=None):
+    module_name = "main"  # TODO
     html_output = HtmlOutput("output")
     if module_string:
         spec = importlib.util.spec_from_loader(
-            "dynamic_module",
+            module_name,
             loader=None,
-            origin="main.py",  # TODO: module name (displayed in Traceback)
         )
         module = importlib.util.module_from_spec(spec)
-        compile(
-            module_string, "main.py", "exec"
-        )  # TODO: module name (displayed in Traceback)
         with (
             contextlib.redirect_stdout(html_output),
             contextlib.redirect_stderr(html_output),
         ):
             exec(module_string, module.__dict__)
-        sys.modules["dynamic_module"] = module
+        sys.modules[module_name] = module
     else:
         module = custom_scripts
 

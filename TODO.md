@@ -1,3 +1,4 @@
+- Logging doesn't get cleared between the runs
 - handle requirements.txt
 - make it CSP Header compliant
 
