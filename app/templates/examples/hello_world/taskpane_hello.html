@@ -9,7 +9,9 @@
     <h1 class="my-3 px-3">xlwings Lite</h1>
     <div x-data="monacoEditor" class="d-flex flex-column flex-grow-1">
       <div class="ps-3 pb-3">
-        <button class="btn btn-primary btn-sm" @click="run">▶ Run</button>
+        <button class="btn btn-primary btn-sm ps-4 pe-1" @click="run" :disabled="isRunning">
+          ▶ Run <span x-bind="spinner" class="spinner-border spinner-border-sm"></span>
+        </button>
       </div>
       <ul class="nav nav-tabs">
         <li class="nav-item">
@@ -25,7 +27,7 @@
       <div
         id="output"
         x-ref="output"
-        style="height: 6rem; overflow-y: auto; font-family: monospace;"
+        style="height: 6rem; overflow: auto; font-family: monospace; white-space: nowrap; font-size: 0.7rem;"
         class="border-top py-2 px-3 bg-light"></div>
     </div>
   </div>

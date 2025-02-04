@@ -54,6 +54,15 @@ registerAlpineComponent("appLoader", appLoader);
 let editorInstance = null;
 
 const monacoEditor = {
+  isRunning: false,
+  spinner: {
+    [":class"]() {
+      return {
+        // Reusing htmx-indicator as it sets opacity: 0, leaving the space for spinner
+        "htmx-indicator": !this.isRunning,
+      };
+    },
+  },
   async init() {
     await Office.onReady();
     let savedContent = await this.loadContent();
@@ -113,16 +122,31 @@ const monacoEditor = {
   },
 
   async run() {
+    // Clear Stdout
     const outputDiv = this.$refs.output;
     outputDiv.innerHTML = "";
-    let code = editorInstance.getValue();
-    await xlwings.runPython("", {
-      ...{},
-      scriptName: "main", // TODO: allow to specify
-      auth: "",
-      errorDisplayMode: "taskpane",
-      moduleString: code,
-    });
+    // Clear errors
+    const globalErrorAlert = document.querySelector("#global-error-alert");
+    if (globalErrorAlert) {
+      globalErrorAlert.classList.add("d-none");
+    }
+
+    // Set loading state
+    this.isRunning = true;
+
+    try {
+      let code = editorInstance.getValue();
+      await xlwings.runPython("", {
+        ...{},
+        scriptName: "main", // TODO: allow to specify
+        auth: "",
+        errorDisplayMode: "taskpane",
+        moduleString: code,
+      });
+    } finally {
+      this.isRunning = false;
+    }
+
     // Scroll to bottom
     outputDiv.scrollTop = outputDiv.scrollHeight;
   },

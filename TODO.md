@@ -1,12 +1,15 @@
-- Don't send full book
-- Clear errors with next Run
-- spinner/disable button
-- split.js for output/editor
 - handle requirements.txt
+- make it CSP Header compliant
+
+- Choose function to run
+- Enable custom functions
+- Don't send full book
+- split.js for output/editor
 - "Saved" indicator
 - Ability to choose Pyodide version
-- Choose function to run
 - 3rd party licenses
 - allow to upload files
 - Pyodide version handling
 - Remove PyScript dependency?
+- Intellisense
+- Probably better to show error in Output console with Traceback
