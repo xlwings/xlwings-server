@@ -1,4 +1,5 @@
-- Clear errors and stdout with next Run
+- Don't send full book
+- Clear errors with next Run
 - spinner/disable button
 - split.js for output/editor
 - handle requirements.txt

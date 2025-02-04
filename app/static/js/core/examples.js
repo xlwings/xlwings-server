@@ -113,6 +113,8 @@ const monacoEditor = {
   },
 
   async run() {
+    const outputDiv = this.$refs.output;
+    outputDiv.innerHTML = "";
     let code = editorInstance.getValue();
     await xlwings.runPython("", {
       ...{},
@@ -121,6 +123,8 @@ const monacoEditor = {
       errorDisplayMode: "taskpane",
       moduleString: code,
     });
+    // Scroll to bottom
+    outputDiv.scrollTop = outputDiv.scrollHeight;
   },
 };
 registerAlpineComponent("monacoEditor", monacoEditor);
