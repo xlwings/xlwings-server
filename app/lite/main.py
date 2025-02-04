@@ -78,7 +78,10 @@ async def custom_scripts_call(data, script_name, module_string=None):
         compile(
             module_string, "main.py", "exec"
         )  # TODO: module name (displayed in Traceback)
-        with contextlib.redirect_stdout(html_output):
+        with (
+            contextlib.redirect_stdout(html_output),
+            contextlib.redirect_stderr(html_output),
+        ):
             exec(module_string, module.__dict__)
         sys.modules["dynamic_module"] = module
     else:
@@ -86,7 +89,10 @@ async def custom_scripts_call(data, script_name, module_string=None):
 
     book = xw.Book(json=data.to_py())
     try:
-        with contextlib.redirect_stdout(html_output):
+        with (
+            contextlib.redirect_stdout(html_output),
+            contextlib.redirect_stderr(html_output),
+        ):
             book = await xlwings_custom_scripts_call(
                 module=module,
                 script_name=script_name,

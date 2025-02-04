@@ -12,5 +12,5 @@
 - allow to upload files
 - Pyodide version handling
 - Remove PyScript dependency?
-- Intellisense
+- Intellisense with Pyright?
 - Probably better to show error in Output console with Traceback
