@@ -1,10 +1,11 @@
 - handle requirements.txt
 - make it CSP Header compliant
 
+- split.js for output/editor
 - Choose function to run
 - Enable custom functions
+- allow to import script/func from top-level instead of xlwings.server
 - Don't send full book
-- split.js for output/editor
 - "Saved" indicator
 - Ability to choose Pyodide version
 - 3rd party licenses

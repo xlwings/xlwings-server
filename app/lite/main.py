@@ -37,9 +37,8 @@ class HtmlOutput:
     def write(self, text):
         # Write to buffer and update div content
         self.buffer.write(text)
-        document.getElementById(self.div_id).innerHTML = self.buffer.getvalue().replace(
-            "\n", "<br>"
-        )
+        content = self.buffer.getvalue()
+        document.getElementById(self.div_id).innerHTML = f"<pre>{content}</pre>"
 
     def flush(self):
         pass
