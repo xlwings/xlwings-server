@@ -1,8 +1,8 @@
-- Logging doesn't get cleared between the runs
+- Remove PyScript dependency
 - handle requirements.txt
 - make it CSP Header compliant
 
-- split.js for output/editor
+- Flush logging between runs, weird interaction when used with print
 - Choose function to run
 - Enable custom functions
 - allow to import script/func from top-level instead of xlwings.server
@@ -12,6 +12,5 @@
 - 3rd party licenses
 - allow to upload files
 - Pyodide version handling
-- Remove PyScript dependency?
 - Intellisense with Pyright?
 - Probably better to show error in Output console with Traceback
