@@ -14,15 +14,21 @@ printSupportedApiVersions();
 
 // xlwings Lite
 async function initPyodide() {
+  if (config.onLite === false) {
+    return;
+  }
   let pyodide = await loadPyodide();
+  const pyodideConfigResponse = await fetch(
+    config.appPath + "/xlwings/pyodide.json",
+  );
+  const pyodideConfigData = await pyodideConfigResponse.json();
   // Install dependencies
   await pyodide.loadPackage("micropip");
   const micropip = pyodide.pyimport("micropip");
-  await micropip.install(["xlwings", "python-dotenv", "pandas"]);
+  let packages = pyodideConfigData["packages"];
+  await micropip.install(packages);
   // Python files
-  const response = await fetch(config.appPath + "/xlwings/pyodide.json");
-  const data = await response.json();
-  const files = data["files"];
+  const files = pyodideConfigData["files"];
   function createDirectories(files) {
     const createdDirs = new Set();
     Object.values(files).forEach((localPath) => {
