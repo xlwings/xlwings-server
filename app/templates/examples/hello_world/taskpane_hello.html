@@ -39,16 +39,9 @@
 
     async function evaluatePython() {
       let pyodide = await pyodideReadyPromise;
-      let files = {
-        "/lite/config.py": "config.py",
-        "/lite/__init__.py": "__init__.py",
-        "/lite/.env": ".env",
-        "/lite/main.py": "main.py",
-        "/custom_functions/__init__.py": "./custom_functions/__init__.py",
-        "/custom_functions/examples.py": "./custom_functions/examples.py",
-        "/custom_scripts/__init__.py": "./custom_scripts/__init__.py",
-        "/custom_scripts/examples.py": "./custom_scripts/examples.py",
-      };
+      const response = await fetch("/xlwings/pyscript.json");
+      const data = await response.json();
+      const files = data["files"];
 
       function createDirectories(files) {
         const createdDirs = new Set();
@@ -58,14 +51,17 @@
             const dirPath = parts.slice(0, parts.length - 1).join("/");
             if (!createdDirs.has(dirPath)) {
               try {
-                // TODO: does this work for nested dirs?
-                pyodide.FS.mkdir(dirPath);
-                console.log(dirPath);
+                // TODO: does this work for nested dirs? Also, ./ is probably wrong
+                if (dirPath !== ".") {
+                  pyodide.FS.mkdir(dirPath);
+                }
               } catch (err) {
                 console.log(err);
               }
               try {
-                pyodide.FS.mount(pyodide.FS.filesystems.MEMFS, {}, dirPath);
+                if (dirPath !== ".") {
+                  pyodide.FS.mount(pyodide.FS.filesystems.MEMFS, {}, dirPath);
+                }
               } catch (err) {
                 console.log(err);
               }
@@ -85,8 +81,7 @@
 
       try {
         // Entrypoint
-        const mainResponse = await fetch("/lite/main2.py");
-        const mainText = await mainResponse.text();
+        let mainText = pyodide.FS.readFile("./main2.py", { encoding: "utf8" });
         await pyodide.runPythonAsync(mainText);
         // Functions
         const hello = pyodide.globals.get("hello");
