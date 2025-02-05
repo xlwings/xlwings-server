@@ -20,7 +20,7 @@ async function initPyodide() {
   const micropip = pyodide.pyimport("micropip");
   await micropip.install(["xlwings", "python-dotenv", "pandas"]);
   // Python files
-  const response = await fetch(config.appPath + "/xlwings/pyscript.json");
+  const response = await fetch(config.appPath + "/xlwings/pyodide.json");
   const data = await response.json();
   const files = data["files"];
   function createDirectories(files) {
@@ -204,7 +204,7 @@ export async function runPython(
       // console.log(rawData);
 
       // Run Functions
-      // Note that PyScript returns undefined, so use != and == rather than !== and ===
+      // Note that Pyodide returns undefined, so use != and == rather than !== and ===
       if (rawData != null) {
         await runActions(rawData, context);
       }

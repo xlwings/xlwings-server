@@ -165,7 +165,7 @@ def lite_build(url, output_dir, create_zip=False, clean=False, environment=None)
         "xlwings/custom-functions-meta.json",
         "xlwings/custom-functions-code.js",
         "xlwings/custom-scripts-sheet-buttons.js",
-        "xlwings/pyscript.json",
+        "xlwings/pyodide.json",
     ]
 
     base_path = f"{app_path}/" if app_path else "/"

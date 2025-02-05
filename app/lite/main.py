@@ -6,7 +6,7 @@ try:
     # Via xlwings Server
     from .. import custom_functions, custom_scripts
 except ImportError:
-    # Via PyScript
+    # xlwings Lite
     import custom_functions
     import custom_scripts
 import js  # type: ignore
