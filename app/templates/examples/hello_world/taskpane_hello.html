@@ -39,26 +39,56 @@
 
     async function evaluatePython() {
       let pyodide = await pyodideReadyPromise;
+      let files = {
+        "/lite/config.py": "config.py",
+        "/lite/__init__.py": "__init__.py",
+        "/lite/.env": ".env",
+        "/lite/main.py": "main.py",
+        "/custom_functions/__init__.py": "./custom_functions/__init__.py",
+        "/custom_functions/examples.py": "./custom_functions/examples.py",
+        "/custom_scripts/__init__.py": "./custom_scripts/__init__.py",
+        "/custom_scripts/examples.py": "./custom_scripts/examples.py",
+      };
+
+      function createDirectories(files) {
+        const createdDirs = new Set();
+        Object.values(files).forEach((localPath) => {
+          const parts = localPath.split("/");
+          if (parts.length > 1) {
+            const dirPath = parts.slice(0, parts.length - 1).join("/");
+            if (!createdDirs.has(dirPath)) {
+              try {
+                // TODO: does this work for nested dirs?
+                pyodide.FS.mkdir(dirPath);
+                console.log(dirPath);
+              } catch (err) {
+                console.log(err);
+              }
+              try {
+                pyodide.FS.mount(pyodide.FS.filesystems.MEMFS, {}, dirPath);
+              } catch (err) {
+                console.log(err);
+              }
+              createdDirs.add(dirPath);
+            }
+          }
+        });
+      }
+      createDirectories(files);
+
+      // Write all files
+      for (const [endpoint, localPath] of Object.entries(files)) {
+        const response = await fetch(endpoint);
+        const content = await response.text();
+        pyodide.FS.writeFile(localPath, content);
+      }
+
       try {
-        // Fetch both Python files
+        // Entrypoint
         const mainResponse = await fetch("/lite/main2.py");
-        const configResponse = await fetch("/lite/config.py");
-        const examplesResponse = await fetch("/custom_functions/examples.py");
-
-        // Get text content
-        const configText = await configResponse.text();
         const mainText = await mainResponse.text();
-        const examplesText = await examplesResponse.text();
-
-        // Write config.py to virtual filesystem
-        pyodide.FS.writeFile("./config.py", configText);
-        pyodide.FS.mkdir("./custom_functions");
-        pyodide.FS.mount(pyodide.FS.filesystems.MEMFS, {}, "./custom_functions");
-        pyodide.FS.writeFile("./custom_functions/examples.py", examplesText);
-
-        // Run main2.py which can now import config
         await pyodide.runPythonAsync(mainText);
-
+        // Functions
         const hello = pyodide.globals.get("hello");
         const result = hello();
         console.log(result);
