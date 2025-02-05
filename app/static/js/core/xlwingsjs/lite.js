@@ -81,4 +81,4 @@ export async function initPyodide() {
 
 // Call as follows:
 // let pyodide = await pyodideReadyPromise;
-export let pyodideReadyPromise = initPyodide(config);
+export let pyodideReadyPromise = initPyodide();

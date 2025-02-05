@@ -8,7 +8,7 @@ import {
   getDateFormat,
 } from "./utils.js";
 export { getActiveBookName, getCultureInfoName, getDateFormat };
-import { initPyodide, pyodideReadyPromise } from "./lite.js";
+import { pyodideReadyPromise } from "./lite.js";
 
 // Prints the supported API versions into the Console
 printSupportedApiVersions();
@@ -28,10 +28,6 @@ globalThis.xlwings = xlwings;
 
 // Hook up buttons with the click event upon loading xlwings.js
 document.addEventListener("DOMContentLoaded", init);
-
-if (config.onLite) {
-  initPyodide();
-}
 
 export function init() {
   const elements = document.querySelectorAll("[xw-click]");
