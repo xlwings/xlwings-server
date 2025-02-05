@@ -13,26 +13,66 @@ export { getActiveBookName, getCultureInfoName, getDateFormat };
 printSupportedApiVersions();
 
 // xlwings Lite
-let pyscriptAllDone = new Promise((resolve) => {
-  if (config.onLite === false) {
-    resolve(false);
-  } else {
-    window.addEventListener(
-      "py:all-done",
-      () => {
-        // Hide status alert when py:all-done fires
-        const globalStatusAlert = document.querySelector(
-          "#global-status-alert",
-        );
-        if (globalStatusAlert) {
-          globalStatusAlert.classList.add("d-none");
+async function initPyodide() {
+  let pyodide = await loadPyodide();
+  // Install dependencies
+  await pyodide.loadPackage("micropip");
+  const micropip = pyodide.pyimport("micropip");
+  await micropip.install(["xlwings", "python-dotenv", "pandas"]);
+  // Python files
+  const response = await fetch(config.appPath + "/xlwings/pyscript.json");
+  const data = await response.json();
+  const files = data["files"];
+  function createDirectories(files) {
+    const createdDirs = new Set();
+    Object.values(files).forEach((localPath) => {
+      const parts = localPath.split("/");
+      if (parts.length > 1) {
+        const dirPath = parts.slice(0, parts.length - 1).join("/");
+        if (!createdDirs.has(dirPath)) {
+          try {
+            // TODO: does this work for nested dirs? Also, ./ is probably wrong
+            if (dirPath !== ".") {
+              pyodide.FS.mkdir(dirPath);
+            }
+          } catch (err) {
+            console.log(err);
+          }
+          try {
+            if (dirPath !== ".") {
+              pyodide.FS.mount(pyodide.FS.filesystems.MEMFS, {}, dirPath);
+            }
+          } catch (err) {
+            console.log(err);
+          }
+          createdDirs.add(dirPath);
         }
-        resolve(true);
-      },
-      { once: true },
-    );
+      }
+    });
   }
-});
+  createDirectories(files);
+  for (const [endpoint, localPath] of Object.entries(files)) {
+    const response = await fetch(config.appPath + endpoint);
+    const content = await response.text();
+    pyodide.FS.writeFile(localPath, content);
+  }
+  try {
+    // Entrypoint
+    let mainText = pyodide.FS.readFile("./main2.py", { encoding: "utf8" });
+    await pyodide.runPythonAsync(mainText);
+    // Functions
+    const custom_functions_call = pyodide.globals.get("custom_functions_call");
+    const custom_scripts_call = pyodide.globals.get("custom_scripts_call");
+    window.custom_functions_call = custom_functions_call;
+    window.custom_scripts_call = custom_scripts_call;
+  } catch (err) {
+    console.log(err);
+  }
+  return pyodide;
+}
+// Call as follows:
+// let pyodide = await pyodideReadyPromise;
+let pyodideReadyPromise = initPyodide();
 
 // Namespace
 const xlwings = {
@@ -41,7 +81,7 @@ const xlwings = {
   getActiveBookName,
   getBookData,
   runActions,
-  pyscriptAllDone,
+  pyodideReadyPromise,
   getCultureInfoName,
   getDateFormat,
 };
@@ -51,7 +91,7 @@ globalThis.xlwings = xlwings;
 document.addEventListener("DOMContentLoaded", init);
 
 export function init() {
-  // Pyscript status
+  // Pyodide status
   if (config.onLite) {
     const globalStatusAlert = document.querySelector("#global-status-alert");
     if (globalStatusAlert) {
@@ -135,7 +175,7 @@ export async function runPython(
       );
       let rawData;
       if (config.onLite) {
-        await pyscriptAllDone;
+        await pyodideReadyPromise;
         rawData = await window.custom_scripts_call(payload, scriptName);
         if (rawData.error) {
           console.error(rawData.details);

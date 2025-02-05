@@ -254,7 +254,7 @@ async function makeServerCall(body) {
 }
 
 async function makeLiteCall(body) {
-  await xlwings.pyscriptAllDone;
+  await xlwings.pyodideReadyPromise;
   try {
     let result = await window.custom_functions_call(body);
     if (result.error) {
