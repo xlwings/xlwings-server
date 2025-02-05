@@ -27,4 +27,45 @@
       </button>
     </div>
   </div>
+  <script type="text/javascript">
+    async function main() {
+      let pyodide = await loadPyodide();
+      await pyodide.loadPackage("micropip");
+      const micropip = pyodide.pyimport("micropip");
+      await micropip.install(["xlwings", "python-dotenv", "pandas"]);
+      return pyodide;
+    }
+    let pyodideReadyPromise = main();
+
+    async function evaluatePython() {
+      let pyodide = await pyodideReadyPromise;
+      try {
+        // Fetch both Python files
+        const mainResponse = await fetch("/lite/main2.py");
+        const configResponse = await fetch("/lite/config.py");
+        const examplesResponse = await fetch("/custom_functions/examples.py");
+
+        // Get text content
+        const configText = await configResponse.text();
+        const mainText = await mainResponse.text();
+        const examplesText = await examplesResponse.text();
+
+        // Write config.py to virtual filesystem
+        pyodide.FS.writeFile("./config.py", configText);
+        pyodide.FS.mkdir("./custom_functions");
+        pyodide.FS.mount(pyodide.FS.filesystems.MEMFS, {}, "./custom_functions");
+        pyodide.FS.writeFile("./custom_functions/examples.py", examplesText);
+
+        // Run main2.py which can now import config
+        await pyodide.runPythonAsync(mainText);
+
+        const hello = pyodide.globals.get("hello");
+        const result = hello();
+        console.log(result);
+      } catch (err) {
+        console.log(err);
+      }
+    }
+    evaluatePython();
+  </script>
 {% endblock content %}
