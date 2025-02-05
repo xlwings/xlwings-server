@@ -29,21 +29,11 @@ globalThis.xlwings = xlwings;
 // Hook up buttons with the click event upon loading xlwings.js
 document.addEventListener("DOMContentLoaded", init);
 
-export function init() {
-  // Pyodide status
-  if (config.onLite) {
-    const globalStatusAlert = document.querySelector("#global-status-alert");
-    if (globalStatusAlert) {
-      globalStatusAlert.classList.remove("d-none");
-      globalStatusAlert.querySelector("span").innerHTML = `
-        <div class="spinner-border spinner-border-sm text-alert me-1" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
-        Loading...
-      `;
-    }
-  }
+if (config.onLite) {
+  initPyodide();
+}
 
+export function init() {
   const elements = document.querySelectorAll("[xw-click]");
   elements.forEach((element) => {
     element.addEventListener("click", async (event) => {

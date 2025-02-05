@@ -2,6 +2,17 @@ export async function initPyodide() {
   if (config.onLite === false) {
     return;
   }
+  const globalStatusAlert = document.querySelector("#global-status-alert");
+  if (globalStatusAlert) {
+    globalStatusAlert.classList.remove("d-none");
+    globalStatusAlert.querySelector("span").innerHTML = `
+      <div class="spinner-border spinner-border-sm text-alert me-1" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+      Loading...
+    `;
+  }
+
   let pyodide = await loadPyodide();
   const pyodideConfigResponse = await fetch(
     config.appPath + "/xlwings/pyodide.json",
@@ -59,11 +70,12 @@ export async function initPyodide() {
   } catch (err) {
     console.log(err);
   }
+
   // Loading status
-  const globalStatusAlert = document.querySelector("#global-status-alert");
   if (globalStatusAlert) {
     globalStatusAlert.classList.add("d-none");
   }
+
   return pyodide;
 }
 
