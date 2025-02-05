@@ -91,7 +91,11 @@
       {% endif %}
       {# xlwings Lite #}
       {% if settings.enable_lite %}
-        <script src="https://cdn.jsdelivr.net/pyodide/v0.27.2/full/pyodide.js"></script>
+        {% if settings.cdn_pyodide %}
+          <script src="https://cdn.jsdelivr.net/pyodide/v0.27.2/full/pyodide.js"></script>
+        {% else %}
+          <script src="{{ url_for('static', path='/vendor/pyodide/pyodide.js') }}"></script>
+        {% endif %}
       {% endif %}
     {% endblock head %}
   </head>

@@ -9,9 +9,10 @@ except ImportError:
     # Via PyScript
     import custom_functions
     import custom_scripts
+import js  # type: ignore
 import pyodide_js  # type: ignore
 import xlwings as xw
-from pyscript import ffi, window  # type: ignore
+from pyodide.ffi import to_js  # type: ignore
 from xlwings.server import (
     custom_functions_call as xlwings_custom_functions_call,
     custom_scripts_call as xlwings_custom_scripts_call,
@@ -40,10 +41,7 @@ async def custom_functions_call(data):
     except Exception as e:
         result = {"error": str(e), "details": traceback.format_exc()}
     # Note: converts None to undefined
-    return ffi.to_js(result)
-
-
-window.custom_functions_call = custom_functions_call
+    return to_js(result, dict_converter=js.Object.fromEntries)
 
 
 async def custom_scripts_call(data, script_name):
@@ -57,7 +55,4 @@ async def custom_scripts_call(data, script_name):
         result = book.json()
     except Exception as e:
         result = {"error": str(e), "details": traceback.format_exc()}
-    return ffi.to_js(result)
-
-
-window.custom_scripts_call = custom_scripts_call
+    return to_js(result, dict_converter=js.Object.fromEntries)

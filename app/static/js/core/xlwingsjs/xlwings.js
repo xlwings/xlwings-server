@@ -58,7 +58,7 @@ async function initPyodide() {
   }
   try {
     // Entrypoint
-    let mainText = pyodide.FS.readFile("./main2.py", { encoding: "utf8" });
+    let mainText = pyodide.FS.readFile("./main.py", { encoding: "utf8" });
     await pyodide.runPythonAsync(mainText);
     // Functions
     const custom_functions_call = pyodide.globals.get("custom_functions_call");
@@ -67,6 +67,11 @@ async function initPyodide() {
     window.custom_scripts_call = custom_scripts_call;
   } catch (err) {
     console.log(err);
+  }
+  // Loading status
+  const globalStatusAlert = document.querySelector("#global-status-alert");
+  if (globalStatusAlert) {
+    globalStatusAlert.classList.add("d-none");
   }
   return pyodide;
 }
