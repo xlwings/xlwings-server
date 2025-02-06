@@ -10,12 +10,13 @@ try:
     # Via xlwings Server
     from .. import custom_functions, custom_scripts
 except ImportError:
-    # Via PyScript
+    # xlwings Lite
     import custom_functions
     import custom_scripts
+import js  # type: ignore
 import pyodide_js  # type: ignore
 import xlwings as xw
-from pyscript import document, ffi, window  # type: ignore
+from pyodide.ffi import to_js  # type: ignore
 from xlwings.server import (
     custom_functions_call as xlwings_custom_functions_call,
     custom_scripts_call as xlwings_custom_scripts_call,
@@ -38,7 +39,7 @@ class HtmlOutput:
         # Write to buffer and update div content
         self.buffer.write(text)
         content = self.buffer.getvalue()
-        document.getElementById(self.div_id).innerHTML = f"<pre>{content}</pre>"
+        js.document.getElementById(self.div_id).innerHTML = f"<pre>{content}</pre>"
 
     def flush(self):
         pass
@@ -60,10 +61,7 @@ async def custom_functions_call(data):
     except Exception as e:
         result = {"error": str(e), "details": traceback.format_exc()}
     # Note: converts None to undefined
-    return ffi.to_js(result)
-
-
-window.custom_functions_call = custom_functions_call
+    return to_js(result, dict_converter=js.Object.fromEntries)
 
 
 async def custom_scripts_call(data, script_name, module_string=None):
@@ -98,7 +96,4 @@ async def custom_scripts_call(data, script_name, module_string=None):
         result = book.json()
     except Exception as e:
         result = {"error": str(e), "details": traceback.format_exc()}
-    return ffi.to_js(result)
-
-
-window.custom_scripts_call = custom_scripts_call
+    return to_js(result, dict_converter=js.Object.fromEntries)

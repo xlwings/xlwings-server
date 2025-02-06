@@ -91,13 +91,11 @@
       {% endif %}
       {# xlwings Lite #}
       {% if settings.enable_lite %}
-        <link rel="stylesheet" href="{{ url_for('static', path='/vendor/@pyscript/core/dist/core.css') }}" />
-        <script type="module" src="{{ url_for('static', path='/vendor/@pyscript/core/dist/core.js') }}"></script>
-        <script
-          type="py"
-          src="{{ url_for('lite', path='main.py') }}"
-          config="{{ url_for('get_pyscript_config') }}"
-          defer></script>
+        {% if settings.cdn_pyodide %}
+          <script src="https://cdn.jsdelivr.net/pyodide/v0.27.2/full/pyodide.js"></script>
+        {% else %}
+          <script src="{{ url_for('static', path='/vendor/pyodide/pyodide.js') }}"></script>
+        {% endif %}
       {% endif %}
     {% endblock head %}
   </head>

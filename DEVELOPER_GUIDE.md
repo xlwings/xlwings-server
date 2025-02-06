@@ -84,8 +84,6 @@ When debugging the alert/dialog window, you need to open up a separate instance 
 
 ## xlwings Lite (Wasm)
 
-Make sure to install the correct version of Pyodide (`npm i pyodide@x.x.x`) for the given version of PyScript. To find out, use the CDN version of PyScript and check out the console logs where it prints the version of Pyodide.
-
 For the offline usage of Pyodide, the following packages are always required to be copied over from the pyodide release package:
 
 - micropip
