@@ -15,8 +15,7 @@ const monacoEditor = {
     },
   },
 
-  async activateTab(event) {
-    const tabId = this.$el.dataset.tab;
+  async activateTabById(tabId) {
     // Update active states
     Object.keys(this.tabs).forEach((key) => {
       this.tabs[key].isActive = key === tabId;
@@ -27,6 +26,11 @@ const monacoEditor = {
       const content = await this.loadContent(this.tabs[tabId].name);
       editorInstance.setValue(content || this.tabs[tabId].defaultContent);
     }
+  },
+
+  async activateTab(event) {
+    const tabId = this.$el.dataset.tab;
+    await this.activateTabById(tabId);
   },
 
   getActiveTab() {
@@ -54,8 +58,15 @@ const monacoEditor = {
   },
   async init() {
     await Office.onReady();
-    let savedContent = await this.loadContent();
     this.resizeOutputPanel();
+
+    // requirements.txt
+    const requirements = await this.loadContent("requirements.txt");
+    let pyodide = await xlwings.pyodideReadyPromise;
+    const micropip = pyodide.pyimport("micropip");
+    packages = requirements.split("\n").filter(Boolean);
+    await micropip.install(packages);
+
     require.config({
       paths: {
         vs: "https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs",
@@ -64,12 +75,13 @@ const monacoEditor = {
 
     require(["vs/editor/editor.main"], () => {
       editorInstance = monaco.editor.create(this.$refs.editorContainer, {
-        value: savedContent || "# Type your code here\n",
+        value: "",
         language: "python",
         theme: "vs-light",
         minimap: { enabled: false },
         automaticLayout: true,
       });
+      this.activateTabById("main");
 
       // Autosave
       let saveTimeout;
@@ -129,12 +141,21 @@ const monacoEditor = {
 
   async saveContent(filename) {
     const content = editorInstance.getValue();
+    // Store
     await Excel.run(async (context) => {
       const settings = context.workbook.settings;
       settings.add(filename, content);
       await context.sync();
       console.log(`${filename} stored`);
     });
+
+    // Install requirements.txt TODO: factor out
+    if (filename === "requirements.txt") {
+      let pyodide = await xlwings.pyodideReadyPromise;
+      const micropip = pyodide.pyimport("micropip");
+      packages = content.split("\n").filter(Boolean);
+      await micropip.install(packages);
+    }
   },
 
   async run() {

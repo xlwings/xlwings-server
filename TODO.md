@@ -4,15 +4,18 @@
 - Enable custom functions
 - Choose function to run
 - print is only shown in Output after the run
+- add polars support (narwahls?)
+- "Saved" and "installed" indicator
 
 - make it CSP Header compliant
 - Flush logging between runs, weird interaction when used with print
 - allow to import script/func from top-level instead of xlwings.server
 - Don't send full book
-- "Saved" indicator
 - Ability to choose Pyodide version
 - 3rd party licenses
 - allow to upload files
 - Pyodide version handling
 - Intellisense with Pyright?
 - Probably better to show error in Output console with Traceback
+- ruff formatting
+- Add Terminal
