@@ -63,10 +63,14 @@ export async function initPyodide() {
     let mainText = pyodide.FS.readFile("./main.py", { encoding: "utf8" });
     await pyodide.runPythonAsync(mainText);
     // Functions
-    const custom_functions_call = pyodide.globals.get("custom_functions_call");
-    const custom_scripts_call = pyodide.globals.get("custom_scripts_call");
-    window.custom_functions_call = custom_functions_call;
-    window.custom_scripts_call = custom_scripts_call;
+    const liteCustomFunctionsCall = pyodide.globals.get(
+      "custom_functions_call",
+    );
+    const liteCustomScriptsCall = pyodide.globals.get("custom_scripts_call");
+    // You can't simply export custom_functions_call as it will be null when used in
+    // custom-functions-code.js (it's only assigned the function here).
+    globalThis.liteCustomFunctionsCall = liteCustomFunctionsCall;
+    globalThis.liteCustomScriptsCall = liteCustomScriptsCall;
   } catch (err) {
     console.log(err);
   }

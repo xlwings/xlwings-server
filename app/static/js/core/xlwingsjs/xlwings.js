@@ -101,7 +101,7 @@ export async function runPython(
       let rawData;
       if (config.onLite) {
         await pyodideReadyPromise;
-        rawData = await window.custom_scripts_call(payload, scriptName);
+        rawData = await globalThis.liteCustomScriptsCall(payload, scriptName);
         if (rawData.error) {
           console.error(rawData.details);
           throw new Error(rawData.error);
