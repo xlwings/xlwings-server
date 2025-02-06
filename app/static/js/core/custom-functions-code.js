@@ -254,15 +254,16 @@ async function makeServerCall(body) {
 }
 
 async function makeLiteCall(body) {
-  await xlwings.pyscriptAllDone;
+  await xlwings.pyodideReadyPromise;
   try {
-    let result = await window.custom_functions_call(body);
+    let result = await globalThis.liteCustomFunctionsCall(body);
     if (result.error) {
       console.error(result.details);
-      throw new Error(result.error);
+      showError(result.error);
     }
     return result;
   } catch (error) {
+    console.error(error);
     showError(error);
   }
 }

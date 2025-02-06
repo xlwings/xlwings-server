@@ -60,7 +60,7 @@ Even though `app/lite/.env` is ignored by Git, it will be included in your final
 
 ## Debugging
 
-xlwings Lite uses PyScript/Pyodide under the hood, which don't offer a debugger. So to debug your custom functions and custom scripts, you have two options:
+xlwings Lite uses Pyodide under the hood, which don't offer a debugger. So to debug your custom functions and custom scripts, you have two options:
 
 - Use `print()`, which will print to the console of the browser dev tools (not to the terminal where you run Python!).
 - In `.env`, temporarily switch back to `XLWINGS_ENABLE_LITE=false`. This allows you to run `run.py` by using the debug mode of your editor and set breakpoints.

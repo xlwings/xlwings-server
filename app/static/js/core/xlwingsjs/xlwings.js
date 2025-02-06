@@ -8,31 +8,10 @@ import {
   getDateFormat,
 } from "./utils.js";
 export { getActiveBookName, getCultureInfoName, getDateFormat };
+import { pyodideReadyPromise } from "./lite.js";
 
 // Prints the supported API versions into the Console
 printSupportedApiVersions();
-
-// xlwings Lite
-let pyscriptAllDone = new Promise((resolve) => {
-  if (config.onLite === false) {
-    resolve(false);
-  } else {
-    window.addEventListener(
-      "py:all-done",
-      () => {
-        // Hide status alert when py:all-done fires
-        const globalStatusAlert = document.querySelector(
-          "#global-status-alert",
-        );
-        if (globalStatusAlert) {
-          globalStatusAlert.classList.add("d-none");
-        }
-        resolve(true);
-      },
-      { once: true },
-    );
-  }
-});
 
 // Namespace
 const xlwings = {
@@ -41,7 +20,7 @@ const xlwings = {
   getActiveBookName,
   getBookData,
   runActions,
-  pyscriptAllDone,
+  pyodideReadyPromise,
   getCultureInfoName,
   getDateFormat,
 };
@@ -51,20 +30,6 @@ globalThis.xlwings = xlwings;
 document.addEventListener("DOMContentLoaded", init);
 
 export function init() {
-  // Pyscript status
-  if (config.onLite) {
-    const globalStatusAlert = document.querySelector("#global-status-alert");
-    if (globalStatusAlert) {
-      globalStatusAlert.classList.remove("d-none");
-      globalStatusAlert.querySelector("span").innerHTML = `
-        <div class="spinner-border spinner-border-sm text-alert me-1" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
-        Loading...
-      `;
-    }
-  }
-
   const elements = document.querySelectorAll("[xw-click]");
   elements.forEach((element) => {
     element.addEventListener("click", async (event) => {
@@ -135,8 +100,8 @@ export async function runPython(
       );
       let rawData;
       if (config.onLite) {
-        await pyscriptAllDone;
-        rawData = await window.custom_scripts_call(payload, scriptName);
+        await pyodideReadyPromise;
+        rawData = await globalThis.liteCustomScriptsCall(payload, scriptName);
         if (rawData.error) {
           console.error(rawData.details);
           throw new Error(rawData.error);
@@ -159,7 +124,7 @@ export async function runPython(
       // console.log(rawData);
 
       // Run Functions
-      // Note that PyScript returns undefined, so use != and == rather than !== and ===
+      // Note that Pyodide returns undefined, so use != and == rather than !== and ===
       if (rawData != null) {
         await runActions(rawData, context);
       }

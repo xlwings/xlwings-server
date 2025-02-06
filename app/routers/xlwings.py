@@ -131,7 +131,7 @@ async def custom_scripts_sheet_buttons():
 
 if settings.enable_lite:
 
-    @router.get("/pyscript.json")
+    @router.get("/pyodide.json")
     async def get_pyscript_config():
         # requirements.txt
         packages = (
@@ -176,10 +176,4 @@ if settings.enable_lite:
                 scan_directory(settings.base_dir, directory, prepend_dir_name=True)
             )
         response = {"packages": packages, "files": files}
-
-        # Interpreter
-        if not settings.cdn_pyodide:
-            response["interpreter"] = (
-                f"{settings.static_url_path}/vendor/pyodide/pyodide.mjs"
-            )
         return response
