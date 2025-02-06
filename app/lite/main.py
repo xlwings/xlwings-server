@@ -65,6 +65,7 @@ async def custom_functions_call(data):
 
 
 async def custom_scripts_call(data, script_name, module_string=None):
+    print(module_string)
     module_name = "main"  # TODO
     html_output = HtmlOutput("output")
     if module_string:

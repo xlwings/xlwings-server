@@ -1,10 +1,12 @@
-- Remove PyScript dependency
 - handle requirements.txt
-- make it CSP Header compliant
-
-- Flush logging between runs, weird interaction when used with print
-- Choose function to run
+- fix datetime bug in xlwings
+- use this behind the scenes: pyodide_http.patch_all()
 - Enable custom functions
+- Choose function to run
+- print is only shown in Output after the run
+
+- make it CSP Header compliant
+- Flush logging between runs, weird interaction when used with print
 - allow to import script/func from top-level instead of xlwings.server
 - Don't send full book
 - "Saved" indicator

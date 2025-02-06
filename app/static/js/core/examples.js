@@ -2,6 +2,47 @@
 let editorInstance = null;
 
 const monacoEditor = {
+  tabs: {
+    main: {
+      name: "main.py",
+      isActive: true,
+      defaultContent: "# Type your code here\n",
+    },
+    requirements: {
+      name: "requirements.txt",
+      isActive: false,
+      defaultContent: "# Add your requirements here\n",
+    },
+  },
+
+  async activateTab(event) {
+    const tabId = this.$el.dataset.tab;
+    // Update active states
+    Object.keys(this.tabs).forEach((key) => {
+      this.tabs[key].isActive = key === tabId;
+    });
+
+    // Load content for activated tab
+    if (editorInstance) {
+      const content = await this.loadContent(this.tabs[tabId].name);
+      editorInstance.setValue(content || this.tabs[tabId].defaultContent);
+    }
+  },
+
+  getActiveTab() {
+    return Object.values(this.tabs).find((tab) => tab.isActive);
+  },
+
+  isTabActive(tabId) {
+    return this.tabs[tabId].isActive;
+  },
+
+  tabState: {
+    [":class"]() {
+      return { active: this.isTabActive(this.$el.dataset.tab) };
+    },
+  },
+
   isRunning: false,
   spinner: {
     [":class"]() {
@@ -38,7 +79,7 @@ const monacoEditor = {
 
         // Set new timeout to save after 1000ms of no typing
         saveTimeout = setTimeout(() => {
-          this.saveContent();
+          this.saveContent(this.getActiveTab().name);
         }, 1000);
       });
     });
@@ -71,28 +112,28 @@ const monacoEditor = {
     });
   },
 
-  async loadContent() {
+  async loadContent(filename) {
     try {
       return await Excel.run(async (context) => {
         const settings = context.workbook.settings;
-        const mainPyContent = settings.getItem("main.py");
-        mainPyContent.load("value");
+        const content = settings.getItem(filename);
+        content.load("value");
         await context.sync();
-        return mainPyContent.value;
+        return content.value;
       });
     } catch (error) {
-      console.log("Error loading content:", error);
+      console.log(`Error loading ${filename}:`, error);
       return null;
     }
   },
 
-  async saveContent() {
+  async saveContent(filename) {
     const content = editorInstance.getValue();
     await Excel.run(async (context) => {
       const settings = context.workbook.settings;
-      settings.add("main.py", content);
+      settings.add(filename, content);
       await context.sync();
-      console.log("main.py stored");
+      console.log(`${filename} stored`);
     });
   },
 
