@@ -1,4 +1,4 @@
-export async function initPyodide() {
+async function initPyodide() {
   if (config.onLite === false) {
     return;
   }
