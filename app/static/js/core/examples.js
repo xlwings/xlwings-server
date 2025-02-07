@@ -72,11 +72,15 @@ const monacoEditor = {
 
     // requirements.txt
     if (config.onLite) {
-      const requirements = await this.loadContent("requirements.txt");
-      let pyodide = await xlwings.pyodideReadyPromise;
-      const micropip = pyodide.pyimport("micropip");
-      packages = requirements.split("\n").filter(Boolean);
-      await micropip.install(packages);
+      try {
+        const requirements = await this.loadContent("requirements.txt");
+        let pyodide = await xlwings.pyodideReadyPromise;
+        const micropip = pyodide.pyimport("micropip");
+        packages = requirements.split("\n").filter(Boolean);
+        await micropip.install(packages);
+      } catch (e) {
+        console.error(e);
+      }
     }
 
     require.config({
@@ -169,9 +173,55 @@ const monacoEditor = {
     if (config.onLite) {
       if (filename === "requirements.txt") {
         let pyodide = await xlwings.pyodideReadyPromise;
-        const micropip = pyodide.pyimport("micropip");
-        packages = content.split("\n").filter(Boolean);
-        await micropip.install(packages);
+
+        // Setup output redirect
+        const outputDiv = document.querySelector("#output");
+        outputDiv.innerHTML = "";
+
+        const logError = (text) => {
+          const lines = text.split("\n");
+          const formattedText = lines
+            .map((line) => {
+              if (line.trim().startsWith("INFO:")) {
+                return line;
+              }
+              return `<span style="color: red">${line}</span>`;
+            })
+            .join("<br>");
+          outputDiv.innerHTML += formattedText + "<br>";
+          outputDiv.scrollTop = outputDiv.scrollHeight;
+        };
+
+        const logOutput = (text) => {
+          outputDiv.innerHTML += `${text}<br>`;
+          outputDiv.scrollTop = outputDiv.scrollHeight;
+        };
+
+        // Setup Python logging
+        await pyodide.runPythonAsync(`
+          import logging
+          logging.basicConfig(level=logging.INFO, force=True)
+          micropip_logger = logging.getLogger('micropip')
+          micropip_logger.setLevel(logging.INFO)
+        `);
+
+        // Redirect Python stdout/stderr
+        pyodide.setStderr({
+          batched: (text) => logError(text.trimEnd()),
+        });
+        pyodide.setStdout({
+          batched: (text) => logOutput(text.trimEnd()),
+        });
+
+        try {
+          const micropip = pyodide.pyimport("micropip");
+          packages = content.split("\n").filter(Boolean);
+          logOutput(`Installing packages: ${packages.join(", ")}`);
+          await micropip.install(packages);
+          logOutput("Installation complete");
+        } catch (error) {
+          logError(`Installation failed:\n${error.message}`);
+        }
       }
     }
   },

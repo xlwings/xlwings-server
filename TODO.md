@@ -1,4 +1,3 @@
-- Show requirements.txt installation logs
 - fix datetime bug in xlwings
 - use this behind the scenes: pyodide_http.patch_all()
 - Enable custom functions
