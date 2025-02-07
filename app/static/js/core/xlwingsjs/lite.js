@@ -61,6 +61,7 @@ async function initPyodide() {
   try {
     // Entrypoint
     let mainText = pyodide.FS.readFile("./main.py", { encoding: "utf8" });
+    // Required for pd.read_csv(URL)
     await pyodide.runPythonAsync(mainText);
     // Functions
     const liteCustomFunctionsCall = pyodide.globals.get(

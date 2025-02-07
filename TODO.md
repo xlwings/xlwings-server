@@ -1,5 +1,4 @@
 - fix datetime bug in xlwings
-- use this behind the scenes: pyodide_http.patch_all()
 - Enable custom functions
 - Choose function to run
 - print is only shown in Output after the run
@@ -21,3 +20,5 @@
 - Add Terminal
 - dark mode
 - access to local files
+- AI integration
+- allow to remove all xlwings content from workbook

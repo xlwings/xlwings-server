@@ -227,6 +227,7 @@ const monacoEditor = {
   },
 
   async run() {
+    let pyodide = await xlwings.pyodideReadyPromise;
     // Clear Stdout
     const outputDiv = this.$refs.output;
     outputDiv.innerHTML = "";
@@ -241,6 +242,9 @@ const monacoEditor = {
 
     try {
       let code = editorInstance.getValue();
+      await pyodide.runPythonAsync(
+        "import pyodide_http;pyodide_http.patch_all()",
+      );
       await xlwings.runPython("", {
         ...{},
         scriptName: "main", // TODO: allow to specify
