@@ -20,6 +20,14 @@ const monacoEditor = {
     return this.getTabNameWithStatus(this.$el.dataset.tab);
   },
 
+  scripts: [],
+  selectedScript: "",
+  scriptButtonText() {
+    return this.scripts.length ? this.selectedScript : "Select Script";
+  },
+  selectScript() {
+    this.selectedScript = this.$el.textContent;
+  },
   async activateTabById(tabId) {
     // Update active states
     Object.keys(this.tabs).forEach((key) => {
@@ -29,7 +37,8 @@ const monacoEditor = {
     // Load content for activated tab
     if (editorInstance) {
       const content = await this.loadContent(this.tabs[tabId].name);
-      editorInstance.setValue(content || this.tabs[tabId].defaultContent);
+      let editorContent = content || this.tabs[tabId].defaultContent;
+      editorInstance.setValue(editorContent);
     }
   },
 
@@ -76,7 +85,7 @@ const monacoEditor = {
         const requirements = await this.loadContent("requirements.txt");
         let pyodide = await xlwings.pyodideReadyPromise;
         const micropip = pyodide.pyimport("micropip");
-        packages = requirements.split("\n").filter(Boolean);
+        packages = (requirements || "").split("\n").filter(Boolean);
         await micropip.install(packages);
       } catch (e) {
         console.error(e);
@@ -150,11 +159,30 @@ const monacoEditor = {
         const content = settings.getItem(filename);
         content.load("value");
         await context.sync();
+        // Update scripts after loading content
+        if (content.value) {
+          this.updateScripts(content.value);
+        }
         return content.value;
       });
     } catch (error) {
       console.log(`Error loading ${filename}:`, error);
       return null;
+    }
+  },
+
+  async updateScripts(content) {
+    if (this.activateTab !== "requirements") {
+      let pyodide = await xlwings.pyodideReadyPromise;
+      const newScripts = globalThis.getXlwingsScripts(content);
+      // Keep current selection if it exists in new scripts
+      const keepSelection =
+        this.selectedScript && newScripts.includes(this.selectedScript);
+
+      this.scripts = newScripts;
+      if (!keepSelection) {
+        this.selectedScript = this.scripts.length ? this.scripts[0] : "";
+      }
     }
   },
 
@@ -167,6 +195,7 @@ const monacoEditor = {
       await context.sync();
       console.log(`${filename} stored`);
       this.isSaved = true;
+      this.updateScripts(content);
     });
 
     // Install requirements.txt TODO: factor out
@@ -247,7 +276,7 @@ const monacoEditor = {
       );
       await xlwings.runPython("", {
         ...{},
-        scriptName: "main", // TODO: allow to specify
+        scriptName: this.selectedScript,
         auth: "",
         errorDisplayMode: "taskpane",
         moduleString: code,

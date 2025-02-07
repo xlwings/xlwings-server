@@ -5,6 +5,7 @@ import importlib.util
 import sys
 import contextlib
 from io import StringIO
+import ast
 
 try:
     # Via xlwings Server
@@ -98,3 +99,18 @@ async def custom_scripts_call(data, script_name, module_string=None):
     except Exception as e:
         result = {"error": str(e), "details": traceback.format_exc()}
     return to_js(result, dict_converter=js.Object.fromEntries)
+
+
+def get_xlwings_scripts(code_string):
+    tree = ast.parse(code_string)
+    xlwings_functions = []
+
+    for node in ast.walk(tree):
+        if isinstance(node, ast.FunctionDef):
+            for decorator in node.decorator_list:
+                decorator_str = ast.unparse(decorator)
+                if "script" in decorator_str:
+                    xlwings_functions.append(node.name)
+                    break
+
+    return to_js(xlwings_functions)
