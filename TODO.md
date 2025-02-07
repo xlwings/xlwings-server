@@ -1,11 +1,12 @@
-- handle requirements.txt
+- Show requirements.txt installation logs
 - fix datetime bug in xlwings
 - use this behind the scenes: pyodide_http.patch_all()
 - Enable custom functions
 - Choose function to run
 - print is only shown in Output after the run
-- add polars support (narwahls?)
-- "Saved" and "installed" indicator
+- add polars support to xlwings (narwahls?)
+- store pyodide version in xml
+- only store editor content if not empty/default
 
 - make it CSP Header compliant
 - Flush logging between runs, weird interaction when used with print
@@ -19,3 +20,5 @@
 - Probably better to show error in Output console with Traceback
 - ruff formatting
 - Add Terminal
+- dark mode
+- access to local files

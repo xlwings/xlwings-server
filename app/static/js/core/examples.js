@@ -2,6 +2,7 @@
 let editorInstance = null;
 
 const monacoEditor = {
+  isSaved: false,
   tabs: {
     main: {
       name: "main.py",
@@ -13,6 +14,10 @@ const monacoEditor = {
       isActive: false,
       defaultContent: "# Add your requirements here\n",
     },
+  },
+
+  tabText() {
+    return this.getTabNameWithStatus(this.$el.dataset.tab);
   },
 
   async activateTabById(tabId) {
@@ -41,6 +46,11 @@ const monacoEditor = {
     return this.tabs[tabId].isActive;
   },
 
+  getTabNameWithStatus(tabId) {
+    const tab = this.tabs[tabId];
+    return `${tab.name}${this.isSaved && tab.isActive ? ' <span class="text-success">✓</span>' : ""}`;
+  },
+
   tabState: {
     [":class"]() {
       return { active: this.isTabActive(this.$el.dataset.tab) };
@@ -61,11 +71,13 @@ const monacoEditor = {
     this.resizeOutputPanel();
 
     // requirements.txt
-    const requirements = await this.loadContent("requirements.txt");
-    let pyodide = await xlwings.pyodideReadyPromise;
-    const micropip = pyodide.pyimport("micropip");
-    packages = requirements.split("\n").filter(Boolean);
-    await micropip.install(packages);
+    if (config.onLite) {
+      const requirements = await this.loadContent("requirements.txt");
+      let pyodide = await xlwings.pyodideReadyPromise;
+      const micropip = pyodide.pyimport("micropip");
+      packages = requirements.split("\n").filter(Boolean);
+      await micropip.install(packages);
+    }
 
     require.config({
       paths: {
@@ -86,6 +98,9 @@ const monacoEditor = {
       // Autosave
       let saveTimeout;
       editorInstance.onDidChangeModelContent(() => {
+        // Hide saved indicator when editing starts
+        this.isSaved = false;
+
         // Clear previous timeout
         clearTimeout(saveTimeout);
 
@@ -147,14 +162,17 @@ const monacoEditor = {
       settings.add(filename, content);
       await context.sync();
       console.log(`${filename} stored`);
+      this.isSaved = true;
     });
 
     // Install requirements.txt TODO: factor out
-    if (filename === "requirements.txt") {
-      let pyodide = await xlwings.pyodideReadyPromise;
-      const micropip = pyodide.pyimport("micropip");
-      packages = content.split("\n").filter(Boolean);
-      await micropip.install(packages);
+    if (config.onLite) {
+      if (filename === "requirements.txt") {
+        let pyodide = await xlwings.pyodideReadyPromise;
+        const micropip = pyodide.pyimport("micropip");
+        packages = content.split("\n").filter(Boolean);
+        await micropip.install(packages);
+      }
     }
   },
 

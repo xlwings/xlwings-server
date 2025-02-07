@@ -6,7 +6,7 @@
 
 {% block content %}
   <div class="container-fluid p-0 d-flex flex-column vh-100">
-    <h1 class="my-3 px-3">xlwings Lite</h1>
+    <h1 class="my-3 px-3">xlwings Lite <span class="badge bg-warning text-dark">Preview</span></h1>
 
     <div x-data="monacoEditor" class="d-flex flex-column flex-grow-1">
       <div class="ps-3 pb-3">
@@ -17,12 +17,19 @@
       {# Tabs #}
       <ul class="nav nav-tabs">
         <li class="nav-item">
-          <a x-bind="tabState" data-tab="main" class="nav-link active" href="#" aria-current="page" @click="activateTab"
+          <a
+            x-bind="tabState"
+            x-html="tabText"
+            data-tab="main"
+            class="nav-link active"
+            href="#"
+            aria-current="page"
+            @click="activateTab"
             >main.py</a
           >
         </li>
         <li class="nav-item">
-          <a x-bind="tabState" data-tab="requirements" class="nav-link" href="#" @click="activateTab"
+          <a x-bind="tabState" x-html="tabText" data-tab="requirements" class="nav-link" href="#" @click="activateTab"
             >requirements.txt</a
           >
         </li>
