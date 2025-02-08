@@ -69,6 +69,12 @@ async function initPyodide() {
     );
     const liteCustomScriptsCall = pyodide.globals.get("custom_scripts_call");
     const getXlwingsScripts = pyodide.globals.get("get_xlwings_scripts");
+    globalThis.liteCustomFunctionsMeta = pyodide.globals.get(
+      "custom_functions_meta",
+    );
+    globalThis.liteCustomFunctionsCode = pyodide.globals.get(
+      "custom_functions_code",
+    );
     // You can't simply export custom_functions_call as it will be null when used in
     // custom-functions-code.js (it's only assigned the function here).
     globalThis.liteCustomFunctionsCall = liteCustomFunctionsCall;

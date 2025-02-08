@@ -164,7 +164,7 @@ async function base() {
     caller_address: `${officeApiClient}[${workbookName}]${invocation.address}`, // not available for streaming functions
     culture_info_name: await xlwings.getCultureInfoName(),
     date_format: await xlwings.getDateFormat(),
-    version: "placeholder_xlwings_version",
+    version: "0.33.6",
     runtime: runtime,
   };
 
@@ -255,8 +255,9 @@ async function makeServerCall(body) {
 
 async function makeLiteCall(body) {
   await xlwings.pyodideReadyPromise;
+  let module_str = globalThis.editorInstance.getValue();
   try {
-    let result = await globalThis.liteCustomFunctionsCall(body);
+    let result = await globalThis.liteCustomFunctionsCall(body, module_str);
     if (result.error) {
       console.error(result.details);
       showError(result.error);

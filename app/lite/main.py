@@ -6,13 +6,15 @@ import sys
 import contextlib
 from io import StringIO
 import ast
+import inspect
+from textwrap import dedent
 
 try:
     # Via xlwings Server
     from .. import custom_functions, custom_scripts
 except ImportError:
     # xlwings Lite
-    import custom_functions
+    import custom_functions  # noqa: F401
     import custom_scripts
 import js  # type: ignore
 import pyodide_js  # type: ignore
@@ -20,6 +22,7 @@ import xlwings as xw
 from pyodide.ffi import to_js  # type: ignore
 from xlwings.server import (
     custom_functions_call as xlwings_custom_functions_call,
+    custom_functions_meta as xlwings_custom_functions_meta,
     custom_scripts_call as xlwings_custom_scripts_call,
 )
 
@@ -52,12 +55,24 @@ print(f"Pyodide version: {pyodide_js.version}")
 print(f"xlwings version: {xw.__version__}")
 
 
-async def custom_functions_call(data):
+async def custom_functions_call(data, module_string=None):
+    module_name = "main"  # TODO
+    if module_string:
+        spec = importlib.util.spec_from_loader(
+            module_name,
+            loader=None,
+        )
+        module = importlib.util.module_from_spec(spec)
+        exec(module_string, module.__dict__)
+        sys.modules[module_name] = module
+    else:
+        module = custom_scripts
+
     data = data.to_py()
     try:
         result = await xlwings_custom_functions_call(
             data,
-            module=custom_functions,
+            module=module,
         )
     except Exception as e:
         result = {"error": str(e), "details": traceback.format_exc()}
@@ -66,7 +81,6 @@ async def custom_functions_call(data):
 
 
 async def custom_scripts_call(data, script_name, module_string=None):
-    print(module_string)
     module_name = "main"  # TODO
     html_output = HtmlOutput("output")
     if module_string:
@@ -102,7 +116,10 @@ async def custom_scripts_call(data, script_name, module_string=None):
 
 
 def get_xlwings_scripts(code_string):
-    tree = ast.parse(code_string)
+    try:
+        tree = ast.parse(code_string)
+    except:  # noqa: E722
+        return to_js([])
     xlwings_functions = []
 
     for node in ast.walk(tree):
@@ -114,3 +131,52 @@ def get_xlwings_scripts(code_string):
                     break
 
     return to_js(xlwings_functions)
+
+
+def custom_functions_meta(module_string):
+    try:
+        module_name = "main"
+        spec = importlib.util.spec_from_loader(
+            module_name,
+            loader=None,
+        )
+        module = importlib.util.module_from_spec(spec)
+        exec(module_string, module.__dict__)
+        sys.modules[module_name] = module
+    except:  # noqa: E722
+        return to_js({}, dict_converter=js.Object.fromEntries)
+    return to_js(
+        xlwings_custom_functions_meta(module), dict_converter=js.Object.fromEntries
+    )
+
+
+def custom_functions_code(module_string):
+    # TODO: factor out
+    try:
+        module_name = "main"
+        spec = importlib.util.spec_from_loader(
+            module_name,
+            loader=None,
+        )
+        module = importlib.util.module_from_spec(spec)
+        exec(module_string, module.__dict__)
+        sys.modules[module_name] = module
+    except:  # noqa: E722
+        return ""
+    js = ""
+    for name, obj in inspect.getmembers(module):
+        if hasattr(obj, "__xlfunc__"):
+            xlfunc = obj.__xlfunc__
+            func_name = xlfunc["name"]
+            streaming = "true" if inspect.isasyncgenfunction(obj) else "false"
+            js += dedent(
+                f"""\
+            async function {func_name}() {{
+                let args = ["{func_name}", {streaming}]
+                args.push.apply(args, arguments);
+                return await base.apply(null, args);
+            }}
+            CustomFunctions.associate("{func_name.upper()}", {func_name});
+            """
+            )
+    return js

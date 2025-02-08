@@ -1,6 +1,3 @@
-// Must not be reactive, i.e., must not be inside the monacoEditor component
-let editorInstance = null;
-
 const monacoEditor = {
   isSaved: false,
   tabs: {
@@ -99,13 +96,16 @@ const monacoEditor = {
     });
 
     require(["vs/editor/editor.main"], () => {
-      editorInstance = monaco.editor.create(this.$refs.editorContainer, {
-        value: "",
-        language: "python",
-        theme: "vs-light",
-        minimap: { enabled: false },
-        automaticLayout: true,
-      });
+      globalThis.editorInstance = monaco.editor.create(
+        this.$refs.editorContainer,
+        {
+          value: "",
+          language: "python",
+          theme: "vs-light",
+          minimap: { enabled: false },
+          automaticLayout: true,
+        },
+      );
       this.activateTabById("main");
 
       // Autosave
@@ -197,7 +197,21 @@ const monacoEditor = {
       this.isSaved = true;
       this.updateScripts(content);
     });
-
+    if (filename !== "requirements.txt") {
+      meta = globalThis.liteCustomFunctionsMeta(content);
+      rendered_custom_functions_code =
+        globalThis.liteCustomFunctionsCode(content);
+      await reloadCustomFunctions(
+        JSON.stringify(meta),
+        rendered_custom_functions_code,
+      );
+      let pyodide = await xlwings.pyodideReadyPromise;
+      await pyodide.FS.writeFile(
+        "custom-functions-wrappers.js",
+        globalThis.liteCustomFunctionsCode(content),
+      );
+      loadFSScriptToDOM("custom-functions-wrappers.js");
+    }
     // Install requirements.txt TODO: factor out
     if (config.onLite) {
       if (filename === "requirements.txt") {
@@ -290,3 +304,27 @@ const monacoEditor = {
   },
 };
 registerAlpineComponent("monacoEditor", monacoEditor);
+
+async function loadFSScriptToDOM(scriptPath) {
+  let pyodide = await xlwings.pyodideReadyPromise;
+  // Get content from virtual filesystem
+  const content = await pyodide.FS.readFile(scriptPath, { encoding: "utf8" });
+
+  // Create blob URL
+  const blob = new Blob([content], { type: "application/javascript" });
+  const blobUrl = URL.createObjectURL(blob);
+
+  // Remove existing script if any
+  const oldScript = document.querySelector("script[data-fs-script]");
+  if (oldScript) {
+    URL.revokeObjectURL(oldScript.src);
+    oldScript.remove();
+  }
+
+  // Create and append new script
+  const script = document.createElement("script");
+  script.src = blobUrl;
+  script.setAttribute("data-fs-script", "");
+  script.defer = true;
+  document.head.appendChild(script);
+}

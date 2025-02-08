@@ -1,9 +1,15 @@
+- disable examples
+- allow to run whole module instead of single script
+- global function namespace
+- redirect stdout for custom functions (for print)
 - fix datetime bug in xlwings
 - store pyodide version in xml
 - only store editor content if not empty/default
-- Enable custom functions
 - 3rd party licenses
+- requirements.txt file vs editor
+- test deployed (without dev server)
 
+- Don't send full book
 - Run script via Keyboard shortcut
 - add polars support to xlwings (narwahls?)
 - multiple modules
@@ -11,7 +17,6 @@
 - make it CSP Header compliant
 - Flush logging between runs, weird interaction when used with print
 - allow to import script/func from top-level instead of xlwings.server
-- Don't send full book
 - Ability to choose Pyodide version
 - allow to upload files or access local folder
 - Pyodide version handling
@@ -24,3 +29,4 @@
 - allow to remove all xlwings content from workbook
 - is it a problem that everything is running in the same Pyodide session?
 - use a worker
+- handle DuplicateName when re-registring custom functions
