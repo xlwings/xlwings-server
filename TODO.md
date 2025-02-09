@@ -1,5 +1,4 @@
 - fix datetime bug in xlwings
-- disable examples
 - allow to run whole module instead of single script
 - store pyodide version in xml
 - only store editor content if not empty/default

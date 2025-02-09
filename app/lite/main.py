@@ -128,7 +128,7 @@ def get_xlwings_scripts(code_string):
     xlwings_functions = []
 
     for node in ast.walk(tree):
-        if isinstance(node, ast.FunctionDef):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             for decorator in node.decorator_list:
                 decorator_str = ast.unparse(decorator)
                 if "script" in decorator_str:
