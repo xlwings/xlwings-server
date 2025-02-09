@@ -9,7 +9,7 @@ const monacoEditor = {
     requirements: {
       name: "requirements.txt",
       isActive: false,
-      defaultContent: "# Add your requirements here\n",
+      defaultContent: "",
     },
   },
 
@@ -20,9 +20,7 @@ const monacoEditor = {
   scripts: [],
   selectedScript: "",
   scriptButtonText() {
-    return this.scripts.length
-      ? `▶ ${this.selectedScript}`
-      : "▶ Select Script";
+    return this.scripts.length ? `${this.selectedScript}` : "(no script)";
   },
   selectScript() {
     this.selectedScript = this.$el.textContent;
@@ -64,7 +62,9 @@ const monacoEditor = {
       return { active: this.isTabActive(this.$el.dataset.tab) };
     },
   },
-
+  buttonDisabled() {
+    return this.isRunning || this.scripts.length === 0;
+  },
   isRunning: false,
   spinner: {
     [":class"]() {
@@ -193,10 +193,12 @@ const monacoEditor = {
 
   async saveContent(filename) {
     const content = editorInstance.getValue();
+    let pyodide = await xlwings.pyodideReadyPromise;
     // Store
     await Excel.run(async (context) => {
       const settings = context.workbook.settings;
       settings.add(filename, content);
+      settings.add("pyodideVersion", pyodide.version);
       await context.sync();
       console.log(`${filename} stored`);
       this.isSaved = true;
@@ -210,7 +212,6 @@ const monacoEditor = {
         JSON.stringify(meta),
         rendered_custom_functions_code,
       );
-      let pyodide = await xlwings.pyodideReadyPromise;
       await pyodide.FS.writeFile(
         "custom-functions-wrappers.js",
         globalThis.liteCustomFunctionsCode(content),
@@ -220,8 +221,6 @@ const monacoEditor = {
     // Install requirements.txt TODO: factor out
     if (config.onLite) {
       if (filename === "requirements.txt") {
-        let pyodide = await xlwings.pyodideReadyPromise;
-
         // Setup output redirect
         const outputDiv = document.querySelector("#output");
         outputDiv.innerHTML = "";

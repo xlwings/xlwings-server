@@ -1,6 +1,4 @@
 - fix datetime bug in xlwings
-- allow to run whole module instead of single script
-- store pyodide version in xml
 - only store editor content if not empty/default
 - requirements.txt file vs editor
 - own repo
@@ -29,3 +27,4 @@
 - is it a problem that everything is running in the same Pyodide session?
 - use a worker
 - handle DuplicateName when re-registring custom functions
+- allow to run whole module instead of single script?

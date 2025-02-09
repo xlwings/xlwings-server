@@ -13,7 +13,8 @@
         {# Run button #}
         <div class="btn-group">
           {# Run button #}
-          <button type="button" class="btn btn-primary btn-sm ps-4 pe-1" @click="run" :disabled="isRunning">
+          <button type="button" class="btn btn-primary btn-sm ps-4 pe-1" @click="run" :disabled="buttonDisabled">
+            <span class="me-1">▶</span>
             <span x-text="scriptButtonText"></span>
             <span x-bind="spinner" class="spinner-border spinner-border-sm"></span>
           </button>
@@ -22,7 +23,8 @@
             type="button"
             class="btn btn-primary btn-sm dropdown-toggle dropdown-toggle-split"
             data-bs-toggle="dropdown"
-            aria-expanded="false">
+            aria-expanded="false"
+            :disabled="buttonDisabled">
             <span class="visually-hidden">Toggle Dropdown</span>
           </button>
           <ul class="dropdown-menu">
@@ -61,7 +63,7 @@
         </div>
         <div class="resizer" x-ref="resizer"></div>
         <div x-ref="output-container" style="height: 150px;" class="d-flex flex-column">
-          <div class="px-3 py-2 flex-grow-1" id="output" x-ref="output">Output Console</div>
+          <div class="px-3 py-2 flex-grow-1" id="output" x-ref="output"></div>
         </div>
       </div>
     </div>

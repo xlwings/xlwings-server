@@ -50,9 +50,14 @@ class HtmlOutput:
 
 
 # Print Python and Pyodide versions
-print(f"Python version: {platform.python_version()}")
-print(f"Pyodide version: {pyodide_js.version}")
-print(f"xlwings version: {xw.__version__}")
+html_output = HtmlOutput("output")
+with (
+    contextlib.redirect_stdout(html_output),
+    contextlib.redirect_stderr(html_output),
+):
+    print(
+        f"Python {platform.python_version()} | Pyodide {pyodide_js.version} | xlwings {xw.__version__}"
+    )
 
 
 async def custom_functions_call(data, module_string=None):
