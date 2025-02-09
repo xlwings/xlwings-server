@@ -156,9 +156,12 @@ const monacoEditor = {
     try {
       return await Excel.run(async (context) => {
         const settings = context.workbook.settings;
-        const content = settings.getItem(filename);
+        const content = settings.getItemOrNullObject(filename);
         content.load("value");
         await context.sync();
+        if (content.isNullObject) {
+          return null;
+        }
         // Update scripts after loading content
         if (content.value) {
           this.updateScripts(content.value);
