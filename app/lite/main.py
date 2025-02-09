@@ -56,6 +56,7 @@ print(f"xlwings version: {xw.__version__}")
 
 
 async def custom_functions_call(data, module_string=None):
+    html_output = HtmlOutput("output")
     module_name = "main"  # TODO
     if module_string:
         spec = importlib.util.spec_from_loader(
@@ -70,10 +71,14 @@ async def custom_functions_call(data, module_string=None):
 
     data = data.to_py()
     try:
-        result = await xlwings_custom_functions_call(
-            data,
-            module=module,
-        )
+        with (
+            contextlib.redirect_stdout(html_output),
+            contextlib.redirect_stderr(html_output),
+        ):
+            result = await xlwings_custom_functions_call(
+                data,
+                module=module,
+            )
     except Exception as e:
         result = {"error": str(e), "details": traceback.format_exc()}
     # Note: converts None to undefined

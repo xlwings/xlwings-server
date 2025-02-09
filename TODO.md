@@ -1,15 +1,13 @@
-- redirect stdout for custom functions (for print)
 - fix datetime bug in xlwings
-- global function namespace
 - disable examples
 - allow to run whole module instead of single script
 - store pyodide version in xml
 - only store editor content if not empty/default
-- 3rd party licenses
 - requirements.txt file vs editor
-- test deployed (without dev server)
 - own repo
-- enable paste into editor (sort of works via right-click but not Cmd+V)
+- remove global function namespace
+- requirements.txt: ignore #comments
+- 3rd party licenses
 
 - Don't send full book
 - Run script via Keyboard shortcut

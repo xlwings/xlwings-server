@@ -20,7 +20,9 @@ const monacoEditor = {
   scripts: [],
   selectedScript: "",
   scriptButtonText() {
-    return this.scripts.length ? this.selectedScript : "Select Script";
+    return this.scripts.length
+      ? `▶ ${this.selectedScript}`
+      : "▶ Select Script";
   },
   selectScript() {
     this.selectedScript = this.$el.textContent;
