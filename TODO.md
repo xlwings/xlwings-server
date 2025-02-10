@@ -1,5 +1,7 @@
-- only store editor content if not empty/default
+- all optional xlwings imports have same issue as matplotlib
 - requirements.txt file vs editor
+
+- only store editor content if not empty/default
 - requirements.txt: ignore #comments
 - own repo
 - remove global function namespace

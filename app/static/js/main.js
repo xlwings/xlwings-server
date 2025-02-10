@@ -289,9 +289,57 @@ const monacoEditor = {
 
     try {
       let code = editorInstance.getValue();
-      await pyodide.runPythonAsync(
-        "import pyodide_http;pyodide_http.patch_all()",
-      );
+      // TODO: put into a file
+      await pyodide.runPythonAsync(`
+        # Fixes pd.read_csv()
+        import pyodide_http;pyodide_http.patch_all()
+
+        # Fixes xlwings because Matplotlib isn't installed yet when imported in main.py
+        import os
+        import sys
+        import tempfile
+        import uuid
+        import xlwings
+
+        try:
+            import matplotlib as mpl
+            import matplotlib.figure  # noqa: F401
+            import matplotlib.pyplot as plt
+        except ImportError:
+            mpl = None
+
+        def process_image(image, format, export_options):
+            """Returns filename and is_temp_file"""
+            if isinstance(image, str):
+                return image, False
+            elif mpl and isinstance(image, mpl.figure.Figure):
+                image_type = "mpl"
+            else:
+                raise TypeError("Don't know what to do with that image object")
+
+            if export_options is None:
+                export_options = {"bbox_inches": "tight", "dpi": 200}
+
+            if format == "vector":
+                if sys.platform.startswith("darwin"):
+                    format = "pdf"
+                else:
+                    format = "svg"
+
+            temp_dir = os.path.realpath(tempfile.gettempdir())
+            filename = os.path.join(temp_dir, str(uuid.uuid4()) + "." + format)
+
+            if image_type == "mpl":
+                canvas = mpl.backends.backend_agg.FigureCanvas(image)
+                canvas.draw()
+                image.savefig(filename, **export_options)
+                plt.close(image)
+            elif image_type == "plotly":
+                image.write_image(filename)
+            return filename, True
+
+        xlwings.utils.process_image = process_image
+        `);
       await xlwings.runPython("", {
         ...{},
         scriptName: this.selectedScript,
