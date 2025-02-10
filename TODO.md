@@ -1,30 +1,29 @@
-- fix datetime bug in xlwings
 - only store editor content if not empty/default
 - requirements.txt file vs editor
+- requirements.txt: ignore #comments
 - own repo
 - remove global function namespace
-- requirements.txt: ignore #comments
-- 3rd party licenses
+- allow to import script/func from top-level instead of xlwings.server
 
 - Don't send full book
+- print is only shown in Output after the run
+- allow to access local folder
+- Intellisense with Pyright?
+- black formatting (ruff currently not supported)
+- Add Terminal
+
 - Run script via Keyboard shortcut
 - add polars support to xlwings (narwahls?)
 - multiple modules
-- print is only shown in Output after the run
 - make it CSP Header compliant
 - Flush logging between runs, weird interaction when used with print
-- allow to import script/func from top-level instead of xlwings.server
 - Ability to choose Pyodide version
-- allow to upload files or access local folder
-- Pyodide version handling
-- Intellisense with Pyright?
-- ruff formatting
 - Probably better to show error in Output console with Traceback
-- Add Terminal
 - dark mode
 - AI integration
 - allow to remove all xlwings content from workbook
 - is it a problem that everything is running in the same Pyodide session?
 - use a worker
-- handle DuplicateName when re-registring custom functions
+- handle DuplicateName when re-registering custom functions
 - allow to run whole module instead of single script?
+- 3rd party licenses?
