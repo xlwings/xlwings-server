@@ -53,7 +53,7 @@
    git remote add origin <URL>
    ```
 
-6. Set your local branch to track your new origin:
+6. Push your local branch to your new origin:
 
    ```text
    git push -u origin main
