@@ -40,10 +40,11 @@ class HtmlOutput:
         self.buffer = StringIO()
 
     def write(self, text):
-        # Write to buffer and update div content
         self.buffer.write(text)
         content = self.buffer.getvalue()
-        js.document.getElementById(self.div_id).innerHTML = f"<pre>{content}</pre>"
+        div = js.document.getElementById(self.div_id)
+        if div:
+            js.document.getElementById(self.div_id).innerHTML = f"<pre>{content}</pre>"
 
     def flush(self):
         pass
@@ -61,17 +62,28 @@ if settings.is_official_lite_addin:
         )
 
 
+def create_module_from_string(module_string, module_name, html_output):
+    spec = importlib.util.spec_from_loader(
+        module_name,
+        loader=None,
+    )
+    module = importlib.util.module_from_spec(spec)
+    if html_output:
+        with (
+            contextlib.redirect_stdout(html_output),
+            contextlib.redirect_stderr(html_output),
+        ):
+            exec(module_string, module.__dict__)
+    else:
+        exec(module_string, module.__dict__)
+    sys.modules[module_name] = module
+    return module
+
+
 async def custom_functions_call(data, module_string=None):
-    module_name = "main"  # TODO
     if module_string:
         html_output = HtmlOutput("output")
-        spec = importlib.util.spec_from_loader(
-            module_name,
-            loader=None,
-        )
-        module = importlib.util.module_from_spec(spec)
-        exec(module_string, module.__dict__)
-        sys.modules[module_name] = module
+        module = create_module_from_string(module_string, "main")
     else:
         module = custom_functions
 
@@ -98,23 +110,9 @@ async def custom_functions_call(data, module_string=None):
 
 
 async def custom_scripts_call(data, script_name, module_string=None):
-    module_name = "main"  # TODO
     if module_string:
         html_output = HtmlOutput("output")
-        spec = importlib.util.spec_from_loader(
-            module_name,
-            loader=None,
-        )
-        module = importlib.util.module_from_spec(spec)
-        if module_string:
-            with (
-                contextlib.redirect_stdout(html_output),
-                contextlib.redirect_stderr(html_output),
-            ):
-                exec(module_string, module.__dict__)
-        else:
-            exec(module_string, module.__dict__)
-        sys.modules[module_name] = module
+        module = create_module_from_string(module_string, "main", html_output)
     else:
         module = custom_scripts
 
@@ -162,14 +160,7 @@ def get_xlwings_scripts(code_string):
 
 def custom_functions_meta(module_string):
     try:
-        module_name = "main"
-        spec = importlib.util.spec_from_loader(
-            module_name,
-            loader=None,
-        )
-        module = importlib.util.module_from_spec(spec)
-        exec(module_string, module.__dict__)
-        sys.modules[module_name] = module
+        module = create_module_from_string(module_string, "main")
     except:  # noqa: E722
         return to_js({}, dict_converter=js.Object.fromEntries)
     return to_js(
@@ -178,16 +169,8 @@ def custom_functions_meta(module_string):
 
 
 def custom_functions_code(module_string):
-    # TODO: factor out
     try:
-        module_name = "main"
-        spec = importlib.util.spec_from_loader(
-            module_name,
-            loader=None,
-        )
-        module = importlib.util.module_from_spec(spec)
-        exec(module_string, module.__dict__)
-        sys.modules[module_name] = module
+        module = create_module_from_string(module_string, "main")
     except:  # noqa: E722
         return ""
     js = ""
