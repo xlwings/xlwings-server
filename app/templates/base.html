@@ -51,10 +51,9 @@
       </script>
       {# prettier-ignore-end #}
       <script src="{{ url_for('static', path='/js/auth.js') }}"></script>
-      {# Load Custom Functions #}
       {% block custom_functions_code %}
         <script src="{{ url_for('custom_functions_code') }}" defer></script>
-        {% if settings.environment == "dev" %}
+        {% if settings.environment == "dev" or settings.enable_lite %}
           <script src="{{ url_for('static', path='/js/core/reload-custom-functions.js') }}" defer></script>
         {% endif %}
       {% endblock custom_functions_code %}

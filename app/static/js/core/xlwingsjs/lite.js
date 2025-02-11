@@ -63,14 +63,21 @@ async function initPyodide() {
     let mainText = pyodide.FS.readFile("./main.py", { encoding: "utf8" });
     await pyodide.runPythonAsync(mainText);
     // Functions
-    const liteCustomFunctionsCall = pyodide.globals.get(
+    // You can't simply export them as the will be null when used in
+    // custom-functions-code.js (it's only assigned the function here).
+    globalThis.liteCustomFunctionsCall = pyodide.globals.get(
       "custom_functions_call",
     );
-    const liteCustomScriptsCall = pyodide.globals.get("custom_scripts_call");
-    // You can't simply export custom_functions_call as it will be null when used in
-    // custom-functions-code.js (it's only assigned the function here).
-    globalThis.liteCustomFunctionsCall = liteCustomFunctionsCall;
-    globalThis.liteCustomScriptsCall = liteCustomScriptsCall;
+    globalThis.liteCustomScriptsCall = pyodide.globals.get(
+      "custom_scripts_call",
+    );
+    globalThis.getXlwingsScripts = pyodide.globals.get("get_xlwings_scripts");
+    globalThis.liteCustomFunctionsMeta = pyodide.globals.get(
+      "custom_functions_meta",
+    );
+    globalThis.liteCustomFunctionsCode = pyodide.globals.get(
+      "custom_functions_code",
+    );
   } catch (err) {
     console.log(err);
   }

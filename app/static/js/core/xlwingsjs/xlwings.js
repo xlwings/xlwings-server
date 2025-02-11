@@ -83,6 +83,7 @@ export async function runPython(
     exclude = "",
     headers = {},
     errorDisplayMode = "alert",
+    moduleString = "",
   } = {},
 ) {
   await Office.onReady();
@@ -101,7 +102,11 @@ export async function runPython(
       let rawData;
       if (config.onLite) {
         await pyodideReadyPromise;
-        rawData = await globalThis.liteCustomScriptsCall(payload, scriptName);
+        rawData = await globalThis.liteCustomScriptsCall(
+          payload,
+          scriptName,
+          moduleString,
+        );
         if (rawData.error) {
           console.error(rawData.details);
           throw new Error(rawData.error);

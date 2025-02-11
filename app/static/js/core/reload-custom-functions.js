@@ -1,4 +1,4 @@
-async function reloadCustomFunctions() {
+async function reloadCustomFunctions(meta = null, code = null) {
   // Unofficial API: https://github.com/OfficeDev/office-js/issues/3486
   // This causes issues when opening a workbook in a running instance of Excel. If
   // Excel is completely closed, it does load the add-in, but not if it is already
@@ -9,23 +9,35 @@ async function reloadCustomFunctions() {
   // the issue, it would make every workbook, which is opened while the add-in is
   // installed, look for the add-in when reopened.
   await Office.onReady();
-  let jsonMetadataString, code;
+  let jsonMetadataString;
+  let functionCode;
 
   if (Office.context.requirements.isSetSupported("CustomFunctions", "1.6")) {
     try {
-      const [metadataResponse, codeResponse] = await Promise.all([
-        fetch(`${config.appPath}/xlwings/custom-functions-meta.json`),
-        fetch(`${config.appPath}/xlwings/custom-functions-code.js`),
-      ]);
+      if (meta && code) {
+        jsonMetadataString = meta;
+        functionCode = code;
+      } else {
+        const [metadataResponse, codeResponse] = await Promise.all([
+          fetch(`${config.appPath}/xlwings/custom-functions-meta.json`),
+          fetch(`${config.appPath}/xlwings/custom-functions-code.js`),
+        ]);
 
-      if (!metadataResponse.ok || !codeResponse.ok) {
-        throw new Error("Failed to fetch custom functions data");
+        if (!metadataResponse.ok || !codeResponse.ok) {
+          throw new Error("Failed to fetch custom functions data");
+        }
+
+        jsonMetadataString = await metadataResponse.text();
+        functionCode = await codeResponse.text();
       }
 
-      jsonMetadataString = await metadataResponse.text();
-      code = await codeResponse.text();
-
-      await Excel.CustomFunctionManager.register(jsonMetadataString, code);
+      await Excel.CustomFunctionManager.register(
+        jsonMetadataString,
+        functionCode,
+      );
+      // console.log(jsonMetadataString)
+      // console.log(functionCode)
+      console.log("Successfully reloaded custom functions!");
     } catch (error) {
       console.error("Error reloading custom functions:", error);
     }
@@ -34,7 +46,7 @@ async function reloadCustomFunctions() {
       await Excel.run(async (context) => {
         Excel.CustomFunctionManager.newObject(context).register(
           jsonMetadataString,
-          code,
+          functionCode,
         );
         await context.sync();
       });
@@ -57,8 +69,10 @@ async function retryReloadCustomFunctions(retries, delay) {
   }
 }
 
-(async () => {
-  const maxRetries = 5;
-  const delay = 100;
-  await retryReloadCustomFunctions(maxRetries, delay);
-})();
+if (!config.isOfficialLiteAddin) {
+  (async () => {
+    const maxRetries = 5;
+    const delay = 100;
+    await retryReloadCustomFunctions(maxRetries, delay);
+  })();
+}

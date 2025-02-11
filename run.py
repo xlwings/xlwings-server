@@ -25,6 +25,7 @@ def create_lite_settings(settings, env_file):
         "XLWINGS_ENVIRONMENT": settings.environment,
         "XLWINGS_ENABLE_TESTS": str(settings.enable_tests).lower(),
         "XLWINGS_FUNCTIONS_NAMESPACE": settings.functions_namespace,
+        "XLWINGS_IS_OFFICIAL_LITE_ADDIN": str(settings.is_official_lite_addin).lower(),
     }
 
     for key, value in settings_map.items():
