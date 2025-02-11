@@ -1,6 +1,3 @@
-- all optional xlwings imports have same issue as matplotlib
-- requirements.txt file vs editor
-
 - only store editor content if not empty/default
 - requirements.txt: ignore #comments
 - own repo
@@ -14,6 +11,7 @@
 - black formatting (ruff currently not supported)
 - Add Terminal
 
+- Show error when initial loading fails instead of spinning forever
 - Run script via Keyboard shortcut
 - add polars support to xlwings (narwahls?)
 - multiple modules
