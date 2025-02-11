@@ -62,7 +62,7 @@ if settings.is_official_lite_addin:
         )
 
 
-def create_module_from_string(module_string, module_name, html_output):
+def create_module_from_string(module_string, module_name, html_output=None):
     spec = importlib.util.spec_from_loader(
         module_name,
         loader=None,
