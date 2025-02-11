@@ -52,6 +52,7 @@ class Settings(BaseSettings):
     environment: Literal["dev", "qa", "uat", "staging", "prod"] = "prod"
     functions_namespace: str = "XLWINGS"
     hostname: Optional[str] = None
+    is_official_lite_addin: Optional[bool] = False
     cdn_pyodide: bool = True
     cdn_officejs: bool = False
     log_level: str = "INFO"
@@ -83,6 +84,7 @@ class Settings(BaseSettings):
             "appPath": self.app_path,
             "xlwingsVersion": self.xlwings_version,
             "onLite": self.enable_lite,
+            "isOfficialLiteAddin": self.is_official_lite_addin,
         }
 
 

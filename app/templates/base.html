@@ -51,16 +51,11 @@
       </script>
       {# prettier-ignore-end #}
       <script src="{{ url_for('static', path='/js/auth.js') }}"></script>
-      {# Load Custom Functions #}
-      {% if settings.environment == "dev" or settings.enable_lite %}
-        <script src="{{ url_for('static', path='/js/core/reload-custom-functions.js') }}" defer></script>
-      {% endif %}
-      {# Examples #}
-      {% if settings.enable_examples %}
-        <script src="{{ url_for('static', path='/js/core/examples.js') }}" defer></script>
-      {% endif %}
       {% block custom_functions_code %}
         <script src="{{ url_for('custom_functions_code') }}" defer></script>
+        {% if settings.environment == "dev" or settings.enable_lite %}
+          <script src="{{ url_for('static', path='/js/core/reload-custom-functions.js') }}" defer></script>
+        {% endif %}
       {% endblock custom_functions_code %}
       {# Bootstrap with the xlwings theme #}
       {% if settings.enable_bootstrap %}
@@ -69,6 +64,10 @@
           href="{{ url_for('static', path='/vendor/bootstrap-xlwings/dist/bootstrap-xlwings.min.css') }}" />
         <script src="{{ url_for('static', path='/vendor/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
         <script src="{{ url_for('static', path='/js/core/bootstrap-customizations.js') }}" defer></script>
+      {% endif %}
+      {# Examples #}
+      {% if settings.enable_examples %}
+        <script src="{{ url_for('static', path='/js/core/examples.js') }}" defer></script>
       {% endif %}
       {# Own #}
       <link rel="stylesheet" href="{{ url_for('static', path='/css/core.css') }}" />

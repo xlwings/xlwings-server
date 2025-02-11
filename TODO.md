@@ -12,7 +12,7 @@
 - Add Terminal
 
 - Show error when initial loading fails instead of spinning forever
-- Run script via Keyboard shortcut
+- Run script via Keyboard shortcut Cmd/Ctrl+Enter
 - add polars support to xlwings (narwahls?)
 - multiple modules
 - make it CSP Header compliant

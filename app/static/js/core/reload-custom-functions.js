@@ -55,3 +55,24 @@ async function reloadCustomFunctions(meta = null, code = null) {
     }
   }
 }
+
+async function retryReloadCustomFunctions(retries, delay) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      await reloadCustomFunctions();
+      // console.log(`Reloaded custom functions code at attempt ${i + 1}`);
+      return;
+    } catch (error) {
+      if (i === retries - 1) throw error;
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+}
+
+if (!config.isOfficialLiteAddin) {
+  (async () => {
+    const maxRetries = 5;
+    const delay = 100;
+    await retryReloadCustomFunctions(maxRetries, delay);
+  })();
+}

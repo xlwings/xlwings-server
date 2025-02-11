@@ -1,4 +1,4 @@
-import config  # noqa: F401, I001 Must be first import to load env vars
+from config import settings  # noqa: F401, I001 Must be first import to load env vars
 import platform
 import traceback
 import importlib.util
@@ -14,7 +14,7 @@ try:
     from .. import custom_functions, custom_scripts
 except ImportError:
     # xlwings Lite
-    import custom_functions  # noqa: F401
+    import custom_functions
     import custom_scripts
 import js  # type: ignore
 import pyodide_js  # type: ignore
@@ -50,20 +50,21 @@ class HtmlOutput:
 
 
 # Print Python and Pyodide versions
-html_output = HtmlOutput("output")
-with (
-    contextlib.redirect_stdout(html_output),
-    contextlib.redirect_stderr(html_output),
-):
-    print(
-        f"Python {platform.python_version()} | Pyodide {pyodide_js.version} | xlwings {xw.__version__}"
-    )
+if settings.is_official_lite_addin:
+    html_output = HtmlOutput("output")
+    with (
+        contextlib.redirect_stdout(html_output),
+        contextlib.redirect_stderr(html_output),
+    ):
+        print(
+            f"Python {platform.python_version()} | Pyodide {pyodide_js.version} | xlwings {xw.__version__}"
+        )
 
 
 async def custom_functions_call(data, module_string=None):
-    html_output = HtmlOutput("output")
     module_name = "main"  # TODO
     if module_string:
+        html_output = HtmlOutput("output")
         spec = importlib.util.spec_from_loader(
             module_name,
             loader=None,
@@ -72,14 +73,20 @@ async def custom_functions_call(data, module_string=None):
         exec(module_string, module.__dict__)
         sys.modules[module_name] = module
     else:
-        module = custom_scripts
+        module = custom_functions
 
     data = data.to_py()
     try:
-        with (
-            contextlib.redirect_stdout(html_output),
-            contextlib.redirect_stderr(html_output),
-        ):
+        if module_string:
+            with (
+                contextlib.redirect_stdout(html_output),
+                contextlib.redirect_stderr(html_output),
+            ):
+                result = await xlwings_custom_functions_call(
+                    data,
+                    module=module,
+                )
+        else:
             result = await xlwings_custom_functions_call(
                 data,
                 module=module,
@@ -92,17 +99,20 @@ async def custom_functions_call(data, module_string=None):
 
 async def custom_scripts_call(data, script_name, module_string=None):
     module_name = "main"  # TODO
-    html_output = HtmlOutput("output")
     if module_string:
+        html_output = HtmlOutput("output")
         spec = importlib.util.spec_from_loader(
             module_name,
             loader=None,
         )
         module = importlib.util.module_from_spec(spec)
-        with (
-            contextlib.redirect_stdout(html_output),
-            contextlib.redirect_stderr(html_output),
-        ):
+        if module_string:
+            with (
+                contextlib.redirect_stdout(html_output),
+                contextlib.redirect_stderr(html_output),
+            ):
+                exec(module_string, module.__dict__)
+        else:
             exec(module_string, module.__dict__)
         sys.modules[module_name] = module
     else:
@@ -110,10 +120,17 @@ async def custom_scripts_call(data, script_name, module_string=None):
 
     book = xw.Book(json=data.to_py())
     try:
-        with (
-            contextlib.redirect_stdout(html_output),
-            contextlib.redirect_stderr(html_output),
-        ):
+        if module_string:
+            with (
+                contextlib.redirect_stdout(html_output),
+                contextlib.redirect_stderr(html_output),
+            ):
+                book = await xlwings_custom_scripts_call(
+                    module=module,
+                    script_name=script_name,
+                    typehint_to_value={xw.Book: book},
+                )
+        else:
             book = await xlwings_custom_scripts_call(
                 module=module,
                 script_name=script_name,

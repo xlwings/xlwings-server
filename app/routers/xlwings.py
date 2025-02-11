@@ -176,10 +176,5 @@ if settings.enable_lite:
                 scan_directory(settings.base_dir, directory, prepend_dir_name=True)
             )
 
-        # Add custom-functions-code.js (template)
-        files[f"{settings.static_url_path}/js/core/custom-functions-code.js"] = (
-            "./custom-functions-code.js"
-        )
-
         response = {"packages": packages, "files": files}
         return response
