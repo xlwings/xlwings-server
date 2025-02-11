@@ -56,7 +56,7 @@
 6. Set your local branch to track your new origin:
 
    ```text
-   git branch --set-upstream-to=origin/main main
+   git push -u origin main
    ```
 
 7. To reduce future merge conflicts with the help of `.gitattributes`, run:
