@@ -1,71 +1,30 @@
 {% extends "base.html" %}
 
-{% block extra_head %}
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs/loader.min.js"></script>
-{% endblock extra_head %}
-
 {% block content %}
-  <div class="container-fluid p-0 d-flex flex-column vh-100">
-    <h1 class="my-3 px-3">xlwings Lite <span class="badge bg-warning text-dark">Preview</span></h1>
-
-    <div x-data="monacoEditor" class="d-flex flex-column flex-grow-1">
-      <div class="ps-3 pb-3 d-flex align-items-center gap-2">
-        {# Run button #}
-        <div class="btn-group">
-          {# Run button #}
-          <button type="button" class="btn btn-primary btn-sm ps-4 pe-1" @click="run" :disabled="buttonDisabled">
-            <span class="me-1">▶</span>
-            <span x-text="scriptButtonText"></span>
-            <span x-bind="spinner" class="spinner-border spinner-border-sm"></span>
-          </button>
-          {# Script dropdown #}
-          <button
-            type="button"
-            class="btn btn-primary btn-sm dropdown-toggle dropdown-toggle-split"
-            data-bs-toggle="dropdown"
-            aria-expanded="false"
-            :disabled="buttonDisabled">
-            <span class="visually-hidden">Toggle Dropdown</span>
-          </button>
-          <ul class="dropdown-menu">
-            <template x-for="script in scripts" :key="script">
-              <li>
-                <a class="dropdown-item" href="#" x-text="script" @click.prevent="selectScript"> </a>
-              </li>
-            </template>
-          </ul>
-        </div>
-      </div>
-      {# Tabs #}
-      <ul class="nav nav-tabs">
-        <li class="nav-item">
-          <a
-            x-bind="tabState"
-            x-html="tabText"
-            data-tab="main"
-            class="nav-link active"
-            href="#"
-            aria-current="page"
-            @click="activateTab"
-            >main.py</a
-          >
-        </li>
-        <li class="nav-item">
-          <a x-bind="tabState" x-html="tabText" data-tab="requirements" class="nav-link" href="#" @click="activateTab"
-            >requirements.txt</a
-          >
-        </li>
-      </ul>
-      {# Tab content #}
-      <div class="d-flex flex-column flex-grow-1" id="resizable-container">
-        <div class="flex-grow-1" x-ref="editor-pane" role="tabpanel">
-          <div x-ref="editorContainer" class="h-100"></div>
-        </div>
-        <div class="resizer" x-ref="resizer"></div>
-        <div x-ref="output-container" style="height: 150px;" class="d-flex flex-column">
-          <div class="px-3 py-2 flex-grow-1" id="output" x-ref="output"></div>
-        </div>
-      </div>
+  <div class="container-fluid pt-3 ps-3">
+    <h1>Example Task Pane</h1>
+    <div class="mb-3 d-flex flex-column gap-2">
+      <button xw-click="hello_world" xw-config='{"exclude": "MySheet"}' class="btn btn-primary btn-sm" type="button">
+        Write 'Hello/Bye xlwings!' to A1
+      </button>
+      <button
+        xw-click="setup_custom_functions"
+        xw-config='{"exclude": "MySheet"}'
+        class="btn btn-primary btn-sm"
+        type="button">
+        Insert sheet with custom functions
+      </button>
+      {% if not settings.enable_lite %}
+        <button xw-click="show_alert" xw-config='{"exclude": "MySheet"}' class="btn btn-primary btn-sm" type="button">
+          Show an alert
+        </button>
+      {% endif %}
+      <button xw-click="show_plot" xw-config='{"exclude": "MySheet"}' class="btn btn-primary btn-sm" type="button">
+        Insert a Matplotlib Plot
+      </button>
+      <button xw-click="show_error" xw-config='{"exclude": "MySheet"}' class="btn btn-primary btn-sm" type="button">
+        Show an error message
+      </button>
     </div>
   </div>
 {% endblock content %}

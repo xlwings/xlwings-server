@@ -175,6 +175,5 @@ if settings.enable_lite:
             files.update(
                 scan_directory(settings.base_dir, directory, prepend_dir_name=True)
             )
-
         response = {"packages": packages, "files": files}
         return response
