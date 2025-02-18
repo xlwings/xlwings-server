@@ -22,7 +22,7 @@ colorama==0.4.6 ; platform_system == 'Windows'
     # via click
 croniter==6.0.0
     # via -r requirements-core.in
-cryptography==44.0.0
+cryptography==44.0.1
     # via joserfc
 fastapi-slim==0.115.8
     # via -r requirements-core.in
@@ -103,7 +103,7 @@ uvloop==0.21.0 ; sys_platform != 'win32'
     # via -r requirements-core.in
 wsproto==1.2.0
     # via simple-websocket
-xlwings==0.33.7
+xlwings==0.33.9
     # via -r requirements-core.in
 
 # The following packages were excluded from the output:
