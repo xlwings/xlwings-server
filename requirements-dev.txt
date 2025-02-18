@@ -42,7 +42,7 @@ colorama==0.4.6 ; sys_platform == 'win32' or platform_system == 'Windows'
     #   pytest
 croniter==6.0.0
     # via -r requirements.txt
-cryptography==44.0.0
+cryptography==44.0.1
     # via
     #   -r requirements.txt
     #   joserfc
@@ -195,7 +195,7 @@ uvicorn==0.34.0
     # via -r requirements.txt
 uvloop==0.21.0 ; sys_platform != 'win32'
     # via -r requirements.txt
-virtualenv==20.29.1
+virtualenv==20.29.2
     # via pre-commit
 watchfiles==1.0.4
     # via -r requirements-dev.in
@@ -203,7 +203,7 @@ wsproto==1.2.0
     # via
     #   -r requirements.txt
     #   simple-websocket
-xlwings==0.33.7
+xlwings==0.33.9
     # via -r requirements.txt
 
 # The following packages were excluded from the output:

@@ -36,7 +36,7 @@ colorama==0.4.6 ; platform_system == 'Windows'
     #   click
 croniter==6.0.0
     # via -r requirements-core.txt
-cryptography==44.0.0
+cryptography==44.0.1
     # via
     #   -r requirements-core.txt
     #   joserfc
@@ -163,7 +163,7 @@ wsproto==1.2.0
     # via
     #   -r requirements-core.txt
     #   simple-websocket
-xlwings==0.33.7
+xlwings==0.33.9
     # via -r requirements-core.txt
 
 # The following packages were excluded from the output:
