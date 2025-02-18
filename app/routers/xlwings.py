@@ -132,7 +132,7 @@ async def custom_scripts_sheet_buttons():
 if settings.enable_lite:
 
     @router.get("/pyodide.json")
-    async def get_pyscript_config():
+    async def get_pyodide_config():
         # requirements.txt
         packages = (
             Path(settings.base_dir / "lite" / "requirements.txt")
