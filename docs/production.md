@@ -193,7 +193,7 @@ Often, HTTP servers such as nginx or Cloudflare will add caching headers to the 
 
 Run `python scripts/build_static_files.py` as part of your deployment process. This will add content hashes to the file names and will therefore bust the caching when the content changes. Note that this is already done in the `Dockerfile`.
 
-This, however, will have no effect on files requested by the `manifest.xml`, which is especially critical for xlwings Lite, where every file is a static file. For xlwings Lite deployments, make sure that the following files don't allow caching by adding the the `Cache-Control: public, max-age=0, must-revalidate` header:
+This, however, will have no effect on files requested by the `manifest.xml`, which is especially critical for xlwings Wasm, where every file is a static file. For xlwings Wasm deployments, make sure that the following files don't allow caching by adding the the `Cache-Control: public, max-age=0, must-revalidate` header:
 
 ```
 - .../xlwings/custom-functions-code.js
@@ -201,7 +201,7 @@ This, however, will have no effect on files requested by the `manifest.xml`, whi
 - .../xlwings/taskpane.html
 ```
 
-When you host your xlwings Lite app on Cloudflare Pages, you can achieve this by going to `Your Domain` > `Caching` > `Configuration` > `Browser Cache TTL` setting to `Respect Existing Headers`. You also have to include a file called `_headers` in the root of your deployed directory with the following content:
+When you host your xlwings Wasm app on Cloudflare Pages, you can achieve this by going to `Your Domain` > `Caching` > `Configuration` > `Browser Cache TTL` setting to `Respect Existing Headers`. You also have to include a file called `_headers` in the root of your deployed directory with the following content:
 
 ```
 /xlwings/custom-functions-code.js

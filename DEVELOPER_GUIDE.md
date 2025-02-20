@@ -82,9 +82,9 @@ The VS Code extension prettier requires to set the configuration to `.prettierrc
 
 When debugging the alert/dialog window, you need to open up a separate instance of the dev tools.
 
-## xlwings Lite (Wasm)
+## xlwings Wasm
 
-For the offline usage of Pyodide, the following packages are always required to be copied over from the pyodide release package:
+For the offline usage of Pyodide, the following packages are always required to be copied over from the Pyodide release package:
 
 - micropip
 - packaging

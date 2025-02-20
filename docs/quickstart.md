@@ -32,7 +32,7 @@ You can deploy xlwings Server on any platform that supports Python or Docker. So
 
 There are many more ways how you can deploy to production according to your preferences, see [](index_hosting.md).
 
-If you don't want to run Python on the server, check out [](index_lite.md).
+If you don't want to run Python on the server, check out [](index_wasm.md).
 
 :::
 ::::
@@ -53,4 +53,4 @@ Now you are ready to play around with the provided [examples](examples.md)!
 ## 5. Next steps
 
 - Check out the tutorials on [](custom_functions.md) and [](custom_scripts.md) for more detailed information.
-- If you don't want to run Python on the server, check out [](index_lite.md).
+- If you don't want to run Python on the server, check out [](index_wasm.md).
