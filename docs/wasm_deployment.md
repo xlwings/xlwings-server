@@ -100,4 +100,4 @@ If you want xlwings Wasm to work without connection to the public Internet, you 
 /static/vendor/pyodide/mypackage.whl
 ```
 
-Please also refer to [](lite_development.md#dependencies).
+Please also refer to [](wasm_development.md#dependencies).
