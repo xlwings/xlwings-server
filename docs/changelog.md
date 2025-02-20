@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.10.3 (Feb 20, 2025)
+
+- The `@script`, `@func`, `@ret`, and `@arg` decorators can now be imported directly from `xlwings` instead of `xlwings.server`.
+- Rebranding: what was previously introduced as xlwings Lite is now called xlwings Serverless. xlwings Lite is now the official add-in available in the add-in store, which is built on top of xlwings Serverless.
+- There's a new task pane example showing live form validation with htmx.
+- xlwings Serverless got rid of the PyScript dependency and uses Pyodide directly now.
+- Bug fix: htmx now properly respects the `xw-book="true"` tag.
+- Bug fix: dates weren't formatted correctly with scripts.
+- Upgraded dependencies incl. xlwings to 0.33.9.
+
 ## 0.10.2 (Jan 19, 2025)
 
 - Fixed another issue with multi-range named ranges that caused `This operation is not permitted for the current object` error.
@@ -28,7 +38,7 @@
 
 ## 0.9.0 (Nov 27, 2024)
 
-- Launched xlwings Lite, allowing Python-based Office.js add-ins to be deployed as static websites. These add-ins run Python via WebAssembly (Wasm) in the add-in's browser engine, so Python doesn't need to be installed on neither the server nor the local machine. Learn more at [xlwings Lite](index_lite.md).
+- Launched xlwings Server (Wasm), allowing Python-based Office.js add-ins to be deployed as static websites. These add-ins run Python via WebAssembly (Wasm) in the add-in's browser engine, so Python doesn't need to be installed on neither the server nor the local machine. Learn more at [xlwings Lite](index_lite.md).
 - The `XLWINGS_PUBLIC_ADDIN_STORE` setting is deprecated in favor of `XLWINGS_CDN_OFFICEJS`.
 - More script examples: show an error in the task pane and show a Matplotlib plot.
 - Upgraded dependencies incl. xlwings to 0.33.4.
