@@ -29,6 +29,40 @@ globalThis.xlwings = xlwings;
 // Hook up buttons with the click event upon loading xlwings.js
 document.addEventListener("DOMContentLoaded", init);
 
+function makePostRequest(url, headers, payload) {
+  return new Promise((resolve, reject) => {
+    let xhr = new XMLHttpRequest();
+    // macOS times out after 60s otherwise, see:
+    // https://stackoverflow.com/questions/43789247/excel-for-mac-js-add-in-http-request-timeout
+    //
+    xhr.timeout = 300000; // 5 minutes
+    xhr.open("POST", url, true);
+
+    // Set headers
+    Object.keys(headers).forEach((key) => {
+      xhr.setRequestHeader(key, headers[key]);
+    });
+
+    // Handle response
+    xhr.onload = function () {
+      if (xhr.status !== 200) {
+        reject(xhr.responseText);
+      } else {
+        const rawData = JSON.parse(xhr.responseText);
+        resolve(rawData);
+      }
+    };
+
+    // Handle network errors
+    xhr.onerror = function () {
+      reject("Network error occurred");
+    };
+
+    // Send request
+    xhr.send(JSON.stringify(payload));
+  });
+}
+
 export function init() {
   const elements = document.querySelectorAll("[xw-click]");
   elements.forEach((element) => {
@@ -112,18 +146,10 @@ export async function runPython(
           throw new Error(rawData.error);
         }
       } else {
-        // API call
-        let response = await fetch(url, {
-          method: "POST",
-          headers: headers,
-          body: JSON.stringify(payload),
-        });
-        // Parse JSON response
-        // TODO: align error handling with xlwings Lite
-        if (response.status !== 200) {
-          throw await response.text();
-        } else {
-          rawData = await response.json();
+        try {
+          rawData = await makePostRequest(url, headers, payload);
+        } catch (error) {
+          console.error(error);
         }
       }
       // console.log(rawData);
