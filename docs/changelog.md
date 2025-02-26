@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.10.4 (Feb 26, 2025)
+
+- Introduced `XLWINGS_REQUEST_TIMEOUT` env var with a default of 5 minutes. Previously, requests running for longer than 1 minute were timing out on macOS. However, this also means that if you had requests on Windows/Web that were taking longer than 5 minutes, they will now hit a timeout if you don't change the setting.
+- Various bug fixes.
+
 ## 0.10.3 (Feb 20, 2025)
 
 - The `@script`, `@func`, `@ret`, and `@arg` decorators can now be imported directly from `xlwings` instead of `xlwings.server`.
