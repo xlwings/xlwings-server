@@ -119,6 +119,12 @@ def test_dict_of_ndarray():
     assert_array_equal(data1["arr1"], data2["arr2"])
 
 
+def test_dict_with_datetime_keys():
+    assert {dt.datetime(2000, 1, 1): dt.datetime(2000, 1, 1)} == deserialize(
+        serialize({dt.datetime(2000, 1, 1): dt.datetime(2000, 1, 1)})
+    )
+
+
 def test_list_of_ndarray():
     arr1 = np.array([[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]])
     arr2 = np.array([[1.1, 2.2, 3.3], [4.4, 5.5, 6.6]])

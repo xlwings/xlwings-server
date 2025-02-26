@@ -1,6 +1,11 @@
 import json
 
-from . import default_serializer, numpy_serializer, pandas_serializer
+from . import (
+    default_serializer,
+    dictionary_serializer,
+    numpy_serializer,
+    pandas_serializer,
+)
 from .framework import Serializer, custom_encoder, serializers
 
 
