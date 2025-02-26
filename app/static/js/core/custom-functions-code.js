@@ -75,10 +75,12 @@ function flattenVarargsArray(arr) {
     }
   }
 
-  return {
-    result,
-    indices,
-  };
+  // Create a prototype-less object to return to prevent prototype-pollution-loop
+  const returnObject = Object.create(null);
+  returnObject.result = result;
+  returnObject.indices = indices;
+
+  return returnObject;
 }
 
 // Workbook name
@@ -149,21 +151,11 @@ async function base() {
       const path = indices[index];
 
       for (let i = 0; i < path.length - 1; i++) {
-        // Add safety check to prevent prototype pollution
-        if (Object.prototype.hasOwnProperty.call(target, path[i])) {
-          target = target[path[i]];
-        } else {
-          // Handle case where property doesn't exist
-          console.warn(`Skipping invalid property path: ${path[i]}`);
-          return; // Skip this item entirely
-        }
+        target = target[path[i]];
       }
 
       const lastIndex = path[path.length - 1];
-      // Also check the last property assignment
-      if (target && typeof target === "object") {
-        target[lastIndex] = [address];
-      }
+      target[lastIndex] = [address];
     }
   });
 
