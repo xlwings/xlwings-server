@@ -64,6 +64,9 @@ async def authenticate(
         )
     else:
         provider = auth_provider
+    # Validate the provider before import to prevent non-literal-import SAST flagging
+    if provider not in settings.auth_providers:
+        raise ValueError(f"Unsupported authentication provider: {provider}")
     try:
         module = importlib.import_module(f"app.auth.{provider}")
         current_user = await module.validate_token(token_string)
