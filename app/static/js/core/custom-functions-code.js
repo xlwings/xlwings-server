@@ -4,11 +4,6 @@ let bodies = new Set();
 let runtime;
 let socket = null;
 
-// This prevents prototype-pollution-loop vulnerability
-if (!Object.isFrozen(Object.prototype)) {
-  Object.freeze(Object.prototype);
-}
-
 Office.onReady(function (info) {
   // Socket.io
   socket = globalThis.socket ? globalThis.socket : null;
@@ -146,7 +141,6 @@ async function base() {
   const { result: flatArgs, indices } = flattenVarargsArray(args);
 
   // Process each flattened item with respect to its path
-  // Relies on frozen object to prevent prototype-pollution-loop vulnerability
   flatArgs.forEach((item, index) => {
     if (item && item[0][0]?.type === "Entity") {
       const address = `${officeApiClient}[${workbookName}]${invocation.parameterAddresses[index]}`;
@@ -155,11 +149,21 @@ async function base() {
       const path = indices[index];
 
       for (let i = 0; i < path.length - 1; i++) {
-        target = target[path[i]];
+        // Add safety check to prevent prototype pollution
+        if (Object.prototype.hasOwnProperty.call(target, path[i])) {
+          target = target[path[i]];
+        } else {
+          // Handle case where property doesn't exist
+          console.warn(`Skipping invalid property path: ${path[i]}`);
+          return; // Skip this item entirely
+        }
       }
 
       const lastIndex = path[path.length - 1];
-      target[lastIndex] = [address];
+      // Also check the last property assignment
+      if (target && typeof target === "object") {
+        target[lastIndex] = [address];
+      }
     }
   });
 
