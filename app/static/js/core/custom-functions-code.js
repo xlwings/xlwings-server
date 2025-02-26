@@ -225,28 +225,25 @@ async function makeServerCall(body) {
 
     await semaphore.acquire();
     try {
-      let response = await fetch(
+      const response = await axios.post(
         window.location.origin + "placeholder_custom_functions_call_path",
+        body,
         {
-          method: "POST",
           headers: headers,
-          body: JSON.stringify(body),
+          timeout: config.requestTimeout * 1000,
         },
       );
 
-      if (!response.ok) {
-        let errMsg = await response.text();
+      return response.data.result;
+    } catch (error) {
+      console.error(`Attempt ${attempt}: ${error.toString()}`);
+      if (error.response) {
+        const errMsg = error.response.data;
         console.error(`Attempt ${attempt}: ${errMsg}`);
         if (attempt === MAX_RETRIES) {
           return showError(errMsg);
         }
-      } else {
-        let responseData = await response.json();
-        return responseData.result;
-      }
-    } catch (error) {
-      console.error(`Attempt ${attempt}: ${error.toString()}`);
-      if (attempt === MAX_RETRIES) {
+      } else if (attempt === MAX_RETRIES) {
         return showError(error.toString());
       }
     } finally {

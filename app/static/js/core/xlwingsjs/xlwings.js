@@ -112,18 +112,21 @@ export async function runPython(
           throw new Error(rawData.error);
         }
       } else {
-        // API call
-        let response = await fetch(url, {
-          method: "POST",
-          headers: headers,
-          body: JSON.stringify(payload),
-        });
-        // Parse JSON response
-        // TODO: align error handling with xlwings Lite
-        if (response.status !== 200) {
-          throw await response.text();
-        } else {
-          rawData = await response.json();
+        try {
+          const response = await axios.post(url, payload, {
+            headers: headers,
+            timeout: config.requestTimeout * 1000,
+          });
+          rawData = response.data;
+        } catch (error) {
+          // TODO: align error handling with xlwings Lite
+          if (error.response) {
+            throw error.response.data || error.response.statusText;
+          } else if (error.request) {
+            throw "No response received from server";
+          } else {
+            throw error.message;
+          }
         }
       }
       // console.log(rawData);

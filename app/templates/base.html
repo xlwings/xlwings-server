@@ -65,6 +65,8 @@
         <script src="{{ url_for('static', path='/vendor/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
         <script src="{{ url_for('static', path='/js/core/bootstrap-customizations.js') }}" defer></script>
       {% endif %}
+      {# Axios #}
+      <script src="{{ url_for('static', path='/vendor/axios/dist/axios.min.js') }}" defer></script>
       {# Examples #}
       {% if settings.enable_examples %}
         <script src="{{ url_for('static', path='/js/core/examples.js') }}" defer></script>
