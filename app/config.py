@@ -64,6 +64,7 @@ class Settings(BaseSettings):
     manifest_id_prod: UUID4 = "4f342d85-3a49-41cb-90a5-37b1f2219040"
     project_name: str = "xlwings Server"
     public_addin_store: Optional[bool] = None  # Deprecated. Use cdn_officejs instead.
+    request_timeout: Optional[int] = 300  # in seconds
     secret_key: Optional[str] = None
     socketio_message_queue_url: Optional[str] = None
     socketio_server_app: bool = False
@@ -85,6 +86,7 @@ class Settings(BaseSettings):
             "xlwingsVersion": self.xlwings_version,
             "onLite": self.enable_lite,
             "isOfficialLiteAddin": self.is_official_lite_addin,
+            "requestTimeout": self.request_timeout,
         }
 
 
