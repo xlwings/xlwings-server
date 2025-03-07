@@ -103,7 +103,7 @@ uvloop==0.21.0 ; sys_platform != 'win32'
     # via -r requirements-core.in
 wsproto==1.2.0
     # via simple-websocket
-xlwings==0.33.10
+xlwings==0.33.11
     # via -r requirements-core.in
 
 # The following packages were excluded from the output:
