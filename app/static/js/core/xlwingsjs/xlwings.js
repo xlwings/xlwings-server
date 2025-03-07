@@ -573,6 +573,7 @@ let funcs = {
   showTotalsTable: showTotalsTable,
   setTableStyle: setTableStyle,
   copyRange: copyRange,
+  copyFromRange: copyFromRange,
   sheetDelete: sheetDelete,
   sheetClear: sheetClear,
   sheetClearFormats: sheetClearFormats,
@@ -868,6 +869,17 @@ async function copyRange(context, action) {
     parseInt(action.args[0].toString())
   ].getRange(action.args[1].toString());
   destination.copyFrom(await getRange(context, action));
+}
+
+async function copyFromRange(context, action) {
+  const myRange = await getRange(context, action);
+  const sourceRange = context.workbook.worksheets.items[
+    parseInt(action.args[0].toString())
+  ].getRange(action.args[1].toString());
+  const copyType = action.args[2];
+  const skipBlanks = Boolean(action.args[3]);
+  const transpose = Boolean(action.args[4]);
+  myRange.copyFrom(sourceRange, copyType, skipBlanks, transpose);
 }
 
 async function sheetDelete(context, action) {

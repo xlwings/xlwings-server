@@ -31,11 +31,8 @@ globalThis.socket = io("https://127.0.0.1:8001", {
 
 ## Install the xlwings Python package from its repo into xlwings-server in editable mode
 
-- xlwings: delete `project.toml` temporarily
-- xlwings: replace `version = "dev"` with `0.0.0`
 - xlwings-server: `pip uninstall xlwings`
-- xlwings-server: `cd ~/dev/xlwings && python setup.py develop`
-- xlwings: undo deletion of `project.toml`
+- xlwings-server: `cd ../xlwings && python setup.py develop && cd ../xlwings-server`
 
 ## Build docs
 
