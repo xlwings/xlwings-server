@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.10.5 (Mar 7, 2025)
+
+- Added support for `Range.copy_from`.
+- Allow dicts with datetime keys to be used with object handles.
+- Bug fix: After adding a sheet, it's name didn't appear in book.sheets/sheet_names.
+- Upgraded dependencies incl. xlwings to 0.33.11.
+
 ## 0.10.4 (Feb 26, 2025)
 
 - Introduced `XLWINGS_REQUEST_TIMEOUT` env var with a default of 5 minutes. Previously, requests running for longer than 1 minute were timing out on macOS. However, this also means that if you had requests on Windows/Web that were taking longer than 5 minutes, they will now hit a timeout if you don't change the setting.
