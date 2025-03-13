@@ -31,7 +31,7 @@ sio = socketio.AsyncServer(
 
 @sio.on("connect")
 async def connect(sid, environ, auth):
-    if settings.environment == "dev":
+    if settings.environment == "dev" and settings.enable_hotreload:
         from .. import hotreload
 
         logging.getLogger("watchfiles").setLevel(logging.ERROR)
