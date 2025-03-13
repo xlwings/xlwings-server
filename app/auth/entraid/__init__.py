@@ -92,7 +92,7 @@ async def validate_token(token_string: str):
             detail=f"Auth error: Unsupported token version: {token_version}",
         )
     try:
-        if settings.auth_entraid_multitenant:
+        if not settings.auth_entraid_multitenant:
             claims_requests = JWTClaimsRegistry(
                 aud={"essential": True, "value": audience},
                 iss={"essential": True, "value": issuer},
@@ -100,7 +100,7 @@ async def validate_token(token_string: str):
             claims_requests.validate(token.claims)
         else:
             claims_requests = JWTClaimsRegistry(
-                aud={"value": audience},
+                aud={"essential": True, "value": audience},
             )
             claims_requests.validate(token.claims)
             # External users have their own tenant_id
