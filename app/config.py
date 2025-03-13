@@ -45,6 +45,7 @@ class Settings(BaseSettings):
     enable_bootstrap: bool = True
     enable_examples: bool = True
     enable_excel_online: bool = True
+    enable_hotreload: bool = True
     enable_htmx: bool = True
     enable_socketio: bool = True
     enable_tests: bool = False
