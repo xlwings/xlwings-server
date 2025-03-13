@@ -12,6 +12,7 @@ class User(BaseModel):
     email: Optional[str] = None
     domain: Optional[str] = None
     roles: Optional[list[str]] = []
+    ip_address: Optional[str] = None
 
     async def has_required_roles(self, required_roles: Optional[list[str]] = None):
         if required_roles:

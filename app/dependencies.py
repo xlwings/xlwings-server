@@ -79,7 +79,14 @@ async def authenticate(
     return current_user
 
 
-async def get_user(current_user: models.User = Depends(authenticate)):
+async def get_user(request: Request, current_user: models.User = Depends(authenticate)):
+    # Extract IP address and attach it to the user object
+    if "x-forwarded-for" in request.headers:
+        ip_address = request.headers["x-forwarded-for"].split(",")[0].strip()
+    else:
+        ip_address = request.client.host if request.client else None
+    current_user.ip_address = ip_address
+
     if not settings.auth_providers:
         return current_user
     # RBAC
