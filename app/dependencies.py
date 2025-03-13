@@ -64,6 +64,7 @@ async def authenticate(
         )
     else:
         provider = auth_provider
+    logger.info(f"Using auth provider {provider}")
     # Validate the provider before import to prevent non-literal-import SAST flagging
     if provider not in settings.auth_providers:
         raise ValueError(f"Unsupported authentication provider: {provider}")
