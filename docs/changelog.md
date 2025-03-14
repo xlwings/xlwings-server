@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.7 (Mar 14, 2025)
+
+- Further enhancements to the user model to make it more flexible with and without Entra ID.
+
 ## 0.10.6 (Mar 14, 2025)
 
 - Enhanced user model that allows the custom implementation of roles and offers the IP address, if available.
