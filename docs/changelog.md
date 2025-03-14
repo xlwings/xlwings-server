@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.6 (Mar 14, 2025)
+
+- Enhanced user model that allows the custom implementation of roles and offers the IP address, if available.
+- Make hot reload optional via a new setting `XLWINGS_ENABLE_HOTRELOAD=true`.
+- Bug fix: The `XLWINGS_AUTH_ENTRAID_MULTITENANT` was wrong in that true was interpreted as false.
+
 ## 0.10.5 (Mar 7, 2025)
 
 - Added support for `Range.copy_from`.
