@@ -145,7 +145,10 @@ export async function runPython(
       const globalErrorAlert = document.querySelector("#global-error-alert");
       if (globalErrorAlert) {
         globalErrorAlert.classList.remove("d-none");
-        globalErrorAlert.querySelector("span").textContent = error;
+        globalErrorAlert.querySelector("span").textContent =
+          typeof error === "object"
+            ? error.detail || JSON.stringify(error)
+            : error;
       }
     }
   }
