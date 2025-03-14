@@ -120,15 +120,6 @@ async def validate_token(token_string: str):
             detail="Auth error: Couldn't validate token",
         )
 
-    email = token.claims.get("preferred_username")
-    domain = email.split("@")[1] if email and "@" in email else None
-
-    current_user = models.User(
-        id=token.claims.get("oid"),
-        name=token.claims.get("name"),
-        email=email,
-        domain=domain,
-        roles=token.claims.get("roles", []),
-    )
+    current_user = models.User(claims=token.claims)
     logger.info(f"User authenticated: {current_user.name}")
     return current_user
