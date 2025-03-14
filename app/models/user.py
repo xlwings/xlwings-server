@@ -1,5 +1,5 @@
 import logging
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field
 
@@ -8,24 +8,59 @@ logger = logging.getLogger(__name__)
 
 class BaseUser(BaseModel):
     """
-    Base model for user handling.
-    For customization, extend or override the User class.
+    Base user model. This is set up so that it populates most fields from claims
+    as returned by OIDC tokens (e.g., Entra ID). You can also use the model by setting
+    the attributes directly though.
+    For customization, extend or override the User class below.
     """
 
-    id: str
-    name: str
-    email: Optional[str] = None
-    domain: Optional[str] = None
+    id_: Optional[str] = Field(default=None, alias="id")
+    name_: Optional[str] = Field(default=None, alias="name")
+    domain_: Optional[str] = Field(default=None, alias="domain")
+    email_: Optional[str] = Field(default=None, alias="email")
     roles_: Optional[list[str]] = Field(default=[], alias="roles")
+    claims: Optional[Dict[str, Any]] = {}
     ip_address: Optional[str] = None
 
     @property
+    def id(self) -> Optional[str]:
+        return self.claims.get("oid", self.id_)
+
+    @id.setter
+    def id(self, value: str):
+        self.id_ = value
+
+    @property
+    def name(self) -> Optional[str]:
+        return self.claims.get("name", self.name_)
+
+    @name.setter
+    def name(self, value: str):
+        self.name_ = value
+
+    @property
+    def domain(self) -> Optional[str]:
+        return (
+            self.email.split("@")[1]
+            if self.email and "@" in self.email
+            else self.domain_
+        )
+
+    @domain.setter
+    def domain(self, value: Optional[str]):
+        self.domain_ = value
+
+    @property
+    def email(self) -> Optional[str]:
+        return self.claims.get("preferred_username", self.email_)
+
+    @email.setter
+    def email(self, value: Optional[str]):
+        self.email_ = value
+
+    @property
     def roles(self) -> list[str]:
-        """
-        Property that can be overridden to implement custom role retrieval logic.
-        By default, returns the roles from the authentication provider.
-        """
-        return self.roles_
+        return self.claims.get("roles", self.roles_)
 
     @roles.setter
     def roles(self, value: list[str]):
@@ -48,8 +83,9 @@ class BaseUser(BaseModel):
 
 class User(BaseUser):
     """
-    User model. You can implement additional fields, and override properties and methods
-    here such as `roles` and `is_authorized`.
+    User model. You can implement additional field, and override properties and methods
+    here such as `roles` and `is_authorized`. You can also start from scratch by
+    inheriting from BaseModel rather than BaseUser.
     """
 
     pass
