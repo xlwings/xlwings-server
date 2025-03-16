@@ -18,9 +18,9 @@ You can enable [](auth_entraid.md) or one of the [](auth_providers.md), includin
 Setting up an authentication provider requires users to be logged in to run [Custom Functions](custom_functions.md) or [Custom Scripts](custom_scripts.md) but it doesn't automatically lock down then task pane, see [](#task-pane-authentication).
 ```
 
-## User model
+## Current user object
 
-At the core of the authentication system is the `User` model. You can find it under [`app/models/user.py`](https://github.com/xlwings/xlwings-server/blob/main/app/models/user.py).
+At the core of the authentication system is the `User` model. You can find it under [`app/models/user.py`](https://github.com/xlwings/xlwings-server/blob/main/app/models/user.py) and it is introduced in more detail under [](authorization.md#custom-user-model).
 
 If you need access to the current user object from a custom script or a custom function, you can use a function parameter with the type hint `CurrentUser`:
 
@@ -28,8 +28,8 @@ If you need access to the current user object from a custom script or a custom f
 from ..models import CurrentUser
 
 @func
-def get_current_user(current_user: CurrentUser):
-    return f"The user's domain is {current_user.domain}"
+def my_function(current_user: CurrentUser):
+    return f"The user's name is {current_user.name}"
 ```
 
 ## Task pane authentication
