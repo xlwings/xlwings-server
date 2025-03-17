@@ -141,3 +141,63 @@ def test_tuple_of_ndarray():
     data2 = deserialize(serialize(data1))
     assert_array_equal(data1[0], data2[0])
     assert_array_equal(data1[1], data2[1])
+
+
+def test_df_with_date_index():
+    # Create DataFrame with DatetimeIndex
+    date_index = pd.date_range(start="2023-01-01", periods=5, freq="D")
+    data = pd.DataFrame(
+        {
+            "values": [10.1, 20.2, 30.3, 40.4, 50.5],
+        },
+        index=date_index,
+    )
+
+    # Serialize and deserialize
+    result = deserialize(serialize(data))
+
+    # Check if original and result are equal
+    assert_frame_equal(data, result)
+
+    # Explicitly verify the index type and values are preserved
+    assert isinstance(result.index, pd.DatetimeIndex)
+    assert all(data.index == result.index)
+
+
+def test_df_with_datetime_index():
+    # Create DataFrame with DatetimeIndex that includes time components
+    datetime_index = pd.DatetimeIndex(
+        [
+            pd.Timestamp("2023-01-01 08:30:45"),
+            pd.Timestamp("2023-01-02 12:15:30"),
+            pd.Timestamp("2023-01-03 17:45:22"),
+            pd.Timestamp("2023-01-04 09:05:10"),
+            pd.Timestamp("2023-01-05 14:20:35"),
+        ]
+    )
+
+    data = pd.DataFrame(
+        {
+            "values": [10.1, 20.2, 30.3, 40.4, 50.5],
+        },
+        index=datetime_index,
+    )
+
+    # Serialize and deserialize
+    result = deserialize(serialize(data))
+
+    # Check if original and result are equal
+    assert_frame_equal(data, result)
+
+
+def test_df_with_multiindex_str_date():
+    df = pd.DataFrame(
+        {
+            "category": ["A", "B", "C"],
+            "date": pd.date_range(start="2023-01-01", periods=3, freq="D"),
+            "values": [10.1, 20.2, 30.3],
+        }
+    )
+    df = df.set_index(["category", "date"])
+    result = deserialize(serialize(df))
+    assert_frame_equal(df, result)
