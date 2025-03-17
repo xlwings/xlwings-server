@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.10.8 (Mar 17, 2025)
+
+- Enhancements to the pandas serializer used with object handles.
+
 ## 0.10.7 (Mar 14, 2025)
 
 - Further enhancements to the user model to make it more flexible with and without Entra ID.
