@@ -144,24 +144,15 @@ def test_tuple_of_ndarray():
 
 
 def test_df_with_date_index():
-    # Create DataFrame with DatetimeIndex
     date_index = pd.date_range(start="2023-01-01", periods=5, freq="D")
-    data = pd.DataFrame(
+    df = pd.DataFrame(
         {
             "values": [10.1, 20.2, 30.3, 40.4, 50.5],
         },
         index=date_index,
     )
-
-    # Serialize and deserialize
-    result = deserialize(serialize(data))
-
-    # Check if original and result are equal
-    assert_frame_equal(data, result)
-
-    # Explicitly verify the index type and values are preserved
-    assert isinstance(result.index, pd.DatetimeIndex)
-    assert all(data.index == result.index)
+    result = deserialize(serialize(df))
+    assert_frame_equal(df, result)
 
 
 def test_df_with_datetime_index():
@@ -175,19 +166,14 @@ def test_df_with_datetime_index():
             pd.Timestamp("2023-01-05 14:20:35"),
         ]
     )
-
-    data = pd.DataFrame(
+    df = pd.DataFrame(
         {
             "values": [10.1, 20.2, 30.3, 40.4, 50.5],
         },
         index=datetime_index,
     )
-
-    # Serialize and deserialize
-    result = deserialize(serialize(data))
-
-    # Check if original and result are equal
-    assert_frame_equal(data, result)
+    result = deserialize(serialize(df))
+    assert_frame_equal(df, result)
 
 
 def test_df_with_multiindex_str_date():

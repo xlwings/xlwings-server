@@ -15,6 +15,8 @@ if pd:
 
         @classmethod
         def serialize(cls, df):
+            serialized = {"serializer": cls.name}
+
             if isinstance(df.index, pd.MultiIndex):
                 df = df.copy()
                 index_names = df.index.names
@@ -27,20 +29,20 @@ if pd:
                 }
                 df.index.names = temp_names
                 df = df.reset_index()
-                serialized = {
+                serialized.update(
+                    {
+                        "is_multi_index": True,
+                        "index_mapping": index_mapping,
+                    }
+                )
+
+            serialized.update(
+                {
                     "serializer": cls.name,
                     "data": df.to_json(date_format="iso"),
                     "dtypes": {col: str(dtype) for col, dtype in df.dtypes.items()},
-                    "is_multi_index": True,
-                    "index_mapping": index_mapping,
                 }
-                return serialized
-
-            serialized = {
-                "serializer": cls.name,
-                "data": df.to_json(date_format="iso"),
-                "dtypes": {col: str(dtype) for col, dtype in df.dtypes.items()},
-            }
+            )
 
             # Preserve DatetimeIndex frequency if it exists
             if isinstance(df.index, pd.DatetimeIndex) and df.index.freq is not None:
