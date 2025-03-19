@@ -93,6 +93,22 @@ You may also want to skip some of the steps, e.g., if you already have an existi
           Invoke url: https://xlwings-server.azurewebsites.net//{*route}
     ```
 
+    If you don't have access to the `func` CLI, e.g., in the Azure cloud shell, use the following commands instead:
+
+    ```{important}
+    This command must be run from the root of your xlwings-server repo.
+    ```
+
+    ```
+    zip -r function.zip .
+
+    az functionapp deployment source config-zip \
+    --resource-group xlwings-server-rg \
+    --name xlwings-server \
+    --src function.zip \
+    --build-remote true
+    ```
+
 If there's nothing printed after `Functions in ...`, have a look at [](#logging) to find out the reason, otherwise go to the URL without the `//{*route}` part (in the example, that would be `https://xlwings-server.azurewebsites.net`) and you should see `{"status": "ok"}`.
 
 ## Logging
