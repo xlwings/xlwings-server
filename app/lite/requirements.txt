@@ -1,4 +1,4 @@
-xlwings==0.33.10
+xlwings==0.33.11
 python-dotenv==1.0.1
 pyodide-http
 pandas

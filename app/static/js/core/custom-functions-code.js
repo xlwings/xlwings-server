@@ -253,15 +253,8 @@ async function makeServerCall(body) {
 }
 
 async function makeLiteCall(body) {
-  let module_str;
-  if (config.isOfficialLiteAddin) {
-    await xlwings.pyodideReadyPromise;
-    module_str = globalThis.editorInstance.getValue();
-  } else {
-    module_str = null;
-  }
   try {
-    let result = await globalThis.liteCustomFunctionsCall(body, module_str);
+    let result = await globalThis.liteCustomFunctionsCall(body);
     if (result.error) {
       console.error(result.details);
       showError(result.error);

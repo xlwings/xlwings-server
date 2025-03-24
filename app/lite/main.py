@@ -45,21 +45,33 @@ class HtmlOutput:
         div = js.document.getElementById(self.div_id)
         if div:
             js.document.getElementById(self.div_id).innerHTML = f"<pre>{content}</pre>"
+            # Scroll to bottom
+            outputContainer = js.document.querySelector("#output-container")
+            if outputContainer:
+                outputContainer.scrollTop = outputContainer.scrollHeight
 
     def flush(self):
         pass
 
 
-# Print Python and Pyodide versions
 if settings.is_official_lite_addin:
+    import pyodide_http  # type: ignore
+
+    pyodide_http.patch_all()  # Fixes pd.read_csv()
     html_output = HtmlOutput("output")
-    with (
-        contextlib.redirect_stdout(html_output),
-        contextlib.redirect_stderr(html_output),
-    ):
-        print(
-            f"Python {platform.python_version()} | Pyodide {pyodide_js.version} | xlwings {xw.__version__}"
-        )
+
+
+# Print Python and Pyodide versions
+def print_versions():
+    if settings.is_official_lite_addin:
+        html_output = HtmlOutput("output")
+        with (
+            contextlib.redirect_stdout(html_output),
+            contextlib.redirect_stderr(html_output),
+        ):
+            print(
+                f"Python {platform.python_version()}|Pyodide {pyodide_js.version}|xlwings {xw.__version__}"
+            )
 
 
 def create_module_from_string(module_string, module_name, html_output=None):
@@ -80,16 +92,17 @@ def create_module_from_string(module_string, module_name, html_output=None):
     return module
 
 
-async def custom_functions_call(data, module_string=None):
-    if module_string:
-        html_output = HtmlOutput("output")
-        module = create_module_from_string(module_string, "main")
+async def custom_functions_call(data):
+    if settings.is_official_lite_addin:
+        import main_editor
+
+        module = main_editor
     else:
         module = custom_functions
 
     data = data.to_py()
     try:
-        if module_string:
+        if settings.is_official_lite_addin:
             with (
                 contextlib.redirect_stdout(html_output),
                 contextlib.redirect_stderr(html_output),
@@ -109,16 +122,17 @@ async def custom_functions_call(data, module_string=None):
     return to_js(result, dict_converter=js.Object.fromEntries)
 
 
-async def custom_scripts_call(data, script_name, module_string=None):
-    if module_string:
-        html_output = HtmlOutput("output")
-        module = create_module_from_string(module_string, "main", html_output)
+async def custom_scripts_call(data, script_name):
+    if settings.is_official_lite_addin:
+        import main_editor
+
+        module = main_editor
     else:
         module = custom_scripts
 
     book = xw.Book(json=data.to_py())
     try:
-        if module_string:
+        if settings.is_official_lite_addin:
             with (
                 contextlib.redirect_stdout(html_output),
                 contextlib.redirect_stderr(html_output),
@@ -135,16 +149,25 @@ async def custom_scripts_call(data, script_name, module_string=None):
                 typehint_to_value={xw.Book: book},
             )
         result = book.json()
+        return to_js(result, dict_converter=js.Object.fromEntries)
     except Exception as e:
-        result = {"error": str(e), "details": traceback.format_exc()}
-    return to_js(result, dict_converter=js.Object.fromEntries)
+        error_traceback = traceback.format_exc()
+        if settings.is_official_lite_addin:
+            error_output = HtmlOutput(
+                "output"
+            )  # Clear output before writing out an error
+            error_output.write(f'<span style="color: red">{error_traceback}</span>')
+            return to_js({"actions": []}, dict_converter=js.Object.fromEntries)
+        else:
+            result = {"error": str(e), "details": error_traceback}
+            return to_js(result, dict_converter=js.Object.fromEntries)
 
 
-def get_xlwings_scripts(code_string):
+def get_xlwings_scripts(code_string, script_button_text):
     try:
         tree = ast.parse(code_string)
     except:  # noqa: E722
-        return to_js([])
+        return to_js([script_button_text])
     xlwings_functions = []
 
     for node in ast.walk(tree):
@@ -155,13 +178,19 @@ def get_xlwings_scripts(code_string):
                     xlwings_functions.append(node.name)
                     break
 
+    # If currently selected script is still here, return it at beginning
+    if script_button_text in xlwings_functions:
+        remaining = [x for x in xlwings_functions if x != script_button_text]
+        return to_js([script_button_text] + remaining)
+
     return to_js(xlwings_functions)
 
 
 def custom_functions_meta(module_string):
     try:
         module = create_module_from_string(module_string, "main")
-    except:  # noqa: E722
+    except Exception as e:  # noqa: E722
+        js.console.log(f"Parsing error [custom_functions_meta]: {e}")
         return to_js({}, dict_converter=js.Object.fromEntries)
     return to_js(
         xlwings_custom_functions_meta(module), dict_converter=js.Object.fromEntries
@@ -171,15 +200,16 @@ def custom_functions_meta(module_string):
 def custom_functions_code(module_string):
     try:
         module = create_module_from_string(module_string, "main")
-    except:  # noqa: E722
+    except Exception as e:  # noqa: E722
+        js.console.log(f"Parsing error [custom_functions_code]: {e}")
         return ""
-    js = ""
-    for name, obj in inspect.getmembers(module):
+    code = ""
+    for _, obj in inspect.getmembers(module):
         if hasattr(obj, "__xlfunc__"):
             xlfunc = obj.__xlfunc__
             func_name = xlfunc["name"]
             streaming = "true" if inspect.isasyncgenfunction(obj) else "false"
-            js += dedent(
+            code += dedent(
                 f"""\
             async function {func_name}() {{
                 let args = ["{func_name}", {streaming}]
@@ -189,4 +219,4 @@ def custom_functions_code(module_string):
             CustomFunctions.associate("{func_name.upper()}", {func_name});
             """
             )
-    return js
+    return code

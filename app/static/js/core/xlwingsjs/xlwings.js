@@ -102,11 +102,7 @@ export async function runPython(
       let rawData;
       if (config.onLite) {
         await pyodideReadyPromise;
-        rawData = await globalThis.liteCustomScriptsCall(
-          payload,
-          scriptName,
-          moduleString,
-        );
+        rawData = await globalThis.liteCustomScriptsCall(payload, scriptName);
         if (rawData.error) {
           console.error(rawData.details);
           throw new Error(rawData.error);
@@ -145,10 +141,7 @@ export async function runPython(
       const globalErrorAlert = document.querySelector("#global-error-alert");
       if (globalErrorAlert) {
         globalErrorAlert.classList.remove("d-none");
-        globalErrorAlert.querySelector("span").textContent =
-          typeof error === "object"
-            ? error.detail || JSON.stringify(error)
-            : error;
+        globalErrorAlert.querySelector("span").textContent = error;
       }
     }
   }
