@@ -23,6 +23,7 @@ const xlwings = {
   pyodideReadyPromise,
   getCultureInfoName,
   getDateFormat,
+  init,
 };
 globalThis.xlwings = xlwings;
 
