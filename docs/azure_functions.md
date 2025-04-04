@@ -119,6 +119,8 @@ If there's nothing printed after `Functions in ...`, have a look at [](#logging)
 - If your Azure functions doesn't manage to sync triggers, i.e., it doesn't print a URL after running `func azure functionapp publish`, you need to go to the Azure portal:
   `Function App` > `My Function App`. In the left-hand menu, select `Diagnose and solve problems` > `Availability and Performance` and finally click on `Functions that are not triggered` on the left-hand side.
 
+- For a live tail of your functions, go to `Monitoring` > `Log stream` and wait until it says `Connected!`. Now run an xlwings function or script and you should see the logging turning up. Note that this is only for live tailing, you won't see log messages from the past here.
+
 ## Cleanup
 
 After running this tutorial you can get rid of all the resources again by running:d
