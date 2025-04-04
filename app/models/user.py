@@ -80,6 +80,16 @@ class BaseUser(BaseModel):
         """Method that can be overridden to implement a global authorization logic"""
         return True
 
+    def __str__(self) -> str:
+        return (
+            f"id='{self.id}' "
+            f"name='{self.name}' "
+            f"domain='{self.domain}' "
+            f"email='{self.email}' "
+            f"roles={self.roles} "
+            f"ip_address='{self.ip_address}'"
+        )
+
 
 class User(BaseUser):
     """
