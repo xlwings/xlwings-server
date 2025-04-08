@@ -6,6 +6,14 @@
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <title>Task pane</title>
       <link rel="icon" type="image/png" href="{{ url_for('static', path='/images/favicon.png') }}" />
+      {# xlwings Lite #}
+      {% if settings.enable_lite %}
+        {% if settings.cdn_pyodide %}
+          <script src="https://cdn.jsdelivr.net/pyodide/v0.27.5/full/pyodide.js"></script>
+        {% else %}
+          <script src="{{ url_for('static', path='/vendor/pyodide/pyodide.js') }}"></script>
+        {% endif %}
+      {% endif %}
       {# Config #}
       <script src="{{ url_for('static', path='/js/config.js') }}" defer></script>
       {# htmx #}
@@ -89,14 +97,6 @@
       {# Alpine.js CSP build (must come after alpinejs-csp-boilerplate.js and custom code such as main.js) #}
       {% if settings.enable_alpinejs_csp %}
         <script src="{{ url_for('static', path='/vendor/@alpinejs/csp/dist/cdn.min.js') }}" defer></script>
-      {% endif %}
-      {# xlwings Lite #}
-      {% if settings.enable_lite %}
-        {% if settings.cdn_pyodide %}
-          <script src="https://cdn.jsdelivr.net/pyodide/v0.27.2/full/pyodide.js"></script>
-        {% else %}
-          <script src="{{ url_for('static', path='/vendor/pyodide/pyodide.js') }}"></script>
-        {% endif %}
       {% endif %}
     {% endblock head %}
   </head>
