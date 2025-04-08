@@ -4,7 +4,7 @@ aiocache==0.12.3
     # via -r requirements-core.in
 annotated-types==0.7.0
     # via pydantic
-anyio==4.8.0
+anyio==4.9.0
     # via
     #   httpx
     #   starlette
@@ -24,7 +24,7 @@ croniter==6.0.0
     # via -r requirements-core.in
 cryptography==44.0.2
     # via joserfc
-fastapi-slim==0.115.11
+fastapi-slim==0.115.12
     # via -r requirements-core.in
 gunicorn==23.0.0 ; sys_platform != 'win32'
     # via -r requirements-core.in
@@ -53,7 +53,7 @@ jinja2-fragments==1.8.0
     # via -r requirements-core.in
 joserfc==1.0.4
     # via -r requirements-core.in
-lxml==5.3.1 ; platform_system == 'Darwin'
+lxml==5.3.2 ; platform_system == 'Darwin'
     # via appscript
 markupsafe==3.0.2
     # via jinja2
@@ -61,17 +61,17 @@ packaging==24.2 ; sys_platform != 'win32'
     # via gunicorn
 pycparser==2.22 ; platform_python_implementation != 'PyPy'
     # via cffi
-pydantic==2.10.6
+pydantic==2.11.2
     # via
     #   fastapi-slim
     #   pydantic-settings
-pydantic-core==2.27.2
+pydantic-core==2.33.1
     # via pydantic
 pydantic-settings==2.8.1
     # via -r requirements-core.in
 python-dateutil==2.9.0.post0
     # via croniter
-python-dotenv==1.0.1
+python-dotenv==1.1.0
     # via pydantic-settings
 python-engineio==4.11.2
     # via python-socketio
@@ -79,7 +79,7 @@ python-multipart==0.0.20
     # via -r requirements-core.in
 python-socketio==5.12.1
     # via -r requirements-core.in
-pytz==2025.1
+pytz==2025.2
     # via croniter
 redis==5.2.1
     # via -r requirements-core.in
@@ -89,14 +89,17 @@ six==1.17.0
     # via python-dateutil
 sniffio==1.3.1
     # via anyio
-starlette==0.46.0
+starlette==0.46.1
     # via fastapi-slim
-typing-extensions==4.12.2
+typing-extensions==4.13.1
     # via
     #   anyio
     #   fastapi-slim
     #   pydantic
     #   pydantic-core
+    #   typing-inspection
+typing-inspection==0.4.0
+    # via pydantic
 uvicorn==0.34.0
     # via -r requirements-core.in
 uvloop==0.21.0 ; sys_platform != 'win32'
