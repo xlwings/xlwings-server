@@ -238,7 +238,11 @@ async function makeServerCall(body) {
     } catch (error) {
       console.error(`Attempt ${attempt}: ${error.toString()}`);
       if (error.response) {
-        const errMsg = error.response.data;
+        const errMsg =
+          (error.response.data && error.response.data.detail) ||
+          error.response.data ||
+          error.response.statusText ||
+          "Unknown server error";
         console.error(`Attempt ${attempt}: ${errMsg}`);
         if (attempt === MAX_RETRIES) {
           return showError(errMsg);

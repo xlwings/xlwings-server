@@ -118,7 +118,12 @@ export async function runPython(
         } catch (error) {
           // TODO: align error handling with xlwings Lite
           if (error.response) {
-            throw error.response.data || error.response.statusText;
+            throw (
+              (error.response.data && error.response.data.detail) ||
+              error.response.data ||
+              error.response.statusText ||
+              "Unknown server error"
+            );
           } else if (error.request) {
             throw "No response received from server";
           } else {
