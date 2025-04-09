@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.9 (Apr 9, 2025)
+
+- Initialize buttons with `xw-click` when they are loaded via htmx partials.
+- Fix error messages that were showing `[object Object]`.
+- Upgraded dependencies.
+
 ## 0.10.8 (Mar 17, 2025)
 
 - Enhancements to the pandas serializer used with object handles.
