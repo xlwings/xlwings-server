@@ -49,6 +49,7 @@ export function printSupportedApiVersions() {
 
   async function printBuildInfo() {
     if (Office.context.diagnostics) {
+      console.log(`User Agent: ${navigator.userAgent}`);
       console.log(`Office Build: ${Office.context.diagnostics.version}`);
       console.log(`Office Platform: ${Office.context.diagnostics.platform}`);
       console.log(
