@@ -6,6 +6,7 @@ import {
   printSupportedApiVersions,
   getCultureInfoName,
   getDateFormat,
+  showGlobalError,
 } from "./utils.js";
 export { getActiveBookName, getCultureInfoName, getDateFormat };
 import { pyodideReadyPromise } from "./lite.js";
@@ -31,6 +32,18 @@ globalThis.xlwings = xlwings;
 document.addEventListener("DOMContentLoaded", init);
 
 export function init() {
+  // Handle unsupported browsers (IE/Edge Legacy)
+  if (
+    navigator.userAgent.indexOf("Trident") !== -1 ||
+    navigator.userAgent.indexOf("Edge") !== -1
+  ) {
+    showGlobalError(
+      "Error: This add-in will not run in your version of Office. Please upgrade " +
+        "either to perpetual Office 2021 (or later) or to a Microsoft 365 account.",
+    );
+    return;
+  }
+
   const elements = document.querySelectorAll("[xw-click]");
   elements.forEach((element) => {
     element.addEventListener("click", async (event) => {

@@ -93,3 +93,10 @@ export function printSupportedApiVersions() {
     });
   });
 }
+
+export function showGlobalError(message) {
+  const alertEl = document.getElementById("global-error-alert");
+  const alertMessage = alertEl.querySelector("span");
+  alertMessage.textContent = message;
+  alertEl.classList.remove("d-none");
+}
