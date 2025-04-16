@@ -167,6 +167,18 @@ export async function runPython(
 }
 
 // Helpers
+async function getSelectedRangeAddress(context) {
+  let selectionAddress = null;
+  try {
+    let selection = context.workbook.getSelectedRange().load("address");
+    await context.sync();
+    selectionAddress = selection.address.split("!").pop();
+  } catch (error) {
+    // No range is selected (e.g., a shape is selected)
+  }
+  return selectionAddress;
+}
+
 async function getBookData(
   { auth = "", include = "", exclude = "", headers = {} } = {},
   context = null,
@@ -264,14 +276,7 @@ async function getBookData(
   await context.sync();
 
   // Cell selection address
-  let selectionAddress = null;
-  try {
-    let selection = workbook.getSelectedRange().load("address");
-    await context.sync();
-    selectionAddress = selection.address.split("!").pop();
-  } catch (error) {
-    // e.g., Shape selected
-  }
+  const selectionAddress = await getSelectedRangeAddress(context);
 
   payload["book"] = {
     name: workbook.name,
@@ -729,6 +734,8 @@ async function deletePicture(context, action) {
 }
 
 async function addPicture(context, action) {
+  const selectedAddress = await getSelectedRangeAddress(context);
+
   const imageBase64 = action["args"][0].toString();
   const colIndex = Number(action["args"][1]);
   const rowIndex = Number(action["args"][2]);
@@ -745,9 +752,19 @@ async function addPicture(context, action) {
   const image = sheet.shapes.addImage(imageBase64);
   image.left = left;
   image.top = top;
+
+  if (selectedAddress) {
+    context.workbook.worksheets
+      .getActiveWorksheet()
+      .getRange(selectedAddress)
+      .select();
+    await context.sync();
+  }
 }
 
 async function updatePicture(context, action) {
+  const selectedAddress = await getSelectedRangeAddress(context);
+
   const imageBase64 = action["args"][0].toString();
   const sheet = await getSheet(context, action);
   let image = await getShapeByType(
@@ -771,6 +788,14 @@ async function updatePicture(context, action) {
   newImage.top = imgTop;
   newImage.height = imgHeight;
   newImage.width = imgWidth;
+
+  if (selectedAddress) {
+    context.workbook.worksheets
+      .getActiveWorksheet()
+      .getRange(selectedAddress)
+      .select();
+    await context.sync();
+  }
 }
 
 async function alert(context, action) {

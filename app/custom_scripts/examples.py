@@ -74,7 +74,6 @@ def show_plot(book: xw.Book):
     book.sheets.active.pictures.add(
         fig, anchor=book.sheets.active["A10"], update=True, name="mplot"
     )
-    book.selection.select()
 
 
 @script
