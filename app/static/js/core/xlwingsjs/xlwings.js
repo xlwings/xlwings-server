@@ -261,12 +261,22 @@ async function getBookData(
   payload["client"] = "Office.js";
   payload["version"] = version;
   let activeSheet = worksheets.getActiveWorksheet().load("position");
-  let selection = workbook.getSelectedRange().load("address");
   await context.sync();
+
+  // Cell selection address
+  let selectionAddress = null;
+  try {
+    let selection = workbook.getSelectedRange().load("address");
+    await context.sync();
+    selectionAddress = selection.address.split("!").pop();
+  } catch (error) {
+    // e.g., Shape selected
+  }
+
   payload["book"] = {
     name: workbook.name,
     active_sheet_index: activeSheet.position,
-    selection: selection.address.split("!").pop(),
+    selection: selectionAddress,
   };
 
   // Names (book scope)
