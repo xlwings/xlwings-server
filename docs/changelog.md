@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.10.10 (Apr 17, 2025)
+
+- `Range.font` can now be set (`bold`, `italic`, `color`, `size`, `name`).
+- Polars DataFrame adn Series are now supported via native converter.
+- The add-in now shows an error message on versions of Excel that use an unsuported browser runtime.
+- Images aren't selected anymore after inserting/updating.
+- Bug fix: Scripts wouldn't run if e.g., a shape was selected.
+- Bug fix: `Range.expand()` was stopping at `0` values.
+- Upgraded dependencies incl. xlwings to 0.33.12.
+
 ## 0.10.9 (Apr 9, 2025)
 
 - Initialize buttons with `xw-click` when they are loaded via htmx partials.
