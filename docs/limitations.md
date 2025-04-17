@@ -52,7 +52,7 @@ xlwings.Charts
 
     - add()
 
-xlwings.Font
+xlwings.Font (setting the following properties is supported, only getting them isn't!)
 
     - size
     - italic

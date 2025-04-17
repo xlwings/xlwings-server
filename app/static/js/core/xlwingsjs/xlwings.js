@@ -610,11 +610,21 @@ let funcs = {
   sheetClearContents: sheetClearContents,
   freezePaneAtRange: freezePaneAtRange,
   freezePaneUnfreeze: freezePaneUnfreeze,
+  setFontProperty: setFontProperty,
 };
 
 Object.assign(globalThis.callbacks, funcs);
 
 // Callbacks
+async function setFontProperty(context, action) {
+  let range = await getRange(context, action);
+  let property = action.args[0];
+  let value = action.args[1];
+  if (property === "bold" || property === "italic") value = Boolean(value);
+  range.format.font[property] = value;
+  await context.sync();
+}
+
 async function setValues(context, action) {
   let range = await getRange(context, action);
   range.values = action.values;
