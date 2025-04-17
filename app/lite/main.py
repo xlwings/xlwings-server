@@ -55,10 +55,13 @@ class HtmlOutput:
 
 
 if settings.is_official_lite_addin:
-    import pyodide_http  # type: ignore
-
-    pyodide_http.patch_all()  # Fixes pd.read_csv()
     html_output = HtmlOutput("output")
+    try:
+        import pyodide_http  # type: ignore
+    except ImportError:
+        pyodide_http = None
+    if pyodide_http:
+        pyodide_http.patch_all()  # Fixes pd.read_csv()
 
 
 # Print Python and Pyodide versions
