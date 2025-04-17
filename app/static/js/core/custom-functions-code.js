@@ -161,6 +161,7 @@ async function base() {
 
   // Body
   let body = {
+    client: "Office.js",
     func_name: funcName,
     args: args,
     caller_address: `${officeApiClient}[${workbookName}]${invocation.address}`, // not available for streaming functions
