@@ -46,6 +46,9 @@ export function init() {
 
   const elements = document.querySelectorAll("[xw-click]");
   elements.forEach((element) => {
+    // Prevent duplicate initialization when loading partials via htmx
+    if (element.hasAttribute("xw-click-initialized")) return;
+    element.setAttribute("xw-click-initialized", "true");
     element.addEventListener("click", async (event) => {
       // Clean up error messages
       const globalErrorAlert = document.querySelector("#global-error-alert");
