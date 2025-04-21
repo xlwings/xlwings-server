@@ -1,10 +1,14 @@
 # Changelog
 
+## 0.10.11 (Apr 21, 2025)
+
+- Bug fix: don't initialize buttons with the `xw-click` tag multiple times when using htmx (introduced with 0.10.9).
+
 ## 0.10.10 (Apr 17, 2025)
 
 - `Range.font` can now be set (`bold`, `italic`, `color`, `size`, `name`).
 - Polars DataFrame adn Series are now supported via native converter.
-- The add-in now shows an error message on versions of Excel that use an unsuported browser runtime.
+- The add-in now shows an error message on versions of Excel that use an unsupported browser runtime.
 - Images aren't selected anymore after inserting/updating.
 - Bug fix: Scripts wouldn't run if e.g., a shape was selected.
 - Bug fix: `Range.expand()` was stopping at `0` values.
