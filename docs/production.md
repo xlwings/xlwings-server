@@ -76,16 +76,10 @@ Store this under `app/templates/taskpane.html` and update the `name` argument un
 - Configure CORS properly. If you don't use the Office Scripts integration and don't use custom functions in Excel on the web, disable CORS:
 
   ```ini
-  XLWINGS_CORS_ALLOW_ORIGINS=""
+  XLWINGS_CORS_ALLOW_ORIGINS=[]
   ```
 
-  If you use custom functions with Excel on the web, configure CORS as follows:
-
-  ```ini
-  XLWINGS_CORS_ALLOW_ORIGINS=["your.domain.com"]
-  ```
-
-  If you use Office Scripts as your integration, you currently need to allow all origins:
+  If you use custom functions with Excel on the web or Office Scripts as your integration, you need to allow all origins:
 
   ```ini
   XLWINGS_CORS_ALLOW_ORIGINS=["*"]
