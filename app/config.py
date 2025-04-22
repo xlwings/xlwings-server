@@ -39,7 +39,7 @@ class Settings(BaseSettings):
     object_cache_url: Optional[str] = None
     object_cache_expire_at: Optional[str] = "0 12 * * sat"
     object_cache_enable_compression: bool = True
-    cors_allow_origins: List[str] = ["*"]
+    cors_allow_origins: List[str] = []
     date_format: Optional[str] = None
     enable_alpinejs_csp: bool = True
     enable_bootstrap: bool = True
