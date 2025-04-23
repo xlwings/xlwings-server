@@ -1,5 +1,6 @@
 # This prevents merge conflicts for the indicated files.
 # To make it work, run the following command: git config --local merge.ours.driver true
 requirements.in merge=ours
-requirements*.txt merge=ours
+requirements.txt merge=ours
+requirements-dev.txt merge=ours
 app/templates/manifest.xml merge=ours
