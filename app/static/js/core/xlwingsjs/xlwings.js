@@ -136,7 +136,10 @@ export async function runPython(
           if (error.response) {
             throw (
               (error.response.data && error.response.data.detail) ||
-              error.response.data ||
+              (error.response.data && error.response.data.error) ||
+              (typeof error.response.data === "object"
+                ? JSON.stringify(error.response.data)
+                : error.response.data) ||
               error.response.statusText ||
               "Unknown server error"
             );
