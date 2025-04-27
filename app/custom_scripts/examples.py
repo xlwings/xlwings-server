@@ -17,7 +17,7 @@ from xlwings.server import script
 from . import settings
 
 
-@script
+@script(target_cell="[xlwings_button]Sheet1!B4", config={"exclude": "MySheet"})
 def hello_world(book: xw.Book):
     sheet = book.sheets.active
     cell = sheet["A1"]

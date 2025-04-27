@@ -1,7 +1,25 @@
 Office.onReady(async (info) => {
-  // onReady is called every time a file opens and registers onSelectionChanged event
-  for (const [hyperlinkCellRef, scriptName, config] of cellsToScripts) {
-    await registerCellToButton(hyperlinkCellRef, scriptName, config);
+  let cellsToScripts;
+  try {
+    const url =
+      window.location.origin +
+      config.appPath +
+      "/xlwings/custom-scripts-meta.json";
+    const response = await axios.get(url);
+    cellsToScripts = response.data;
+  } catch (error) {
+    console.error("Error fetching custom scripts metadata:", error);
+  }
+  // onReady is called every time a workbook opens
+  for (const scriptMeta of cellsToScripts) {
+    // For every script with a target_cell arg, register the onSelectionChanged event
+    if (scriptMeta.target_cell) {
+      await registerCellToButton(
+        scriptMeta.target_cell,
+        scriptMeta.function_name,
+        scriptMeta.config,
+      );
+    }
   }
 });
 
