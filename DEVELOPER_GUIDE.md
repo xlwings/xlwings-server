@@ -59,7 +59,7 @@ npm install mypackage@latest
 
 Or use the VS Code extension `Version Lens`, which allows you to update the packages directly from `packages.json` (click the `V` at the top right).
 
-After updating a package in `packages.json`, run `sudo npm upgrade` followed by:
+After updating a package in `packages.json`, run `sudo npm install` followed by:
 
 ```
 python scripts/copy_node_modules_to_static_folder.py
