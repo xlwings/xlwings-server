@@ -61,11 +61,11 @@ packaging==25.0 ; sys_platform != 'win32'
     # via gunicorn
 pycparser==2.22 ; platform_python_implementation != 'PyPy'
     # via cffi
-pydantic==2.11.3
+pydantic==2.11.4
     # via
     #   fastapi-slim
     #   pydantic-settings
-pydantic-core==2.33.1
+pydantic-core==2.33.2
     # via pydantic
 pydantic-settings==2.9.1
     # via -r requirements-core.in
@@ -81,7 +81,7 @@ python-socketio==5.13.0
     # via -r requirements-core.in
 pytz==2025.2
     # via croniter
-redis==5.2.1
+redis==6.0.0
     # via -r requirements-core.in
 simple-websocket==1.1.0
     # via python-engineio
@@ -108,7 +108,7 @@ uvloop==0.21.0 ; sys_platform != 'win32'
     # via -r requirements-core.in
 wsproto==1.2.0
     # via simple-websocket
-xlwings==0.33.12
+xlwings==0.33.13
     # via -r requirements-core.in
 
 # The following packages were excluded from the output:
