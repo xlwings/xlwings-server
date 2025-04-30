@@ -4,12 +4,7 @@
 async function helloRibbon(event) {
   let token = await globalThis.getAuth();
   let scriptName = "hello_world";
-  await xlwings.runPython(
-    window.location.origin +
-      config.appPath +
-      `/xlwings/custom-scripts-call/${scriptName}`,
-    { auth: token, scriptName: scriptName },
-  );
+  await xlwings.runPython({ auth: token, scriptName: scriptName });
   event.completed();
 }
 Office.actions.associate("hello-ribbon", helloRibbon);
