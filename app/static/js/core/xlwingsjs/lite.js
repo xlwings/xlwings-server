@@ -82,15 +82,18 @@ async function initPyodide() {
     globalThis.liteCustomFunctionsCall = pyodide.globals.get(
       "custom_functions_call",
     );
-    globalThis.liteCustomScriptsCall = pyodide.globals.get(
-      "custom_scripts_call",
-    );
     globalThis.getXlwingsScripts = pyodide.globals.get("get_xlwings_scripts");
     globalThis.liteCustomFunctionsMeta = pyodide.globals.get(
       "custom_functions_meta",
     );
     globalThis.liteCustomFunctionsCode = pyodide.globals.get(
       "custom_functions_code",
+    );
+    globalThis.liteCustomScriptsCall = pyodide.globals.get(
+      "custom_scripts_call",
+    );
+    globalThis.liteCustomScriptsMeta = pyodide.globals.get(
+      "custom_scripts_meta",
     );
 
     // Hide loading status on success

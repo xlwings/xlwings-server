@@ -1,35 +1,19 @@
-// Store event handlers with a unique identifier
 const registeredHandlers = {};
 
-Office.onReady(async (info) => {
-  let cellsToScripts;
-  try {
-    const url =
-      window.location.origin +
-      config.appPath +
-      "/xlwings/custom-scripts-meta.json";
-    const response = await axios.get(url);
-    cellsToScripts = response.data;
-  } catch (error) {
-    console.error("Error fetching custom scripts metadata:", error);
-    return;
-  }
-
-  // Remove any previously registered handlers to prevent duplicates
+export async function registerSheetButtons(scriptsMeta) {
+  await Office.onReady();
   await removeAllEventHandlers();
-
-  // onReady is called every time a workbook opens
-  for (const scriptMeta of cellsToScripts) {
+  for (const meta of scriptsMeta) {
     // For every script with a target_cell arg, register the onSelectionChanged event
-    if (scriptMeta.target_cell) {
+    if (meta.target_cell) {
       await registerSheetButton(
-        scriptMeta.target_cell,
-        scriptMeta.function_name,
-        scriptMeta.config,
+        meta.target_cell,
+        meta.function_name,
+        meta.config,
       );
     }
   }
-});
+}
 
 async function registerSheetButton(hyperlinkCellRef, scriptName, xwConfig) {
   // hyperlinkCellRef is in the form [ShapeName]Sheet1!A1, where [ShapeName] is optional
@@ -73,12 +57,11 @@ async function registerSheetButton(hyperlinkCellRef, scriptName, xwConfig) {
             typeof globalThis.getAuth === "function"
               ? await globalThis.getAuth()
               : "";
-          await xlwings.runPython(
-            window.location.origin +
-              config.appPath +
-              `/xlwings/custom-scripts-call/${scriptName}`,
-            { ...xwConfig, auth: token, scriptName: scriptName },
-          );
+          await xlwings.runPython({
+            ...xwConfig,
+            auth: token,
+            scriptName: scriptName,
+          });
         } finally {
           sheet.getRange(selectedRangeAddress).getOffsetRange(1, 0).select();
           await context.sync();
