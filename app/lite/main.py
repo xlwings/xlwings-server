@@ -24,6 +24,7 @@ from xlwings.server import (
     custom_functions_call as xlwings_custom_functions_call,
     custom_functions_meta as xlwings_custom_functions_meta,
     custom_scripts_call as xlwings_custom_scripts_call,
+    custom_scripts_meta as xlwings_custom_scripts_meta,
 )
 
 try:
@@ -164,6 +165,17 @@ async def custom_scripts_call(data, script_name):
         else:
             result = {"error": str(e), "details": error_traceback}
             return to_js(result, dict_converter=js.Object.fromEntries)
+
+
+def custom_scripts_meta():
+    if settings.is_official_lite_addin:
+        import main_editor
+
+        module = main_editor
+    else:
+        module = custom_scripts
+    scripts_meta = xlwings_custom_scripts_meta(module)
+    return to_js(scripts_meta, dict_converter=js.Object.fromEntries)
 
 
 def get_xlwings_scripts(code_string, script_button_text):

@@ -58,7 +58,7 @@ Office.js doesn't offer a native way to connect a button on a sheet to a custom 
    await Office.addin.setStartupBehavior(Office.StartupBehavior.none);
    ```
 
-6. Make sure that the `target_cell` isn't selected, then reload the add-in. Now you can click the button.
+6. Make sure that the `target_cell` isn't selected, then **reload the add-in**. Now you can click the button.
 
 How does it work? When the add-in loads, it registers an event handler that runs the custom script when the `target_cell` is selected. This happens when you click the button as we have set up a hyperlink. Immediately after the `target_cell` has been selected, it selects the cell below it to be ready for the next call.
 

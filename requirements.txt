@@ -96,12 +96,12 @@ pycparser==2.22 ; platform_python_implementation != 'PyPy'
     # via
     #   -r requirements-core.txt
     #   cffi
-pydantic==2.11.3
+pydantic==2.11.4
     # via
     #   -r requirements-core.txt
     #   fastapi-slim
     #   pydantic-settings
-pydantic-core==2.33.1
+pydantic-core==2.33.2
     # via
     #   -r requirements-core.txt
     #   pydantic
@@ -129,7 +129,7 @@ pytz==2025.2
     #   -r requirements-core.txt
     #   croniter
     #   pandas
-redis==5.2.1
+redis==6.0.0
     # via -r requirements-core.txt
 simple-websocket==1.1.0
     # via
@@ -172,7 +172,7 @@ wsproto==1.2.0
     # via
     #   -r requirements-core.txt
     #   simple-websocket
-xlwings==0.33.12
+xlwings==0.33.13
     # via -r requirements-core.txt
 
 # The following packages were excluded from the output:

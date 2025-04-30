@@ -81,5 +81,5 @@ htmx.on("htmx:afterSwap", async (event) => {
       xlwings.runActions(bookDataJson, context);
     });
   }
-  xlwings.init();
+  await xlwings.init();
 });

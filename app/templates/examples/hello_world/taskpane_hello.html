@@ -4,7 +4,7 @@
   <div class="container-fluid pt-3 ps-3">
     <h1>Example Task Pane</h1>
     <div class="mb-3 d-flex flex-column gap-2">
-      <button xw-click="hello_world" xw-config='{"exclude": "MySheet"}' class="btn btn-primary btn-sm" type="button">
+      <button xw-click="hello_world" class="btn btn-primary btn-sm" type="button">
         Write 'Hello/Bye xlwings!' to A1
       </button>
       <button
@@ -15,16 +15,10 @@
         Insert sheet with custom functions
       </button>
       {% if not settings.enable_lite %}
-        <button xw-click="show_alert" xw-config='{"exclude": "MySheet"}' class="btn btn-primary btn-sm" type="button">
-          Show an alert
-        </button>
+        <button xw-click="show_alert" class="btn btn-primary btn-sm" type="button">Show an alert</button>
       {% endif %}
-      <button xw-click="show_plot" xw-config='{"exclude": "MySheet"}' class="btn btn-primary btn-sm" type="button">
-        Insert a Matplotlib Plot
-      </button>
-      <button xw-click="show_error" xw-config='{"exclude": "MySheet"}' class="btn btn-primary btn-sm" type="button">
-        Show an error message
-      </button>
+      <button xw-click="show_plot" class="btn btn-primary btn-sm" type="button">Insert a Matplotlib Plot</button>
+      <button xw-click="show_error" class="btn btn-primary btn-sm" type="button">Show an error message</button>
     </div>
   </div>
 {% endblock content %}

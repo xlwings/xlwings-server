@@ -1,6 +1,5 @@
 import contextvars
 import inspect
-import json
 import logging
 from pathlib import Path
 from textwrap import dedent
@@ -116,17 +115,10 @@ async def custom_scripts_call(script_name: str, book: dep.Book, current_user: de
     return book.json()
 
 
-@router.get("/custom-scripts-sheet-buttons")
-@router.get("/custom-scripts-sheet-buttons.js")
-async def custom_scripts_sheet_buttons():
-    buttons_info = []
-    for name, func in inspect.getmembers(custom_scripts, inspect.isfunction):
-        target_cell = getattr(func, "target_cell", None)
-        config = getattr(func, "config", {})
-        if target_cell:
-            buttons_info.append([target_cell, name, config])
-    content = f"const cellsToScripts = {json.dumps(buttons_info)};"
-    return Response(content=content, media_type="application/javascript")
+@router.get("/custom-scripts-meta")
+@router.get("/custom-scripts-meta.json")
+async def custom_scripts_meta():
+    return xlwings.server.custom_scripts_meta(custom_scripts)
 
 
 if settings.enable_lite:

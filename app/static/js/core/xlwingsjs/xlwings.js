@@ -10,6 +10,7 @@ import {
 } from "./utils.js";
 export { getActiveBookName, getCultureInfoName, getDateFormat };
 import { pyodideReadyPromise } from "./lite.js";
+import { registerSheetButtons } from "./sheet-buttons.js";
 
 // Prints the supported API versions into the Console
 printSupportedApiVersions();
@@ -31,7 +32,8 @@ globalThis.xlwings = xlwings;
 // Hook up buttons with the click event upon loading xlwings.js
 document.addEventListener("DOMContentLoaded", init);
 
-export function init() {
+export async function init() {
+  await xlwings.pyodideReadyPromise;
   // Handle unsupported browsers (IE/Edge Legacy)
   if (
     navigator.userAgent.indexOf("Trident") !== -1 ||
@@ -43,7 +45,24 @@ export function init() {
     );
     return;
   }
+  // Scripts meta
+  let scriptsMeta = [];
+  if (config.onLite) {
+    scriptsMeta = globalThis.liteCustomScriptsMeta();
+  } else {
+    const metaUrl =
+      window.location.origin +
+      config.appPath +
+      "/xlwings/custom-scripts-meta.json";
+    try {
+      const response = await axios.get(metaUrl);
+      scriptsMeta = response.data;
+    } catch (error) {
+      console.error("Error fetching script metadata:", error);
+    }
+  }
 
+  // xw-click registration
   const elements = document.querySelectorAll("[xw-click]");
   elements.forEach((element) => {
     // Prevent duplicate initialization when loading partials via htmx
@@ -67,16 +86,22 @@ export function init() {
         typeof globalThis.getAuth === "function"
           ? await globalThis.getAuth()
           : "";
+      let scriptName = element.getAttribute("xw-click");
+
+      // Config
       let xwConfig = element.getAttribute("xw-config")
         ? JSON.parse(element.getAttribute("xw-config"))
         : {};
-      let scriptName = element.getAttribute("xw-click");
-      const url =
-        window.location.origin +
-        config.appPath +
-        "/xlwings/custom-scripts-call/" +
-        scriptName;
-      await runPython(url, {
+      // Find the script config that matches the current scriptName
+      const matchingScript = scriptsMeta.find(
+        (script) => script.function_name === scriptName,
+      );
+      if (matchingScript && matchingScript.config) {
+        // Override xwConfig with the matched script's config
+        xwConfig = { ...xwConfig, ...matchingScript.config };
+      }
+      // Call runPython and restore button default state
+      await runPython({
         ...xwConfig,
         scriptName: scriptName,
         auth: token,
@@ -86,23 +111,21 @@ export function init() {
       element.removeAttribute("disabled");
     });
   });
+  // Handle sheet buttons
+  await registerSheetButtons(scriptsMeta);
 }
 
 const version = config.xlwingsVersion;
 
 globalThis.callbacks = {};
-export async function runPython(
-  url = "",
-  {
-    scriptName = "",
-    auth = "",
-    include = "",
-    exclude = "",
-    headers = {},
-    errorDisplayMode = "alert",
-    moduleString = "",
-  } = {},
-) {
+export async function runPython({
+  scriptName = "",
+  auth = "",
+  include = "",
+  exclude = "",
+  headers = {},
+  errorDisplayMode = "alert",
+} = {}) {
   await Office.onReady();
   try {
     await Excel.run(async (context) => {
@@ -118,6 +141,7 @@ export async function runPython(
       );
       let rawData;
       if (config.onLite) {
+        // xlwings Wasm
         await pyodideReadyPromise;
         rawData = await globalThis.liteCustomScriptsCall(payload, scriptName);
         if (rawData.error) {
@@ -125,6 +149,11 @@ export async function runPython(
           throw new Error(rawData.error);
         }
       } else {
+        // xlwings Server
+        let url =
+          window.location.origin +
+          config.appPath +
+          `/xlwings/custom-scripts-call/${scriptName}`;
         try {
           const response = await axios.post(url, payload, {
             headers: headers,
