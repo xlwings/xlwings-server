@@ -1,3 +1,6 @@
+// Store event handlers with a unique identifier
+const registeredHandlers = {};
+
 Office.onReady(async (info) => {
   let cellsToScripts;
   try {
@@ -9,12 +12,17 @@ Office.onReady(async (info) => {
     cellsToScripts = response.data;
   } catch (error) {
     console.error("Error fetching custom scripts metadata:", error);
+    return;
   }
+
+  // Remove any previously registered handlers to prevent duplicates
+  await removeAllEventHandlers();
+
   // onReady is called every time a workbook opens
   for (const scriptMeta of cellsToScripts) {
     // For every script with a target_cell arg, register the onSelectionChanged event
     if (scriptMeta.target_cell) {
-      await registerCellToButton(
+      await registerSheetButton(
         scriptMeta.target_cell,
         scriptMeta.function_name,
         scriptMeta.config,
@@ -23,7 +31,7 @@ Office.onReady(async (info) => {
   }
 });
 
-async function registerCellToButton(hyperlinkCellRef, scriptName, xwConfig) {
+async function registerSheetButton(hyperlinkCellRef, scriptName, xwConfig) {
   // hyperlinkCellRef is in the form [ShapeName]Sheet1!A1, where [ShapeName] is optional
   await Excel.run(async (context) => {
     let shapeName = null;
@@ -53,8 +61,11 @@ async function registerCellToButton(hyperlinkCellRef, scriptName, xwConfig) {
       }
     }
 
-    // Register event handler
-    sheet.onSelectionChanged.add(async function (event) {
+    // Create a unique key for this handler
+    const handlerKey = `${hyperlinkCellRef}_${scriptName}`;
+
+    // Register event handler and store the result
+    const eventResult = sheet.onSelectionChanged.add(async function (event) {
       let selectedRangeAddress = event.address;
       if (selectedRangeAddress === cellRef && !sheet.isNullObject) {
         try {
@@ -74,5 +85,37 @@ async function registerCellToButton(hyperlinkCellRef, scriptName, xwConfig) {
         }
       }
     });
+
+    // Store the event result for later removal if needed
+    registeredHandlers[handlerKey] = eventResult;
+
+    await context.sync();
   });
+}
+
+// Helper function to remove all registered event handlers
+async function removeAllEventHandlers() {
+  const handlerKeys = Object.keys(registeredHandlers);
+
+  if (handlerKeys.length === 0) {
+    return;
+  }
+
+  for (const key of handlerKeys) {
+    const eventResult = registeredHandlers[key];
+    try {
+      // Use the stored context to remove the handler
+      await Excel.run(eventResult.context, async (context) => {
+        eventResult.remove();
+        await context.sync();
+      });
+    } catch (error) {
+      console.warn(`Failed to remove handler ${key}:`, error);
+    }
+  }
+
+  // Clear the registry
+  Object.keys(registeredHandlers).forEach(
+    (key) => delete registeredHandlers[key],
+  );
 }

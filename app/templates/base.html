@@ -39,9 +39,6 @@
       {% endblock socketio %}
       {# xlwings.js (must come before custom-function-code) #}
       <script type="module" src="{{ url_for('static', path='/js/core/xlwingsjs/xlwings.js') }}" defer></script>
-      <script type="module" src="{{ url_for('static', path='/js/core/xlwingsjs/auth.js') }}" defer></script>
-      <script type="module" src="{{ url_for('static', path='/js/core/xlwingsjs/utils.js') }}" defer></script>
-      <script type="module" src="{{ url_for('static', path='/js/core/xlwingsjs/alert.js') }}" defer></script>
       {% block socketio2 %}
         {% if settings.enable_socketio %}
           {# Must come after xlwings.js #}

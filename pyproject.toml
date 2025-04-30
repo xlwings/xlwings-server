@@ -1,6 +1,7 @@
 [tool.ruff]
 line-length = 88
 fix = true
+target-version = "py39"
 
 [tool.ruff.lint]
 unfixable = [

@@ -17,7 +17,7 @@ from xlwings.server import script
 from . import settings
 
 
-@script(target_cell="[xlwings_button]Sheet1!B4", config={"exclude": "MySheet"})
+@script(target_cell="[xlwings_button]Sheet1!B4", config={"exclude": "Sheet2"})
 def hello_world(book: xw.Book):
     sheet = book.sheets.active
     cell = sheet["A1"]
@@ -25,6 +25,10 @@ def hello_world(book: xw.Book):
         cell.value = "Bye xlwings!"
     else:
         cell.value = "Hello xlwings!"
+    sheet1 = book.sheets[0]
+    sheet2 = book.sheets[1]
+    print(sheet1["A1"].value)
+    print(sheet2["A1"].value)
 
 
 @script
