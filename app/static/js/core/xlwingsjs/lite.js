@@ -72,33 +72,35 @@ async function initPyodide() {
       pyodide.FS.writeFile(localPath, content);
     }
 
-    // Entrypoint
-    let mainText = pyodide.FS.readFile("./main.py", { encoding: "utf8" });
-    await pyodide.runPythonAsync(mainText);
+    if (!config.isOfficialLiteAddin) {
+      // Entrypoint
+      let mainText = pyodide.FS.readFile("./main.py", { encoding: "utf8" });
+      await pyodide.runPythonAsync(mainText);
 
-    // Functions
-    // You can't simply export them as the will be null when used in
-    // custom-functions-code.js (it's only assigned the function here).
-    globalThis.liteCustomFunctionsCall = pyodide.globals.get(
-      "custom_functions_call",
-    );
-    globalThis.getXlwingsScripts = pyodide.globals.get("get_xlwings_scripts");
-    globalThis.liteCustomFunctionsMeta = pyodide.globals.get(
-      "custom_functions_meta",
-    );
-    globalThis.liteCustomFunctionsCode = pyodide.globals.get(
-      "custom_functions_code",
-    );
-    globalThis.liteCustomScriptsCall = pyodide.globals.get(
-      "custom_scripts_call",
-    );
-    globalThis.liteCustomScriptsMeta = pyodide.globals.get(
-      "custom_scripts_meta",
-    );
+      // Functions
+      // You can't simply export them as the will be null when used in
+      // custom-functions-code.js (it's only assigned the function here).
+      globalThis.liteCustomFunctionsCall = pyodide.globals.get(
+        "custom_functions_call",
+      );
+      globalThis.getXlwingsScripts = pyodide.globals.get("get_xlwings_scripts");
+      globalThis.liteCustomFunctionsMeta = pyodide.globals.get(
+        "custom_functions_meta",
+      );
+      globalThis.liteCustomFunctionsCode = pyodide.globals.get(
+        "custom_functions_code",
+      );
+      globalThis.liteCustomScriptsCall = pyodide.globals.get(
+        "custom_scripts_call",
+      );
+      globalThis.liteCustomScriptsMeta = pyodide.globals.get(
+        "custom_scripts_meta",
+      );
 
-    // Hide loading status on success
-    if (globalStatusAlert) {
-      globalStatusAlert.classList.add("d-none");
+      // Hide loading status on success
+      if (globalStatusAlert) {
+        globalStatusAlert.classList.add("d-none");
+      }
     }
 
     return pyodide;

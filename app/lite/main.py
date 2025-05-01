@@ -19,13 +19,8 @@ except ImportError:
 import js  # type: ignore
 import pyodide_js  # type: ignore
 import xlwings as xw
+import xlwings.server
 from pyodide.ffi import to_js  # type: ignore
-from xlwings.server import (
-    custom_functions_call as xlwings_custom_functions_call,
-    custom_functions_meta as xlwings_custom_functions_meta,
-    custom_scripts_call as xlwings_custom_scripts_call,
-    custom_scripts_meta as xlwings_custom_scripts_meta,
-)
 
 try:
     import matplotlib as mpl
@@ -33,6 +28,11 @@ try:
     mpl.use("agg")
 except ImportError:
     mpl = None
+
+
+# xlwings <0.33.13 doesn't have custom_scripts_meta
+if not hasattr(xlwings.server, "custom_scripts_meta"):
+    xlwings.server.custom_scripts_meta = lambda module: []
 
 
 class HtmlOutput:
@@ -111,12 +111,12 @@ async def custom_functions_call(data):
                 contextlib.redirect_stdout(html_output),
                 contextlib.redirect_stderr(html_output),
             ):
-                result = await xlwings_custom_functions_call(
+                result = await xlwings.server.custom_functions_call(
                     data,
                     module=module,
                 )
         else:
-            result = await xlwings_custom_functions_call(
+            result = await xlwings.server.custom_functions_call(
                 data,
                 module=module,
             )
@@ -141,13 +141,13 @@ async def custom_scripts_call(data, script_name):
                 contextlib.redirect_stdout(html_output),
                 contextlib.redirect_stderr(html_output),
             ):
-                book = await xlwings_custom_scripts_call(
+                book = await xlwings.server.custom_scripts_call(
                     module=module,
                     script_name=script_name,
                     typehint_to_value={xw.Book: book},
                 )
         else:
-            book = await xlwings_custom_scripts_call(
+            book = await xlwings.server.custom_scripts_call(
                 module=module,
                 script_name=script_name,
                 typehint_to_value={xw.Book: book},
@@ -174,7 +174,7 @@ def custom_scripts_meta():
         module = main_editor
     else:
         module = custom_scripts
-    scripts_meta = xlwings_custom_scripts_meta(module)
+    scripts_meta = xlwings.server.custom_scripts_meta(module)
     return to_js(scripts_meta, dict_converter=js.Object.fromEntries)
 
 
@@ -208,7 +208,8 @@ def custom_functions_meta(module_string):
         js.console.log(f"Parsing error [custom_functions_meta]: {e}")
         return to_js({}, dict_converter=js.Object.fromEntries)
     return to_js(
-        xlwings_custom_functions_meta(module), dict_converter=js.Object.fromEntries
+        xlwings.server.custom_functions_meta(module),
+        dict_converter=js.Object.fromEntries,
     )
 
 

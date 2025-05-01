@@ -1,3 +1,5 @@
+import { showGlobalStatus, hideGlobalStatus } from "./utils.js";
+
 const registeredHandlers = {};
 
 export async function registerSheetButtons(scriptsMeta) {
@@ -52,11 +54,13 @@ async function registerSheetButton(hyperlinkCellRef, scriptName, xwConfig) {
     const eventResult = sheet.onSelectionChanged.add(async function (event) {
       let selectedRangeAddress = event.address;
       if (selectedRangeAddress === cellRef && !sheet.isNullObject) {
+        const startTime = Date.now();
         try {
           let token =
             typeof globalThis.getAuth === "function"
               ? await globalThis.getAuth()
               : "";
+          showGlobalStatus(`Running '${scriptName}' ...`);
           await xlwings.runPython({
             ...xwConfig,
             auth: token,
@@ -65,6 +69,18 @@ async function registerSheetButton(hyperlinkCellRef, scriptName, xwConfig) {
         } finally {
           sheet.getRange(selectedRangeAddress).getOffsetRange(1, 0).select();
           await context.sync();
+
+          // Ensure the status is shown for a minimum time to avoid flickering
+          const elapsedTime = Date.now() - startTime;
+          const minDisplayTime = 500; // milliseconds
+
+          if (elapsedTime < minDisplayTime) {
+            await new Promise((resolve) =>
+              setTimeout(resolve, minDisplayTime - elapsedTime),
+            );
+          }
+
+          hideGlobalStatus();
         }
       }
     });

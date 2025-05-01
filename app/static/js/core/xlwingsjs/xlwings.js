@@ -7,6 +7,9 @@ import {
   getCultureInfoName,
   getDateFormat,
   showGlobalError,
+  showGlobalStatus,
+  hideGlobalError,
+  hideGlobalStatus,
 } from "./utils.js";
 export { getActiveBookName, getCultureInfoName, getDateFormat };
 import { pyodideReadyPromise } from "./lite.js";
@@ -26,6 +29,11 @@ const xlwings = {
   getCultureInfoName,
   getDateFormat,
   init,
+  registerSheetButtons,
+  showGlobalError,
+  hideGlobalError,
+  showGlobalStatus,
+  hideGlobalStatus,
 };
 globalThis.xlwings = xlwings;
 
@@ -47,9 +55,9 @@ export async function init() {
   }
   // Scripts meta
   let scriptsMeta = [];
-  if (config.onLite) {
+  if (config.onLite && !config.isOfficialLiteAddin) {
     scriptsMeta = globalThis.liteCustomScriptsMeta();
-  } else {
+  } else if (!config.isOfficialLiteAddin) {
     const metaUrl =
       window.location.origin +
       config.appPath +

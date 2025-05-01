@@ -100,3 +100,20 @@ export function showGlobalError(message) {
   alertMessage.textContent = message;
   alertEl.classList.remove("d-none");
 }
+
+export function showGlobalStatus(message) {
+  const alertEl = document.getElementById("global-status-alert");
+  const alertMessage = alertEl.querySelector("span");
+  alertMessage.textContent = message;
+  alertEl.classList.remove("d-none");
+}
+
+export function hideGlobalError() {
+  const alertEl = document.getElementById("global-error-alert");
+  alertEl.classList.add("d-none");
+}
+
+export function hideGlobalStatus() {
+  const alertEl = document.getElementById("global-status-alert");
+  alertEl.classList.add("d-none");
+}
