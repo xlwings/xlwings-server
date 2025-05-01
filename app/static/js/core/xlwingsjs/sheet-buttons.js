@@ -6,30 +6,27 @@ export async function registerSheetButtons(scriptsMeta) {
   await Office.onReady();
   await removeAllEventHandlers();
   for (const meta of scriptsMeta) {
-    // For every script with a target_cell arg, register the onSelectionChanged event
-    if (meta.target_cell) {
-      await registerSheetButton(
-        meta.target_cell,
-        meta.function_name,
-        meta.config,
-      );
+    // Support both legacy target_cell and button_ref
+    const buttonRef = meta?.button_ref || meta?.target_cell || null;
+    if (buttonRef) {
+      await registerSheetButton(buttonRef, meta);
     }
   }
 }
 
-async function registerSheetButton(hyperlinkCellRef, scriptName, xwConfig) {
-  // hyperlinkCellRef is in the form [ShapeName]Sheet1!A1, where [ShapeName] is optional
+async function registerSheetButton(buttonRef, meta) {
+  // buttonRef is in the form [ShapeName]Sheet1!A1, where [ShapeName] is optional
   await Excel.run(async (context) => {
     let shapeName = null;
     let sheetName, cellRef;
 
     // Check for optional [] part
-    const match = hyperlinkCellRef.match(/^\[(.*?)\](.*)$/);
+    const match = buttonRef.match(/^\[(.*?)\](.*)$/);
     if (match) {
       shapeName = match[1];
       [sheetName, cellRef] = match[2].split("!");
     } else {
-      [sheetName, cellRef] = hyperlinkCellRef.split("!");
+      [sheetName, cellRef] = buttonRef.split("!");
     }
 
     if (sheetName.startsWith("'") && sheetName.endsWith("'")) {
@@ -48,7 +45,8 @@ async function registerSheetButton(hyperlinkCellRef, scriptName, xwConfig) {
     }
 
     // Create a unique key for this handler
-    const handlerKey = `${hyperlinkCellRef}_${scriptName}`;
+    let scriptName = meta.function_name;
+    const handlerKey = `${buttonRef}_${scriptName}`;
 
     // Register event handler and store the result
     const eventResult = sheet.onSelectionChanged.add(async function (event) {
@@ -60,9 +58,13 @@ async function registerSheetButton(hyperlinkCellRef, scriptName, xwConfig) {
             typeof globalThis.getAuth === "function"
               ? await globalThis.getAuth()
               : "";
+          if (meta?.show_taskpane) {
+            await Office.addin.showAsTaskpane();
+          }
           showGlobalStatus(`Running '${scriptName}' ...`);
           await xlwings.runPython({
-            ...xwConfig,
+            include: meta?.include || "",
+            exclude: meta?.exclude || "",
             auth: token,
             scriptName: scriptName,
           });
