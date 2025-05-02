@@ -6,8 +6,8 @@ export async function registerSheetButtons(scriptsMeta) {
   await Office.onReady();
   await removeAllEventHandlers();
   for (const meta of scriptsMeta) {
-    // Support both legacy target_cell and button_ref
-    const buttonRef = meta?.button_ref || meta?.target_cell || null;
+    // Support both legacy target_cell and button
+    const buttonRef = meta?.button || meta?.target_cell || null;
     if (buttonRef) {
       await registerSheetButton(buttonRef, meta);
     }
