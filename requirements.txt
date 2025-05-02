@@ -172,7 +172,7 @@ wsproto==1.2.0
     # via
     #   -r requirements-core.txt
     #   simple-websocket
-xlwings==0.33.13
+xlwings==0.33.14
     # via -r requirements-core.txt
 
 # The following packages were excluded from the output:

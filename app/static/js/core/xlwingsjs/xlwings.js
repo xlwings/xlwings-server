@@ -101,12 +101,16 @@ export async function init() {
         ? JSON.parse(element.getAttribute("xw-config"))
         : {};
       // Find the script config that matches the current scriptName
-      const matchingScript = scriptsMeta.find(
-        (script) => script.function_name === scriptName,
+      const matchingMeta = scriptsMeta.find(
+        (meta) => meta.function_name === scriptName,
       );
-      if (matchingScript && matchingScript.config) {
-        // Override xwConfig with the matched script's config
-        xwConfig = { ...xwConfig, ...matchingScript.config };
+      if (matchingMeta) {
+        // Override xwConfig with the matched meta's config
+        xwConfig = {
+          ...xwConfig,
+          exclude: matchingMeta.exclude || "",
+          include: matchingMeta.include || "",
+        };
       }
       // Call runPython and restore button default state
       await runPython({
