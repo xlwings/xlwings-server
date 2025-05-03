@@ -18,7 +18,8 @@ try {
 globalThis.socket.on("xlwings:trigger-script", async (data) => {
   let token = await globalThis.getAuth();
   xlwings.runPython({
-    ...data.config,
+    include: data?.include || "",
+    exclude: data?.exclude || "",
     auth: token,
     scriptName: data.script_name,
   });
