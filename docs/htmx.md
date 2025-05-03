@@ -62,7 +62,7 @@ The `TemplateResponse` renders this template and returns it to the frontend, whe
 
 To see how you can interact with the Excel object model from an htmx task pane, have a look at the example [`app/templates/examples/excel_object_model`](https://github.com/xlwings/xlwings-server/tree/main/app/templates/examples/excel_object_model). In summary, here's what you need to do:
 
-- On the same element where you put the `hx-post` attribute, add `xw-book="true"`. This will provide the backend with the content of the workbook. If you need to include or exclude certain sheets, additionally provide `xw-config='{"exclude": "MySheet"}'` as an attribute with the desired [config](officejs_run_scripts.md#config).
+- On the same element where you put the `hx-post` attribute, add `xw-book="true"`. This will provide the backend with the content of the workbook. If you need to include or exclude certain sheets, additionally provide `xw-config='{"exclude": "MySheet"}'` as an attribute with the desired [config](officejs_run_scripts.md#configuration).
 - Include the `Book` dependency in your endpoint: `book: dep.Book` (note the import: `from .. import dependencies as dep`).
 - Include the `"book"` key in the `context` of your `TemplateResponse`, e.g., `context={"book": book}`. If you call your book object differently, let's say `wb`, it would look like this: `context={"book": wb}`.
 - In your template, in the part that is being swapped into the HTML, add the following line: `{% include "_book.html" %}`.

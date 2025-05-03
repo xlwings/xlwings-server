@@ -46,9 +46,9 @@ if settings.enable_examples:
 from .myscripts import *
 ```
 
-## Running a Script
+## Running and Configurting a Script
 
-How you run a script depends on the integration you're using:
+How you run and configure a script depends on the integration you're using:
 
 - [Office.js add-ins](officejs_run_scripts.md)
 - [](vba_integration.md)
@@ -57,4 +57,4 @@ How you run a script depends on the integration you're using:
 
 ## Limitations
 
-Currently, custom scripts don't accept arguments other than the special type-hinted ones (`xw.Book` and `app.models.user.CurrentUser`).
+Currently, custom scripts don't accept arguments other than the special type-hinted ones (`xw.Book` and `app.models.CurrentUser`).
