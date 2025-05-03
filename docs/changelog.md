@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.11.0 (May 3, 2025)
+
+- Simplified configuration for custom scripts via `@script` decorator instead of `xw-config` in HTML, see [](officejs_run_scripts.md#configuration)
+- Bug Fix: The `.gitattributes` setup so that changes to `requirements-core.txt` are pulled in.
+- Upgraded dependencies incl. xlwings to 0.33.14.
+- **Breaking change:** `XLWINGS_CORS_ALLOW_ORIGINS` now defaults to `[]`. If you use the Office Scripts integration or custom functions with Excel on the web, you need to set this to ["*"].
+- **Breaking change:** The `runPython` call has to be changed when calling it directly from Office.js ribbon buttons, see [](officejs_run_scripts.md#ribbon-button)
+
 ## 0.10.11 (Apr 21, 2025)
 
 - Bug fix: don't initialize buttons with the `xw-click` tag multiple times when using htmx (introduced with 0.10.9).
