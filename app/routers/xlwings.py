@@ -19,6 +19,13 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix=f"{settings.app_path}/xlwings")
 
 
+def sanitize_log_input(input_string: str) -> str:
+    """Replaces newline and carriage return characters to prevent log injection."""
+    if not isinstance(input_string, str):
+        input_string = str(input_string)
+    return input_string.replace("\n", "\\n").replace("\r", "\\r")
+
+
 @router.get("/alert")
 async def alert(
     request: Request, prompt: str, title: str, buttons: str, mode: str, callback: str
@@ -89,7 +96,10 @@ async def custom_functions_call(
     data: dict = Body,
     sid: Optional[str] = Header(default=None),
 ):
-    logger.info(f"""Function "{data['func_name']}" called by {current_user.name}""")
+    # Replace newline and carriage return characters to prevent log injection
+    safe_func_name = sanitize_log_input(data["func_name"])
+    safe_user_name = sanitize_log_input(current_user.name)
+    logger.info(f"""Function "{safe_func_name}" called by {safe_user_name}""")
     socketio_id_context.set(sid)  # For utils.trigger_script()
     caller_address_context.set(data["caller_address"])  # For ObjectCache converter
     redis_client_context.set(redis_client)  # For ObjectCache converter
@@ -105,7 +115,10 @@ async def custom_functions_call(
 
 @router.post("/custom-scripts-call/{script_name}")
 async def custom_scripts_call(script_name: str, book: dep.Book, current_user: dep.User):
-    logger.info(f"""Script "{script_name}" called by {current_user.name}""")
+    # Replace newline and carriage return characters to prevent log injection
+    safe_script_name = sanitize_log_input(script_name)
+    safe_user_name = sanitize_log_input(current_user.name)
+    logger.info(f"""Script "{safe_script_name}" called by {safe_user_name}""")
     book = await xlwings.server.custom_scripts_call(
         custom_scripts,
         script_name,
