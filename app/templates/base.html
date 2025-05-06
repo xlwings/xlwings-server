@@ -9,7 +9,10 @@
       {# xlwings Lite #}
       {% if settings.enable_lite %}
         {% if settings.cdn_pyodide %}
-          <script src="https://cdn.jsdelivr.net/pyodide/v0.27.5/full/pyodide.js"></script>
+          <script
+            src="https://cdn.jsdelivr.net/pyodide/v0.27.5/full/pyodide.js"
+            integrity="sha384-rm4QcPMX69sqmX2kWiJa3BF02sgdJkVyATWkw5NHAxBUAvmLXhToWZYaP2wCcyEe"
+            crossorigin="anonymous"></script>
         {% else %}
           <script src="{{ url_for('static', path='/vendor/pyodide/pyodide.js') }}"></script>
         {% endif %}
