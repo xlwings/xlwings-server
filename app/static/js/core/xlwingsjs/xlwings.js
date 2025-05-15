@@ -34,6 +34,7 @@ const xlwings = {
   hideGlobalError,
   showGlobalStatus,
   hideGlobalStatus,
+  registerCallback,
 };
 globalThis.xlwings = xlwings;
 
