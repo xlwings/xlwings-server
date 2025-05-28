@@ -39,8 +39,9 @@ async def connect(sid, environ, auth):
             sio=sio, directory=settings.base_dir
         )
     token_string = auth.get("token")
+    provider = auth.get("provider")
     try:
-        current_user = await authenticate(token_string)
+        current_user = await authenticate(token_string, auth_provider=provider)
         await sio.save_session(sid, {"current_user": current_user})
         logger.info(f"Socket.io: connect {sid}")
         logger.info(f"Socket.io: User authenticated {current_user.name}")

@@ -215,13 +215,15 @@ async function makeServerCall(body) {
 
   while (attempt < MAX_RETRIES) {
     attempt++;
+    let authResult =
+      typeof globalThis.getAuth === "function"
+        ? await globalThis.getAuth()
+        : { token: "", provider: "" };
     let headers = {
       "Content-Type": "application/json",
-      Authorization:
-        typeof globalThis.getAuth === "function"
-          ? await globalThis.getAuth()
-          : "",
       sid: socket && socket.id ? socket.id.toString() : null,
+      Authorization: authResult.token,
+      "Auth-Provider": authResult.provider,
     };
 
     await semaphore.acquire();

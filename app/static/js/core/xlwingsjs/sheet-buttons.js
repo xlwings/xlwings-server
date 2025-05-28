@@ -54,10 +54,10 @@ async function registerSheetButton(buttonRef, meta) {
       if (selectedRangeAddress === cellRef && !sheet.isNullObject) {
         const startTime = Date.now();
         try {
-          let token =
+          let authResult =
             typeof globalThis.getAuth === "function"
               ? await globalThis.getAuth()
-              : "";
+              : { token: "", provider: "" };
           if (meta?.show_taskpane) {
             await Office.addin.showAsTaskpane();
           }
@@ -65,7 +65,8 @@ async function registerSheetButton(buttonRef, meta) {
           await xlwings.runPython({
             include: meta?.include || "",
             exclude: meta?.exclude || "",
-            auth: token,
+            auth: authResult.token,
+            headers: { "Auth-Provider": authResult.provider },
             scriptName: scriptName,
           });
         } finally {

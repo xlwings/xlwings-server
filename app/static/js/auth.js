@@ -1,6 +1,13 @@
 globalThis.getAuth = async function () {
   if (config.authProviders.includes("entraid")) {
-    return await xlwings.getAccessToken();
+    const token = await xlwings.getAccessToken();
+    return {
+      token: token,
+      provider: "entraid",
+    };
   }
-  return "";
+  return {
+    token: "",
+    provider: "",
+  };
 };
