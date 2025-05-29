@@ -15,11 +15,12 @@ if np:
             return {
                 "serializer": cls.name,
                 "data": arr.tolist(),
+                "dtype": str(arr.dtype),
             }
 
         @classmethod
         def deserialize(cls, payload):
-            arr = np.array(payload["data"])
+            arr = np.array(payload["data"], dtype=payload["dtype"])
             return arr
 
     NumpyArraySerializer.register(np.array, np.ndarray)
