@@ -79,6 +79,13 @@ def test_numpy():
     assert_array_equal(data, deserialize(serialize(data)))
 
 
+def test_numpy_dtype():
+    data = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.uint32)
+    result = deserialize(serialize(data))
+    assert_array_equal(data, result)
+    assert result.dtype == data.dtype
+
+
 def test_dict_of_df():
     df1 = pd.DataFrame(
         {
