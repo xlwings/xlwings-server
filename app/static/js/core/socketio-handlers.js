@@ -4,9 +4,13 @@ try {
     transports: ["websocket", "polling"],
     path: `${config.appPath}/socket.io/`,
     auth: async (callback) => {
-      let token = await globalThis.getAuth();
+      let authResult =
+        typeof globalThis.getAuth === "function"
+          ? await globalThis.getAuth()
+          : { token: "", provider: "" };
       callback({
-        token: token,
+        token: authResult.token,
+        provider: authResult.provider,
       });
     },
   });
@@ -16,11 +20,15 @@ try {
 }
 
 globalThis.socket.on("xlwings:trigger-script", async (data) => {
-  let token = await globalThis.getAuth();
+  let authResult =
+    typeof globalThis.getAuth === "function"
+      ? await globalThis.getAuth()
+      : { token: "", provider: "" };
   xlwings.runPython({
     include: data?.include || "",
     exclude: data?.exclude || "",
-    auth: token,
+    auth: authResult.token,
+    headers: { "Auth-Provider": authResult.provider },
     scriptName: data.script_name,
   });
 });

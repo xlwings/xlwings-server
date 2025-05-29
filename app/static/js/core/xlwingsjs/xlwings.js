@@ -91,10 +91,10 @@ export async function init() {
       spinner.setAttribute("aria-hidden", "true");
       element.appendChild(spinner);
 
-      let token =
+      let authResult =
         typeof globalThis.getAuth === "function"
           ? await globalThis.getAuth()
-          : "";
+          : { token: "", provider: "" };
       let scriptName = element.getAttribute("xw-click");
 
       // Config
@@ -117,7 +117,8 @@ export async function init() {
       await runPython({
         ...xwConfig,
         scriptName: scriptName,
-        auth: token,
+        auth: authResult.token,
+        headers: { "Auth-Provider": authResult.provider },
         errorDisplayMode: "taskpane",
       });
       element.removeChild(spinner);
