@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11.1 (May 29, 2025)
+
+- Support multiple authentication providers. If you use a custom `globalThis.getAuth` in `app/static/js/auth.js`, you will need to update it.
+- Enhanced NumPy serializer to respect `dtype`.
+- Bug fix: Fixed `app.macro()`.
+
 ## 0.11.0 (May 3, 2025)
 
 - Simplified configuration for custom scripts via `@script` decorator instead of `xw-config` in HTML, see [](officejs_run_scripts.md#configuration)
