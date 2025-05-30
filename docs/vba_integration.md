@@ -16,7 +16,7 @@ This is a nice solution as you only need to give a macro-enabled workbook (`.xls
 
    ```vb.net
    Sub HelloWorld()
-       RunRemotePython "https://YOUR_SERVER/xlwings/custom-scripts-call/hello_world"
+       RunServerPython "https://YOUR_SERVER/xlwings/custom-scripts-call/hello_world"
    End Sub
    ```
 
@@ -55,7 +55,7 @@ For more details on how to create a custom add-in, have a look at the [custom ad
 
 ## Config
 
-Here are the settings that you can provide with the `RunRemotePython` call:
+Here are the settings that you can provide with the `RunServerPython` call:
 
 - `exclude` (optional): By default, xlwings sends over the complete content of the whole workbook to the server. If you have sheets with big amounts of data, this can make the calls slow or timeout. If your backend doesn’t need the content of certain sheets, the exclude option will block the sheet’s content (e.g., values, pictures, etc.) from being sent to the backend. Currently, you can only exclude entire sheets as comma-delimited string like so: `"Sheet1, Sheet2"`.
 
@@ -67,13 +67,13 @@ Here are the settings that you can provide with the `RunRemotePython` call:
 
 - `auth` (optional): This will set the Authorization HTTP request header, see [](authentication.md).
 
-Here is a complete example of how to provide a config along with your `RunRemotePython` call:
+Here is a complete example of how to provide a config along with your `RunServerPython` call:
 
 ```vb.net
 Sub Hello()
     Dim headers As New Dictionary
     headers.Add "key1", "value1"
-    RunRemotePython "https://YOUR_SERVER/xlwings/custom-scripts-call/hello_world", _
+    RunServerPython "https://YOUR_SERVER/xlwings/custom-scripts-call/hello_world", _
         auth:="xxx", _
         exclude:="Sheet1, Sheet2", _
         headers:=headers
