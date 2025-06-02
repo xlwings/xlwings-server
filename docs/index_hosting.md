@@ -6,6 +6,7 @@ This section is about deploying xlwings Server to a backend running Python. If y
 :maxdepth: 1
 
 azure_functions
+azure_container_apps
 docker_compose
 aws_app_runner
 render
