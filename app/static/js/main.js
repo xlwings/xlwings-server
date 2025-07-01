@@ -9,6 +9,9 @@ async function checkForVersionUpdates() {
 
     if (lastKnownVersion && data.version !== lastKnownVersion) {
       xlwings.showGlobalStatus(`New version available`);
+      await Office.addin.showAsTaskpane();
+      // or reload directly
+      // window.location.reload();
     }
 
     lastKnownVersion = data.version;
@@ -18,7 +21,7 @@ async function checkForVersionUpdates() {
 }
 
 // Polling
-setInterval(checkForVersionUpdates, 60000);
+setInterval(checkForVersionUpdates, 5000);
 
 // Initial check
 checkForVersionUpdates();
