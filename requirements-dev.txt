@@ -20,7 +20,7 @@ bidict==0.23.1
     # via
     #   -r requirements.txt
     #   python-socketio
-certifi==2025.4.26
+certifi==2025.6.15
     # via
     #   -r requirements.txt
     #   httpcore
@@ -31,24 +31,24 @@ cffi==1.17.1 ; platform_python_implementation != 'PyPy'
     #   cryptography
 cfgv==3.4.0
     # via pre-commit
-click==8.1.8
+click==8.2.1
     # via
     #   -r requirements.txt
     #   uvicorn
-colorama==0.4.6 ; sys_platform == 'win32' or platform_system == 'Windows'
+colorama==0.4.6 ; sys_platform == 'win32'
     # via
     #   -r requirements.txt
     #   click
     #   pytest
 croniter==6.0.0
     # via -r requirements.txt
-cryptography==44.0.2
+cryptography==45.0.5
     # via
     #   -r requirements.txt
     #   joserfc
 distlib==0.3.9
     # via virtualenv
-fastapi-slim==0.115.12
+fastapi-slim==0.115.14
     # via -r requirements.txt
 filelock==3.18.0
     # via virtualenv
@@ -60,7 +60,7 @@ h11==0.16.0
     #   httpcore
     #   uvicorn
     #   wsproto
-hiredis==3.1.0
+hiredis==3.2.1
     # via -r requirements.txt
 httpcore==1.0.9
     # via
@@ -70,7 +70,7 @@ httptools==0.6.4
     # via -r requirements.txt
 httpx==0.28.1
     # via -r requirements.txt
-identify==2.6.10
+identify==2.6.12
     # via pre-commit
 idna==3.10
     # via
@@ -85,9 +85,9 @@ jinja2==3.1.6
     #   jinja2-fragments
 jinja2-fragments==1.9.0
     # via -r requirements.txt
-joserfc==1.0.4
+joserfc==1.1.0
     # via -r requirements.txt
-lxml==5.4.0 ; platform_system == 'Darwin'
+lxml==6.0.0 ; sys_platform == 'darwin'
     # via
     #   -r requirements.txt
     #   appscript
@@ -107,11 +107,11 @@ packaging==25.0
     #   -r requirements.txt
     #   gunicorn
     #   pytest
-pandas==2.2.3
+pandas==2.3.0
     # via -r requirements.txt
-platformdirs==4.3.7
+platformdirs==4.3.8
     # via virtualenv
-pluggy==1.5.0
+pluggy==1.6.0
     # via pytest
 pre-commit==4.2.0
     # via -r requirements-dev.in
@@ -119,7 +119,7 @@ pycparser==2.22 ; platform_python_implementation != 'PyPy'
     # via
     #   -r requirements.txt
     #   cffi
-pydantic==2.11.4
+pydantic==2.11.7
     # via
     #   -r requirements.txt
     #   fastapi-slim
@@ -128,24 +128,26 @@ pydantic-core==2.33.2
     # via
     #   -r requirements.txt
     #   pydantic
-pydantic-settings==2.9.1
+pydantic-settings==2.10.1
     # via -r requirements.txt
-pytest==8.3.5
+pygments==2.19.2
+    # via pytest
+pytest==8.4.1
     # via
     #   -r requirements-dev.in
     #   pytest-mock
-pytest-mock==3.14.0
+pytest-mock==3.14.1
     # via -r requirements-dev.in
 python-dateutil==2.9.0.post0
     # via
     #   -r requirements.txt
     #   croniter
     #   pandas
-python-dotenv==1.1.0
+python-dotenv==1.1.1
     # via
     #   -r requirements.txt
     #   pydantic-settings
-python-engineio==4.12.0
+python-engineio==4.12.2
     # via
     #   -r requirements.txt
     #   python-socketio
@@ -160,7 +162,7 @@ pytz==2025.2
     #   pandas
 pyyaml==6.0.2
     # via pre-commit
-redis==6.0.0
+redis==6.2.0
     # via -r requirements.txt
 simple-websocket==1.1.0
     # via
@@ -180,16 +182,15 @@ starlette==0.46.2
     # via
     #   -r requirements.txt
     #   fastapi-slim
-typing-extensions==4.13.2
+typing-extensions==4.14.0
     # via
     #   -r requirements.txt
-    #   anyio
     #   beautifulsoup4
     #   fastapi-slim
     #   pydantic
     #   pydantic-core
     #   typing-inspection
-typing-inspection==0.4.0
+typing-inspection==0.4.1
     # via
     #   -r requirements.txt
     #   pydantic
@@ -198,13 +199,13 @@ tzdata==2025.2
     # via
     #   -r requirements.txt
     #   pandas
-uvicorn==0.34.2
+uvicorn==0.35.0
     # via -r requirements.txt
 uvloop==0.21.0 ; sys_platform != 'win32'
     # via -r requirements.txt
-virtualenv==20.30.0
+virtualenv==20.31.2
     # via pre-commit
-watchfiles==1.0.5
+watchfiles==1.1.0
     # via -r requirements-dev.in
 werkzeug==3.1.3 ; sys_platform != 'win32'
     # via
@@ -214,7 +215,7 @@ wsproto==1.2.0
     # via
     #   -r requirements.txt
     #   simple-websocket
-xlwings==0.33.14
+xlwings==0.33.15
     # via -r requirements.txt
 
 # The following packages were excluded from the output:
