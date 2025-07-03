@@ -82,7 +82,7 @@ markupsafe==3.0.2
     #   -r requirements-core.txt
     #   jinja2
     #   werkzeug
-numpy==2.0.1
+numpy==2.3.1
     # via
     #   -r requirements.in
     #   pandas
