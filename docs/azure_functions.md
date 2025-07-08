@@ -123,7 +123,7 @@ If there's nothing printed after `Functions in ...`, have a look at [](#logging)
 
 ## Cleanup
 
-After running this tutorial you can get rid of all the resources again by running:d
+After running this tutorial you can get rid of all the resources again by running:
 
 ```text
 az group delete --name xlwings-server-rg
