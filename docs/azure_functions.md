@@ -129,6 +129,12 @@ After running this tutorial you can get rid of all the resources again by runnin
 az group delete --name xlwings-server-rg
 ```
 
+## GitHub Actions
+
+You can use the following template:
+
+https://github.com/Azure/actions-workflow-samples/blob/master/FunctionApp/linux-python-functionapp-on-azure.yml
+
 ## Azure DevOps Pipelines
 
 Here's a sample `azure-pipelines.yml` file:
