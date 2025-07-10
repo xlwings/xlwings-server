@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.11.2 (Jul 10, 2025)
+
+- Make custom function retries configurable via `XLWINGS_CUSTOM_FUNCTIONS_MAX_RETRIES` (new default: `3`, old default: `5`) and `XLWINGS_CUSTOM_FUNCTIONS_RETRY_CODES` (new default: `[500, 502, 504]`, old default: all error HTTP codes), see `.env.template`.
+- Added docs showing how to disable ribbon buttons during a request.
+- Improved docs for Azure Functions with regard to Azure devops and GitHub actions pipelines.
+- Bug Fix: The `callback` argument of `app.alert` has been fixed and the examples now show how to use it.
+- Upgraded dependencies incl. xlwings to 0.33.15.
+
 ## 0.11.1 (May 29, 2025)
 
 - Support multiple authentication providers. If you use a custom `globalThis.getAuth` in `app/static/js/auth.js`, you will need to update it.
