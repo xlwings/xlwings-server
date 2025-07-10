@@ -1,3 +1,14 @@
+function alertCallback(arg) {
+  let outputContainer = document.getElementById("output-container");
+  if (!outputContainer) {
+    outputContainer = document.createElement("div");
+    outputContainer.id = "output-container";
+    document.querySelector(".container-fluid").appendChild(outputContainer);
+  }
+  outputContainer.textContent = `User clicked: ${arg}`;
+}
+xlwings.registerCallback(alertCallback);
+
 const visibility = {
   isOpen: false,
   label: "Show",

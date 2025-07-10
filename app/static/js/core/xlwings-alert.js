@@ -11,7 +11,7 @@ if (document.getElementById("cancel")) {
   document.getElementById("cancel").addEventListener("click", buttonCallback);
 }
 function buttonCallback() {
-  Office.onReady(function (info) {
+  Office.onReady(() => {
     // This causes this issue: https://github.com/OfficeDev/office-js/issues/3582
     Office.context.ui.messageParent(
       this.id +
