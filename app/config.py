@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     object_cache_expire_at: Optional[str] = "0 12 * * sat"
     object_cache_enable_compression: bool = True
     cors_allow_origins: List[str] = []
+    custom_functions_max_retries: int = 3
     date_format: Optional[str] = None
     enable_alpinejs_csp: bool = True
     enable_bootstrap: bool = True
@@ -88,6 +89,7 @@ class Settings(BaseSettings):
             "onLite": self.enable_lite,
             "isOfficialLiteAddin": self.is_official_lite_addin,
             "requestTimeout": self.request_timeout,
+            "customFunctionsMaxRetries": self.custom_functions_max_retries,
         }
 
 

@@ -210,7 +210,7 @@ async function base() {
 }
 
 async function makeServerCall(body) {
-  const MAX_RETRIES = 5;
+  const MAX_RETRIES = config.customFunctionsMaxRetries;
   let attempt = 0;
 
   while (attempt < MAX_RETRIES) {
