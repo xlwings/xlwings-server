@@ -22,25 +22,40 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.11", "3.12", "3.13"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13"]
     env:
       XLWINGS_LICENSE_KEY: ${{ secrets.XLWINGS_LICENSE_KEY }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v6
+
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
           cache: "pip"
+
+      - name: Compile dependencies for older Python versions
+        if: matrix.python-version == '3.9' || matrix.python-version == '3.10'
+        run: |
+          uv pip compile requirements-core.in -o requirements-core.txt
+          uv pip compile requirements.in -o requirements.txt
+          uv pip compile requirements-dev.in -o requirements-dev.txt
+
       - name: Install dependencies
         run: |
-          pip install -r requirements-dev.txt
+          uv pip sync requirements-dev.txt --system
+
       - name: Run tests with xlwings Server and .env.test
         run: pytest -v
+
       - name: Run tests with xlwings Server that depend on env.test2 (examples disabled)
         env:
           ENV_FILE: ".env.test2"
         run: pytest tests/test_env2.py
+
       - name: Run tests with xlwings Lite
         if: matrix.python-version == '3.12'
         env:
