@@ -41,6 +41,7 @@ class Settings(BaseSettings):
     object_cache_enable_compression: bool = True
     cors_allow_origins: List[str] = []
     custom_functions_max_retries: int = 3
+    custom_functions_retry_codes: List[int] = [500, 502, 504]
     date_format: Optional[str] = None
     enable_alpinejs_csp: bool = True
     enable_bootstrap: bool = True
@@ -90,6 +91,7 @@ class Settings(BaseSettings):
             "isOfficialLiteAddin": self.is_official_lite_addin,
             "requestTimeout": self.request_timeout,
             "customFunctionsMaxRetries": self.custom_functions_max_retries,
+            "customFunctionsRetryCodes": self.custom_functions_retry_codes,
         }
 
 
