@@ -107,16 +107,70 @@ To make this work, you need to provide a bit of JavaScript code that you can fin
 
 ```js
 async function helloRibbon(event) {
-  let token = await globalThis.getAuth();
-  let scriptName = "hello_world"; // replace hello_world with the name of your script
-  await xlwings.runPython({ auth: token, scriptName: scriptName });
+  let scriptName = "hello_world";
+  let authResult =
+    typeof globalThis.getAuth === "function"
+      ? await globalThis.getAuth()
+      : { token: "", provider: "" };
+  await xlwings.runPython({
+    auth: authResult.token,
+    scriptName: scriptName,
+    headers: { "Auth-Provider": authResult.provider },
+  });
   event.completed();
 }
-// hello-ribbon must correspond to what is used as FunctionName in the manifest
 Office.actions.associate("hello-ribbon", helloRibbon);
 ```
 
 Note that with Ribbon buttons, you currently need to explicitly provide the `auth` config unlike with task pane and sheet buttons, which handle this behind the scenes. The `auth` config provides the token via Authorization header to the backend.
+
+If you'd like to disable the ribbon button during the request, this is how you go about it:
+
+```js
+async function helloRibbon(event) {
+  const createTabsConfig = (enabled) => ({
+    // Make sure to update the ids in createTabConfig to match the ones used in manifest.xml
+    tabs: [
+      {
+        id: "MyTab",
+        groups: [
+          {
+            id: "MyCommandsGroup",
+            controls: [
+              {
+                id: "MyFunctionButton",
+                enabled: enabled,
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  });
+
+  await Office.onReady();
+  // Disable the button
+  await Office.ribbon.requestUpdate(createTabsConfig(false));
+
+  try {
+    let scriptName = "hello_world";
+    let authResult =
+      typeof globalThis.getAuth === "function"
+        ? await globalThis.getAuth()
+        : { token: "", provider: "" };
+    await xlwings.runPython({
+      auth: authResult.token,
+      scriptName: scriptName,
+      headers: { "Auth-Provider": authResult.provider },
+    });
+  } finally {
+    // Enable the button
+    await Office.ribbon.requestUpdate(createTabsConfig(true));
+    event.completed();
+  }
+}
+Office.actions.associate("hello-ribbon", helloRibbon);
+```
 
 See also [](#configuration).
 
