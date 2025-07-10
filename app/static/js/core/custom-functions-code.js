@@ -210,7 +210,8 @@ async function base() {
 }
 
 async function makeServerCall(body) {
-  const MAX_RETRIES = 5;
+  const MAX_RETRIES = config.customFunctionsMaxRetries;
+  const RETRY_CODES = config.customFunctionsRetryCodes;
   let attempt = 0;
 
   while (attempt < MAX_RETRIES) {
@@ -250,7 +251,10 @@ async function makeServerCall(body) {
           error.response.statusText ||
           "Unknown server error";
         console.error(`Attempt ${attempt}: ${errMsg}`);
-        if (attempt === MAX_RETRIES) {
+
+        // Only retry if the status code is in the retry codes list
+        const shouldRetry = RETRY_CODES.includes(error.response.status);
+        if (attempt === MAX_RETRIES || !shouldRetry) {
           return showError(errMsg);
         }
       } else if (attempt === MAX_RETRIES) {
