@@ -1,1 +1,11 @@
+# Include only what's needed for Azure Functions
+# Everything is ignored by default with *
+*
+# Explicitly ignore sensitive files
 .env
+# Then explicitly include what we need
+!app/
+!function_app.py
+!host.json
+!local.settings.json
+!requirements.txt

@@ -123,13 +123,63 @@ If there's nothing printed after `Functions in ...`, have a look at [](#logging)
 
 ## Cleanup
 
-After running this tutorial you can get rid of all the resources again by running:d
+After running this tutorial you can get rid of all the resources again by running:
 
 ```text
 az group delete --name xlwings-server-rg
 ```
 
+## GitHub Actions
+
+You can use the following template:
+
+https://github.com/Azure/actions-workflow-samples/blob/master/FunctionApp/linux-python-functionapp-on-azure.yml
+
+## Azure DevOps Pipelines
+
+Here's a sample `azure-pipelines.yml` file:
+
+```yaml
+trigger:
+- main
+
+variables:
+  # To set up the service connection:
+  # 1. Go to your Azure DevOps project
+  # 2. Navigate to Project Settings → Service connections
+  # 3. Create a new Azure Resource Manager service connection
+  # 4. Give it a name
+  # 5. Use that name here under variables
+  azureServiceConnection: 'TODO'
+  functionAppName: 'TODO'
+  resourceGroupName: 'TODO'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- bash: |
+    zip -r function.zip .
+  displayName: 'Create deployment package'
+
+- task: AzureCLI@2
+  displayName: 'Deploy to Azure Functions'
+  inputs:
+    azureSubscription: $(azureServiceConnection)
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+
+      # Deploy with remote build
+      az functionapp deployment source config-zip \
+        --resource-group $(resourceGroupName) \
+        --name $(functionAppName) \
+        --src function.zip \
+        --build-remote true
+
+```
+
 ## Limitations
 
-- Azure functions don't support WebSockets, i.e., streaming functions won't work.
+- Azure functions don't support WebSockets directly, i.e., streaming functions won't work. However, you should be able to use the Azure service "Web PubSub for Socket.IO" instead.
 - The function is always called `http_app_func`, see https://github.com/Azure-Samples/fastapi-on-azure-functions/issues/31
