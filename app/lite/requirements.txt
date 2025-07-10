@@ -1,5 +1,5 @@
-xlwings==0.33.13
-python-dotenv==1.1.0
+xlwings==0.33.15
+python-dotenv==1.1.1
 pyodide-http
 pandas
 matplotlib
