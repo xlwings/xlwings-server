@@ -1,3 +1,8 @@
+function alertCallback(arg) {
+  console.log(`User clicked: ${arg}`);
+}
+xlwings.registerCallback(alertCallback);
+
 const visibility = {
   isOpen: false,
   label: "Show",

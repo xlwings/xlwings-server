@@ -29,7 +29,11 @@ def hello_world(book: xw.Book):
 
 @script
 def show_alert(book: xw.Book):
-    book.app.alert("This is an alert!", title="xlwings Server Alert")
+    # callback is optional and only required if you want a JS function to be called
+    # when clicking a button. alertCallback is defined in app/static/js/core/examples.js
+    book.app.alert(
+        "This is an alert!", title="xlwings Server Alert", callback="alertCallback"
+    )
 
 
 @script
