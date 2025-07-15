@@ -82,7 +82,7 @@
       {# Own #}
       <link rel="stylesheet" href="{{ url_for('static', path='/css/core.css') }}" />
       <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}" />
-      <script src="{{ url_for('static', path='/js/main.js') }}" defer></script>
+      <script type="module" src="{{ url_for('static', path='/js/main.js') }}" defer></script>
       <script src="{{ url_for('static', path='/js/ribbon.js') }}" defer></script>
       {% block hotreload %}
         {% if settings.environment == "dev" and settings.enable_socketio %}
