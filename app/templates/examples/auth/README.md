@@ -33,6 +33,15 @@ async def taskpane_protected(request: Request, current_user: dep.User):
     )
 ```
 
+To log the user in automatically without clicking the link manually, add the following to `app/static/js/main.js`:
+
+```js
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelector("#btn-protected").click();
+});
+
+```
+
 This sample also depends on:
 
 - `app/static/js/htmx-handlers.js`
