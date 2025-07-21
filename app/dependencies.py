@@ -95,15 +95,22 @@ async def get_user(request: Request, current_user: models.User = Depends(authent
         settings.auth_required_roles
     )
     if not has_required_roles:
+        missing_roles = ", ".join(
+            set(settings.auth_required_roles).difference(current_user.roles)
+        )
+        msg = f"Auth error: Missing roles for {current_user.name}: {missing_roles}"
+        logger.warning(msg)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail=f"Auth error: Missing roles for {current_user.name}: {', '.join(set(settings.auth_required_roles).difference(current_user.roles))}",
+            detail=msg,
         )
     # Authorization
     if not await current_user.is_authorized():
+        msg = f"Auth error: Not authorized for {current_user.name}"
+        logger.warning(msg)
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Auth error: Not authorized.",
+            detail=msg,
         )
     return current_user
 
