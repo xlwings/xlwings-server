@@ -1,10 +1,11 @@
+{# manifest.xml requires the landing page to be public. Once loaded, htmx loads the protected endpoint.
+hx-trigger requires a delay as otherwise it's fired before the rest of the htmx attributes are loaded. #}
 {% extends "base.html" %}
 
 {% block content %}
   <div class="container-fluid pt-3 ps-3">
-    <h1>Public Task Pane</h1>
-    <a id="btn-protected" hx-get="{{ url_for('taskpane_protected') }}" hx-target="body" class="link" role="button"
-      >Go to Protected Area</a
+    <a id="btn-protected" hx-get="{{ url_for('taskpane_protected') }}" hx-target="body" hx-trigger="load delay:1ms"
+      >Loading...</a
     >
   </div>
 {% endblock content %}
