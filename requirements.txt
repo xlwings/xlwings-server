@@ -6,7 +6,7 @@ annotated-types==0.7.0
     # via
     #   -r requirements-core.txt
     #   pydantic
-anyio==4.9.0
+anyio==4.10.0
     # via
     #   -r requirements-core.txt
     #   httpx
@@ -17,7 +17,7 @@ bidict==0.23.1
     # via
     #   -r requirements-core.txt
     #   python-socketio
-certifi==2025.7.9
+certifi==2025.8.3
     # via
     #   -r requirements-core.txt
     #   httpcore
@@ -40,7 +40,7 @@ cryptography==45.0.5
     # via
     #   -r requirements-core.txt
     #   joserfc
-fastapi-slim==0.116.0
+fastapi-slim==0.116.1
     # via -r requirements-core.txt
 gunicorn==23.0.0 ; sys_platform != 'win32'
     # via -r requirements-core.txt
@@ -71,7 +71,7 @@ jinja2==3.1.6
     #   jinja2-fragments
 jinja2-fragments==1.9.0
     # via -r requirements-core.txt
-joserfc==1.2.0
+joserfc==1.2.2
     # via -r requirements-core.txt
 lxml==6.0.0 ; sys_platform == 'darwin'
     # via
@@ -82,7 +82,7 @@ markupsafe==3.0.2
     #   -r requirements-core.txt
     #   jinja2
     #   werkzeug
-numpy==2.3.1
+numpy==2.3.2
     # via
     #   -r requirements.in
     #   pandas
@@ -129,7 +129,7 @@ pytz==2025.2
     #   -r requirements-core.txt
     #   croniter
     #   pandas
-redis==6.2.0
+redis==6.3.0
     # via -r requirements-core.txt
 simple-websocket==1.1.0
     # via
@@ -143,16 +143,18 @@ sniffio==1.3.1
     # via
     #   -r requirements-core.txt
     #   anyio
-starlette==0.46.2
+starlette==0.47.2
     # via
     #   -r requirements-core.txt
     #   fastapi-slim
 typing-extensions==4.14.1
     # via
     #   -r requirements-core.txt
+    #   anyio
     #   fastapi-slim
     #   pydantic
     #   pydantic-core
+    #   starlette
     #   typing-inspection
 typing-inspection==0.4.1
     # via
