@@ -6,7 +6,7 @@ annotated-types==0.7.0
     # via
     #   -r requirements.txt
     #   pydantic
-anyio==4.9.0
+anyio==4.10.0
     # via
     #   -r requirements.txt
     #   httpx
@@ -20,7 +20,7 @@ bidict==0.23.1
     # via
     #   -r requirements.txt
     #   python-socketio
-certifi==2025.7.9
+certifi==2025.8.3
     # via
     #   -r requirements.txt
     #   httpcore
@@ -46,9 +46,9 @@ cryptography==45.0.5
     # via
     #   -r requirements.txt
     #   joserfc
-distlib==0.3.9
+distlib==0.4.0
     # via virtualenv
-fastapi-slim==0.116.0
+fastapi-slim==0.116.1
     # via -r requirements.txt
 filelock==3.18.0
     # via virtualenv
@@ -85,7 +85,7 @@ jinja2==3.1.6
     #   jinja2-fragments
 jinja2-fragments==1.9.0
     # via -r requirements.txt
-joserfc==1.2.0
+joserfc==1.2.2
     # via -r requirements.txt
 lxml==6.0.0 ; sys_platform == 'darwin'
     # via
@@ -98,7 +98,7 @@ markupsafe==3.0.2
     #   werkzeug
 nodeenv==1.9.1
     # via pre-commit
-numpy==2.3.1
+numpy==2.3.2
     # via
     #   -r requirements.txt
     #   pandas
@@ -162,7 +162,7 @@ pytz==2025.2
     #   pandas
 pyyaml==6.0.2
     # via pre-commit
-redis==6.2.0
+redis==6.3.0
     # via -r requirements.txt
 simple-websocket==1.1.0
     # via
@@ -178,17 +178,19 @@ sniffio==1.3.1
     #   anyio
 soupsieve==2.7
     # via beautifulsoup4
-starlette==0.46.2
+starlette==0.47.2
     # via
     #   -r requirements.txt
     #   fastapi-slim
 typing-extensions==4.14.1
     # via
     #   -r requirements.txt
+    #   anyio
     #   beautifulsoup4
     #   fastapi-slim
     #   pydantic
     #   pydantic-core
+    #   starlette
     #   typing-inspection
 typing-inspection==0.4.1
     # via
@@ -203,7 +205,7 @@ uvicorn==0.35.0
     # via -r requirements.txt
 uvloop==0.21.0 ; sys_platform != 'win32'
     # via -r requirements.txt
-virtualenv==20.31.2
+virtualenv==20.33.0
     # via pre-commit
 watchfiles==1.1.0
     # via -r requirements-dev.in

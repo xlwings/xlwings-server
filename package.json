@@ -2,7 +2,7 @@
   "dependencies": {
     "@alpinejs/csp": "3.14.9",
     "@microsoft/office-js": "1.1.110",
-    "axios": "1.10.0",
+    "axios": "1.11.0",
     "bootstrap": "5.3.7",
     "bootstrap-xlwings": "github:xlwings/bootstrap-xlwings#5.3.3-1",
     "htmx-ext-head-support": "2.0.4",
@@ -13,7 +13,7 @@
   },
   "devDependencies": {
     "@types/alpinejs": "3.13.11",
-    "@types/office-js": "1.0.514",
+    "@types/office-js": "1.0.521",
     "office-addin-lint": "3.0.3",
     "prettier": "3.6.2",
     "prettier-plugin-jinja-template": "2.1.0"
