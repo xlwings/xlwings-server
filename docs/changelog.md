@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.11.3 (Aug 5, 2025)
+
+- Enhanced the Task pane [auth sample](https://github.com/xlwings/xlwings-server/tree/main/app/templates/examples/auth)
+- Better logging for authorization issues
+- Turned `main.js` into a ES Module
+- Upgraded dependencies
+
 ## 0.11.2 (Jul 10, 2025)
 
 - Make custom function retries configurable via `XLWINGS_CUSTOM_FUNCTIONS_MAX_RETRIES` (new default: `3`, old default: `5`) and `XLWINGS_CUSTOM_FUNCTIONS_RETRY_CODES` (new default: `[500, 502, 504]`, old default: all error HTTP codes), see `.env.template`.
