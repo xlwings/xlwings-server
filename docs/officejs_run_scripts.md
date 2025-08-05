@@ -122,8 +122,6 @@ async function helloRibbon(event) {
 Office.actions.associate("hello-ribbon", helloRibbon);
 ```
 
-Note that with Ribbon buttons, you currently need to explicitly provide the `auth` config unlike with task pane and sheet buttons, which handle this behind the scenes. The `auth` config provides the token via Authorization header to the backend.
-
 If you'd like to disable the ribbon button during the request, this is how you go about it:
 
 ```js
