@@ -116,10 +116,15 @@ async function helloRibbon(event) {
     auth: authResult.token,
     scriptName: scriptName,
     headers: { "Auth-Provider": authResult.provider },
+    exclude: "SomeSheet,SomeOtherSheet",
   });
   event.completed();
 }
 Office.actions.associate("hello-ribbon", helloRibbon);
+```
+
+```{caution}
+Calling scripts from the ribbon currently doesn't respect the arguments of the `@script` decorator such as `include` or `exclude`. Instead, you will need to provide them in the `runPython` call, see previous example.
 ```
 
 If you'd like to disable the ribbon button during the request, this is how you go about it:
