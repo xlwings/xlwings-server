@@ -22,10 +22,12 @@ if not settings.enable_lite:
     from .. import custom_scripts, utils
     from ..models import CurrentUser
 
+from xlwings.reports import Image
+
 
 # 1) This is the most basic custom function -- it only requires the @func decorator.
 @func
-def hello(name):
+def hello(name) -> Image:
     return f"Hello {name}!"
 
 
@@ -137,7 +139,7 @@ if not settings.enable_lite:
         while True:
             matrix = rng.standard_normal(size=(rows, cols))
             df = pd.DataFrame(
-                matrix, columns=[f"col{i+1}" for i in range(matrix.shape[1])]
+                matrix, columns=[f"col{i + 1}" for i in range(matrix.shape[1])]
             )
             yield df
             await asyncio.sleep(1)

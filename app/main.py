@@ -10,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from xlwings import XlwingsError
 
 from . import settings
+from .image_handles import ImageConverter
 from .object_handles import ObjectCacheConverter
 from .routers import socketio as socketio_router
 from .routers.manifest import router as manifest_router
@@ -31,6 +32,9 @@ templates.env.globals["url_for"] = app.url_path_for
 
 # Register Converter
 ObjectCacheConverter.register(object, "object", "obj")
+from xlwings.reports import Image  # noqa: E402
+
+ImageConverter.register(Image)
 
 # CORS: Office Scripts and custom functions in Excel on the web require CORS
 # Using app.add_middleware won't add the CORS headers if you handle the root "Exception"
