@@ -4,10 +4,11 @@ async function reloadCustomFunctions(meta = null, code = null) {
   // Excel is completely closed, it does load the add-in, but not if it is already
   // running.
   // Custom functions will show #NAME? until the task pane is opened
-  // manually. That's why this is only loaded in "dev" environment. While
-  // await Office.addin.setStartupBehavior(Office.StartupBehavior.load); would solve
-  // the issue, it would make every workbook, which is opened while the add-in is
-  // installed, look for the add-in when reopened.
+  // manually. That's why this is only loaded in "dev" environment.
+  // await Office.addin.setStartupBehavior(Office.StartupBehavior.load); should solve
+  // the issue, but you should have a way to switch it off again, as otherwise, if you
+  // open the add-in in an unrelated workbook by accident, it would open the add-in
+  // every time you open that workbook.
   await Office.onReady();
   let jsonMetadataString;
   let functionCode;
