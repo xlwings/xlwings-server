@@ -1,19 +1,19 @@
 {
   "dependencies": {
-    "@alpinejs/csp": "3.14.9",
+    "@alpinejs/csp": "3.15.0",
     "@microsoft/office-js": "1.1.110",
-    "axios": "1.11.0",
-    "bootstrap": "5.3.7",
+    "axios": "1.12.2",
+    "bootstrap": "5.3.8",
     "bootstrap-xlwings": "github:xlwings/bootstrap-xlwings#5.3.3-1",
     "htmx-ext-head-support": "2.0.4",
     "htmx-ext-loading-states": "2.0.1",
-    "htmx.org": "2.0.6",
+    "htmx.org": "2.0.7",
     "pyodide": "0.27.5",
     "socket.io": "4.8.1"
   },
   "devDependencies": {
     "@types/alpinejs": "3.13.11",
-    "@types/office-js": "1.0.521",
+    "@types/office-js": "1.0.540",
     "office-addin-lint": "3.0.3",
     "prettier": "3.6.2",
     "prettier-plugin-jinja-template": "2.1.0"
