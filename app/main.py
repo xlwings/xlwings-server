@@ -92,7 +92,7 @@ async def add_security_headers(request, call_next):
             if header["name"] not in (
                 "Permissions-Policy",  # experimental
                 "Clear-Site-Data",  # too aggressive
-                "Content-Security-Policy",  # provide via XLWINGS_EXTRA_HEADERS
+                "Content-Security-Policy",  # provide via XLWINGS_CUSTOM_HEADERS
             ):
                 # Permissions-Policy headers are experimental
                 # Clear-Site-Data is too aggressive
@@ -105,8 +105,8 @@ async def add_security_headers(request, call_next):
             response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
             del response.headers["Cross-Origin-Embedder-Policy"]
 
-    # Extra headers
-    for header_name, header_value in settings.extra_headers.items():
+    # Custom headers
+    for header_name, header_value in settings.custom_headers.items():
         response.headers[header_name] = header_value
 
     return response
