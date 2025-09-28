@@ -78,7 +78,7 @@ async def add_security_headers(request, call_next):
     if not settings.add_security_headers and settings.environment == "dev":
         # Prevent caching in dev even if security headers are switched off
         response.headers["Cache-Control"] = "no-store, max-age=0"
-    if settings.add_security_headers and not settings.enable_lite:
+    if settings.add_security_headers:
         data = read_security_headers()
 
         # Extract file extension from request URL
@@ -89,31 +89,26 @@ async def add_security_headers(request, call_next):
             # Excel on Windows doesn't display the icons in the ribbon otherwise
             if header["name"] == "Cache-Control" and file_ext in image_ext:
                 continue
-            if header["name"] not in ("Permissions-Policy", "Clear-Site-Data"):
+            if header["name"] not in (
+                "Permissions-Policy",  # experimental
+                "Clear-Site-Data",  # too aggressive
+                "Content-Security-Policy",  # provide via XLWINGS_EXTRA_HEADERS
+            ):
                 # Permissions-Policy headers are experimental
                 # Clear-Site-Data is too aggressive
                 response.headers[header["name"]] = header["value"]
-        # For example, Bootstrap alerts need this
-        response.headers["Content-Security-Policy"] = (
-            response.headers["Content-Security-Policy"] + "; img-src 'self' data:"
-        )
+
         if settings.enable_excel_online:
             response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
-            response.headers["Content-Security-Policy"] = response.headers[
-                "Content-Security-Policy"
-            ].replace("frame-ancestors 'none'; ", "")
-            response.headers["Content-Security-Policy"] = (
-                response.headers["Content-Security-Policy"]
-                + "; font-src 'self' https://res-1.cdn.office.net; style-src 'self' 'unsafe-inline';"
-            )
             del response.headers["X-Frame-Options"]
         if settings.cdn_officejs:
-            response.headers["Content-Security-Policy"] = (
-                response.headers["Content-Security-Policy"]
-                + "; script-src 'self' https://appsforoffice.microsoft.com;"
-            )
             response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
             del response.headers["Cross-Origin-Embedder-Policy"]
+
+    # Extra headers
+    for header_name, header_value in settings.extra_headers.items():
+        response.headers[header_name] = header_value
+
     return response
 
 
