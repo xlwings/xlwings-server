@@ -1,11 +1,18 @@
 # Changelog
 
+## 0.12.0 (Sep 28, 2025)
+
+- There's a new setting to set and override headers: `XLWINGS_CUSTOM_HEADERS={"name1": "value1", "name2": "value2"}`
+- The extensionBundle version for Azure functions has been updated in `host.json` from `"version": "[2.*, 3.0.0)"` to `"version": "[4.*, 5.0.0)"`.
+- **Breaking change:** The setting `XLWINGS_ADD_SECURITY_HEADERS` doesn't set the CSP header anymore. If you want the CSP header, add it via `XLWINGS_CUSTOM_HEADERS`.
+- Upgraded dependencies.
+
 ## 0.11.3 (Aug 5, 2025)
 
 - Enhanced the Task pane [auth sample](https://github.com/xlwings/xlwings-server/tree/main/app/templates/examples/auth)
 - Better logging for authorization issues
 - Turned `main.js` into a ES Module
-- Upgraded dependencies
+- Upgraded dependencies.
 
 ## 0.11.2 (Jul 10, 2025)
 
