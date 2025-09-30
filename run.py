@@ -108,7 +108,7 @@ def deps_compile(upgrade=False):
     file_names = ["requirements-core", "requirements", "requirements-dev"]
     for file_name in file_names:
         cmd_linux = f"uv pip compile {file_name}.in --universal -o {file_name}.txt --unsafe-package pywin32 --unsafe-package appscript --unsafe-package psutil {'--upgrade' if upgrade else ''}"
-        subprocess.run(cmd_linux, shell=True, check=True)
+        subprocess.run(cmd_linux, shell=True, check=True, cwd=this_dir)
     print(
         f"Success! Requirements files {'upgraded' if upgrade else 'compiled'} successfully. Now commit the requirements.txt files!"
     )
