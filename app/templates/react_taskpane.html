@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <div id="root"></div>
+  <link rel="stylesheet" crossorigin href="{{ url_for('static', path='/frontend/dist/assets/index.css') }}" />
+  <script type="module" crossorigin src="{{ url_for('static', path='/frontend/dist/assets/index.js') }}"></script>
+{% endblock content %}

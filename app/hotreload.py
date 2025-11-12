@@ -6,6 +6,7 @@ watch HTML, CSS, and JS files separately via Watchfiles. If these files change, 
 reload the browser without having to restart the Python app.
 """
 
+import asyncio
 from pathlib import Path
 
 from watchfiles import Change, DefaultFilter, awatch
@@ -17,7 +18,7 @@ watching_frontend_files = False
 
 
 class WebFilter(DefaultFilter):
-    allowed_extensions = (".html", ".css", ".js", ".py", ".txt", ".env")
+    allowed_extensions = (".html", ".css", ".js", ".jsx", ".py", ".txt", ".env")
 
     def __call__(self, change: Change, path: str) -> bool:
         if not super().__call__(change, path):
@@ -27,8 +28,8 @@ class WebFilter(DefaultFilter):
         if path.suffix not in self.allowed_extensions:
             return False
 
-        # Allow HTML/CSS/JS files anywhere
-        if path.suffix in (".html", ".css", ".js"):
+        # Allow HTML/CSS/JS/JSX files anywhere
+        if path.suffix in (".html", ".css", ".js", ".jsx"):
             return True
 
         # xlwings Lite
@@ -44,6 +45,18 @@ async def watch_frontend_files(sio, directory):
         directory,
         watch_filter=WebFilter(),
     ):
+        is_jsx = False
+        for _, path in changes:
+            if Path(path).suffix == ".jsx":
+                is_jsx = True
+                break
+        if is_jsx:
+            frontend_dir = Path(directory) / "static" / "frontend"
+            proc = await asyncio.create_subprocess_shell(
+                "npm run build", cwd=frontend_dir
+            )
+            await proc.communicate()
+
         await sio.emit("reload")
 
 
