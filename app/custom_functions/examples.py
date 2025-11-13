@@ -22,13 +22,30 @@ if not settings.enable_lite:
     from .. import custom_scripts, utils
     from ..models import CurrentUser
 
+import xlwings as xw
 from xlwings.reports import Image
+
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    plt = None
 
 
 # 1) This is the most basic custom function -- it only requires the @func decorator.
+# This example demonstrates returning an image from a custom function by returning a URL.
 @func
-def hello(name) -> Image:
-    return f"Hello {name}!"
+def hello(n) -> Image:
+    # return "https://localhost:8000/static/images/ribbon/examples/xlwings-64.png"
+    if not plt:
+        raise xw.XlwingsError("You need to install Matplotlib for this example")
+    plt.style.use("_mpl-gallery-nogrid")
+    rng = np.random.default_rng()
+    x = rng.standard_normal(n)
+    y = 1.2 * x + rng.standard_normal(n) / 3
+    fig, ax = plt.subplots()
+    ax.hexbin(x, y, gridsize=20)
+    ax.set(xlim=(-2, 2), ylim=(-3, 3))
+    return fig
 
 
 # 2) Returning a pandas DataFrame and function documentation

@@ -169,6 +169,7 @@ async function base() {
     date_format: await xlwings.getDateFormat(),
     version: "placeholder_xlwings_version",
     runtime: runtime,
+    origin: window.location.origin,
   };
 
   // Streaming functions communicate via socket.io

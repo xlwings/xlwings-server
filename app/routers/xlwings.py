@@ -87,6 +87,7 @@ async def custom_functions_code():
 socketio_id_context = contextvars.ContextVar("socketio_id_context")
 caller_address_context = contextvars.ContextVar("caller_address_context")
 redis_client_context = contextvars.ContextVar("redis_client_context")
+origin_context = contextvars.ContextVar("origin_context")
 
 
 @router.post("/custom-functions-call")
@@ -103,6 +104,7 @@ async def custom_functions_call(
     socketio_id_context.set(sid)  # For utils.trigger_script()
     caller_address_context.set(data["caller_address"])  # For ObjectCache converter
     redis_client_context.set(redis_client)  # For ObjectCache converter
+    origin_context.set(data.get("origin"))  # For ImageConverter
 
     rv = await xlwings.server.custom_functions_call(
         data,
