@@ -2,11 +2,15 @@
 #    uv pip compile requirements-dev.in --universal -o requirements-dev.txt --unsafe-package pywin32 --unsafe-package appscript --unsafe-package psutil
 aiocache==0.12.3
     # via -r requirements.txt
+annotated-doc==0.0.4
+    # via
+    #   -r requirements.txt
+    #   fastapi
 annotated-types==0.7.0
     # via
     #   -r requirements.txt
     #   pydantic
-anyio==4.11.0
+anyio==4.12.0
     # via
     #   -r requirements.txt
     #   httpx
@@ -14,13 +18,13 @@ anyio==4.11.0
     #   watchfiles
 azure-functions==1.24.0 ; sys_platform != 'win32'
     # via -r requirements.txt
-beautifulsoup4==4.14.2
+beautifulsoup4==4.14.3
     # via -r requirements-dev.in
 bidict==0.23.1
     # via
     #   -r requirements.txt
     #   python-socketio
-certifi==2025.10.5
+certifi==2025.11.12
     # via
     #   -r requirements.txt
     #   httpcore
@@ -29,9 +33,9 @@ cffi==2.0.0 ; platform_python_implementation != 'PyPy'
     # via
     #   -r requirements.txt
     #   cryptography
-cfgv==3.4.0
+cfgv==3.5.0
     # via pre-commit
-click==8.3.0
+click==8.3.1
     # via
     #   -r requirements.txt
     #   uvicorn
@@ -42,15 +46,15 @@ colorama==0.4.6 ; sys_platform == 'win32'
     #   pytest
 croniter==6.0.0
     # via -r requirements.txt
-cryptography==46.0.2
+cryptography==46.0.3
     # via
     #   -r requirements.txt
     #   joserfc
 distlib==0.4.0
     # via virtualenv
-fastapi-slim==0.119.0
+fastapi==0.125.0
     # via -r requirements.txt
-filelock==3.20.0
+filelock==3.20.1
     # via virtualenv
 gunicorn==23.0.0 ; sys_platform != 'win32'
     # via -r requirements.txt
@@ -60,7 +64,7 @@ h11==0.16.0
     #   httpcore
     #   uvicorn
     #   wsproto
-hiredis==3.2.1
+hiredis==3.3.0
     # via -r requirements.txt
 httpcore==1.0.9
     # via
@@ -72,20 +76,20 @@ httpx==0.28.1
     # via -r requirements.txt
 identify==2.6.15
     # via pre-commit
-idna==3.10
+idna==3.11
     # via
     #   -r requirements.txt
     #   anyio
     #   httpx
-iniconfig==2.1.0
+iniconfig==2.3.0
     # via pytest
 jinja2==3.1.6
     # via
     #   -r requirements.txt
     #   jinja2-fragments
-jinja2-fragments==1.10.0
+jinja2-fragments==1.11.0
     # via -r requirements.txt
-joserfc==1.4.0
+joserfc==1.6.0
     # via -r requirements.txt
 lxml==6.0.2 ; sys_platform == 'darwin'
     # via
@@ -98,7 +102,7 @@ markupsafe==3.0.3
     #   werkzeug
 nodeenv==1.9.1
     # via pre-commit
-numpy==2.3.3
+numpy==2.3.5
     # via
     #   -r requirements.txt
     #   pandas
@@ -109,30 +113,30 @@ packaging==25.0
     #   pytest
 pandas==2.3.3
     # via -r requirements.txt
-platformdirs==4.5.0
+platformdirs==4.5.1
     # via virtualenv
 pluggy==1.6.0
     # via pytest
-pre-commit==4.3.0
+pre-commit==4.5.1
     # via -r requirements-dev.in
 pycparser==2.23 ; implementation_name != 'PyPy' and platform_python_implementation != 'PyPy'
     # via
     #   -r requirements.txt
     #   cffi
-pydantic==2.12.0
+pydantic==2.12.5
     # via
     #   -r requirements.txt
-    #   fastapi-slim
+    #   fastapi
     #   pydantic-settings
-pydantic-core==2.41.1
+pydantic-core==2.41.5
     # via
     #   -r requirements.txt
     #   pydantic
-pydantic-settings==2.11.0
+pydantic-settings==2.12.0
     # via -r requirements.txt
 pygments==2.19.2
     # via pytest
-pytest==8.4.2
+pytest==9.0.2
     # via
     #   -r requirements-dev.in
     #   pytest-mock
@@ -143,7 +147,7 @@ python-dateutil==2.9.0.post0
     #   -r requirements.txt
     #   croniter
     #   pandas
-python-dotenv==1.1.1
+python-dotenv==1.2.1
     # via
     #   -r requirements.txt
     #   pydantic-settings
@@ -151,9 +155,9 @@ python-engineio==4.12.3
     # via
     #   -r requirements.txt
     #   python-socketio
-python-multipart==0.0.20
+python-multipart==0.0.21
     # via -r requirements.txt
-python-socketio==5.14.1
+python-socketio==5.15.1
     # via -r requirements.txt
 pytz==2025.2
     # via
@@ -162,7 +166,7 @@ pytz==2025.2
     #   pandas
 pyyaml==6.0.3
     # via pre-commit
-redis==6.4.0
+redis==7.1.0
     # via -r requirements.txt
 simple-websocket==1.1.0
     # via
@@ -172,22 +176,18 @@ six==1.17.0
     # via
     #   -r requirements.txt
     #   python-dateutil
-sniffio==1.3.1
-    # via
-    #   -r requirements.txt
-    #   anyio
-soupsieve==2.8
+soupsieve==2.8.1
     # via beautifulsoup4
-starlette==0.48.0
+starlette==0.50.0
     # via
     #   -r requirements.txt
-    #   fastapi-slim
+    #   fastapi
 typing-extensions==4.15.0
     # via
     #   -r requirements.txt
     #   anyio
     #   beautifulsoup4
-    #   fastapi-slim
+    #   fastapi
     #   pydantic
     #   pydantic-core
     #   starlette
@@ -197,27 +197,27 @@ typing-inspection==0.4.2
     #   -r requirements.txt
     #   pydantic
     #   pydantic-settings
-tzdata==2025.2
+tzdata==2025.3
     # via
     #   -r requirements.txt
     #   pandas
-uvicorn==0.37.0
+uvicorn==0.38.0
     # via -r requirements.txt
-uvloop==0.21.0 ; sys_platform != 'win32'
+uvloop==0.22.1 ; sys_platform != 'win32'
     # via -r requirements.txt
-virtualenv==20.35.3
+virtualenv==20.35.4
     # via pre-commit
-watchfiles==1.1.0
+watchfiles==1.1.1
     # via -r requirements-dev.in
-werkzeug==3.1.3 ; sys_platform != 'win32'
+werkzeug==3.1.4 ; sys_platform != 'win32'
     # via
     #   -r requirements.txt
     #   azure-functions
-wsproto==1.2.0
+wsproto==1.3.2
     # via
     #   -r requirements.txt
     #   simple-websocket
-xlwings==0.33.16
+xlwings==0.33.19
     # via -r requirements.txt
 
 # The following packages were excluded from the output:

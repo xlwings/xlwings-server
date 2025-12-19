@@ -2,29 +2,31 @@
 #    uv pip compile requirements-core.in --universal -o requirements-core.txt --unsafe-package pywin32 --unsafe-package appscript --unsafe-package psutil
 aiocache==0.12.3
     # via -r requirements-core.in
+annotated-doc==0.0.4
+    # via fastapi
 annotated-types==0.7.0
     # via pydantic
-anyio==4.11.0
+anyio==4.12.0
     # via
     #   httpx
     #   starlette
 bidict==0.23.1
     # via python-socketio
-certifi==2025.10.5
+certifi==2025.11.12
     # via
     #   httpcore
     #   httpx
 cffi==2.0.0 ; platform_python_implementation != 'PyPy'
     # via cryptography
-click==8.3.0
+click==8.3.1
     # via uvicorn
 colorama==0.4.6 ; sys_platform == 'win32'
     # via click
 croniter==6.0.0
     # via -r requirements-core.in
-cryptography==46.0.2
+cryptography==46.0.3
     # via joserfc
-fastapi-slim==0.119.0
+fastapi==0.125.0
     # via -r requirements-core.in
 gunicorn==23.0.0 ; sys_platform != 'win32'
     # via -r requirements-core.in
@@ -33,7 +35,7 @@ h11==0.16.0
     #   httpcore
     #   uvicorn
     #   wsproto
-hiredis==3.2.1
+hiredis==3.3.0
     # via -r requirements-core.in
 httpcore==1.0.9
     # via httpx
@@ -41,7 +43,7 @@ httptools==0.7.1
     # via -r requirements-core.in
 httpx==0.28.1
     # via -r requirements-core.in
-idna==3.10
+idna==3.11
     # via
     #   anyio
     #   httpx
@@ -49,9 +51,9 @@ jinja2==3.1.6
     # via
     #   -r requirements-core.in
     #   jinja2-fragments
-jinja2-fragments==1.10.0
+jinja2-fragments==1.11.0
     # via -r requirements-core.in
-joserfc==1.4.0
+joserfc==1.6.0
     # via -r requirements-core.in
 lxml==6.0.2 ; sys_platform == 'darwin'
     # via appscript
@@ -61,40 +63,38 @@ packaging==25.0 ; sys_platform != 'win32'
     # via gunicorn
 pycparser==2.23 ; implementation_name != 'PyPy' and platform_python_implementation != 'PyPy'
     # via cffi
-pydantic==2.12.0
+pydantic==2.12.5
     # via
-    #   fastapi-slim
+    #   fastapi
     #   pydantic-settings
-pydantic-core==2.41.1
+pydantic-core==2.41.5
     # via pydantic
-pydantic-settings==2.11.0
+pydantic-settings==2.12.0
     # via -r requirements-core.in
 python-dateutil==2.9.0.post0
     # via croniter
-python-dotenv==1.1.1
+python-dotenv==1.2.1
     # via pydantic-settings
 python-engineio==4.12.3
     # via python-socketio
-python-multipart==0.0.20
+python-multipart==0.0.21
     # via -r requirements-core.in
-python-socketio==5.14.1
+python-socketio==5.15.1
     # via -r requirements-core.in
 pytz==2025.2
     # via croniter
-redis==6.4.0
+redis==7.1.0
     # via -r requirements-core.in
 simple-websocket==1.1.0
     # via python-engineio
 six==1.17.0
     # via python-dateutil
-sniffio==1.3.1
-    # via anyio
-starlette==0.48.0
-    # via fastapi-slim
+starlette==0.50.0
+    # via fastapi
 typing-extensions==4.15.0
     # via
     #   anyio
-    #   fastapi-slim
+    #   fastapi
     #   pydantic
     #   pydantic-core
     #   starlette
@@ -103,13 +103,13 @@ typing-inspection==0.4.2
     # via
     #   pydantic
     #   pydantic-settings
-uvicorn==0.37.0
+uvicorn==0.38.0
     # via -r requirements-core.in
-uvloop==0.21.0 ; sys_platform != 'win32'
+uvloop==0.22.1 ; sys_platform != 'win32'
     # via -r requirements-core.in
-wsproto==1.2.0
+wsproto==1.3.2
     # via simple-websocket
-xlwings==0.33.16
+xlwings==0.33.19
     # via -r requirements-core.in
 
 # The following packages were excluded from the output:
