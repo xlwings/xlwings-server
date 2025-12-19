@@ -3,7 +3,7 @@
 
 aiocache
 croniter
-fastapi-slim
+fastapi
 gunicorn; sys_platform != 'win32'
 hiredis
 httptools
