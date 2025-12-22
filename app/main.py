@@ -160,5 +160,5 @@ async def exception_handler(request, exception):
     if settings.environment == "dev":
         msg = repr(exception)
     else:
-        msg = "An error ocurred."
+        msg = "An error occurred."
     return PlainTextResponse(msg, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
