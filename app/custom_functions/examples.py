@@ -15,7 +15,7 @@ from xlwings.server import arg, func, ret
 
 from . import settings
 
-if not settings.enable_lite:
+if not settings.enable_wasm:
     from xlwings.constants import ObjectHandleIcons
     from xlwings.ext.sql import _sql
 
@@ -67,7 +67,7 @@ def correl2(df: Df):
     return df.corr()
 
 
-if not settings.enable_lite:
+if not settings.enable_wasm:
     # 5) Object handles: This returns an object handle to a DataFrame that is generated on
     # the backend. You can change the `text` and `icon` via annotated type hint or via ret
     # decorator.

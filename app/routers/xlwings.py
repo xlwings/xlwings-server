@@ -134,13 +134,13 @@ async def custom_scripts_meta():
     return xlwings.server.custom_scripts_meta(custom_scripts)
 
 
-if settings.enable_lite:
+if settings.enable_wasm:
 
     @router.get("/pyodide.json")
     async def get_pyodide_config():
         # requirements.txt
         packages = (
-            Path(settings.base_dir / "lite" / "requirements.txt")
+            Path(settings.base_dir / "wasm" / "requirements.txt")
             .read_text()
             .splitlines()
         )
@@ -175,7 +175,7 @@ if settings.enable_lite:
 
         # Scan all directories
         files = {}
-        files.update(scan_directory(settings.base_dir, "lite"))
+        files.update(scan_directory(settings.base_dir, "wasm"))
         for directory in ["custom_functions", "custom_scripts"]:
             files.update(
                 scan_directory(settings.base_dir, directory, prepend_dir_name=True)

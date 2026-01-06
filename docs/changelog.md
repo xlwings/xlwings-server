@@ -103,7 +103,7 @@
 ## 0.10.0 (Jan 9, 2025)
 
 - Datetime fixes both with custom scripts (day and month were misinterpreted with certain locales) and custom functions (the formatting of dates in custom functions now respects the specific format chosen on the system).
-- Added the `-e`/`--env` arg to the lite CLI command.
+- Added the `-e`/`--env` arg to the `wasm` CLI command.
 - Upgraded dependencies incl. xlwings to 0.33.6.
 
 ## 0.9.2 (Dec 9, 2024)

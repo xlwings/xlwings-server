@@ -48,7 +48,7 @@ def setup_custom_functions(book: xw.Book):
     sheet["A3"].value = f'={prefix}.HELLO("xlwings")'
     sheet["A5"].value = f"={prefix}.STANDARD_NORMAL(3, 4)"
     sheet["A10"].value = f"={prefix}.CORREL(A5#)"
-    if not settings.enable_lite:
+    if not settings.enable_wasm:
         sheet["A16"].value = f"={prefix}.TO_DF(A5#)"
         sheet["A18"].value = f"={prefix}.GET_HEALTHEXP()"
         sheet[

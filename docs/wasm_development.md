@@ -10,7 +10,7 @@ xlwings Server acts as the development environment for xlwings Wasm. So before a
 Now that you have xlwings Server running, you can make the switch to xlwings Wasm by setting the following setting under `.env`:
 
 ```ini
-XLWINGS_ENABLE_LITE=true
+XLWINGS_ENABLE_WASM=true
 ```
 
 Start or restart your development server by running `python run.py`. You should now see a yellow alert in the task pane that Python is loading. That's it, you are now running xlwings Wasm in development mode!
@@ -36,7 +36,7 @@ see [](debugging.md#officejs-add-in-debugging) for more details.
 
 ## Dependencies
 
-You need to define your dependencies under `app/lite/requirements.txt`. Note that this is a separate file and different from the xlwings Server `requirements.txt`, which lives in the root of the xlwings-server repo. The requirements are installed automatically when you save the file, triggered by a task pane reload.
+You need to define your dependencies under `app/wasm/requirements.txt`. Note that this is a separate file and different from the xlwings Server `requirements.txt`, which lives in the root of the xlwings-server repo. The requirements are installed automatically when you save the file, triggered by a task pane reload.
 
 Pyodide first checks PyPI for a compatible package in the `whl` format. If it doesn't find a compatible version (it needs to be a pure Python package), Pyodide checks their own repository where they host compatible wheels for many popular packages that aren't pure-Python packages.
 
@@ -50,12 +50,12 @@ For packages from the Pyodide repository, such as pandas or Matplotlib, you can'
 
 ## Configuration
 
-xlwings Wasm reads the configuration from `app/lite/.env`. This file is automatically updated from `.env` whenever you kill/restart the server via `python run.py`.
+xlwings Wasm reads the configuration from `app/wasm/.env`. This file is automatically updated from `.env` whenever you kill/restart the server via `python run.py`.
 
-To remain lightweight, xlwings Wasm doesn't use `pydantic-settings` but only depends on `python-dotenv`, see `app/lite/config.py`.
+To remain lightweight, xlwings Wasm doesn't use `pydantic-settings` but only depends on `python-dotenv`, see `app/wasm/config.py`.
 
 ```{note}
-Even though `app/lite/.env` is ignored by Git, it will be included in your final xlwings Wasm app and visible for everyone. However, xlwings developer keys are replaced by deploy keys when using the xlwings Wasm build command.
+Even though `app/wasm/.env` is ignored by Git, it will be included in your final xlwings Wasm app and visible for everyone. However, xlwings developer keys are replaced by deploy keys when using the xlwings Wasm build command.
 ```
 
 ## Debugging
@@ -63,7 +63,7 @@ Even though `app/lite/.env` is ignored by Git, it will be included in your final
 xlwings Wasm uses Pyodide under the hood, which currently doesn't offer a debugger. So to debug your custom functions and custom scripts, you have two options:
 
 - Use `print()`, which will print to the console of the browser dev tools (not to the terminal where you run Python!).
-- In `.env`, temporarily switch back to `XLWINGS_ENABLE_LITE=false`. This allows you to run `run.py` by using the debug mode of your editor and set breakpoints.
+- In `.env`, temporarily switch back to `XLWINGS_ENABLE_WASM=false`. This allows you to run `run.py` by using the debug mode of your editor and set breakpoints.
 
 ## Task Pane
 

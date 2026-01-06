@@ -18,7 +18,7 @@ is_cloud = os.getenv("CODESPACES") or os.getenv("GITPOD_WORKSPACE_ID")
 this_dir = Path(__file__).parent.resolve()
 
 
-def create_lite_settings(settings, env_file):
+def create_wasm_settings(settings, env_file):
     settings_map = {
         "XLWINGS_LICENSE_KEY": f'"{settings.license_key}"',
         "XLWINGS_ENABLE_EXAMPLES": str(settings.enable_examples).lower(),
@@ -29,10 +29,10 @@ def create_lite_settings(settings, env_file):
     }
 
     for key, value in settings_map.items():
-        update_lite_settings(key, value, env_file)
+        update_wasm_settings(key, value, env_file)
 
 
-def update_lite_settings(key: str, value: str, env_file: Path):
+def update_wasm_settings(key: str, value: str, env_file: Path):
     if env_file.exists():
         content = env_file.read_text().splitlines()
     else:
@@ -114,7 +114,7 @@ def deps_compile(upgrade=False):
     )
 
 
-def lite_build(url, output_dir, create_zip=False, clean=False, environment=None):
+def wasm_build(url, output_dir, create_zip=False, clean=False, environment=None):
     logging.getLogger("httpx").setLevel(logging.WARNING)
     build_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
@@ -123,7 +123,7 @@ def lite_build(url, output_dir, create_zip=False, clean=False, environment=None)
     base_url = f"{parsed.scheme}://{parsed.netloc}".rstrip("/")
     app_path = parsed.path.rstrip("/")
 
-    os.environ["XLWINGS_ENABLE_LITE"] = "true"
+    os.environ["XLWINGS_ENABLE_WASM"] = "true"
     os.environ["XLWINGS_ENABLE_SOCKETIO"] = "false"
     os.environ["XLWINGS_APP_PATH"] = app_path
     os.environ["XLWINGS_STATIC_URL_PATH"] = f"{app_path}/static"
@@ -137,7 +137,7 @@ def lite_build(url, output_dir, create_zip=False, clean=False, environment=None)
     from app.main import main_app  # noqa: E402
 
     # Make sure settings is up-to-date
-    create_lite_settings(settings=settings, env_file=this_dir / "app" / "lite" / ".env")
+    create_wasm_settings(settings=settings, env_file=this_dir / "app" / "wasm" / ".env")
 
     # Take the license key from .env
     os.environ["XLWINGS_LICENSE_KEY"] = settings.license_key
@@ -188,7 +188,7 @@ def lite_build(url, output_dir, create_zip=False, clean=False, environment=None)
 
     # Index.html
     index_path = output_dir / "index.html"
-    index_path.write_text(f"This is an xlwings Lite app! ({build_timestamp})")
+    index_path.write_text(f"This is an xlwings Wasm app! ({build_timestamp})")
 
     print("Static site generation complete.")
 
@@ -203,7 +203,7 @@ def lite_build(url, output_dir, create_zip=False, clean=False, environment=None)
             print(f"No {folder_name} folder found to copy")
 
     copy_folder(this_dir / "app" / "static", output_dir / "static", "Static")
-    copy_folder(this_dir / "app" / "lite", output_dir / "lite", "lite")
+    copy_folder(this_dir / "app" / "wasm", output_dir / "wasm", "wasm")
     copy_folder(
         this_dir / "app" / "custom_functions",
         output_dir / "custom_functions",
@@ -220,12 +220,12 @@ def lite_build(url, output_dir, create_zip=False, clean=False, environment=None)
         deploy_key = xlwings.pro.LicenseHandler.create_deploy_key()
     except xw.LicenseError:
         deploy_key = settings.license_key
-    update_lite_settings(
-        "XLWINGS_LICENSE_KEY", deploy_key, output_dir / "lite" / ".env"
+    update_wasm_settings(
+        "XLWINGS_LICENSE_KEY", deploy_key, output_dir / "wasm" / ".env"
     )
     if environment:
-        update_lite_settings(
-            "XLWINGS_ENVIRONMENT", environment, output_dir / "lite" / ".env"
+        update_wasm_settings(
+            "XLWINGS_ENVIRONMENT", environment, output_dir / "wasm" / ".env"
         )
 
     # Remove unused libraries
@@ -255,12 +255,12 @@ def lite_build(url, output_dir, create_zip=False, clean=False, environment=None)
             return any("/static/vendor/pyodide/" in line for line in f)
 
     if settings.cdn_pyodide:
-        requirements_path = output_dir / "lite" / "requirements.txt"
+        requirements_path = output_dir / "wasm" / "requirements.txt"
         if not has_pyodide_requirement(requirements_path):
             remove_dir_if_exists(output_dir / "static" / "vendor" / "pyodide")
 
     # Remove unwanted files
-    for cache_dir in (output_dir / "lite").rglob("__pycache__"):
+    for cache_dir in (output_dir / "wasm").rglob("__pycache__"):
         remove_dir_if_exists(cache_dir)
 
     for ds_store in output_dir.rglob(".DS_Store"):
@@ -268,7 +268,7 @@ def lite_build(url, output_dir, create_zip=False, clean=False, environment=None)
 
     # ZIP file
     if create_zip:
-        zip_filename = output_dir / f"xlwings_lite_{build_timestamp}.zip"
+        zip_filename = output_dir / f"xlwings_wasm_{build_timestamp}.zip"
 
         try:
             with zipfile.ZipFile(zip_filename, "w", zipfile.ZIP_DEFLATED) as zipf:
@@ -301,31 +301,31 @@ if __name__ == "__main__":
     upgrade_parser = deps_subparsers.add_parser("upgrade", help="Upgrade dependencies.")
     update_parser = deps_subparsers.add_parser("update", help="Upgrade dependencies.")
 
-    # Lite command
-    lite_parser = subparsers.add_parser("lite", help="Build xlwings Lite distribution")
-    lite_parser.add_argument(
-        "url", help="URL of where the xlwings Lite app is going to be hosted"
+    # Wasm command
+    wasm_parser = subparsers.add_parser("wasm", help="Build xlwings Wasm distribution")
+    wasm_parser.add_argument(
+        "url", help="URL of where the xlwings Wasm app is going to be hosted"
     )
-    lite_parser.add_argument(
+    wasm_parser.add_argument(
         "-o",
         "--output",
         help="Output directory path. Defaults to ./dist.",
         type=str,
         default="./dist",
     )
-    lite_parser.add_argument(
+    wasm_parser.add_argument(
         "-z",
         "--zip",
         help="Create zip archive in addition to the static files.",
         action="store_true",
     )
-    lite_parser.add_argument(
+    wasm_parser.add_argument(
         "-c",
         "--clean",
         help="Clean the output directory before building.",
         action="store_true",
     )
-    lite_parser.add_argument(
+    wasm_parser.add_argument(
         "-e",
         "--env",
         help="Sets the XLWINGS_ENVIRONMENT. By default uses the one from .env file.",
@@ -341,8 +341,8 @@ if __name__ == "__main__":
             deps_compile()
         elif args.deps_command in ("upgrade", "update"):
             deps_compile(upgrade=True)
-    elif args.subcommand == "lite":
-        lite_build(
+    elif args.subcommand == "wasm":
+        wasm_build(
             url=args.url,
             output_dir=args.output,
             create_zip=args.zip,
@@ -354,8 +354,8 @@ if __name__ == "__main__":
         # TODO: This is currently only done when starting the server
         from app.config import settings  # noqa: E402
 
-        env_file = this_dir / "app" / "lite" / ".env"
-        create_lite_settings(settings, env_file)
+        env_file = this_dir / "app" / "wasm" / ".env"
+        create_wasm_settings(settings, env_file)
 
         ssl_keyfile_path = this_dir / "certs" / "localhost+2-key.pem"
         ssl_certfile_path = this_dir / "certs" / "localhost+2.pem"
@@ -377,7 +377,7 @@ if __name__ == "__main__":
                 "THIS WILL ONLY WORK WITH VBA AND OFFICE SCRIPTS, BUT NOT WITH "
                 "OFFICE.JS ADD-INS!"
             )
-        print(f"Running in '{'Lite' if settings.enable_lite else 'Server'}' mode.")
+        print(f"Running in '{'Wasm' if settings.enable_wasm else 'Server'}' mode.")
         uvicorn.run(
             "app.main:main_app",
             host="127.0.0.1",
