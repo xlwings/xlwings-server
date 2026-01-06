@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.12.1 (Jan 6, 2026)
+
+- Added support for Python 3.14.
+- Fixed `error: File not found: requirements-core.in` that sometimes occurred with `python run.py deps compile`.
+- Upgraded dependencies incl. xlwings to 0.33.19.
+
 ## 0.12.0 (Sep 28, 2025)
 
 - There's a new setting to set and override headers: `XLWINGS_CUSTOM_HEADERS={"name1": "value1", "name2": "value2"}`
