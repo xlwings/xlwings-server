@@ -16,11 +16,18 @@ from xlwings.server import arg, func, ret
 from . import settings
 
 if not settings.enable_wasm:
+    # Try to import custom_scripts from project directory first (CLI/Azure mode)
+    # Fall back to package location (tests/package mode)
+    try:
+        import custom_scripts
+    except ModuleNotFoundError:
+        import app.custom_scripts as custom_scripts
+
     from xlwings.constants import ObjectHandleIcons
     from xlwings.ext.sql import _sql
 
-    from .. import custom_scripts, utils
-    from ..models import CurrentUser
+    from app import utils
+    from app.models import CurrentUser
 
 
 # 1) This is the most basic custom function -- it only requires the @func decorator.

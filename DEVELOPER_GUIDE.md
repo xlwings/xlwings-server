@@ -1,5 +1,13 @@
 # Developer Guide
 
+## New package setup
+
+Install xlwings-server in editable mode from another project:
+
+```
+uv pip install -e "xlwings-server @ ../xlwings-server"
+```
+
 ## Run everything local
 
 To get a prod-like setup while running the app locally, run the following in separate terminals:

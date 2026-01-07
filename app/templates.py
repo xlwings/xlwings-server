@@ -3,13 +3,24 @@ from __future__ import annotations
 import typing
 
 from fastapi import Request
+from jinja2 import ChoiceLoader, FileSystemLoader
 from jinja2_fragments.fastapi import Jinja2Blocks
 from starlette.background import BackgroundTask
 
-from .config import settings
+from app.config import PACKAGE_DIR, PROJECT_DIR, settings
+
+# Create Jinja2 loader that checks project templates first, then package templates
+loader = ChoiceLoader(
+    [
+        FileSystemLoader(PROJECT_DIR / "templates"),
+        FileSystemLoader(PACKAGE_DIR / "templates"),
+    ]
+)
+
 
 templates = Jinja2Blocks(
-    directory=settings.base_dir / "templates",
+    directory=PROJECT_DIR / "templates",
+    loader=loader,
     trim_blocks=True,
     lstrip_blocks=True,
 )

@@ -9,13 +9,8 @@ import ast
 import inspect
 from textwrap import dedent
 
-try:
-    # Via xlwings Server
-    from .. import custom_functions, custom_scripts
-except ImportError:
-    # xlwings Lite
-    import custom_functions
-    import custom_scripts
+import custom_functions
+import custom_scripts
 import js  # type: ignore
 import pyodide_js  # type: ignore
 import xlwings as xw

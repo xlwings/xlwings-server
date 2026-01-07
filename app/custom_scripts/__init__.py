@@ -1,5 +1,5 @@
 try:
-    from ..config import settings
+    from app.config import settings
 except ImportError:
     # xlwings Wasm
     from config import settings

@@ -105,6 +105,7 @@ index_wasm
 :hidden:
 
 changelog
+migration
 limitations
 troubleshooting
 alternatives

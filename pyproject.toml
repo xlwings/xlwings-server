@@ -1,3 +1,61 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "xlwings-server"
+version = "1.0.0"
+description = "Modern Excel add-ins with Python, running on your self-hosted server."
+readme = "README.md"
+license = {text = "xlwings PRO License OR PolyForm Noncommercial License 1.0.0"}
+authors = [
+    {name = "Zoomer Analytics GmbH", email = "felix.zumstein@zoomeranalytics.com"}
+]
+requires-python = ">=3.9"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Topic :: Office/Business :: Financial :: Spreadsheet",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+keywords = ["xls", "excel", "spreadsheet", "workbook", "vba", "macro"]
+dependencies = [
+    "aiocache>=0.12.3",
+    "croniter>=6.0.0",
+    "fastapi>=0.125.0",
+    "gunicorn>=23.0.0; sys_platform != 'win32'",
+    "hiredis>=3.3.0",
+    "httptools>=0.7.1",
+    "httpx>=0.28.1",
+    "jinja2>=3.1.6",
+    "jinja2-fragments>=1.11.0",
+    "joserfc>=1.6.0",
+    "pydantic-settings>=2.12.0",
+    "python-multipart>=0.0.21",
+    "python-socketio>=5.15.1",
+    "redis>=7.1.0",
+    "uvicorn>=0.38.0",
+    "uvloop>=0.22.1; sys_platform != 'win32'",
+    "xlwings>=0.33.19",
+]
+
+[project.urls]
+Homepage = "https://server.xlwings.org"
+Documentation = "https://server.xlwings.org"
+Repository = "https://github.com/xlwings/xlwings-server"
+Issues = "https://github.com/xlwings/xlwings-server/issues"
+
+[project.scripts]
+xlwings-server = "app.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
 [tool.ruff]
 line-length = 88
 fix = true

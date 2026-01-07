@@ -21,10 +21,10 @@ from . import settings
 def hello_world(book: xw.Book):
     sheet = book.sheets.active
     cell = sheet["A1"]
-    if cell.value == "Hello xlwings!":
-        cell.value = "Bye xlwings!"
+    if cell.value == "Hello package!":
+        cell.value = "Bye package!"
     else:
-        cell.value = "Hello xlwings!"
+        cell.value = "Hello package!"
 
 
 @script

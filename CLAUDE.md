@@ -13,7 +13,7 @@ xlwings Server is a self-hosted platform that adds Python support to Microsoft E
 Run all Terminal commands with an activated conda environment:
 
 ```bash
-conda activate xlwings-server
+source ~/miniconda3/bin/activate xlwings-server
 ```
 
 ### Initial Setup

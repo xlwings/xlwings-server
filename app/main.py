@@ -1,6 +1,9 @@
 import json
 import logging
+import os
+import sys
 from functools import cache
+from pathlib import Path
 
 import socketio
 from fastapi import FastAPI, status
@@ -9,28 +12,65 @@ from fastapi.responses import PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from xlwings import XlwingsError
 
-from . import settings
-from .object_handles import ObjectCacheConverter
-from .routers import socketio as socketio_router
-from .routers.manifest import router as manifest_router
-from .routers.root import router as root_router
-from .routers.taskpane import router as taskpane_router
-from .routers.xlwings import router as xlwings_router
-from .templates import templates
+# CRITICAL: Setup sys.path for user overrides BEFORE importing user modules
+# This is done here (not in CLI) so it works when uvicorn imports this module
+if project_dir := os.getenv("XLWINGS_PROJECT_DIR"):
+    project_dir = Path(project_dir)
+    if str(project_dir) not in sys.path:
+        sys.path.insert(0, str(project_dir))
+
+from app.config import PACKAGE_DIR, PROJECT_DIR, settings
+from app.object_handles import ObjectCacheConverter
+from app.routers import socketio as socketio_router
+from app.routers.manifest import router as manifest_router
+from app.routers.root import router as root_router
+from app.routers.taskpane import router as taskpane_router
+from app.routers.xlwings import router as xlwings_router
+from app.templates import templates
 
 # Logging
 logging.basicConfig(level=settings.log_level.upper())
 logger = logging.getLogger(__name__)
 
+logger.info(f"Running in '{'Wasm' if settings.enable_wasm else 'Server'}' mode.")
+
 # App
 app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
+
 # Starlette's url_for returns fully qualified URLs causing issues if the reverse proxy
 # handles TLS and the app runs on http (https://github.com/encode/starlette/issues/843)
-templates.env.globals["url_for"] = app.url_path_for
+def url_for(name: str, **path_params):
+    """Wrapper around url_path_for that strips leading slashes from path parameters"""
+    if name == "static" and "path" in path_params:
+        # Strip leading slash from static file paths to avoid double slashes
+        path_params["path"] = path_params["path"].lstrip("/")
+    return app.url_path_for(name, **path_params)
+
+
+templates.env.globals["url_for"] = url_for
 
 # Register Converter
 ObjectCacheConverter.register(object, "object", "obj")
+
+
+# Custom StaticFiles with file-level override support
+class OverridableStaticFiles(StaticFiles):
+    """StaticFiles that checks user directory first, then falls back to package directory"""
+
+    def __init__(self, package_directory: Path, user_directory: Path, **kwargs):
+        self.package_dir = package_directory
+        self.user_dir = user_directory
+        super().__init__(directory=str(package_directory), **kwargs)
+
+    def lookup_path(self, path: str) -> tuple[str, os.stat_result | None]:
+        # Check user directory first
+        user_path = self.user_dir / path
+        if user_path.is_file():
+            return str(user_path), os.stat(user_path)
+        # Fallback to package directory
+        return super().lookup_path(path)
+
 
 # CORS: Office Scripts and custom functions in Excel on the web require CORS
 # Using app.add_middleware won't add the CORS headers if you handle the root "Exception"
@@ -116,28 +156,41 @@ async def add_security_headers(request, call_next):
 # https://github.com/matthiask/blacknoise or https://github.com/Archmonger/ServeStatic
 app.mount(
     settings.static_url_path,
-    StaticFiles(directory=settings.static_dir),
+    OverridableStaticFiles(
+        package_directory=PACKAGE_DIR / "static", user_directory=PROJECT_DIR / "static"
+    ),
     name="static",
 )
+
 
 if settings.enable_wasm:
     # For xlwings Wasm development
     app.mount(
         # Use the same path prefix as for static files
         settings.static_url_path.replace("static", "wasm"),
-        StaticFiles(directory=settings.base_dir / "wasm"),
+        OverridableStaticFiles(
+            package_directory=PACKAGE_DIR / "wasm", user_directory=PROJECT_DIR / "wasm"
+        ),
         name="wasm",
     )
+
     app.mount(
         # Use the same path prefix as for static files
         settings.static_url_path.replace("static", "custom_functions"),
-        StaticFiles(directory=settings.base_dir / "custom_functions"),
+        OverridableStaticFiles(
+            package_directory=PACKAGE_DIR / "custom_functions",
+            user_directory=PROJECT_DIR / "custom_functions",
+        ),
         name="custom_functions",
     )
+
     app.mount(
         # Use the same path prefix as for static files
         settings.static_url_path.replace("static", "custom_scripts"),
-        StaticFiles(directory=settings.base_dir / "custom_scripts"),
+        OverridableStaticFiles(
+            package_directory=PACKAGE_DIR / "custom_scripts",
+            user_directory=PROJECT_DIR / "custom_scripts",
+        ),
         name="custom_scripts",
     )
 

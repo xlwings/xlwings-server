@@ -7,6 +7,14 @@ import xlwings as xw
 from pydantic import UUID4, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# Get project directory from environment (set by CLI)
+# Falls back to current working directory if not set (for backward compatibility)
+PROJECT_DIR = Path(os.getenv("XLWINGS_PROJECT_DIR", Path.cwd()))
+
+# Get package directory - must be calculated before any sys.path manipulation
+# Use __file__ which points to the actual config.py location (in site-packages after install)
+PACKAGE_DIR = Path(__file__).parent.resolve()
+
 
 class Settings(BaseSettings):
     """See .env.template for documentation"""
@@ -23,9 +31,7 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(
         env_prefix="XLWINGS_",
-        env_file=os.getenv(
-            "DOTENV_PATH", Path(__file__).parent.parent.resolve() / ".env"
-        ),
+        env_file=os.getenv("DOTENV_PATH", PROJECT_DIR / ".env"),
         extra="ignore",
     )
     add_security_headers: bool = True
@@ -78,11 +84,6 @@ class Settings(BaseSettings):
 
     @computed_field
     @property
-    def static_dir(self) -> Path:
-        return self.base_dir / "static"
-
-    @computed_field
-    @property
     def jsconfig(self) -> Dict:
         return {
             "authProviders": self.auth_providers,
@@ -94,6 +95,18 @@ class Settings(BaseSettings):
             "customFunctionsMaxRetries": self.custom_functions_max_retries,
             "customFunctionsRetryCodes": self.custom_functions_retry_codes,
         }
+
+    @computed_field
+    @property
+    def project_dir(self) -> Path:
+        """Project directory - location of user's custom files"""
+        return PROJECT_DIR
+
+    @computed_field
+    @property
+    def package_dir(self) -> Path:
+        """Package directory - location of xlwings-server package files"""
+        return PACKAGE_DIR
 
 
 settings = Settings()

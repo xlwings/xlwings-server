@@ -9,10 +9,22 @@ import xlwings as xw
 import xlwings.server
 from fastapi import APIRouter, Body, Header, Request, Response
 
-from .. import custom_functions, custom_scripts, dependencies as dep
-from ..config import settings
-from ..models import CurrentUser
-from ..templates import TemplateResponse
+# Try to import custom modules from project directory first (CLI/Azure mode)
+# Fall back to package location (tests/package mode)
+try:
+    import custom_functions
+except ModuleNotFoundError:
+    import app.custom_functions as custom_functions
+
+try:
+    import custom_scripts
+except ModuleNotFoundError:
+    import app.custom_scripts as custom_scripts
+
+from app import dependencies as dep
+from app.config import PACKAGE_DIR, settings
+from app.models import CurrentUser
+from app.templates import TemplateResponse
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +69,9 @@ async def custom_functions_meta():
 @router.get("/custom-functions-code.js")
 async def custom_functions_code():
     custom_functions_call_path = f"{settings.app_path}/xlwings/custom-functions-call"
-    js = (settings.static_dir / "js" / "core" / "custom-functions-code.js").read_text()
+    js = (
+        PACKAGE_DIR / "static" / "js" / "core" / "custom-functions-code.js"
+    ).read_text()
     # format string would require to double all curly braces
     js = js.replace("placeholder_xlwings_version", xw.__version__).replace(
         "placeholder_custom_functions_call_path", custom_functions_call_path

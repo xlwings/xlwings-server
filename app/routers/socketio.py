@@ -3,10 +3,16 @@ import logging
 import socketio
 import xlwings as xw
 
-from .. import custom_functions
-from ..config import settings
-from ..dependencies import authenticate
-from ..models import CurrentUser
+# Try to import custom modules from project directory first (CLI/Azure mode)
+# Fall back to package location (tests/package mode)
+try:
+    import custom_functions
+except ModuleNotFoundError:
+    import app.custom_functions as custom_functions
+
+from app.config import PROJECT_DIR, settings
+from app.dependencies import authenticate
+from app.models import CurrentUser
 
 logger = logging.getLogger(__name__)
 
@@ -35,9 +41,7 @@ async def connect(sid, environ, auth):
         from .. import hotreload
 
         logging.getLogger("watchfiles").setLevel(logging.ERROR)
-        await hotreload.start_browser_reload_watcher(
-            sio=sio, directory=settings.base_dir
-        )
+        await hotreload.start_browser_reload_watcher(sio=sio, directory=PROJECT_DIR)
     token_string = auth.get("token")
     provider = auth.get("provider")
     try:
