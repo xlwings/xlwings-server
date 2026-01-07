@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.2 (Jan 7, 2026)
+
+- Renamed remaining instances of `lite` into `wasm` due to rebranding from 0.10.3.
+
 ## 0.12.1 (Jan 6, 2026)
 
 - Added support for Python 3.14.
