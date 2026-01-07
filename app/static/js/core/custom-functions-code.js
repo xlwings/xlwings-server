@@ -202,8 +202,8 @@ async function base() {
   }
 
   // Normal functions communicate via REST API
-  if (config.onLite) {
-    return await makeLiteCall(body);
+  if (config.onWasm) {
+    return await makeWasmCall(body);
   } else {
     return await makeServerCall(body);
   }
@@ -266,9 +266,9 @@ async function makeServerCall(body) {
   }
 }
 
-async function makeLiteCall(body) {
+async function makeWasmCall(body) {
   try {
-    let result = await globalThis.liteCustomFunctionsCall(body);
+    let result = await globalThis.wasmCustomFunctionsCall(body);
     if (result.error) {
       console.error(result.details);
       showError(result.error);

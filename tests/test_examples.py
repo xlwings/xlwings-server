@@ -10,7 +10,7 @@ except ImportError:
     view = None
 
 
-@pytest.mark.skipif(view is None, reason="xlwings Lite")
+@pytest.mark.skipif(view is None, reason="xlwings Wasm")
 @pytest.mark.anyio
 async def test_view():
     # Test with str

@@ -12,7 +12,7 @@ import {
   hideGlobalStatus,
 } from "./utils.js";
 export { getActiveBookName, getCultureInfoName, getDateFormat };
-import { pyodideReadyPromise } from "./lite.js";
+import { pyodideReadyPromise } from "./wasm.js";
 import { registerSheetButtons } from "./sheet-buttons.js";
 
 // Prints the supported API versions into the Console
@@ -56,8 +56,8 @@ export async function init() {
   }
   // Scripts meta
   let scriptsMeta = [];
-  if (config.onLite && !config.isOfficialLiteAddin) {
-    scriptsMeta = globalThis.liteCustomScriptsMeta();
+  if (config.onWasm && !config.isOfficialLiteAddin) {
+    scriptsMeta = globalThis.wasmCustomScriptsMeta();
   } else if (!config.isOfficialLiteAddin) {
     const metaUrl =
       window.location.origin +
@@ -154,10 +154,10 @@ export async function runPython({
         context,
       );
       let rawData;
-      if (config.onLite) {
+      if (config.onWasm) {
         // xlwings Wasm
         await pyodideReadyPromise;
-        rawData = await globalThis.liteCustomScriptsCall(payload, scriptName);
+        rawData = await globalThis.wasmCustomScriptsCall(payload, scriptName);
         if (rawData.error) {
           console.error(rawData.details);
           throw new Error(rawData.error);
@@ -175,7 +175,7 @@ export async function runPython({
           });
           rawData = response.data;
         } catch (error) {
-          // TODO: align error handling with xlwings Lite
+          // TODO: align error handling with xlwings Wasm
           if (error.response) {
             throw (
               (error.response.data && error.response.data.detail) ||

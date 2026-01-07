@@ -12,12 +12,12 @@ client = TestClient(main_app)
     [
         "/custom_functions/examples.py",
         "/custom_scripts/examples.py",
-        "/lite/main.py",
+        "/wasm/main.py",
     ],
 )
 def test_static_endpoints(url_path):
     response = client.get(f"{settings.app_path}{url_path}")
-    if not settings.enable_lite:
+    if not settings.enable_wasm:
         assert response.status_code == 404
     else:
         assert response.status_code == 200

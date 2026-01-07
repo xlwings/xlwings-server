@@ -6,8 +6,8 @@
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <title>Task pane</title>
       <link rel="icon" type="image/png" href="{{ url_for('static', path='/images/favicon.png') }}" />
-      {# xlwings Lite #}
-      {% if settings.enable_lite %}
+      {# xlwings Wasm #}
+      {% if settings.enable_wasm %}
         {% if settings.cdn_pyodide %}
           <script
             src="https://cdn.jsdelivr.net/pyodide/v0.27.5/full/pyodide.js"
@@ -61,7 +61,7 @@
       <script src="{{ url_for('static', path='/js/auth.js') }}"></script>
       {% block custom_functions_code %}
         <script src="{{ url_for('custom_functions_code') }}" defer></script>
-        {% if settings.environment == "dev" or settings.enable_lite %}
+        {% if settings.environment == "dev" or settings.enable_wasm %}
           <script src="{{ url_for('static', path='/js/core/reload-custom-functions.js') }}" defer></script>
         {% endif %}
       {% endblock custom_functions_code %}

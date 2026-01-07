@@ -31,9 +31,9 @@ class WebFilter(DefaultFilter):
         if path.suffix in (".html", ".css", ".js"):
             return True
 
-        # xlwings Lite
-        if settings.enable_lite and path.suffix in (".py", ".txt", ".env"):
-            allowed_dirs = ("lite", "custom_scripts", "custom_functions")
+        # xlwings Wasm
+        if settings.enable_wasm and path.suffix in (".py", ".txt", ".env"):
+            allowed_dirs = ("wasm", "custom_scripts", "custom_functions")
             return any(dir_name in path.parts for dir_name in allowed_dirs)
 
         return False
@@ -51,7 +51,7 @@ async def start_browser_reload_watcher(sio, directory):
     """Needs to be called from the sio connect event on the backend"""
     global browser_reload_triggered_by_backend
     global watching_frontend_files
-    if not browser_reload_triggered_by_backend and not settings.enable_lite:
+    if not browser_reload_triggered_by_backend and not settings.enable_wasm:
         await sio.emit("reload")
         browser_reload_triggered_by_backend = True
     if not watching_frontend_files:

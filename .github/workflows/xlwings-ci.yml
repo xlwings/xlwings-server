@@ -56,8 +56,8 @@ jobs:
           ENV_FILE: ".env.test2"
         run: pytest tests/test_env2.py
 
-      - name: Run tests with xlwings Lite
+      - name: Run tests with xlwings Wasm
         if: matrix.python-version == '3.12'
         env:
-          ENV_FILE: ".env.testlite"
+          ENV_FILE: ".env.testwasm"
         run: pytest -v

@@ -1,7 +1,7 @@
 try:
     from ..config import settings
 except ImportError:
-    # xlwings Lite
+    # xlwings Wasm
     from config import settings
 
 if settings.enable_examples:

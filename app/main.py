@@ -120,13 +120,13 @@ app.mount(
     name="static",
 )
 
-if settings.enable_lite:
-    # For xlwings Lite development
+if settings.enable_wasm:
+    # For xlwings Wasm development
     app.mount(
         # Use the same path prefix as for static files
-        settings.static_url_path.replace("static", "lite"),
-        StaticFiles(directory=settings.base_dir / "lite"),
-        name="lite",
+        settings.static_url_path.replace("static", "wasm"),
+        StaticFiles(directory=settings.base_dir / "wasm"),
+        name="wasm",
     )
     app.mount(
         # Use the same path prefix as for static files

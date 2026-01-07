@@ -1,5 +1,5 @@
 async function initPyodide() {
-  if (config.onLite === false) {
+  if (config.onWasm === false) {
     return;
   }
 
@@ -80,20 +80,20 @@ async function initPyodide() {
       // Functions
       // You can't simply export them as the will be null when used in
       // custom-functions-code.js (it's only assigned the function here).
-      globalThis.liteCustomFunctionsCall = pyodide.globals.get(
+      globalThis.wasmCustomFunctionsCall = pyodide.globals.get(
         "custom_functions_call",
       );
       globalThis.getXlwingsScripts = pyodide.globals.get("get_xlwings_scripts");
-      globalThis.liteCustomFunctionsMeta = pyodide.globals.get(
+      globalThis.wasmCustomFunctionsMeta = pyodide.globals.get(
         "custom_functions_meta",
       );
-      globalThis.liteCustomFunctionsCode = pyodide.globals.get(
+      globalThis.wasmCustomFunctionsCode = pyodide.globals.get(
         "custom_functions_code",
       );
-      globalThis.liteCustomScriptsCall = pyodide.globals.get(
+      globalThis.wasmCustomScriptsCall = pyodide.globals.get(
         "custom_scripts_call",
       );
-      globalThis.liteCustomScriptsMeta = pyodide.globals.get(
+      globalThis.wasmCustomScriptsMeta = pyodide.globals.get(
         "custom_scripts_meta",
       );
 

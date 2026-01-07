@@ -2,11 +2,11 @@
 
 ## Build command
 
-To turn your xlwings Wasm app into a static website, use the `lite` command:
+To turn your xlwings Wasm app into a static website, use the `wasm` command:
 
 ```none
-$ python run.py lite --help
-usage: run.py lite [-h] [-o OUTPUT] [-z] [-c] [-e ENV] url
+$ python run.py wasm --help
+usage: run.py wasm [-h] [-o OUTPUT] [-z] [-c] [-e ENV] url
 
 positional arguments:
   url                   URL of where the xlwings Wasm app is going to be hosted
@@ -23,7 +23,7 @@ options:
 For example, if your static file server serves the files at `https://my.domain.com`, run the following command:
 
 ```none
-$ python run.py lite https://my.domain.com
+$ python run.py wasm https://my.domain.com
 ```
 
 Then copy the files from the `dist` directory to your static file server. Open up `https://my.domain.com` in a browser to make sure the deployment worked. Then use `https://my.domain.com/manifest.xml` to install the actual add-in, see [](install_officejs_addin.md).
@@ -50,7 +50,7 @@ To deploy to [Cloudflare Pages](https://pages.cloudflare.com/), you have various
 After creating a project, you'll get a URL that looks something like this: `https://xxx.pages.dev`. Use it in the following command:
 
 ```none
-python run.py lite https://xxx.pages.dev --zip
+python run.py wasm https://xxx.pages.dev --zip
 ```
 
 Now you can upload the ZIP file that you will find in the `dist` directory.
@@ -60,7 +60,7 @@ Now you can upload the ZIP file that you will find in the `dist` directory.
 Alternatively, create a new Git repo, connect it with Cloudflare Pages, and direct the build command towards a subdirectory in that Git repo:
 
 ```none
-python run.py lite https://xxx.pages.dev -o /path/to/repo/xlwings_serverless
+python run.py wasm https://xxx.pages.dev -o /path/to/repo/xlwings_serverless
 ```
 
 Commit and push the files.
@@ -74,7 +74,7 @@ TODO
 GitHub pages are usually hosted on `https://username.github.io/reponame`. Therefore, your build command should be:
 
 ```none
-python run.py lite https://username.github.io/reponame -o /path/to/repo/xlwings_serverless
+python run.py wasm https://username.github.io/reponame -o /path/to/repo/xlwings_serverless
 ```
 
 Consult the [GitHub Pages docs](https://docs.github.com/en/pages) on how to deploy the page.
@@ -94,7 +94,7 @@ XLWINGS_CDN_OFFICEJS=true
 XLWINGS_CDN_PYODIDE=true
 ```
 
-If you want xlwings Wasm to work without connection to the public Internet, you will need to switch both settings to `false` though. You will then need to copy all Python packages (`.whl` files) into the `app/static/vendor/pyodide` folder and reference them explicitly in the `app/lite/requirements.txt` file like so:
+If you want xlwings Wasm to work without connection to the public Internet, you will need to switch both settings to `false` though. You will then need to copy all Python packages (`.whl` files) into the `app/static/vendor/pyodide` folder and reference them explicitly in the `app/wasm/requirements.txt` file like so:
 
 ```
 /static/vendor/pyodide/mypackage.whl
