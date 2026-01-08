@@ -17,7 +17,7 @@ services:
     restart: always
     # Workers can be scaled to whatever meets the traffic
     command: >
-       gunicorn app.main:main_app
+       gunicorn xlwings_server.main:main_app
        --bind 0.0.0.0:8000
        --access-logfile -
        --workers 2
@@ -33,7 +33,7 @@ services:
     restart: always
     # Workers must be exactly 1 as this is a stateful service
     command: >
-       gunicorn app.main:sio_app
+       gunicorn xlwings_server.main:sio_app
        --bind 0.0.0.0:8000
        --access-logfile -
        --workers 1

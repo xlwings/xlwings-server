@@ -7,7 +7,7 @@ from jinja2 import ChoiceLoader, FileSystemLoader
 from jinja2_fragments.fastapi import Jinja2Blocks
 from starlette.background import BackgroundTask
 
-from app.config import PACKAGE_DIR, PROJECT_DIR, settings
+from xlwings_server.config import PACKAGE_DIR, PROJECT_DIR, settings
 
 # Create Jinja2 loader that checks project templates first, then package templates
 loader = ChoiceLoader(

@@ -5,8 +5,8 @@ from pathlib import Path
 from typing import Dict, List, Set, Tuple
 
 this_dir = Path(__file__).resolve().parent
-static_dir = this_dir.parent / "app" / "static"
-templates_dir = this_dir.parent / "app" / "templates"
+static_dir = this_dir.parent / "xlwings_server" / "static"
+templates_dir = this_dir.parent / "xlwings_server" / "templates"
 
 
 class StaticFileHasher:

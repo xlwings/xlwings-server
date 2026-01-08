@@ -53,7 +53,7 @@ def update_wasm_settings(key: str, value: str, env_file: Path):
 
 
 def replace_uuids():
-    file_path = this_dir / "app" / "config.py"
+    file_path = this_dir / "xlwings_server" / "config.py"
     with open(file_path, "r") as file:
         lines = file.readlines()
 
@@ -133,11 +133,13 @@ def wasm_build(url, output_dir, create_zip=False, clean=False, environment=None)
 
     from fastapi.testclient import TestClient  # noqa: E402
 
-    from app.config import settings  # noqa: E402
-    from app.main import main_app  # noqa: E402
+    from xlwings_server.config import settings  # noqa: E402
+    from xlwings_server.main import main_app  # noqa: E402
 
     # Make sure settings is up-to-date
-    create_wasm_settings(settings=settings, env_file=this_dir / "app" / "wasm" / ".env")
+    create_wasm_settings(
+        settings=settings, env_file=this_dir / "xlwings_server" / "wasm" / ".env"
+    )
 
     # Take the license key from .env
     os.environ["XLWINGS_LICENSE_KEY"] = settings.license_key
@@ -202,15 +204,15 @@ def wasm_build(url, output_dir, create_zip=False, clean=False, environment=None)
         else:
             print(f"No {folder_name} folder found to copy")
 
-    copy_folder(this_dir / "app" / "static", output_dir / "static", "Static")
-    copy_folder(this_dir / "app" / "wasm", output_dir / "wasm", "wasm")
+    copy_folder(this_dir / "xlwings_server" / "static", output_dir / "static", "Static")
+    copy_folder(this_dir / "xlwings_server" / "wasm", output_dir / "wasm", "wasm")
     copy_folder(
-        this_dir / "app" / "custom_functions",
+        this_dir / "xlwings_server" / "custom_functions",
         output_dir / "custom_functions",
         "custom_functions",
     )
     copy_folder(
-        this_dir / "app" / "custom_scripts",
+        this_dir / "xlwings_server" / "custom_scripts",
         output_dir / "custom_scripts",
         "custom_scripts",
     )
@@ -352,9 +354,9 @@ if __name__ == "__main__":
     else:
         # Copy over required settings
         # TODO: This is currently only done when starting the server
-        from app.config import settings  # noqa: E402
+        from xlwings_server.config import settings  # noqa: E402
 
-        env_file = this_dir / "app" / "wasm" / ".env"
+        env_file = this_dir / "xlwings_server" / "wasm" / ".env"
         create_wasm_settings(settings, env_file)
 
         ssl_keyfile_path = this_dir / "certs" / "localhost+2-key.pem"
@@ -379,7 +381,7 @@ if __name__ == "__main__":
             )
         print(f"Running in '{'Wasm' if settings.enable_wasm else 'Server'}' mode.")
         uvicorn.run(
-            "app.main:main_app",
+            "xlwings_server.main:main_app",
             host="127.0.0.1",
             port=8000,
             reload=True,

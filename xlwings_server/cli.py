@@ -45,9 +45,10 @@ def main():
         )
 
     # Start uvicorn server
-    # Note: We don't import settings here to avoid caching the app module before sys.path manipulation
+    # Note: We don't import settings here to avoid caching the xlwings_server module
+    # before sys.path manipulation
     uvicorn.run(
-        "app.main:main_app",
+        "xlwings_server.main:main_app",
         host="127.0.0.1",
         port=8000,
         reload=True,

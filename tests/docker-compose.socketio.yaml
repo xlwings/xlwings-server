@@ -4,7 +4,7 @@ x-app-settings: &app-settings
     target: dev
     dockerfile: Dockerfile
   command: >
-    uvicorn app.main:main_app
+    uvicorn xlwings_server.main:main_app
     --host 0.0.0.0 --port 8000
     --reload
     --reload-dir /project/app
@@ -26,7 +26,7 @@ services:
   socketio:
     build: *build
     command: >
-      uvicorn app.main:sio_app
+      uvicorn xlwings_server.main:sio_app
       --host 0.0.0.0 --port 8001
       --reload
       --reload-dir /project/app

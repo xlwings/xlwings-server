@@ -74,7 +74,7 @@ async def authenticate(
             module = importlib.import_module(f"auth.{provider}")
         except ModuleNotFoundError:
             # Fall back to package location (default implementation)
-            module = importlib.import_module(f"app.auth.{provider}")
+            module = importlib.import_module(f"xlwings_server.auth.{provider}")
         current_user = await module.validate_token(token_string)
     except (AttributeError, ModuleNotFoundError):
         logger.exception(f"Auth provider '{provider}' implementation missing.")

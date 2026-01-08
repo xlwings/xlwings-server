@@ -57,4 +57,4 @@ How you run and configure a script depends on the integration you're using:
 
 ## Limitations
 
-Currently, custom scripts don't accept arguments other than the special type-hinted ones (`xw.Book` and `app.models.CurrentUser`).
+Currently, custom scripts don't accept arguments other than the special type-hinted ones (`xw.Book` and `xlwings_server.models.CurrentUser`).

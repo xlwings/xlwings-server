@@ -84,7 +84,9 @@ def integration_test_write(book: xw.Book):
     # Activate sheet
     book.sheets[1].activate()
 
-    picture_dir = this_dir.parent / "app" / "static" / "images" / "ribbon" / "examples"
+    picture_dir = (
+        this_dir.parent / "xlwings_server" / "static" / "images" / "ribbon" / "examples"
+    )
     # Pictures
     sheet1.pictures.add(
         picture_dir / "xlwings-32.png",

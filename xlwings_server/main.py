@@ -19,14 +19,14 @@ if project_dir := os.getenv("XLWINGS_PROJECT_DIR"):
     if str(project_dir) not in sys.path:
         sys.path.insert(0, str(project_dir))
 
-from app.config import PACKAGE_DIR, PROJECT_DIR, settings
-from app.object_handles import ObjectCacheConverter
-from app.routers import socketio as socketio_router
-from app.routers.manifest import router as manifest_router
-from app.routers.root import router as root_router
-from app.routers.taskpane import router as taskpane_router
-from app.routers.xlwings import router as xlwings_router
-from app.templates import templates
+from xlwings_server.config import PACKAGE_DIR, PROJECT_DIR, settings
+from xlwings_server.object_handles import ObjectCacheConverter
+from xlwings_server.routers import socketio as socketio_router
+from xlwings_server.routers.manifest import router as manifest_router
+from xlwings_server.routers.root import router as root_router
+from xlwings_server.routers.taskpane import router as taskpane_router
+from xlwings_server.routers.xlwings import router as xlwings_router
+from xlwings_server.templates import templates
 
 # Logging
 logging.basicConfig(level=settings.log_level.upper())

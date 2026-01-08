@@ -21,13 +21,13 @@ if not settings.enable_wasm:
     try:
         import custom_scripts
     except ModuleNotFoundError:
-        import app.custom_scripts as custom_scripts
+        import xlwings_server.custom_scripts as custom_scripts
 
     from xlwings.constants import ObjectHandleIcons
     from xlwings.ext.sql import _sql
 
-    from app import utils
-    from app.models import CurrentUser
+    from xlwings_server import utils
+    from xlwings_server.models import CurrentUser
 
 
 # 1) This is the most basic custom function -- it only requires the @func decorator.

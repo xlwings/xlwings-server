@@ -12,7 +12,7 @@ import pytest
 import xlwings as xw
 from fastapi.testclient import TestClient
 
-from app.main import main_app
+from xlwings_server.main import main_app
 
 client = TestClient(main_app)
 
@@ -33,6 +33,6 @@ def test_example_custom_functions_not_available():
                 "runtime": "1.4",
             },
         )
-    assert "module 'app.custom_functions' has no attribute 'hello'" in str(
+    assert "module 'xlwings_server.custom_functions' has no attribute 'hello'" in str(
         exc_info.value
     )

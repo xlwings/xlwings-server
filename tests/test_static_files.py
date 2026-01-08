@@ -1,8 +1,8 @@
 import pytest
 from fastapi.testclient import TestClient
 
-from app import settings
-from app.main import main_app
+from xlwings_server import settings
+from xlwings_server.main import main_app
 
 client = TestClient(main_app)
 

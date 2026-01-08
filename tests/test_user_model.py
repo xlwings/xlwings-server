@@ -1,6 +1,6 @@
 import pytest
 
-from app import models
+from xlwings_server import models
 
 
 @pytest.fixture

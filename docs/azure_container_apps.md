@@ -30,7 +30,7 @@ Once your image is available on Docker Hub or Azure Container Registry, you can 
    - Registry login server: `docker.io`
    - Image and tag: `xlwings/xlwings-server:0.11.1`
    - Command override: `/bin/sh`
-   - Arguments override: `-c, gunicorn app.main:main_app --bind 0.0.0.0:8000 --access-logfile - --workers 4 --timeout 30 --worker-class uvicorn.workers.UvicornWorker`
+   - Arguments override: `-c, gunicorn xlwings_server.main:main_app --bind 0.0.0.0:8000 --access-logfile - --workers 4 --timeout 30 --worker-class uvicorn.workers.UvicornWorker`
    - CPU and memory: `2 CPU cores, 4 Gi memory`
    - Environment variables: `XLWINGS_LICENSE_KEY`: `your-license-key`
    - Click on `Next: Ingress`

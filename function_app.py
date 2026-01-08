@@ -26,6 +26,6 @@ if str(project_dir) not in sys.path:
     sys.path.insert(0, str(project_dir))
 os.environ["XLWINGS_PROJECT_DIR"] = str(project_dir)
 
-from app.main import main_app  # noqa: E402
+from xlwings_server.main import main_app  # noqa: E402
 
 app = func.AsgiFunctionApp(app=main_app, http_auth_level=func.AuthLevel.ANONYMOUS)

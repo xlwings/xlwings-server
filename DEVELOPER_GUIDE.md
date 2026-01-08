@@ -13,8 +13,8 @@ uv pip install -e "xlwings-server @ ../xlwings-server"
 To get a prod-like setup while running the app locally, run the following in separate terminals:
 
 - `docker compose -f tests/docker-compose.redis.yaml up`
-- `uvicorn app.main:main_app --host 0.0.0.0 --port 8000 --reload --ssl-keyfile ./certs/localhost+2-key.pem --ssl-certfile ./certs/localhost+2.pem`
-- `export XLWINGS_SOCKETIO_SERVER_APP=true && uvicorn app.main:sio_app --host 0.0.0.0 --port 8001 --reload --ssl-keyfile ./certs/localhost+2-key.pem --ssl-certfile ./certs/localhost+2.pem`
+- `uvicorn xlwings_server.main:main_app --host 0.0.0.0 --port 8000 --reload --ssl-keyfile ./certs/localhost+2-key.pem --ssl-certfile ./certs/localhost+2.pem`
+- `export XLWINGS_SOCKETIO_SERVER_APP=true && uvicorn xlwings_server.main:sio_app --host 0.0.0.0 --port 8001 --reload --ssl-keyfile ./certs/localhost+2-key.pem --ssl-certfile ./certs/localhost+2.pem`
 
 in `.env`:
 

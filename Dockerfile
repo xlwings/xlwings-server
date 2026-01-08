@@ -39,7 +39,7 @@ EXPOSE 8000
 # FastAPI traffic. Normally, you split them up so that you can scale
 # up the FastAPI workers.
 CMD ["sh", "-c", \
-     "gunicorn app.main:main_app \
+     "gunicorn xlwings_server.main:main_app \
      --bind 0.0.0.0:${PORT:-8000} \
      --timeout 30 \
      --access-logfile - \

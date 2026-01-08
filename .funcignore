@@ -4,7 +4,7 @@
 # Explicitly ignore sensitive files
 .env
 # Then explicitly include what we need
-!app/
+!xlwings_server/
 !function_app.py
 !host.json
 !local.settings.json

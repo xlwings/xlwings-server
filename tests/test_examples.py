@@ -5,7 +5,7 @@ import pandas as pd
 import pytest
 
 try:
-    from app.custom_functions.examples import view
+    from xlwings_server.custom_functions.examples import view
 except ImportError:
     view = None
 

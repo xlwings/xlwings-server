@@ -50,10 +50,10 @@ Repository = "https://github.com/xlwings/xlwings-server"
 Issues = "https://github.com/xlwings/xlwings-server/issues"
 
 [project.scripts]
-xlwings-server = "app.cli:main"
+xlwings-server = "xlwings_server.cli:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["app"]
+packages = ["xlwings_server"]
 
 [tool.ruff]
 line-length = 88
@@ -87,4 +87,4 @@ select = [
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
-known-first-party = ["app"]
+known-first-party = ["xlwings_server"]

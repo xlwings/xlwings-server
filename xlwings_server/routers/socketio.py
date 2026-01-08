@@ -8,11 +8,11 @@ import xlwings as xw
 try:
     import custom_functions
 except ModuleNotFoundError:
-    import app.custom_functions as custom_functions
+    import xlwings_server.custom_functions as custom_functions
 
-from app.config import PROJECT_DIR, settings
-from app.dependencies import authenticate
-from app.models import CurrentUser
+from xlwings_server.config import PROJECT_DIR, settings
+from xlwings_server.dependencies import authenticate
+from xlwings_server.models import CurrentUser
 
 logger = logging.getLogger(__name__)
 

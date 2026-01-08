@@ -134,7 +134,7 @@ Each worker runs an own instance of the xlwings Server app, and so with each add
 You can have a look at [`docker-compose.prod.yaml`](https://github.com/xlwings/xlwings-server/blob/main/deployment/docker-compose.prod.yaml) to see the gunicorn command with the `workers` argument:
 
 ```text
-gunicorn app.main:main_app
+gunicorn xlwings_server.main:main_app
 --bind 0.0.0.0:8000
 --access-logfile -
 --workers 2

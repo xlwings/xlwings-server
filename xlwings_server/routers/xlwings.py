@@ -14,17 +14,17 @@ from fastapi import APIRouter, Body, Header, Request, Response
 try:
     import custom_functions
 except ModuleNotFoundError:
-    import app.custom_functions as custom_functions
+    import xlwings_server.custom_functions as custom_functions
 
 try:
     import custom_scripts
 except ModuleNotFoundError:
-    import app.custom_scripts as custom_scripts
+    import xlwings_server.custom_scripts as custom_scripts
 
-from app import dependencies as dep
-from app.config import PACKAGE_DIR, settings
-from app.models import CurrentUser
-from app.templates import TemplateResponse
+from xlwings_server import dependencies as dep
+from xlwings_server.config import PACKAGE_DIR, settings
+from xlwings_server.models import CurrentUser
+from xlwings_server.templates import TemplateResponse
 
 logger = logging.getLogger(__name__)
 

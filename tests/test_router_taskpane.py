@@ -1,7 +1,7 @@
 from fastapi.testclient import TestClient
 
-from app.config import settings
-from app.main import main_app
+from xlwings_server.config import settings
+from xlwings_server.main import main_app
 
 client = TestClient(main_app)
 

@@ -2,8 +2,8 @@ import xlwings as xw
 from bs4 import BeautifulSoup
 from fastapi.testclient import TestClient
 
-from app import settings
-from app.main import main_app
+from xlwings_server import settings
+from xlwings_server.main import main_app
 
 client = TestClient(main_app)
 
@@ -71,9 +71,13 @@ def test_custom_functions_call():
 
 
 def test_custom_functions_call_with_invalid_entraid_token(mocker):
-    mocker.patch("app.config.settings.auth_providers", ["entraid"])
-    mocker.patch("app.config.settings.auth_entraid_tenant_id", "mocked_tenant_id")
-    mocker.patch("app.config.settings.auth_entraid_client_id", "mocked_client_id")
+    mocker.patch("xlwings_server.config.settings.auth_providers", ["entraid"])
+    mocker.patch(
+        "xlwings_server.config.settings.auth_entraid_tenant_id", "mocked_tenant_id"
+    )
+    mocker.patch(
+        "xlwings_server.config.settings.auth_entraid_client_id", "mocked_client_id"
+    )
 
     response = client.post(
         f"{settings.app_path}/xlwings/custom-functions-call",
@@ -91,8 +95,8 @@ def test_custom_functions_call_with_invalid_entraid_token(mocker):
 
 
 def test_custom_functions_call_missing_roles(mocker):
-    mocker.patch("app.config.settings.auth_providers", ["custom"])
-    mocker.patch("app.config.settings.auth_required_roles", ["role1"])
+    mocker.patch("xlwings_server.config.settings.auth_providers", ["custom"])
+    mocker.patch("xlwings_server.config.settings.auth_required_roles", ["role1"])
     response = client.post(
         f"{settings.app_path}/xlwings/custom-functions-call",
         headers={"Authorization": ""},
@@ -126,9 +130,13 @@ def test_custom_functions_call_anonymous(mocker):
 
 
 def test_custom_scripts_call_with_invalid_entraid_token(mocker):
-    mocker.patch("app.config.settings.auth_providers", ["entraid"])
-    mocker.patch("app.config.settings.auth_entraid_tenant_id", "mocked_tenant_id")
-    mocker.patch("app.config.settings.auth_entraid_client_id", "mocked_client_id")
+    mocker.patch("xlwings_server.config.settings.auth_providers", ["entraid"])
+    mocker.patch(
+        "xlwings_server.config.settings.auth_entraid_tenant_id", "mocked_tenant_id"
+    )
+    mocker.patch(
+        "xlwings_server.config.settings.auth_entraid_client_id", "mocked_client_id"
+    )
 
     response = client.post(
         f"{settings.app_path}/xlwings/custom-scripts-call/hello_world",
@@ -152,8 +160,8 @@ def test_custom_scripts_call_with_invalid_entraid_token(mocker):
 
 
 def test_custom_scripts_call_missing_roles(mocker):
-    mocker.patch("app.config.settings.auth_providers", ["custom"])
-    mocker.patch("app.config.settings.auth_required_roles", ["role1"])
+    mocker.patch("xlwings_server.config.settings.auth_providers", ["custom"])
+    mocker.patch("xlwings_server.config.settings.auth_required_roles", ["role1"])
     response = client.post(
         f"{settings.app_path}/xlwings/custom-scripts-call/hello_world",
         headers={"Authorization": "token"},
@@ -177,8 +185,8 @@ def test_custom_scripts_call_missing_roles(mocker):
 
 
 def test_custom_scripts_call_missing_authorization(mocker):
-    mocker.patch("app.config.settings.auth_providers", ["custom"])
-    mocker.patch("app.models.User.is_authorized", return_value=False)
+    mocker.patch("xlwings_server.config.settings.auth_providers", ["custom"])
+    mocker.patch("xlwings_server.models.User.is_authorized", return_value=False)
     response = client.post(
         f"{settings.app_path}/xlwings/custom-scripts-call/hello_world",
         headers={"Authorization": "token"},
