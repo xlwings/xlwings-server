@@ -29,6 +29,10 @@ uv pip sync requirements-dev.txt
 python run.py init
 ```
 
+### Minimum Python Version
+
+Take the supported Python versions from `pyproject.toml` and use features accordingly, like e.g., type hinting.
+
 ### Running the Server
 
 ```bash
