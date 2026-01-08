@@ -15,7 +15,13 @@ from joserfc.jwt import JWTClaimsRegistry
 
 from ... import models
 from ...config import settings
-from . import jwks
+
+# Try to import jwks from project directory first (user override)
+# Fall back to package location (default implementation)
+try:
+    from auth.entraid import jwks
+except ModuleNotFoundError:
+    from . import jwks
 
 logger = logging.getLogger(__name__)
 
