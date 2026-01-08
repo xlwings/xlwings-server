@@ -69,7 +69,12 @@ async def authenticate(
     if provider not in settings.auth_providers:
         raise ValueError(f"Unsupported authentication provider: {provider}")
     try:
-        module = importlib.import_module(f"app.auth.{provider}")
+        # Try to import from project directory first (user override)
+        try:
+            module = importlib.import_module(f"auth.{provider}")
+        except ModuleNotFoundError:
+            # Fall back to package location (default implementation)
+            module = importlib.import_module(f"app.auth.{provider}")
         current_user = await module.validate_token(token_string)
     except (AttributeError, ModuleNotFoundError):
         logger.exception(f"Auth provider '{provider}' implementation missing.")
