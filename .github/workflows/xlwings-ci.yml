@@ -35,29 +35,21 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          # cache: "pip"
-
-      - name: Compile dependencies for older Python versions
-        if: matrix.python-version == '3.9' || matrix.python-version == '3.10'
-        run: |
-          uv pip compile requirements-core.in -o requirements-core.txt
-          uv pip compile requirements.in -o requirements.txt
-          uv pip compile requirements-dev.in -o requirements-dev.txt
 
       - name: Install dependencies
         run: |
-          uv pip sync requirements-dev.txt --system
+          uv sync --group all
 
       - name: Run tests with xlwings Server and .env.test
-        run: pytest -v
+        run: uv run pytest -v
 
       - name: Run tests with xlwings Server that depend on env.test2 (examples disabled)
         env:
           ENV_FILE: ".env.test2"
-        run: pytest tests/test_env2.py
+        run: uv run pytest tests/test_env2.py
 
       - name: Run tests with xlwings Wasm
         if: matrix.python-version == '3.12'
         env:
           ENV_FILE: ".env.testwasm"
-        run: pytest -v
+        run: uv run pytest -v

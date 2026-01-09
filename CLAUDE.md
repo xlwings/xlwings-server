@@ -8,25 +8,16 @@ xlwings Server is a self-hosted platform that adds Python support to Microsoft E
 
 ## Development Commands
 
-### Conda environment activation
-
-Run all Terminal commands with an activated conda environment:
-
-```bash
-source ~/miniconda3/bin/activate xlwings-server
-```
+Run all Terminal commands with `uv run`.
 
 ### Initial Setup
 
 ```bash
-# Install uv package manager
-pip install uv
-
 # Install dependencies
-uv pip sync requirements-dev.txt
+uv sync --group all
 
 # Initialize repo (creates .env, generates UUIDs in config.py)
-python run.py init
+uv run run.py init
 ```
 
 ### Minimum Python Version
@@ -37,10 +28,10 @@ Take the supported Python versions from `pyproject.toml` and use features accord
 
 ```bash
 # Standard development server (with hot reload)
-python run.py
+uv run run.py
 
 # Or using uvicorn directly with HTTPS
-uvicorn xlwings_server.main:main_app --host 0.0.0.0 --port 8000 --reload --ssl-keyfile ./certs/localhost+2-key.pem --ssl-certfile ./certs/localhost+2.pem
+uv run uvicorn xlwings_server.main:main_app --host 0.0.0.0 --port 8000 --reload --ssl-keyfile ./certs/localhost+2-key.pem --ssl-certfile ./certs/localhost+2.pem
 ```
 
 For production-like local setup with Socket.io on separate port, see DEVELOPER_GUIDE.md.
@@ -49,37 +40,27 @@ For production-like local setup with Socket.io on separate port, see DEVELOPER_G
 
 ```bash
 # Run all tests
-pytest
+uv run pytest
 
 # Run specific test file
-pytest tests/test_dependencies.py
+uv run pytest tests/test_dependencies.py
 
 # Run with verbose output
-pytest -v
+uv run pytest -v
 
 # Tests use .env.test for configuration (loaded via conftest.py)
-```
-
-### Dependency Management
-
-```bash
-# Compile dependencies (after editing requirements*.in files)
-python run.py deps compile
-
-# Upgrade all dependencies to latest versions
-python run.py deps upgrade
 ```
 
 ### Code Quality
 
 ```bash
 # Ruff handles both linting and formatting (configured in pyproject.toml)
-ruff check .
-ruff format .
+uv ruff check .
+uv ruff format .
 
 # Pre-commit hooks (ruff + prettier for JS/HTML/Jinja)
-pre-commit install
-pre-commit run --all-files
+uv pre-commit install
+uv pre-commit run --all-files
 
 # Prettier for frontend files (JS, HTML, Jinja templates)
 # Note: VS Code extension requires explicit .prettierrc.js config
@@ -89,14 +70,14 @@ pre-commit run --all-files
 
 ```bash
 # Build xlwings Wasm distribution
-python run.py wasm --url <url> --output-dir <dir> [--create-zip] [--clean]
+uv run run.py wasm --url <url> --output-dir <dir> [--create-zip] [--clean]
 ```
 
 ### Documentation
 
 ```bash
 # Build docs with live reload (requires docs/requirements.txt)
-sphinx-autobuild docs docs/_build/html --port 9000 -E
+uv run sphinx-autobuild docs docs/_build/html --port 9000 -E
 ```
 
 ### NPM Dependencies
@@ -108,7 +89,7 @@ Node.js files are vendored - not required for runtime, only for upgrades:
 npm install mypackage@latest
 
 # Copy to static folder after updating package.json
-python scripts/copy_node_modules_to_static_folder.py
+uv run scripts/copy_node_modules_to_static_folder.py
 ```
 
 ## Architecture
@@ -231,17 +212,6 @@ In dev mode, `xlwings_server/hotreload.py` uses watchfiles to monitor file chang
 - `tests/conftest.py` loads `.env.test` before importing xlwings_server modules (important for settings override)
 - Mock settings using `mocker.patch` on `xlwings_server.config.settings`
 - Test fixtures use `anyio_backend` fixture for async compatibility
-
-## Working with xlwings Python Package
-
-To develop against local xlwings package in editable mode:
-
-```bash
-cd ../xlwings
-python setup.py develop
-cd ../xlwings-server
-pip uninstall xlwings  # Remove installed version first
-```
 
 ## Common Gotchas
 
