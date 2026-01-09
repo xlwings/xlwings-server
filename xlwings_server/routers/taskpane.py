@@ -9,4 +9,4 @@ router = APIRouter(prefix=settings.app_path)
 @router.get("/taskpane")
 @router.get("/taskpane.html")
 async def taskpane(request: Request):
-    return TemplateResponse(request=request, name="taskpane.html")
+    return TemplateResponse(request=request, name=settings.default_taskpane)
