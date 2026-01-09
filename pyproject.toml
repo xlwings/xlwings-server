@@ -92,6 +92,9 @@ select = [
 combine-as-imports = true
 known-first-party = ["xlwings_server"]
 
+[tool.pytest]
+addopts = ["--import-mode=importlib"]
+
 [dependency-groups]
 dev = ["watchfiles>=1.1.1"]
 
