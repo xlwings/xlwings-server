@@ -16,8 +16,27 @@ PROJECT_DIR = Path(os.getenv("XLWINGS_PROJECT_DIR", Path.cwd()))
 PACKAGE_DIR = Path(__file__).parent.resolve()
 
 
+def load_pyproject_config() -> Dict:
+    """Load xlwings-server config from [tool.xlwings_server] section in pyproject.toml"""
+    pyproject_path = PROJECT_DIR / "pyproject.toml"
+    if not pyproject_path.exists():
+        return {}
+
+    try:
+        import tomlkit
+
+        content = pyproject_path.read_text()
+        data = tomlkit.parse(content)
+        return data.get("tool", {}).get("xlwings_server", {})
+    except Exception:
+        return {}
+
+
 class Settings(BaseSettings):
     """See .env.template for documentation"""
+
+    # Load config from pyproject.toml [tool.xlwings] section
+    _pyproject_config: Dict = load_pyproject_config()
 
     def __init__(self, **values):
         super().__init__(**values)
@@ -67,13 +86,24 @@ class Settings(BaseSettings):
     cdn_pyodide: bool = True
     cdn_officejs: bool = False
     log_level: str = "INFO"
-    # These UUIDs will be overwritten by: python run.py init
-    manifest_id_dev: UUID4 = "0a856eb1-91ab-4f38-b757-23fbe1f73130"
-    manifest_id_qa: UUID4 = "9cda34b1-af68-4dc6-b97c-e63ef6284671"
-    manifest_id_uat: UUID4 = "70428e53-8113-421c-8fe2-9b74fcb94ee5"
-    manifest_id_staging: UUID4 = "34041f4f-9cb4-4830-afb5-db44b2a70e0e"
-    manifest_id_prod: UUID4 = "4f342d85-3a49-41cb-90a5-37b1f2219040"
-    project_name: str = "xlwings Server"
+    # Manifest UUIDs - loaded from pyproject.toml [tool.xlwings] or defaults
+    # Run 'xlwings-server init' to generate unique UUIDs in pyproject.toml
+    manifest_id_dev: UUID4 = _pyproject_config.get(
+        "manifest_id_dev", "0a856eb1-91ab-4f38-b757-23fbe1f73130"
+    )
+    manifest_id_qa: UUID4 = _pyproject_config.get(
+        "manifest_id_qa", "9cda34b1-af68-4dc6-b97c-e63ef6284671"
+    )
+    manifest_id_uat: UUID4 = _pyproject_config.get(
+        "manifest_id_uat", "70428e53-8113-421c-8fe2-9b74fcb94ee5"
+    )
+    manifest_id_staging: UUID4 = _pyproject_config.get(
+        "manifest_id_staging", "34041f4f-9cb4-4830-afb5-db44b2a70e0e"
+    )
+    manifest_id_prod: UUID4 = _pyproject_config.get(
+        "manifest_id_prod", "4f342d85-3a49-41cb-90a5-37b1f2219040"
+    )
+    project_name: str = _pyproject_config.get("project_name", "xlwings Server")
     public_addin_store: Optional[bool] = None  # Deprecated. Use cdn_officejs instead.
     request_timeout: Optional[int] = 300  # in seconds
     secret_key: Optional[str] = None

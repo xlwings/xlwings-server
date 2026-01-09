@@ -38,6 +38,7 @@ dependencies = [
     "python-multipart>=0.0.21",
     "python-socketio>=5.15.1",
     "redis>=7.1.0",
+    "tomlkit>=0.13.2",
     "uvicorn>=0.38.0",
     "uvloop>=0.22.1; sys_platform != 'win32'",
     "xlwings>=0.33.19",

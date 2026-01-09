@@ -1,0 +1,3 @@
+- UUIDs
+- Test with Azure functions
+- setuptools_scm
