@@ -15,12 +15,14 @@ def create_uuids():
     pyproject_path = project_dir / "pyproject.toml"
 
     if not pyproject_path.exists():
-        print("Error: pyproject.toml not found in current directory")
-        sys.exit(1)
-
-    # Read existing pyproject.toml with tomlkit to preserve formatting
-    content = pyproject_path.read_text()
-    data = tomlkit.parse(content)
+        # Create a minimal pyproject.toml
+        data = tomlkit.document()
+        data["tool"] = {}
+        data["tool"]["xlwings_server"] = {}
+    else:
+        # Read existing pyproject.toml with tomlkit to preserve formatting
+        content = pyproject_path.read_text()
+        data = tomlkit.parse(content)
 
     # Check if UUIDs already exist
     if "tool" in data and "xlwings_server" in data["tool"]:
