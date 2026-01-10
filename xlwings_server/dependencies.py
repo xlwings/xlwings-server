@@ -1,7 +1,7 @@
 import importlib
 import json
 import logging
-from typing import Annotated, Optional, Union
+from typing import Annotated, Union
 
 import redis
 import xlwings as xw
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 # Book
 async def parse_book_input(
     request: Request,
-    form_data: Optional[str] = Form(None, alias="bookData"),
+    form_data: str | None = Form(None, alias="bookData"),
 ) -> dict:
     """Helper dependency to parse either form data (htmx)
     or body (custom scripts & custom functions) -- couldn't make Body() work"""

@@ -20,9 +20,28 @@ uv sync --group all
 uv run run.py init
 ```
 
-### Minimum Python Version
+### Minimum Python Version and Type Hints
 
-Take the supported Python versions from `pyproject.toml` and use features accordingly, like e.g., type hinting.
+This project requires Python 3.10+ (see `requires-python` in `pyproject.toml`). Use modern Python 3.10+ features:
+
+**Type Hints (PEP 604 and PEP 585):**
+
+- Use `|` for unions: `str | None` instead of `Optional[str]` or `Union[str, None]`
+- Use built-in types for generics: `list[str]`, `dict[str, int]` instead of `List[str]`, `Dict[str, int]`
+- Only import from `typing` when necessary (e.g., `Literal`, `TypedDict`)
+
+**Examples:**
+
+```python
+# Good (Python 3.10+)
+def process(data: dict[str, Any], default: str | None = None) -> list[str]:
+    ...
+
+# Bad (old style)
+from typing import Dict, List, Optional, Union
+def process(data: Dict[str, Any], default: Optional[str] = None) -> List[str]:
+    ...
+```
 
 ### Running the Server
 

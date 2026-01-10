@@ -1,7 +1,7 @@
 import os
 import warnings
 from pathlib import Path
-from typing import Dict, List, Literal, Optional
+from typing import Literal
 
 import xlwings as xw
 from pydantic import UUID4, computed_field
@@ -16,7 +16,7 @@ PROJECT_DIR = Path(os.getenv("XLWINGS_PROJECT_DIR", Path.cwd()))
 PACKAGE_DIR = Path(__file__).parent.resolve()
 
 
-def load_pyproject_config() -> Dict:
+def load_pyproject_config() -> dict:
     """Load xlwings-server config from [tool.xlwings_server] section in pyproject.toml"""
     pyproject_path = PROJECT_DIR / "pyproject.toml"
     if not pyproject_path.exists():
@@ -35,8 +35,8 @@ def load_pyproject_config() -> Dict:
 class Settings(BaseSettings):
     """See .env.template for documentation"""
 
-    # Load config from pyproject.toml [tool.xlwings] section
-    _pyproject_config: Dict = load_pyproject_config()
+    # Load config from pyproject.toml [tool.xlwings_server] section
+    _pyproject_config: dict = load_pyproject_config()
 
     def __init__(self, **values):
         super().__init__(**values)
@@ -54,21 +54,21 @@ class Settings(BaseSettings):
         extra="ignore",
     )
     add_security_headers: bool = True
-    auth_providers: Optional[List[str]] = []
-    auth_required_roles: Optional[List[str]] = []
-    auth_entraid_client_id: Optional[str] = None
-    auth_entraid_tenant_id: Optional[str] = None
+    auth_providers: list[str] | None = []
+    auth_required_roles: list[str] | None = []
+    auth_entraid_client_id: str | None = None
+    auth_entraid_tenant_id: str | None = None
     auth_entraid_multitenant: bool = False
     app_path: str = ""
     base_dir: Path = Path(__file__).resolve().parent
-    object_cache_url: Optional[str] = None
-    object_cache_expire_at: Optional[str] = "0 12 * * sat"
+    object_cache_url: str | None = None
+    object_cache_expire_at: str | None = "0 12 * * sat"
     object_cache_enable_compression: bool = True
-    cors_allow_origins: List[str] = []
+    cors_allow_origins: list[str] = []
     custom_functions_max_retries: int = 3
-    custom_functions_retry_codes: List[int] = [500, 502, 504]
-    custom_headers: Dict[str, str] = {}
-    date_format: Optional[str] = None
+    custom_functions_retry_codes: list[int] = [500, 502, 504]
+    custom_headers: dict[str, str] = {}
+    date_format: str | None = None
     default_taskpane: str = "taskpane.html"
     enable_alpinejs_csp: bool = True
     enable_bootstrap: bool = True
@@ -81,12 +81,12 @@ class Settings(BaseSettings):
     enable_wasm: bool = False
     environment: Literal["dev", "qa", "uat", "staging", "prod"] = "prod"
     functions_namespace: str = "XLWINGS"
-    hostname: Optional[str] = None
-    is_official_lite_addin: Optional[bool] = False
+    hostname: str | None = None
+    is_official_lite_addin: bool | None = False
     cdn_pyodide: bool = True
     cdn_officejs: bool = False
     log_level: str = "INFO"
-    # Manifest UUIDs - loaded from pyproject.toml [tool.xlwings] or defaults
+    # Manifest UUIDs - loaded from pyproject.toml [tool.xlwings_server] or defaults
     # Run 'xlwings-server init' to generate unique UUIDs in pyproject.toml
     manifest_id_dev: UUID4 = _pyproject_config.get(
         "manifest_id_dev", "0a856eb1-91ab-4f38-b757-23fbe1f73130"
@@ -104,18 +104,18 @@ class Settings(BaseSettings):
         "manifest_id_prod", "4f342d85-3a49-41cb-90a5-37b1f2219040"
     )
     project_name: str = _pyproject_config.get("project_name", "xlwings Server")
-    public_addin_store: Optional[bool] = None  # Deprecated. Use cdn_officejs instead.
-    request_timeout: Optional[int] = 300  # in seconds
-    secret_key: Optional[str] = None
-    socketio_message_queue_url: Optional[str] = None
+    public_addin_store: bool | None = None  # Deprecated. Use cdn_officejs instead.
+    request_timeout: int | None = 300  # in seconds
+    secret_key: str | None = None
+    socketio_message_queue_url: str | None = None
     socketio_server_app: bool = False
     static_url_path: str = "/static"
-    license_key: Optional[str] = ""
+    license_key: str | None = ""
     xlwings_version: str = xw.__version__
 
     @computed_field
     @property
-    def jsconfig(self) -> Dict:
+    def jsconfig(self) -> dict:
         return {
             "authProviders": self.auth_providers,
             "appPath": self.app_path,

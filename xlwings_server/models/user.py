@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -14,16 +14,16 @@ class BaseUser(BaseModel):
     For customization, extend or override the User class below.
     """
 
-    id_: Optional[str] = Field(default=None, alias="id")
-    name_: Optional[str] = Field(default=None, alias="name")
-    domain_: Optional[str] = Field(default=None, alias="domain")
-    email_: Optional[str] = Field(default=None, alias="email")
-    roles_: Optional[list[str]] = Field(default=[], alias="roles")
-    claims: Optional[Dict[str, Any]] = {}
-    ip_address: Optional[str] = None
+    id_: str | None = Field(default=None, alias="id")
+    name_: str | None = Field(default=None, alias="name")
+    domain_: str | None = Field(default=None, alias="domain")
+    email_: str | None = Field(default=None, alias="email")
+    roles_: list[str] | None = Field(default=[], alias="roles")
+    claims: dict[str, Any] | None = {}
+    ip_address: str | None = None
 
     @property
-    def id(self) -> Optional[str]:
+    def id(self) -> str | None:
         return self.claims.get("oid", self.id_)
 
     @id.setter
@@ -31,7 +31,7 @@ class BaseUser(BaseModel):
         self.id_ = value
 
     @property
-    def name(self) -> Optional[str]:
+    def name(self) -> str | None:
         return self.claims.get("name", self.name_)
 
     @name.setter
@@ -39,7 +39,7 @@ class BaseUser(BaseModel):
         self.name_ = value
 
     @property
-    def domain(self) -> Optional[str]:
+    def domain(self) -> str | None:
         return (
             self.email.split("@")[1]
             if self.email and "@" in self.email
@@ -47,15 +47,15 @@ class BaseUser(BaseModel):
         )
 
     @domain.setter
-    def domain(self, value: Optional[str]):
+    def domain(self, value: str | None):
         self.domain_ = value
 
     @property
-    def email(self) -> Optional[str]:
+    def email(self) -> str | None:
         return self.claims.get("preferred_username", self.email_)
 
     @email.setter
-    def email(self, value: Optional[str]):
+    def email(self, value: str | None):
         self.email_ = value
 
     @property
@@ -66,7 +66,7 @@ class BaseUser(BaseModel):
     def roles(self, value: list[str]):
         self.roles_ = value
 
-    async def has_required_roles(self, required_roles: Optional[list[str]] = None):
+    async def has_required_roles(self, required_roles: list[str] | None = None):
         if required_roles:
             if set(required_roles).issubset(self.roles):
                 logger.info(f"User has required roles: {self.name}")

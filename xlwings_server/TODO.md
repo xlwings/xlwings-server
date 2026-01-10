@@ -1,3 +1,4 @@
 - UUIDs
+- project dirs (init)
 - Test with Azure functions
 - setuptools_scm

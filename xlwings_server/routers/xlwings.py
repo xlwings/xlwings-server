@@ -3,7 +3,6 @@ import inspect
 import logging
 from pathlib import Path
 from textwrap import dedent
-from typing import Optional
 
 import xlwings as xw
 import xlwings.server
@@ -108,7 +107,7 @@ async def custom_functions_call(
     current_user: dep.User,
     redis_client: dep.RedisClient,
     data: dict = Body,
-    sid: Optional[str] = Header(default=None),
+    sid: str | None = Header(default=None),
 ):
     # Replace newline and carriage return characters to prevent log injection
     safe_func_name = sanitize_log_input(data["func_name"])
