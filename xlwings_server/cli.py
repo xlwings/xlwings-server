@@ -105,7 +105,7 @@ def create_sample_taskpane(project_path: Path):
 
 
 def create_dotenv(project_path: Path):
-    """Copy .env.template from package to project as .env"""
+    """Copy .env.template from package to project as .env and set project name"""
     import shutil
 
     from xlwings_server.config import PACKAGE_DIR
@@ -116,7 +116,16 @@ def create_dotenv(project_path: Path):
     if env_path.exists():
         return
 
+    # Copy template
     shutil.copy(env_template_path, env_path)
+
+    # Uncomment and set project name
+    project_name = project_path.name
+    content = env_path.read_text()
+    content = content.replace(
+        '# XLWINGS_PROJECT_NAME=""', f'XLWINGS_PROJECT_NAME="{project_name}"'
+    )
+    env_path.write_text(content)
 
 
 def create_uuids(project_path: Path | None = None):
