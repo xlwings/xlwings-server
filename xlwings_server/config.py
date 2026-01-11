@@ -103,7 +103,7 @@ class Settings(BaseSettings):
     manifest_id_prod: UUID4 = _pyproject_config.get(
         "manifest_id_prod", "4f342d85-3a49-41cb-90a5-37b1f2219040"
     )
-    project_name: str = _pyproject_config.get("project_name", "xlwings Server")
+    project_name: str = PROJECT_DIR.name
     public_addin_store: bool | None = None  # Deprecated. Use cdn_officejs instead.
     request_timeout: int | None = 300  # in seconds
     secret_key: str | None = None
