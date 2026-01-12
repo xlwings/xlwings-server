@@ -1,7 +1,5 @@
-- Test with Azure functions
-- images folder needs to be copied with png icons
-- cli command to add files for azure functions, static dir, etc.
 - azure .funcignore
+- gitignore: venv, certs, .env
 
 - run tests from project dir
 - setuptools_scm

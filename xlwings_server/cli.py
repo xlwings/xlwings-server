@@ -290,6 +290,52 @@ def init_command(path: str | None = None):
     print("Initialization complete!")
 
 
+def add_azure_functions_command():
+    """Add Azure Functions deployment files to project"""
+    import shutil
+
+    from xlwings_server.config import PACKAGE_DIR
+
+    # 1. Validate we're in an xlwings-server project
+    project_path = Path.cwd()
+    if not (project_path / "custom_functions").exists():
+        print("Error: Not in an xlwings-server project directory.")
+        print("Run this command from your project root.")
+        print("Hint: Initialize a project first with 'xlwings-server init'")
+        sys.exit(1)
+
+    # 2. Azure Functions template files are in xlwings_server/azure_functions_templates/
+    source_dir = PACKAGE_DIR / "azure_functions_templates"
+
+    azure_files = [
+        "function_app.py",
+        "host.json",
+        ".funcignore",
+        "local.settings.json",
+    ]
+
+    # 3. Copy files with idempotency
+    created_files = []
+    skipped_files = []
+
+    for filename in azure_files:
+        source_file = source_dir / filename
+        dest_file = project_path / filename
+
+        if dest_file.exists():
+            skipped_files.append(filename)
+            continue
+
+        if source_file.exists():
+            shutil.copy(source_file, dest_file)
+            created_files.append(filename)
+        else:
+            print(f"Warning: Source file not found: {source_file}")
+
+    # 4. Print summary
+    print("\nAzure Functions setup complete!")
+
+
 def run_server():
     """Start the xlwings-server development server"""
     # Get project directory (where user runs the command)
@@ -362,10 +408,29 @@ def main():
         help="Project path (default: current directory). Use '.' for current directory or specify a path to create a new project.",
     )
 
+    # Add command
+    add_parser = subparsers.add_parser(
+        "add", help="Add deployment configurations to project"
+    )
+    add_subparsers = add_parser.add_subparsers(
+        dest="add_command", help="Available configurations"
+    )
+
+    # azure-functions sub-subcommand
+    add_subparsers.add_parser(
+        "azure-functions", help="Add Azure Functions deployment files"
+    )
+
     args = parser.parse_args()
 
     if args.command == "init":
         init_command(args.path)
+    elif args.command == "add":
+        if args.add_command == "azure-functions":
+            add_azure_functions_command()
+        else:
+            print("Error: Please specify what to add (e.g., azure-functions)")
+            sys.exit(1)
     else:
         # Default: run server
         run_server()
