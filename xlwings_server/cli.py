@@ -45,7 +45,7 @@ def create_sample_functions(project_path: Path):
     if functions_file.exists():
         return
 
-    sample_code = dedent("""
+    sample_code = dedent("""\
         from xlwings import func
 
 
@@ -64,7 +64,7 @@ def create_sample_scripts(project_path: Path):
     if scripts_file.exists():
         return
 
-    sample_code = dedent("""
+    sample_code = dedent("""\
         import xlwings as xw
         from xlwings import script
 
@@ -133,7 +133,7 @@ def add_router_command():
     if sample_file.exists():
         skipped_files.append("custom.py")
     else:
-        sample_code = dedent("""
+        sample_code = dedent("""\
             from fastapi import APIRouter
 
 
