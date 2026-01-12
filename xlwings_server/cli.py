@@ -17,6 +17,7 @@ def create_project_structure(project_path: Path):
     (project_path / "custom_functions").mkdir(exist_ok=True)
     (project_path / "custom_scripts").mkdir(exist_ok=True)
     (project_path / "templates").mkdir(exist_ok=True)
+    (project_path / "certs").mkdir(exist_ok=True)
 
     # Create __init__.py files with imports
     functions_init = project_path / "custom_functions" / "__init__.py"
@@ -157,8 +158,36 @@ def create_ribbon_icons(project_path: Path):
             shutil.copy(source_file, dest_file)
 
 
+def create_static_assets(project_path: Path):
+    """Copy static CSS and JS files from package to project for customization"""
+    import shutil
+
+    from xlwings_server.config import PACKAGE_DIR
+
+    # Files to copy
+    static_files = [
+        ("css", "style.css"),
+        ("js", "main.js"),
+    ]
+
+    for folder, filename in static_files:
+        source_file = PACKAGE_DIR / "static" / folder / filename
+        dest_file = project_path / "static" / folder / filename
+
+        if dest_file.exists():
+            continue
+
+        # Create directory if needed
+        dest_file.parent.mkdir(parents=True, exist_ok=True)
+
+        # Copy file
+        if source_file.exists():
+            shutil.copy(source_file, dest_file)
+
+
 def create_dotenv(project_path: Path):
-    """Copy .env.template from package to project as .env and set project name"""
+    """Copy .env.template from package to project as .env and set project name and secret key"""
+    import secrets
     import shutil
 
     from xlwings_server.config import PACKAGE_DIR
@@ -172,11 +201,17 @@ def create_dotenv(project_path: Path):
     # Copy template
     shutil.copy(env_template_path, env_path)
 
-    # Uncomment and set project name
+    # Generate secret key
+    secret_key = secrets.token_urlsafe(32)
+
+    # Set project name and secret key
     project_name = project_path.name
     content = env_path.read_text()
     content = content.replace(
         '# XLWINGS_PROJECT_NAME=""', f'XLWINGS_PROJECT_NAME="{project_name}"'
+    )
+    content = content.replace(
+        'XLWINGS_SECRET_KEY=""', f'XLWINGS_SECRET_KEY="{secret_key}"'
     )
     env_path.write_text(content)
 
@@ -242,6 +277,9 @@ def init_command(path: str | None = None):
 
     # Copy ribbon icons
     create_ribbon_icons(project_path)
+
+    # Copy static assets (CSS, JS)
+    create_static_assets(project_path)
 
     # Create .env file
     create_dotenv(project_path)
