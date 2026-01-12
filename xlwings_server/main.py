@@ -102,6 +102,19 @@ app.include_router(taskpane_router)
 app.include_router(manifest_router)
 
 
+# User routers (optional custom router)
+try:
+    from routers import custom
+
+    if hasattr(custom, "router"):
+        app.include_router(custom.router)
+        logger.info("Registered custom user router")
+except ModuleNotFoundError:
+    logger.debug("No custom router found (routers/custom.py)")
+except Exception:
+    logger.exception("Failed to load custom router from routers/custom.py")
+
+
 # Security headers
 @cache
 def read_security_headers():

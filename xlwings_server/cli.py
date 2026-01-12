@@ -89,7 +89,7 @@ def create_sample_taskpane(project_path: Path):
     if taskpane_file.exists():
         return
 
-    sample_html = dedent("""
+    sample_html = dedent("""\
         {% extends "base.html" %}
 
         {% block content %}
@@ -103,6 +103,52 @@ def create_sample_taskpane(project_path: Path):
     """)
 
     taskpane_file.write_text(sample_html)
+
+
+def add_router_command():
+    """Add router directory and sample router to project"""
+    # 1. Validate we're in an xlwings-server project
+    project_path = Path.cwd()
+    if not (project_path / "custom_functions").exists():
+        print("Error: Not in an xlwings-server project directory.")
+        print("Run this command from your project root.")
+        print("Hint: Initialize a project first with 'xlwings-server init'")
+        sys.exit(1)
+
+    # 2. Create routers directory
+    routers_dir = project_path / "routers"
+    routers_dir.mkdir(exist_ok=True)
+
+    # 3. Create __init__.py (empty)
+    init_file = routers_dir / "__init__.py"
+    if not init_file.exists():
+        init_file.write_text("")
+
+    # 4. Create sample custom.py
+    sample_file = routers_dir / "custom.py"
+
+    created_files = []
+    skipped_files = []
+
+    if sample_file.exists():
+        skipped_files.append("custom.py")
+    else:
+        sample_code = dedent("""
+            from fastapi import APIRouter
+
+
+            router = APIRouter()
+
+
+            @router.get("/hello")
+            async def hello():
+                return {"message": "Hello from custom router!"}
+        """)
+        sample_file.write_text(sample_code)
+        created_files.append("custom.py")
+
+    # 5. Print summary
+    print("\nRouter setup complete!")
 
 
 def create_manifest_template(project_path: Path):
@@ -262,7 +308,7 @@ def create_uuids(project_path: Path | None = None):
 
 
 def init_command(path: str | None = None):
-    """Initialize project - run all initialization tasks"""
+    """Initialize project"""
     # Determine project path
     if path is None or path == ".":
         project_path = Path.cwd()
@@ -399,7 +445,7 @@ def main():
     # Init command
     init_parser = subparsers.add_parser(
         "init",
-        help="Initialize project - create structure and generate manifest UUIDs",
+        help="Initialize project",
     )
     init_parser.add_argument(
         "path",
@@ -409,9 +455,7 @@ def main():
     )
 
     # Add command
-    add_parser = subparsers.add_parser(
-        "add", help="Add deployment configurations to project"
-    )
+    add_parser = subparsers.add_parser("add", help="Add optional components")
     add_subparsers = add_parser.add_subparsers(
         dest="add_command", help="Available configurations"
     )
@@ -421,6 +465,9 @@ def main():
         "azure-functions", help="Add Azure Functions deployment files"
     )
 
+    # router sub-subcommand
+    add_subparsers.add_parser("router", help="Add routers directory and sample router")
+
     args = parser.parse_args()
 
     if args.command == "init":
@@ -428,8 +475,10 @@ def main():
     elif args.command == "add":
         if args.add_command == "azure-functions":
             add_azure_functions_command()
+        elif args.add_command == "router":
+            add_router_command()
         else:
-            print("Error: Please specify what to add (e.g., azure-functions)")
+            print("Error: Please specify what to add (e.g., azure-functions, router)")
             sys.exit(1)
     else:
         # Default: run server
