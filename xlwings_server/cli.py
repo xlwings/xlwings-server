@@ -104,6 +104,39 @@ def create_sample_taskpane(project_path: Path):
     taskpane_file.write_text(sample_html)
 
 
+def create_ribbon_icons(project_path: Path):
+    """Copy default ribbon icons from package to project for customization"""
+    import shutil
+
+    from xlwings_server.config import PACKAGE_DIR
+
+    # Source and destination paths
+    source_dir = PACKAGE_DIR / "static" / "images" / "ribbon"
+    dest_dir = project_path / "static" / "images" / "ribbon"
+
+    # Icon files to copy
+    icon_files = [
+        "xlwings-16.png",
+        "xlwings-32.png",
+        "xlwings-64.png",
+        "xlwings-80.png",
+    ]
+
+    # Check if icons already exist (idempotency)
+    if dest_dir.exists() and all((dest_dir / icon).exists() for icon in icon_files):
+        return
+
+    # Create destination directory
+    dest_dir.mkdir(parents=True, exist_ok=True)
+
+    # Copy each icon file
+    for icon_file in icon_files:
+        source_file = source_dir / icon_file
+        dest_file = dest_dir / icon_file
+        if source_file.exists() and not dest_file.exists():
+            shutil.copy(source_file, dest_file)
+
+
 def create_dotenv(project_path: Path):
     """Copy .env.template from package to project as .env and set project name"""
     import shutil
@@ -183,6 +216,9 @@ def init_command(path: str | None = None):
 
     # Create project structure
     create_project_structure(project_path)
+
+    # Copy ribbon icons
+    create_ribbon_icons(project_path)
 
     # Create .env file
     create_dotenv(project_path)
