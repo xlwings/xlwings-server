@@ -11,3 +11,4 @@ node_modules
 scratch*
 docs/_build/
 /dist
+xlwings_server/_version.py
