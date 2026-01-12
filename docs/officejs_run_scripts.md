@@ -183,7 +183,7 @@ To configure scripts, you can provide the decorator with arguments, e.g.:
 
 ```python
 import xlwings as xw
-from xlwings.server import script
+from xlwings import script
 
 @script(include=["Sheet1", "Sheet2"])
 def hello_world(book: xw.Book):

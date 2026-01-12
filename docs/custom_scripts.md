@@ -15,7 +15,7 @@ Here is how this looks:
 
 ```python
 import xlwings as xw
-from xlwings.server import script
+from xlwings import script
 
 @script
 def hello_world(book: xw.Book):
@@ -24,7 +24,6 @@ def hello_world(book: xw.Book):
 ```
 
 ```{note}
-- The `script` decorator is imported from `xlwings.server` rather than `xlwings`.
 - While it's ok to edit the functions in `examples.py` to try things out, you shouldn't commit the changes to Git to prevent future merge conflicts. Rather, create a new Python module as explained in the next section.
 ```
 

@@ -30,7 +30,7 @@ If you have individual custom functions or custom scripts where you want to requ
 
 ```python
 import xlwings as xw
-from xlwings.server import script, func
+from xlwings import script, func
 
 @script(required_roles=["xlwings.admin", "xlwings.user"])
 def myscript(book: xw.Book):

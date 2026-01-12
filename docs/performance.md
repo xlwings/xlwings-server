@@ -12,7 +12,7 @@ While xlwings can handle 10,000s of custom functions, there is an easy way to to
 
 ```python
 import numpy as np
-from xlwings.server import func, arg
+from xlwings import func, arg
 
 
 @func
