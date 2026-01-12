@@ -69,7 +69,7 @@ class Settings(BaseSettings):
     custom_functions_retry_codes: list[int] = [500, 502, 504]
     custom_headers: dict[str, str] = {}
     date_format: str | None = None
-    default_taskpane: str = "taskpane.html"
+    taskpane: str = "taskpane.html"
     enable_alpinejs_csp: bool = True
     enable_bootstrap: bool = True
     enable_examples: bool = True
