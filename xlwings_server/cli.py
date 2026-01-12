@@ -104,6 +104,26 @@ def create_sample_taskpane(project_path: Path):
     taskpane_file.write_text(sample_html)
 
 
+def create_manifest_template(project_path: Path):
+    """Copy manifest.xml template from package to project for customization"""
+    import shutil
+
+    from xlwings_server.config import PACKAGE_DIR
+
+    source_file = PACKAGE_DIR / "templates" / "manifest.xml"
+    dest_file = project_path / "templates" / "manifest.xml"
+
+    if dest_file.exists():
+        return
+
+    # Create templates directory if it doesn't exist
+    dest_file.parent.mkdir(parents=True, exist_ok=True)
+
+    # Copy manifest template
+    if source_file.exists():
+        shutil.copy(source_file, dest_file)
+
+
 def create_ribbon_icons(project_path: Path):
     """Copy default ribbon icons from package to project for customization"""
     import shutil
@@ -216,6 +236,9 @@ def init_command(path: str | None = None):
 
     # Create project structure
     create_project_structure(project_path)
+
+    # Copy manifest template
+    create_manifest_template(project_path)
 
     # Copy ribbon icons
     create_ribbon_icons(project_path)
