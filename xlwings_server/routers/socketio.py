@@ -63,7 +63,7 @@ async def disconnect(sid):
 async def sio_function_call(sid, data):
     session = await sio.get_session(sid)
     current_user = session["current_user"]
-    logger.info(f"""Function "{data['func_name']}" called by {sid}""")
+    logger.info(f"""Function "{data['func_name']}" called by {current_user.name}""")
     await xw.server.sio_custom_function_call(
         sid, data, custom_functions, current_user, sio, {CurrentUser: current_user}
     )

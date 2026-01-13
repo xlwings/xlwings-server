@@ -1,7 +1,3 @@
-- xlwings-server add user-model
-- xlwings-server add auth-custom
-- setuptools_scm
-
 - require confirmation when running `xlwings-server init` without `.`
 - azure .funcignore
 - gitignore: venv, certs, .env, etc.

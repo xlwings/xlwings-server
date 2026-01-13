@@ -50,13 +50,11 @@ async def test_check_required_roles_missing_roles(user):
 
 @pytest.mark.anyio
 async def test_custom_roles_implementation():
-    class CustomRolesUser(models.User):
-        @property
-        def roles(self) -> list[str]:
-            # Directly return custom roles without using a separate attribute
-            return ["custom_role", "another_role"]
-
-    user = CustomRolesUser(id="2", name="Custom Roles User")
+    user = models.User(
+        id="2",
+        name="Custom Roles User",
+        roles=["custom_role", "another_role"],
+    )
 
     # Verify custom roles are returned
     assert user.roles == ["custom_role", "another_role"]
@@ -75,22 +73,15 @@ def test_user_email_from_claims(user):
 
     # Test with explicitly set email
     user.email = "explicit@example.com"
-    assert user.email == "john@doe.com"  # Claims still takes precedence
-
-    # Test when we remove preferred_username from claims
-    user_claims = user.claims.copy()
-    user_claims.pop("preferred_username")
-    user = models.User(email="fallback@example.com", claims=user_claims)
-    assert user.email == "fallback@example.com"  # Falls back to email_ field
+    assert user.email == "explicit@example.com"
 
 
 def test_custom_email_implementation():
-    class CustomEmailUser(models.User):
-        @property
-        def email(self) -> str:
-            return "custom@example.com"
-
-    user = CustomEmailUser(id="3", name="Custom Email User")
+    user = models.User(
+        id="3",
+        name="Custom Email User",
+        email="custom@example.com",
+    )
 
     assert user.email == "custom@example.com"
 

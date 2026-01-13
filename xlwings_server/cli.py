@@ -149,6 +149,152 @@ def add_router_command():
 
     # 5. Print summary
     print("\nRouter setup complete!")
+    if created_files:
+        print(f"Created: {', '.join(created_files)}")
+    if skipped_files:
+        print(f"Skipped (already exists): {', '.join(skipped_files)}")
+
+
+def add_model_user_command():
+    """Add user model to project for customization"""
+    import shutil
+
+    from xlwings_server.config import PACKAGE_DIR
+
+    # 1. Validate we're in an xlwings-server project
+    project_path = Path.cwd()
+    if not (project_path / "custom_functions").exists():
+        print("Error: Not in an xlwings-server project directory.")
+        print("Run this command from your project root.")
+        print("Hint: Initialize a project first with 'xlwings-server init'")
+        sys.exit(1)
+
+    # 2. Create models directory
+    models_dir = project_path / "models"
+    models_dir.mkdir(exist_ok=True)
+
+    # 3. Create __init__.py
+    init_file = models_dir / "__init__.py"
+    if not init_file.exists():
+        init_file.write_text("from .user import User\n")
+
+    # 4. Copy user.py from package
+    source_file = PACKAGE_DIR / "models" / "user.py"
+    dest_file = models_dir / "user.py"
+
+    created_files = []
+    skipped_files = []
+
+    if dest_file.exists():
+        skipped_files.append("user.py")
+    else:
+        shutil.copy(source_file, dest_file)
+        created_files.append("user.py")
+
+    # 5. Print summary
+    print("\nUser model setup complete!")
+    if created_files:
+        print(f"Created: {', '.join(created_files)}")
+    if skipped_files:
+        print(f"Skipped (already exists): {', '.join(skipped_files)}")
+
+
+def add_auth_custom_command():
+    """Add custom auth provider to project for customization"""
+    import json
+    import shutil
+
+    from dotenv import dotenv_values, set_key
+
+    from xlwings_server.config import PACKAGE_DIR
+
+    # 1. Validate we're in an xlwings-server project
+    project_path = Path.cwd()
+    if not (project_path / "custom_functions").exists():
+        print("Error: Not in an xlwings-server project directory.")
+        print("Run this command from your project root.")
+        print("Hint: Initialize a project first with 'xlwings-server init'")
+        sys.exit(1)
+
+    # 2. Create auth/custom directories
+    auth_dir = project_path / "auth"
+    custom_dir = auth_dir / "custom"
+    custom_dir.mkdir(parents=True, exist_ok=True)
+
+    # 3. Create __init__.py files
+    auth_init = auth_dir / "__init__.py"
+    if not auth_init.exists():
+        auth_init.write_text("")
+
+    created_files = []
+    skipped_files = []
+
+    # 4. Copy custom auth __init__.py from package
+    source_file = PACKAGE_DIR / "auth" / "custom" / "__init__.py"
+    dest_file = custom_dir / "__init__.py"
+
+    if dest_file.exists():
+        skipped_files.append("auth/custom/__init__.py")
+    else:
+        shutil.copy(source_file, dest_file)
+        created_files.append("auth/custom/__init__.py")
+
+    # 5. Create static/js/auth.js for custom auth
+    static_js_dir = project_path / "static" / "js"
+    static_js_dir.mkdir(parents=True, exist_ok=True)
+
+    auth_js_dest = static_js_dir / "auth.js"
+
+    if auth_js_dest.exists():
+        skipped_files.append("static/js/auth.js")
+    else:
+        auth_js_content = dedent("""\
+            globalThis.getAuth = async function () {
+              return {
+                token: "",
+                provider: "custom",
+              };
+            };
+        """)
+        auth_js_dest.write_text(auth_js_content)
+        created_files.append("static/js/auth.js")
+
+    # 6. Update .env to add "custom" to XLWINGS_AUTH_PROVIDERS
+    env_file = project_path / ".env"
+    if env_file.exists():
+        # Load current values
+        env_values = dotenv_values(env_file)
+        current_providers = env_values.get("XLWINGS_AUTH_PROVIDERS", "")
+
+        # Parse as JSON array (e.g., ["entraid"])
+        if current_providers:
+            try:
+                providers = json.loads(current_providers)
+            except json.JSONDecodeError:
+                # Fallback to comma-separated if not JSON
+                providers = [p.strip() for p in current_providers.split(",")]
+        else:
+            providers = []
+
+        # Add "custom" if not already present
+        if "custom" not in providers:
+            providers.append("custom")
+            set_key(
+                env_file,
+                "XLWINGS_AUTH_PROVIDERS",
+                json.dumps(providers),
+                quote_mode="never",
+            )
+            created_files.append(".env (updated XLWINGS_AUTH_PROVIDERS)")
+        else:
+            skipped_files.append(".env (custom already in XLWINGS_AUTH_PROVIDERS)")
+
+    # 7. Print summary
+    print("\nCustom auth provider setup complete!")
+    if created_files:
+        print(f"Created: {', '.join(created_files)}")
+    if skipped_files:
+        print(f"Skipped (already exists): {', '.join(skipped_files)}")
 
 
 def create_manifest_template(project_path: Path):
@@ -236,6 +382,8 @@ def create_dotenv(project_path: Path):
     import secrets
     import shutil
 
+    from dotenv import set_key
+
     from xlwings_server.config import PACKAGE_DIR
 
     env_template_path = PACKAGE_DIR / ".env.template"
@@ -250,16 +398,10 @@ def create_dotenv(project_path: Path):
     # Generate secret key
     secret_key = secrets.token_urlsafe(32)
 
-    # Set project name and secret key
+    # Set project name and secret key using dotenv
     project_name = project_path.name
-    content = env_path.read_text()
-    content = content.replace(
-        '# XLWINGS_PROJECT_NAME=""', f'XLWINGS_PROJECT_NAME="{project_name}"'
-    )
-    content = content.replace(
-        'XLWINGS_SECRET_KEY=""', f'XLWINGS_SECRET_KEY="{secret_key}"'
-    )
-    env_path.write_text(content)
+    set_key(env_path, "XLWINGS_PROJECT_NAME", project_name)
+    set_key(env_path, "XLWINGS_SECRET_KEY", secret_key)
 
 
 def create_uuids(project_path: Path | None = None):
@@ -457,15 +599,35 @@ def main():
     # Add command
     add_parser = subparsers.add_parser("add", help="Add optional components")
     add_subparsers = add_parser.add_subparsers(
-        dest="add_command", help="Available configurations"
+        dest="add_category", help="Component categories"
     )
 
-    # azure-functions sub-subcommand
-    add_subparsers.add_parser(
-        "azure-functions", help="Add Azure Functions deployment files"
+    # azure subcommand (with nested functions subcommand)
+    azure_parser = add_subparsers.add_parser("azure", help="Azure integrations")
+    azure_subparsers = azure_parser.add_subparsers(
+        dest="azure_command", help="Azure services"
+    )
+    azure_subparsers.add_parser(
+        "functions", help="Add Azure Functions deployment files"
     )
 
-    # router sub-subcommand
+    # model subcommand (with nested user subcommand)
+    model_parser = add_subparsers.add_parser("model", help="Data models")
+    model_subparsers = model_parser.add_subparsers(
+        dest="model_command", help="Model types"
+    )
+    model_subparsers.add_parser("user", help="Add user model for customization")
+
+    # auth subcommand (with nested custom subcommand)
+    auth_parser = add_subparsers.add_parser("auth", help="Authentication providers")
+    auth_subparsers = auth_parser.add_subparsers(
+        dest="auth_command", help="Auth provider types"
+    )
+    auth_subparsers.add_parser(
+        "custom", help="Add custom auth provider for customization"
+    )
+
+    # router subcommand (standalone, no nesting needed)
     add_subparsers.add_parser("router", help="Add routers directory and sample router")
 
     args = parser.parse_args()
@@ -473,12 +635,29 @@ def main():
     if args.command == "init":
         init_command(args.path)
     elif args.command == "add":
-        if args.add_command == "azure-functions":
-            add_azure_functions_command()
-        elif args.add_command == "router":
+        if args.add_category == "azure":
+            if args.azure_command == "functions":
+                add_azure_functions_command()
+            else:
+                print("Error: Please specify Azure service (e.g., functions)")
+                sys.exit(1)
+        elif args.add_category == "model":
+            if args.model_command == "user":
+                add_model_user_command()
+            else:
+                print("Error: Please specify model type (e.g., user)")
+                sys.exit(1)
+        elif args.add_category == "auth":
+            if args.auth_command == "custom":
+                add_auth_custom_command()
+            else:
+                print("Error: Please specify auth provider (e.g., custom)")
+                sys.exit(1)
+        elif args.add_category == "router":
             add_router_command()
         else:
-            print("Error: Please specify what to add (e.g., azure-functions, router)")
+            print("Error: Please specify what to add")
+            print("Available: azure, model, auth, router")
             sys.exit(1)
     else:
         # Default: run server
