@@ -452,8 +452,15 @@ def create_uuids(project_path: Path | None = None):
 def init_command(path: str | None = None):
     """Initialize project"""
     # Determine project path
-    if path is None or path == ".":
+    if path is None:
         project_path = Path.cwd()
+
+        # Ask for confirmation when initializing in current directory
+        print(f"This will initialize an xlwings-server project in: {project_path}")
+        response = input("Continue? [y/N]: ").strip().lower()
+        if response not in ("y", "yes"):
+            print("Initialization cancelled.")
+            sys.exit(0)
     else:
         project_path = Path(path).resolve()
 
