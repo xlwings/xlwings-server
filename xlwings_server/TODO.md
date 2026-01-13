@@ -1,4 +1,3 @@
-- require confirmation when running `xlwings-server init` without `.`
 - azure .funcignore
 - gitignore: venv, certs, .env, etc.
 

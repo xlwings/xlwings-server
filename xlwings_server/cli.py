@@ -1,5 +1,6 @@
 import argparse
 import os
+import shutil
 import sys
 import uuid
 from pathlib import Path
@@ -7,7 +8,72 @@ from textwrap import dedent
 
 import uvicorn
 
+from xlwings_server.config import PACKAGE_DIR
 
+
+# Helper Classes and Functions
+class FileTracker:
+    """Track created and skipped files during CLI operations."""
+
+    def __init__(self):
+        self.created = []
+        self.skipped = []
+
+    def mark_created(self, path: str):
+        """Mark a file as created."""
+        self.created.append(path)
+
+    def mark_skipped(self, path: str):
+        """Mark a file as skipped (already exists)."""
+        self.skipped.append(path)
+
+    def print_summary(self, operation_name: str):
+        """Print summary of created and skipped files."""
+        print(f"\n{operation_name} complete!")
+        if self.created:
+            print(f"Created: {', '.join(self.created)}")
+        if self.skipped:
+            print(f"Skipped (already exists): {', '.join(self.skipped)}")
+
+
+def validate_project_directory() -> Path:
+    """Validate we're in an xlwings-server project directory."""
+    project_path = Path.cwd()
+    if not (project_path / "custom_functions").exists():
+        print("Error: Not in an xlwings-server project directory.")
+        print("Run this command from your project root.")
+        print("Hint: Initialize a project first with 'xlwings-server init'")
+        sys.exit(1)
+    return project_path
+
+
+def copy_file_if_not_exists(
+    source: Path,
+    dest: Path,
+    tracker: FileTracker,
+    display_name: str | None = None,
+) -> bool:
+    """Copy file if it doesn't exist. Returns True if copied."""
+    display_name = display_name or str(dest)
+    if dest.exists():
+        tracker.mark_skipped(display_name)
+        return False
+    else:
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy(source, dest)
+        tracker.mark_created(display_name)
+        return True
+
+
+def create_sample_file_if_not_exists(file_path: Path, content: str) -> bool:
+    """Create a sample file if it doesn't exist. Returns True if created."""
+    if file_path.exists():
+        return False
+    file_path.write_text(dedent(content))
+    return True
+
+
+# Project Setup Functions
 def create_project_structure(project_path: Path):
     """Create minimal project structure"""
     # Create project directory if it doesn't exist
@@ -41,30 +107,21 @@ def create_project_structure(project_path: Path):
 def create_sample_functions(project_path: Path):
     """Create sample functions.py file with hello function"""
     functions_file = project_path / "custom_functions" / "functions.py"
-
-    if functions_file.exists():
-        return
-
-    sample_code = dedent("""\
+    sample_code = """\
         from xlwings import func
 
 
         @func
         def hello(name):
             return f"Hello {name}!"
-    """)
-
-    functions_file.write_text(sample_code)
+    """
+    create_sample_file_if_not_exists(functions_file, sample_code)
 
 
 def create_sample_scripts(project_path: Path):
     """Create sample scripts.py file with hello_world script"""
     scripts_file = project_path / "custom_scripts" / "scripts.py"
-
-    if scripts_file.exists():
-        return
-
-    sample_code = dedent("""\
+    sample_code = """\
         import xlwings as xw
         from xlwings import script
 
@@ -77,19 +134,14 @@ def create_sample_scripts(project_path: Path):
                 cell.value = "Bye xlwings!"
             else:
                 cell.value = "Hello xlwings!"
-    """)
-
-    scripts_file.write_text(sample_code)
+    """
+    create_sample_file_if_not_exists(scripts_file, sample_code)
 
 
 def create_sample_taskpane(project_path: Path):
     """Create sample taskpane.html template"""
     taskpane_file = project_path / "templates" / "taskpane.html"
-
-    if taskpane_file.exists():
-        return
-
-    sample_html = dedent("""\
+    sample_html = """\
         {% extends "base.html" %}
 
         {% block content %}
@@ -100,166 +152,114 @@ def create_sample_taskpane(project_path: Path):
             </button>
         </div>
         {% endblock content %}
-    """)
-
-    taskpane_file.write_text(sample_html)
+    """
+    create_sample_file_if_not_exists(taskpane_file, sample_html)
 
 
 def add_router_command():
     """Add router directory and sample router to project"""
-    # 1. Validate we're in an xlwings-server project
-    project_path = Path.cwd()
-    if not (project_path / "custom_functions").exists():
-        print("Error: Not in an xlwings-server project directory.")
-        print("Run this command from your project root.")
-        print("Hint: Initialize a project first with 'xlwings-server init'")
-        sys.exit(1)
+    project_path = validate_project_directory()
+    tracker = FileTracker()
 
-    # 2. Create routers directory
+    # Create routers directory
     routers_dir = project_path / "routers"
     routers_dir.mkdir(exist_ok=True)
 
-    # 3. Create __init__.py (empty)
+    # Create __init__.py (empty)
     init_file = routers_dir / "__init__.py"
     if not init_file.exists():
         init_file.write_text("")
 
-    # 4. Create sample custom.py
+    # Create sample custom.py
     sample_file = routers_dir / "custom.py"
+    sample_code = """\
+        from fastapi import APIRouter
 
-    created_files = []
-    skipped_files = []
+
+        router = APIRouter()
+
+
+        @router.get("/hello")
+        async def hello():
+            return {"message": "Hello from custom router!"}
+    """
 
     if sample_file.exists():
-        skipped_files.append("custom.py")
+        tracker.mark_skipped("custom.py")
     else:
-        sample_code = dedent("""\
-            from fastapi import APIRouter
+        sample_file.write_text(dedent(sample_code))
+        tracker.mark_created("custom.py")
 
-
-            router = APIRouter()
-
-
-            @router.get("/hello")
-            async def hello():
-                return {"message": "Hello from custom router!"}
-        """)
-        sample_file.write_text(sample_code)
-        created_files.append("custom.py")
-
-    # 5. Print summary
-    print("\nRouter setup complete!")
-    if created_files:
-        print(f"Created: {', '.join(created_files)}")
-    if skipped_files:
-        print(f"Skipped (already exists): {', '.join(skipped_files)}")
+    tracker.print_summary("Router setup")
 
 
 def add_model_user_command():
     """Add user model to project for customization"""
-    import shutil
+    project_path = validate_project_directory()
+    tracker = FileTracker()
 
-    from xlwings_server.config import PACKAGE_DIR
-
-    # 1. Validate we're in an xlwings-server project
-    project_path = Path.cwd()
-    if not (project_path / "custom_functions").exists():
-        print("Error: Not in an xlwings-server project directory.")
-        print("Run this command from your project root.")
-        print("Hint: Initialize a project first with 'xlwings-server init'")
-        sys.exit(1)
-
-    # 2. Create models directory
+    # Create models directory
     models_dir = project_path / "models"
     models_dir.mkdir(exist_ok=True)
 
-    # 3. Create __init__.py
+    # Create __init__.py
     init_file = models_dir / "__init__.py"
     if not init_file.exists():
         init_file.write_text("from .user import User\n")
 
-    # 4. Copy user.py from package
+    # Copy user.py from package
     source_file = PACKAGE_DIR / "models" / "user.py"
     dest_file = models_dir / "user.py"
+    copy_file_if_not_exists(source_file, dest_file, tracker, "user.py")
 
-    created_files = []
-    skipped_files = []
-
-    if dest_file.exists():
-        skipped_files.append("user.py")
-    else:
-        shutil.copy(source_file, dest_file)
-        created_files.append("user.py")
-
-    # 5. Print summary
-    print("\nUser model setup complete!")
-    if created_files:
-        print(f"Created: {', '.join(created_files)}")
-    if skipped_files:
-        print(f"Skipped (already exists): {', '.join(skipped_files)}")
+    tracker.print_summary("User model setup")
 
 
 def add_auth_custom_command():
     """Add custom auth provider to project for customization"""
     import json
-    import shutil
 
     from dotenv import dotenv_values, set_key
 
-    from xlwings_server.config import PACKAGE_DIR
+    project_path = validate_project_directory()
+    tracker = FileTracker()
 
-    # 1. Validate we're in an xlwings-server project
-    project_path = Path.cwd()
-    if not (project_path / "custom_functions").exists():
-        print("Error: Not in an xlwings-server project directory.")
-        print("Run this command from your project root.")
-        print("Hint: Initialize a project first with 'xlwings-server init'")
-        sys.exit(1)
-
-    # 2. Create auth/custom directories
+    # Create auth/custom directories
     auth_dir = project_path / "auth"
     custom_dir = auth_dir / "custom"
     custom_dir.mkdir(parents=True, exist_ok=True)
 
-    # 3. Create __init__.py files
+    # Create __init__.py files
     auth_init = auth_dir / "__init__.py"
     if not auth_init.exists():
         auth_init.write_text("")
 
-    created_files = []
-    skipped_files = []
-
-    # 4. Copy custom auth __init__.py from package
+    # Copy custom auth __init__.py from package
     source_file = PACKAGE_DIR / "auth" / "custom" / "__init__.py"
     dest_file = custom_dir / "__init__.py"
+    copy_file_if_not_exists(source_file, dest_file, tracker, "auth/custom/__init__.py")
 
-    if dest_file.exists():
-        skipped_files.append("auth/custom/__init__.py")
-    else:
-        shutil.copy(source_file, dest_file)
-        created_files.append("auth/custom/__init__.py")
-
-    # 5. Create static/js/auth.js for custom auth
+    # Create static/js/auth.js for custom auth
     static_js_dir = project_path / "static" / "js"
     static_js_dir.mkdir(parents=True, exist_ok=True)
 
     auth_js_dest = static_js_dir / "auth.js"
+    auth_js_content = """\
+        globalThis.getAuth = async function () {
+          return {
+            token: "",
+            provider: "custom",
+          };
+        };
+    """
 
     if auth_js_dest.exists():
-        skipped_files.append("static/js/auth.js")
+        tracker.mark_skipped("static/js/auth.js")
     else:
-        auth_js_content = dedent("""\
-            globalThis.getAuth = async function () {
-              return {
-                token: "",
-                provider: "custom",
-              };
-            };
-        """)
-        auth_js_dest.write_text(auth_js_content)
-        created_files.append("static/js/auth.js")
+        auth_js_dest.write_text(dedent(auth_js_content))
+        tracker.mark_created("static/js/auth.js")
 
-    # 6. Update .env to add "custom" to XLWINGS_AUTH_PROVIDERS
+    # Update .env to add "custom" to XLWINGS_AUTH_PROVIDERS
     env_file = project_path / ".env"
     if env_file.exists():
         # Load current values
@@ -285,24 +285,15 @@ def add_auth_custom_command():
                 json.dumps(providers),
                 quote_mode="never",
             )
-            created_files.append(".env (updated XLWINGS_AUTH_PROVIDERS)")
+            tracker.mark_created(".env (updated XLWINGS_AUTH_PROVIDERS)")
         else:
-            skipped_files.append(".env (custom already in XLWINGS_AUTH_PROVIDERS)")
+            tracker.mark_skipped(".env (custom already in XLWINGS_AUTH_PROVIDERS)")
 
-    # 7. Print summary
-    print("\nCustom auth provider setup complete!")
-    if created_files:
-        print(f"Created: {', '.join(created_files)}")
-    if skipped_files:
-        print(f"Skipped (already exists): {', '.join(skipped_files)}")
+    tracker.print_summary("Custom auth provider setup")
 
 
 def create_manifest_template(project_path: Path):
     """Copy manifest.xml template from package to project for customization"""
-    import shutil
-
-    from xlwings_server.config import PACKAGE_DIR
-
     source_file = PACKAGE_DIR / "templates" / "manifest.xml"
     dest_file = project_path / "templates" / "manifest.xml"
 
@@ -319,10 +310,6 @@ def create_manifest_template(project_path: Path):
 
 def create_ribbon_icons(project_path: Path):
     """Copy default ribbon icons from package to project for customization"""
-    import shutil
-
-    from xlwings_server.config import PACKAGE_DIR
-
     # Source and destination paths
     source_dir = PACKAGE_DIR / "static" / "images" / "ribbon"
     dest_dir = project_path / "static" / "images" / "ribbon"
@@ -352,10 +339,6 @@ def create_ribbon_icons(project_path: Path):
 
 def create_static_assets(project_path: Path):
     """Copy static CSS and JS files from package to project for customization"""
-    import shutil
-
-    from xlwings_server.config import PACKAGE_DIR
-
     # Files to copy
     static_files = [
         ("css", "style.css"),
@@ -380,11 +363,6 @@ def create_static_assets(project_path: Path):
 def create_dotenv(project_path: Path):
     """Copy .env.template from package to project as .env and set project name and secret key"""
     import secrets
-    import shutil
-
-    from dotenv import set_key
-
-    from xlwings_server.config import PACKAGE_DIR
 
     env_template_path = PACKAGE_DIR / ".env.template"
     env_path = project_path / ".env"
@@ -397,11 +375,23 @@ def create_dotenv(project_path: Path):
 
     # Generate secret key
     secret_key = secrets.token_urlsafe(32)
-
-    # Set project name and secret key using dotenv
     project_name = project_path.name
-    set_key(env_path, "XLWINGS_PROJECT_NAME", project_name)
-    set_key(env_path, "XLWINGS_SECRET_KEY", secret_key)
+
+    # Read the .env file
+    env_content = env_path.read_text()
+
+    # Uncomment and set XLWINGS_PROJECT_NAME
+    env_content = env_content.replace(
+        '# XLWINGS_PROJECT_NAME=""', f'XLWINGS_PROJECT_NAME="{project_name}"'
+    )
+
+    # Uncomment and set XLWINGS_SECRET_KEY
+    env_content = env_content.replace(
+        'XLWINGS_SECRET_KEY=""', f'XLWINGS_SECRET_KEY="{secret_key}"'
+    )
+
+    # Write back
+    env_path.write_text(env_content)
 
 
 def create_uuids(project_path: Path | None = None):
@@ -464,22 +454,11 @@ def init_command(path: str | None = None):
     else:
         project_path = Path(path).resolve()
 
-    # Create project structure
     create_project_structure(project_path)
-
-    # Copy manifest template
     create_manifest_template(project_path)
-
-    # Copy ribbon icons
     create_ribbon_icons(project_path)
-
-    # Copy static assets (CSS, JS)
     create_static_assets(project_path)
-
-    # Create .env file
     create_dotenv(project_path)
-
-    # Generate UUIDs in pyproject.toml
     create_uuids(project_path)
 
     print("Initialization complete!")
@@ -487,19 +466,10 @@ def init_command(path: str | None = None):
 
 def add_azure_functions_command():
     """Add Azure Functions deployment files to project"""
-    import shutil
+    project_path = validate_project_directory()
+    tracker = FileTracker()
 
-    from xlwings_server.config import PACKAGE_DIR
-
-    # 1. Validate we're in an xlwings-server project
-    project_path = Path.cwd()
-    if not (project_path / "custom_functions").exists():
-        print("Error: Not in an xlwings-server project directory.")
-        print("Run this command from your project root.")
-        print("Hint: Initialize a project first with 'xlwings-server init'")
-        sys.exit(1)
-
-    # 2. Azure Functions template files are in xlwings_server/azure_functions_templates/
+    # Azure Functions template files are in xlwings_server/azure_functions_templates/
     source_dir = PACKAGE_DIR / "azure_functions_templates"
 
     azure_files = [
@@ -509,26 +479,18 @@ def add_azure_functions_command():
         "local.settings.json",
     ]
 
-    # 3. Copy files with idempotency
-    created_files = []
-    skipped_files = []
-
+    # Copy files with idempotency
     for filename in azure_files:
         source_file = source_dir / filename
         dest_file = project_path / filename
 
-        if dest_file.exists():
-            skipped_files.append(filename)
+        if not source_file.exists():
+            print(f"Warning: Source file not found: {source_file}")
             continue
 
-        if source_file.exists():
-            shutil.copy(source_file, dest_file)
-            created_files.append(filename)
-        else:
-            print(f"Warning: Source file not found: {source_file}")
+        copy_file_if_not_exists(source_file, dest_file, tracker, filename)
 
-    # 4. Print summary
-    print("\nAzure Functions setup complete!")
+    tracker.print_summary("Azure Functions setup")
 
 
 def run_server():
