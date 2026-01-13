@@ -262,34 +262,117 @@ def add_auth_custom_command():
     # Update .env to add "custom" to XLWINGS_AUTH_PROVIDERS
     env_file = project_path / ".env"
     if env_file.exists():
-        # Load current values
-        env_values = dotenv_values(env_file)
-        current_providers = env_values.get("XLWINGS_AUTH_PROVIDERS", "")
+        env_content = env_file.read_text()
 
-        # Parse as JSON array (e.g., ["entraid"])
-        if current_providers:
-            try:
-                providers = json.loads(current_providers)
-            except json.JSONDecodeError:
-                # Fallback to comma-separated if not JSON
-                providers = [p.strip() for p in current_providers.split(",")]
-        else:
-            providers = []
-
-        # Add "custom" if not already present
-        if "custom" not in providers:
-            providers.append("custom")
-            set_key(
-                env_file,
-                "XLWINGS_AUTH_PROVIDERS",
-                json.dumps(providers),
-                quote_mode="never",
+        # Check if XLWINGS_AUTH_PROVIDERS is commented
+        if "# XLWINGS_AUTH_PROVIDERS=[]" in env_content:
+            # Uncomment and set to ["custom"]
+            env_content = env_content.replace(
+                "# XLWINGS_AUTH_PROVIDERS=[]", 'XLWINGS_AUTH_PROVIDERS=["custom"]'
             )
+            env_file.write_text(env_content)
             tracker.mark_created(".env (updated XLWINGS_AUTH_PROVIDERS)")
+        elif "XLWINGS_AUTH_PROVIDERS=" in env_content:
+            # Line is already uncommented, parse and update
+            env_values = dotenv_values(env_file)
+            current_providers = env_values.get("XLWINGS_AUTH_PROVIDERS", "")
+
+            # Parse as JSON array (e.g., ["entraid"])
+            if current_providers:
+                try:
+                    providers = json.loads(current_providers)
+                except json.JSONDecodeError:
+                    # Fallback to comma-separated if not JSON
+                    providers = [p.strip() for p in current_providers.split(",")]
+            else:
+                providers = []
+
+            # Add "custom" if not already present
+            if "custom" not in providers:
+                providers.append("custom")
+                set_key(
+                    env_file,
+                    "XLWINGS_AUTH_PROVIDERS",
+                    json.dumps(providers),
+                    quote_mode="never",
+                )
+                tracker.mark_created(".env (updated XLWINGS_AUTH_PROVIDERS)")
+            else:
+                tracker.mark_skipped(".env (custom already in XLWINGS_AUTH_PROVIDERS)")
         else:
-            tracker.mark_skipped(".env (custom already in XLWINGS_AUTH_PROVIDERS)")
+            tracker.mark_skipped(".env (XLWINGS_AUTH_PROVIDERS not found)")
 
     tracker.print_summary("Custom auth provider setup")
+
+
+def add_auth_entraid_command():
+    """Add Entra ID auth provider jwks.py to project for customization"""
+    import json
+
+    from dotenv import dotenv_values, set_key
+
+    project_path = validate_project_directory()
+    tracker = FileTracker()
+
+    # Create auth/entraid directories
+    auth_dir = project_path / "auth"
+    entraid_dir = auth_dir / "entraid"
+    entraid_dir.mkdir(parents=True, exist_ok=True)
+
+    # Create __init__.py files
+    auth_init = auth_dir / "__init__.py"
+    if not auth_init.exists():
+        auth_init.write_text("")
+
+    # Copy jwks.py from package
+    source_file = PACKAGE_DIR / "auth" / "entraid" / "jwks.py"
+    dest_file = entraid_dir / "jwks.py"
+    copy_file_if_not_exists(source_file, dest_file, tracker, "auth/entraid/jwks.py")
+
+    # Update .env to add "entraid" to XLWINGS_AUTH_PROVIDERS
+    env_file = project_path / ".env"
+    if env_file.exists():
+        env_content = env_file.read_text()
+
+        # Check if XLWINGS_AUTH_PROVIDERS is commented
+        if "# XLWINGS_AUTH_PROVIDERS=[]" in env_content:
+            # Uncomment and set to ["entraid"]
+            env_content = env_content.replace(
+                "# XLWINGS_AUTH_PROVIDERS=[]", 'XLWINGS_AUTH_PROVIDERS=["entraid"]'
+            )
+            env_file.write_text(env_content)
+            tracker.mark_created(".env (updated XLWINGS_AUTH_PROVIDERS)")
+        elif "XLWINGS_AUTH_PROVIDERS=" in env_content:
+            # Line is already uncommented, parse and update
+            env_values = dotenv_values(env_file)
+            current_providers = env_values.get("XLWINGS_AUTH_PROVIDERS", "")
+
+            # Parse as JSON array (e.g., ["custom"])
+            if current_providers:
+                try:
+                    providers = json.loads(current_providers)
+                except json.JSONDecodeError:
+                    # Fallback to comma-separated if not JSON
+                    providers = [p.strip() for p in current_providers.split(",")]
+            else:
+                providers = []
+
+            # Add "entraid" if not already present
+            if "entraid" not in providers:
+                providers.append("entraid")
+                set_key(
+                    env_file,
+                    "XLWINGS_AUTH_PROVIDERS",
+                    json.dumps(providers),
+                    quote_mode="never",
+                )
+                tracker.mark_created(".env (updated XLWINGS_AUTH_PROVIDERS)")
+            else:
+                tracker.mark_skipped(".env (entraid already in XLWINGS_AUTH_PROVIDERS)")
+        else:
+            tracker.mark_skipped(".env (XLWINGS_AUTH_PROVIDERS not found)")
+
+    tracker.print_summary("Entra ID auth provider setup")
 
 
 def create_manifest_template(project_path: Path):
@@ -337,27 +420,28 @@ def create_ribbon_icons(project_path: Path):
             shutil.copy(source_file, dest_file)
 
 
-def create_static_assets(project_path: Path):
-    """Copy static CSS and JS files from package to project for customization"""
-    # Files to copy
-    static_files = [
-        ("css", "style.css"),
-        ("js", "main.js"),
-    ]
+def add_css_command():
+    """Add style.css to project for customization"""
+    project_path = validate_project_directory()
+    tracker = FileTracker()
 
-    for folder, filename in static_files:
-        source_file = PACKAGE_DIR / "static" / folder / filename
-        dest_file = project_path / "static" / folder / filename
+    source_file = PACKAGE_DIR / "static" / "css" / "style.css"
+    dest_file = project_path / "static" / "css" / "style.css"
 
-        if dest_file.exists():
-            continue
+    copy_file_if_not_exists(source_file, dest_file, tracker, "static/css/style.css")
+    tracker.print_summary("CSS setup")
 
-        # Create directory if needed
-        dest_file.parent.mkdir(parents=True, exist_ok=True)
 
-        # Copy file
-        if source_file.exists():
-            shutil.copy(source_file, dest_file)
+def add_js_command():
+    """Add main.js to project for customization"""
+    project_path = validate_project_directory()
+    tracker = FileTracker()
+
+    source_file = PACKAGE_DIR / "static" / "js" / "main.js"
+    dest_file = project_path / "static" / "js" / "main.js"
+
+    copy_file_if_not_exists(source_file, dest_file, tracker, "static/js/main.js")
+    tracker.print_summary("JS setup")
 
 
 def create_dotenv(project_path: Path):
@@ -457,7 +541,6 @@ def init_command(path: str | None = None):
     create_project_structure(project_path)
     create_manifest_template(project_path)
     create_ribbon_icons(project_path)
-    create_static_assets(project_path)
     create_dotenv(project_path)
     create_uuids(project_path)
 
@@ -587,7 +670,7 @@ def main():
     )
     model_subparsers.add_parser("user", help="Add user model for customization")
 
-    # auth subcommand (with nested custom subcommand)
+    # auth subcommand (with nested custom and entraid subcommands)
     auth_parser = add_subparsers.add_parser("auth", help="Authentication providers")
     auth_subparsers = auth_parser.add_subparsers(
         dest="auth_command", help="Auth provider types"
@@ -595,9 +678,18 @@ def main():
     auth_subparsers.add_parser(
         "custom", help="Add custom auth provider for customization"
     )
+    auth_subparsers.add_parser(
+        "entraid", help="Add Entra ID auth provider jwks.py for customization"
+    )
 
     # router subcommand (standalone, no nesting needed)
     add_subparsers.add_parser("router", help="Add routers directory and sample router")
+
+    # css subcommand (standalone)
+    add_subparsers.add_parser("css", help="Add style.css for customization")
+
+    # js subcommand (standalone)
+    add_subparsers.add_parser("js", help="Add main.js for customization")
 
     args = parser.parse_args()
 
@@ -619,14 +711,20 @@ def main():
         elif args.add_category == "auth":
             if args.auth_command == "custom":
                 add_auth_custom_command()
+            elif args.auth_command == "entraid":
+                add_auth_entraid_command()
             else:
-                print("Error: Please specify auth provider (e.g., custom)")
+                print("Error: Please specify auth provider (e.g., custom, entraid)")
                 sys.exit(1)
         elif args.add_category == "router":
             add_router_command()
+        elif args.add_category == "css":
+            add_css_command()
+        elif args.add_category == "js":
+            add_js_command()
         else:
             print("Error: Please specify what to add")
-            print("Available: azure, model, auth, router")
+            print("Available: azure, model, auth, router, css, js")
             sys.exit(1)
     else:
         # Default: run server
