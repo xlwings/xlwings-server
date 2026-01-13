@@ -1,11 +1,28 @@
-# Include only what's needed for Azure Functions
-# Everything is ignored by default with *
-*
-# Explicitly ignore sensitive files
+# Virtual environments
+.venv/
+venv/
+
+# Secrets & certificates
 .env
-# Then explicitly include what we need
-!xlwings_server/
-!function_app.py
-!host.json
-!local.settings.json
-!requirements.txt
+certs/
+*.pem
+*.key
+
+# Git
+.git/
+.gitignore
+
+# Python artifacts
+__pycache__/
+*.pyc
+
+# Local dev settings
+local.settings.json
+
+# IDE
+.vscode/
+.idea/
+
+# Misc
+*.md
+.DS_Store

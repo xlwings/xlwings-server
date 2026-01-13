@@ -1,5 +1,4 @@
-- azure .funcignore
-- gitignore: venv, certs, .env, etc.
+- test azure functions again
 
 - xlwings wasm testen
 - run tests from project dir
@@ -7,3 +6,4 @@
 - codespaces, docker compose dev, dev containers
 - xlwings-server add docker
 - one shot script that installs uv, mkcert, xlwings-server init
+- docs

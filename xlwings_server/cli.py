@@ -478,6 +478,54 @@ def create_dotenv(project_path: Path):
     env_path.write_text(env_content)
 
 
+def create_gitignore(project_path: Path):
+    """Create or update .gitignore with xlwings-server specific entries"""
+    gitignore_path = project_path / ".gitignore"
+
+    # xlwings-server specific entries
+    xlwings_entries = [
+        "",
+        "# xlwings-server",
+        ".env",
+        "certs/",
+        "*.pem",
+    ]
+
+    # Base Python entries (only used if .gitignore doesn't exist)
+    base_entries = [
+        "# Python-generated files",
+        "__pycache__/",
+        "*.py[oc]",
+        "build/",
+        "dist/",
+        "wheels/",
+        "*.egg-info",
+        "",
+        "# Virtual environments",
+        ".venv",
+    ]
+
+    if gitignore_path.exists():
+        # .gitignore exists - append only xlwings-server entries if not present
+        content = gitignore_path.read_text()
+
+        # Check if xlwings entries are already present
+        has_xlwings_section = "# xlwings-server" in content
+
+        if not has_xlwings_section:
+            # Ensure file ends with newline before appending
+            if content and not content.endswith("\n"):
+                content += "\n"
+
+            # Append xlwings-server specific entries
+            content += "\n".join(xlwings_entries) + "\n"
+            gitignore_path.write_text(content)
+    else:
+        # .gitignore doesn't exist - create with base + xlwings entries
+        all_entries = base_entries + xlwings_entries
+        gitignore_path.write_text("\n".join(all_entries) + "\n")
+
+
 def create_uuids(project_path: Path | None = None):
     """Generate manifest UUIDs in pyproject.toml"""
     import tomlkit
@@ -542,6 +590,7 @@ def init_command(path: str | None = None):
     create_manifest_template(project_path)
     create_ribbon_icons(project_path)
     create_dotenv(project_path)
+    create_gitignore(project_path)
     create_uuids(project_path)
 
     print("Initialization complete!")

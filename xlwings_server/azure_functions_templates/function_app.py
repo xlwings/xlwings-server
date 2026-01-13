@@ -16,15 +16,12 @@ Function App > My Function App. Than, under `http_app_func`, click on `Invocatio
 """
 
 import os
-import sys
 from pathlib import Path
 
 import azure.functions as func
 
-project_dir = Path(__file__).parent
-if str(project_dir) not in sys.path:
-    sys.path.insert(0, str(project_dir))
-os.environ["XLWINGS_PROJECT_DIR"] = str(project_dir)
+# Must come before importing xlwings_server
+os.environ["XLWINGS_PROJECT_DIR"] = str(Path(__file__).parent)
 
 from xlwings_server.main import main_app  # noqa: E402
 
