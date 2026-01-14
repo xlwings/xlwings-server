@@ -69,7 +69,7 @@ class Settings(BaseSettings):
     custom_functions_retry_codes: list[int] = [500, 502, 504]
     custom_headers: dict[str, str] = {}
     date_format: str | None = None
-    taskpane: str = "taskpane.html"
+    taskpane_html: str = "taskpane.html"
     enable_alpinejs_csp: bool = True
     enable_bootstrap: bool = True
     enable_examples: bool = False
@@ -103,7 +103,7 @@ class Settings(BaseSettings):
     manifest_id_prod: UUID4 = _pyproject_config.get(
         "manifest_id_prod", "4f342d85-3a49-41cb-90a5-37b1f2219040"
     )
-    project_name: str = PROJECT_DIR.name
+    project_name: str = "xlwings Server"
     public_addin_store: bool | None = None  # Deprecated. Use cdn_officejs instead.
     request_timeout: int | None = 300  # in seconds
     secret_key: str | None = None

@@ -1,4 +1,4 @@
-- test azure functions again
+- ci build
 
 - xlwings wasm testen
 - run tests from project dir
