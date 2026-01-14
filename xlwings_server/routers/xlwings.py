@@ -153,7 +153,7 @@ if settings.enable_wasm:
     async def get_pyodide_config():
         # requirements.txt
         packages = (
-            Path(settings.base_dir / "wasm" / "requirements.txt")
+            Path(settings.project_dir / "wasm" / "requirements.txt")
             .read_text()
             .splitlines()
         )
@@ -167,7 +167,7 @@ if settings.enable_wasm:
         def scan_directory(
             base_dir: Path, dir_name: str, prepend_dir_name: bool = False
         ) -> dict:
-            dir_path = Path(settings.base_dir / dir_name)
+            dir_path = Path(settings.project_dir / dir_name)
             files = {}
             if dir_path.exists():
                 for file_path in dir_path.rglob("*"):
@@ -188,10 +188,10 @@ if settings.enable_wasm:
 
         # Scan all directories
         files = {}
-        files.update(scan_directory(settings.base_dir, "wasm"))
+        files.update(scan_directory(settings.project_dir, "wasm"))
         for directory in ["custom_functions", "custom_scripts"]:
             files.update(
-                scan_directory(settings.base_dir, directory, prepend_dir_name=True)
+                scan_directory(settings.project_dir, directory, prepend_dir_name=True)
             )
         response = {"packages": packages, "files": files}
         return response
