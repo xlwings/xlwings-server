@@ -11,7 +11,8 @@ on:
 
 jobs:
   push_to_registry:
-    if: github.repository == 'xlwings/xlwings-server'
+    if: false  # Temporarily disabled
+    # if: github.repository == 'xlwings/xlwings-server'
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
     permissions:
