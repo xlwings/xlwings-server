@@ -1,14 +1,18 @@
 import argparse
+import logging
 import os
 import shutil
 import sys
 import uuid
+import zipfile
+from datetime import datetime
 from pathlib import Path
 from textwrap import dedent
+from urllib.parse import urljoin, urlparse
 
 import uvicorn
 
-from xlwings_server.config import PACKAGE_DIR
+from xlwings_server.config import PACKAGE_DIR, PROJECT_DIR
 
 
 # Helper Classes and Functions
@@ -678,6 +682,239 @@ def run_server():
     )
 
 
+def create_wasm_settings(settings, env_file):
+    settings_map = {
+        "XLWINGS_LICENSE_KEY": f'"{settings.license_key}"',
+        "XLWINGS_ENABLE_EXAMPLES": str(settings.enable_examples).lower(),
+        "XLWINGS_ENVIRONMENT": settings.environment,
+        "XLWINGS_ENABLE_TESTS": str(settings.enable_tests).lower(),
+        "XLWINGS_FUNCTIONS_NAMESPACE": settings.functions_namespace,
+        "XLWINGS_IS_OFFICIAL_LITE_ADDIN": str(settings.is_official_lite_addin).lower(),
+    }
+
+    for key, value in settings_map.items():
+        update_wasm_settings(key, value, env_file)
+
+
+def update_wasm_settings(key: str, value: str, env_file: Path):
+    if env_file.exists():
+        content = env_file.read_text().splitlines()
+    else:
+        content = []
+
+    key_found = False
+    for i, line in enumerate(content):
+        if line.startswith(f"{key}="):
+            content[i] = f"{key}={value}"
+            key_found = True
+            break
+
+    if not key_found:
+        content.append(f"{key}={value}")
+
+    env_file.parent.mkdir(parents=True, exist_ok=True)
+    env_file.write_text("\n".join(content) + "\n")
+
+
+def wasm_build(url, output_dir, create_zip=False, clean=False, environment=None):
+    import xlwings
+    import xlwings as xw
+
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    build_timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    # Settings overrides
+    parsed = urlparse(url)
+    base_url = f"{parsed.scheme}://{parsed.netloc}".rstrip("/")
+    app_path = parsed.path.rstrip("/")
+
+    os.environ["XLWINGS_ENABLE_WASM"] = "true"
+    os.environ["XLWINGS_ENABLE_SOCKETIO"] = "false"
+    os.environ["XLWINGS_APP_PATH"] = app_path
+    os.environ["XLWINGS_STATIC_URL_PATH"] = f"{app_path}/static"
+
+    if environment:
+        os.environ["XLWINGS_ENVIRONMENT"] = environment
+
+    from fastapi.testclient import TestClient  # noqa: E402
+
+    from xlwings_server.config import settings  # noqa: E402
+    from xlwings_server.main import main_app  # noqa: E402
+
+    # Make sure settings is up-to-date
+    create_wasm_settings(settings=settings, env_file=PROJECT_DIR / "wasm" / ".env")
+
+    # Take the license key from .env
+    os.environ["XLWINGS_LICENSE_KEY"] = settings.license_key
+    import xlwings.pro
+
+    output_dir = Path(output_dir)
+    output_dir.mkdir(exist_ok=True)
+
+    # Clean output directory
+    if clean:
+        if output_dir.exists():
+            for filename in os.listdir(output_dir):
+                file_path = output_dir / filename
+                if file_path.is_file():
+                    file_path.unlink()
+                elif file_path.is_dir():
+                    shutil.rmtree(file_path)
+            print("Output directory cleaned.")
+
+    # Endpoints
+    client = TestClient(main_app)
+
+    route_paths = [
+        "manifest.xml",
+        "taskpane.html",  # TODO: cover all routes from taskpane.py
+        "xlwings/custom-functions-meta.json",
+        "xlwings/custom-functions-code.js",
+        "xlwings/custom-scripts-sheet-buttons.js",
+        "xlwings/pyodide.json",
+    ]
+
+    base_path = f"{app_path}/" if app_path else "/"
+    routes = [urljoin(base_path, path) for path in route_paths]
+
+    for ix, route in enumerate(routes):
+        response = client.get(route)
+        if response.status_code == 200:
+            content = response.text
+            filename = Path(route_paths[ix])
+            if filename.name == "manifest.xml":
+                content = content.replace("http://testserver", base_url)
+
+            file_path = output_dir / filename
+            file_path.parent.mkdir(parents=True, exist_ok=True)
+            file_path.write_text(content)
+        else:
+            print(f"Failed to fetch {route} (status code: {response.status_code})")
+
+    # Index.html
+    index_path = output_dir / "index.html"
+    index_path.write_text(f"This is an xlwings Wasm app! ({build_timestamp})")
+
+    print("Static site generation complete.")
+
+    # Copy folders
+    def ignore_local_settings(dir, files: list[str]) -> set[str]:  # noqa: ARG001
+        """Ignore function for shutil.copytree to skip settings.local.json and .claude dirs."""
+        return {f for f in files if f == ".claude"}
+
+    def copy_folder(source_dir: Path, dest_dir: Path, folder_name: str) -> None:
+        if source_dir.exists():
+            if dest_dir.exists():
+                shutil.rmtree(dest_dir)
+            shutil.copytree(source_dir, dest_dir, ignore=ignore_local_settings)
+            print(f"{folder_name.capitalize()} folder contents copied.")
+        else:
+            print(f"No {folder_name} folder found to copy")
+
+    def copy_folder_merge(source_dir: Path, dest_dir: Path, folder_name: str) -> None:
+        """Copy folder contents, merging with existing files (overwrites on conflict)."""
+        if source_dir.exists():
+            shutil.copytree(
+                source_dir, dest_dir, dirs_exist_ok=True, ignore=ignore_local_settings
+            )
+            print(f"{folder_name.capitalize()} folder contents copied.")
+        else:
+            print(f"No {folder_name} folder found to copy")
+
+    # Copy from PACKAGE_DIR first (base files)
+    copy_folder(PACKAGE_DIR / "static", output_dir / "static", "Static")
+    copy_folder(PACKAGE_DIR / "wasm", output_dir / "wasm", "wasm")
+    copy_folder(
+        PACKAGE_DIR / "custom_functions",
+        output_dir / "custom_functions",
+        "custom_functions",
+    )
+    copy_folder(
+        PACKAGE_DIR / "custom_scripts",
+        output_dir / "custom_scripts",
+        "custom_scripts",
+    )
+
+    # Copy from PROJECT_DIR to overwrite with user customizations
+    copy_folder_merge(PROJECT_DIR / "static", output_dir / "static", "Static (project)")
+    copy_folder_merge(PROJECT_DIR / "wasm", output_dir / "wasm", "wasm (project)")
+    copy_folder_merge(
+        PROJECT_DIR / "custom_functions",
+        output_dir / "custom_functions",
+        "custom_functions (project)",
+    )
+    copy_folder_merge(
+        PROJECT_DIR / "custom_scripts",
+        output_dir / "custom_scripts",
+        "custom_scripts (project)",
+    )
+
+    # .env
+    try:
+        deploy_key = xlwings.pro.LicenseHandler.create_deploy_key()
+    except xw.LicenseError:
+        deploy_key = settings.license_key
+    update_wasm_settings(
+        "XLWINGS_LICENSE_KEY", deploy_key, output_dir / "wasm" / ".env"
+    )
+    if environment:
+        update_wasm_settings(
+            "XLWINGS_ENVIRONMENT", environment, output_dir / "wasm" / ".env"
+        )
+
+    # Remove unused libraries
+    def remove_dir_if_exists(path: Path) -> None:
+        if path.exists():
+            shutil.rmtree(path)
+
+    remove_dir_if_exists(output_dir / "static" / "vendor" / "socket.io")
+    if not settings.enable_alpinejs_csp:
+        remove_dir_if_exists(output_dir / "static" / "vendor" / "@alpinejs")
+    if settings.cdn_officejs:
+        remove_dir_if_exists(output_dir / "static" / "vendor" / "@microsoft")
+    if not settings.enable_bootstrap:
+        remove_dir_if_exists(output_dir / "static" / "vendor" / "bootstrap")
+        remove_dir_if_exists(output_dir / "static" / "vendor" / "bootstrap-xlwings")
+    if not settings.enable_htmx:
+        remove_dir_if_exists(output_dir / "static" / "vendor" / "htmx-ext-head-support")
+        remove_dir_if_exists(
+            output_dir / "static" / "vendor" / "htmx-ext-loading-states"
+        )
+        remove_dir_if_exists(output_dir / "static" / "vendor" / "htmx.org")
+
+    def has_pyodide_requirement(requirements_file):
+        if not requirements_file.exists():
+            return False
+        with open(requirements_file, "r") as f:
+            return any("/static/vendor/pyodide/" in line for line in f)
+
+    if settings.cdn_pyodide:
+        requirements_path = output_dir / "wasm" / "requirements.txt"
+        if not has_pyodide_requirement(requirements_path):
+            remove_dir_if_exists(output_dir / "static" / "vendor" / "pyodide")
+
+    # Remove unwanted files
+    for cache_dir in (output_dir / "wasm").rglob("__pycache__"):
+        remove_dir_if_exists(cache_dir)
+
+    for ds_store in output_dir.rglob(".DS_Store"):
+        ds_store.unlink(missing_ok=True)
+
+    # ZIP file
+    if create_zip:
+        zip_filename = output_dir / f"xlwings_wasm_{build_timestamp}.zip"
+
+        try:
+            with zipfile.ZipFile(zip_filename, "w", zipfile.ZIP_DEFLATED) as zipf:
+                for file_path in output_dir.rglob("*"):
+                    if file_path.is_file() and file_path != zip_filename:
+                        arcname = file_path.relative_to(output_dir)
+                        zipf.write(file_path, arcname)
+            print(f"Created zip file: {zip_filename}")
+        except Exception as e:
+            print(f"Error creating zip file: {e}")
+
+
 def main():
     """Entry point for xlwings-server CLI"""
     parser = argparse.ArgumentParser(
@@ -740,6 +977,37 @@ def main():
     # js subcommand (standalone)
     add_subparsers.add_parser("js", help="Add main.js for customization")
 
+    # Wasm command
+    wasm_parser = subparsers.add_parser("wasm", help="Build xlwings Wasm distribution")
+    wasm_parser.add_argument(
+        "url", help="URL of where the xlwings Wasm app will be hosted"
+    )
+    wasm_parser.add_argument(
+        "-o",
+        "--output-dir",
+        help="Output directory path (default: ./dist)",
+        type=str,
+        default="./dist",
+    )
+    wasm_parser.add_argument(
+        "-z",
+        "--create-zip",
+        help="Create zip archive in addition to the static files",
+        action="store_true",
+    )
+    wasm_parser.add_argument(
+        "-c",
+        "--clean",
+        help="Clean the output directory before building",
+        action="store_true",
+    )
+    wasm_parser.add_argument(
+        "-e",
+        "--environment",
+        help="Sets XLWINGS_ENVIRONMENT (default: value from .env)",
+        type=str,
+    )
+
     args = parser.parse_args()
 
     if args.command == "init":
@@ -775,6 +1043,14 @@ def main():
             print("Error: Please specify what to add")
             print("Available: azure, model, auth, router, css, js")
             sys.exit(1)
+    elif args.command == "wasm":
+        wasm_build(
+            url=args.url,
+            output_dir=args.output_dir,
+            create_zip=args.create_zip,
+            clean=args.clean,
+            environment=args.environment,
+        )
     else:
         # Default: run server
         run_server()
