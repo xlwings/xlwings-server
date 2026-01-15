@@ -8,7 +8,7 @@ async function initPyodide() {
 
   try {
     // Show loading status
-    if (globalStatusAlert) {
+    if (globalStatusAlert && !config.isOfficialLiteAddin) {
       globalStatusAlert.classList.remove("d-none");
       globalStatusAlert.querySelector("span").innerHTML = `
         <div class="spinner-border spinner-border-sm text-alert me-1" role="status">
