@@ -678,6 +678,15 @@ def run_server():
     # The sys.path manipulation will happen in main.py before importing user modules
     os.environ["XLWINGS_PROJECT_DIR"] = str(project_dir)
 
+    # Copy over required settings to wasm .env
+    # This is done before starting the server to ensure wasm has up-to-date settings
+    from xlwings_server.config import settings  # noqa: E402
+
+    wasm_dir = project_dir / "wasm"
+    if settings.enable_wasm and wasm_dir.exists():
+        env_file = wasm_dir / ".env"
+        create_wasm_settings(settings, env_file)
+
     # Determine SSL certificate paths
     is_cloud = os.getenv("CODESPACES")
     ssl_keyfile_path = project_dir / "certs" / "localhost+2-key.pem"

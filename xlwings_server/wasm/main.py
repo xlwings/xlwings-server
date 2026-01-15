@@ -196,6 +196,9 @@ def get_xlwings_scripts(code_string, script_button_text):
     return to_js(xlwings_functions)
 
 
+html_output = HtmlOutput("output")
+
+
 def custom_functions_meta(module_string):
     try:
         module = create_module_from_string(module_string, "main")
