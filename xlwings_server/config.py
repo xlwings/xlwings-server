@@ -1,4 +1,6 @@
+import logging
 import os
+import sys
 import warnings
 from pathlib import Path
 from typing import Literal
@@ -7,6 +9,8 @@ import xlwings as xw
 from pydantic import UUID4, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+logger = logging.getLogger(__name__)
+
 # Get project directory from environment (set by CLI)
 # Falls back to current working directory if not set (for backward compatibility)
 PROJECT_DIR = Path(os.getenv("XLWINGS_PROJECT_DIR", Path.cwd()))
@@ -14,6 +18,12 @@ PROJECT_DIR = Path(os.getenv("XLWINGS_PROJECT_DIR", Path.cwd()))
 # Get package directory - must be calculated before any sys.path manipulation
 # Use __file__ which points to the actual config.py location (in site-packages after install)
 PACKAGE_DIR = Path(__file__).parent.resolve()
+
+# Setup sys.path for user overrides
+# This is also done in main.py, but we need it here too because config.py
+# can be imported directly (e.g., from custom_functions) before main.py runs
+if str(PROJECT_DIR) not in sys.path:
+    sys.path.insert(0, str(PROJECT_DIR))
 
 
 def load_pyproject_config() -> dict:
@@ -140,7 +150,29 @@ class Settings(BaseSettings):
         return PACKAGE_DIR
 
 
-settings = Settings()
+# Try to import Settings from project directory (user override)
+# Fall back to package Settings if not found
+def _create_settings() -> Settings:
+    """Create settings instance, checking for project-level config override"""
+    try:
+        config_file = PROJECT_DIR / "config.py"
+        if config_file.exists():
+            # Import Settings from project config
+            import importlib
+
+            config_module = importlib.import_module("config")
+            if hasattr(config_module, "Settings"):
+                ProjectSettings = config_module.Settings
+                logger.info("Loaded settings from project config.py")
+                return ProjectSettings()
+    except Exception as e:
+        logger.debug(f"No project config.py found or failed to load: {e}")
+
+    # No project config or import failed, use package Settings
+    return Settings()
+
+
+settings = _create_settings()
 
 # TODO: refactor once xlwings offers a runtime config
 if settings.license_key and not os.getenv("XLWINGS_LICENSE_KEY"):

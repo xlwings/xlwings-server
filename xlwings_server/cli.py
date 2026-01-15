@@ -309,6 +309,36 @@ def add_auth_custom_command():
     tracker.print_summary("Custom auth provider setup")
 
 
+def add_config_command():
+    """Add config.py to project for customizing settings"""
+    project_path = validate_project_directory()
+    tracker = FileTracker()
+
+    # Check if config.py already exists
+    config_file = project_path / "config.py"
+    if config_file.exists():
+        tracker.mark_skipped("config.py (already exists)")
+    else:
+        # Create config.py template
+        template = dedent('''\
+            """This uses pydantic-settings:
+            https://docs.pydantic.dev/latest/concepts/pydantic_settings/
+            """
+
+            from xlwings_server.config import Settings as BaseSettings
+
+
+            class Settings(BaseSettings):
+                my_custom_setting: str = "default_value"
+
+        ''')
+
+        config_file.write_text(template)
+        tracker.mark_created("config.py")
+
+    tracker.print_summary("Config setup")
+
+
 def add_auth_entraid_command():
     """Add Entra ID auth provider jwks.py to project for customization"""
     import json
@@ -977,6 +1007,9 @@ def main():
     # js subcommand (standalone)
     add_subparsers.add_parser("js", help="Add main.js for customization")
 
+    # config subcommand (standalone)
+    add_subparsers.add_parser("config", help="Add config.py for extending settings")
+
     # Wasm command
     wasm_parser = subparsers.add_parser("wasm", help="Build xlwings Wasm distribution")
     wasm_parser.add_argument(
@@ -1039,9 +1072,11 @@ def main():
             add_css_command()
         elif args.add_category == "js":
             add_js_command()
+        elif args.add_category == "config":
+            add_config_command()
         else:
             print("Error: Please specify what to add")
-            print("Available: azure, model, auth, router, css, js")
+            print("Available: azure, model, auth, router, css, js, config")
             sys.exit(1)
     elif args.command == "wasm":
         wasm_build(
