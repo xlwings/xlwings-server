@@ -127,14 +127,15 @@ class Settings(BaseSettings):
     @property
     def jsconfig(self) -> dict:
         return {
-            "authProviders": self.auth_providers,
             "appPath": self.app_path,
-            "xlwingsVersion": self.xlwings_version,
-            "onWasm": self.enable_wasm,
-            "isOfficialLiteAddin": self.is_official_lite_addin,
-            "requestTimeout": self.request_timeout,
+            "authProviders": self.auth_providers,
             "customFunctionsMaxRetries": self.custom_functions_max_retries,
             "customFunctionsRetryCodes": self.custom_functions_retry_codes,
+            "environment": self.environment,
+            "isOfficialLiteAddin": self.is_official_lite_addin,
+            "onWasm": self.enable_wasm,
+            "requestTimeout": self.request_timeout,
+            "xlwingsVersion": self.xlwings_version,
         }
 
     @computed_field

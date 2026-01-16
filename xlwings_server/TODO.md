@@ -1,7 +1,5 @@
 xlwings Lite:
 
-- fix/test lite deployment
-
 - Move office.js and pydodie and everything else behind version dir
 - run tests from project dir
 - codespaces, docker compose dev, dev containers
