@@ -767,6 +767,9 @@ def wasm_build(url, output_dir, create_zip=False, clean=False, environment=None)
     base_url = f"{parsed.scheme}://{parsed.netloc}".rstrip("/")
     app_path = parsed.path.rstrip("/")
 
+    # TODO: these env vars aren't respected anymore, probably because of the config
+    # import at the top. Need to be set directly in the environment where this is
+    # running, e.g., CI
     os.environ["XLWINGS_ENABLE_WASM"] = "true"
     os.environ["XLWINGS_ENABLE_SOCKETIO"] = "false"
     os.environ["XLWINGS_APP_PATH"] = app_path
