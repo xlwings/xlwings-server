@@ -70,8 +70,16 @@ async function registerSheetButton(buttonRef, meta) {
             scriptName: scriptName,
           });
         } finally {
-          sheet.getRange(selectedRangeAddress).getOffsetRange(1, 0).select();
+          // Only move selection down if it's still on the button cell
+          // If the script changed the selection, leave it as is
+          const currentSelection = context.workbook.getSelectedRange();
+          currentSelection.load("address");
           await context.sync();
+
+          if (currentSelection.address === selectedRangeAddress) {
+            sheet.getRange(selectedRangeAddress).getOffsetRange(1, 0).select();
+            await context.sync();
+          }
 
           // Ensure the status is shown for a minimum time to avoid flickering
           const elapsedTime = Date.now() - startTime;
