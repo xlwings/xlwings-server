@@ -429,8 +429,8 @@ def create_manifest_template(project_path: Path):
 def create_ribbon_icons(project_path: Path):
     """Copy default ribbon icons from package to project for customization"""
     # Source and destination paths
-    source_dir = PACKAGE_DIR / "static" / "images" / "ribbon"
-    dest_dir = project_path / "static" / "images" / "ribbon"
+    source_dir = PACKAGE_DIR / "static" / "images" / "ribbon" / "examples"
+    dest_dir = project_path / "static" / "images" / "ribbon" / "examples"
 
     # Icon files to copy
     icon_files = [
@@ -943,9 +943,7 @@ def wasm_build(url, output_dir, create_zip=False, clean=False, environment=None)
         ds_store.unlink(missing_ok=True)
 
     # Hash files
-    hasher = StaticFileHasher(
-        static_dir=output_dir / "static", templates_dir=output_dir
-    )
+    hasher = StaticFileHasher(static_dir=output_dir, templates_dir=output_dir)
     hasher.process_files()
 
     # ZIP file
