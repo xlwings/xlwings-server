@@ -76,7 +76,9 @@ async function registerSheetButton(buttonRef, meta) {
           currentSelection.load("address");
           await context.sync();
 
-          if (currentSelection.address === selectedRangeAddress) {
+          // Extract cell reference from full address (e.g., 'Sheet1!B4' -> 'B4')
+          const currentAddress = currentSelection.address.split("!").pop();
+          if (currentAddress === selectedRangeAddress) {
             sheet.getRange(selectedRangeAddress).getOffsetRange(1, 0).select();
             await context.sync();
           }
