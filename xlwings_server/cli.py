@@ -813,7 +813,6 @@ def wasm_build(url, output_dir, create_zip=False, clean=False, environment=None)
         "taskpane.html",  # TODO: cover all routes from taskpane.py
         "xlwings/custom-functions-meta.json",
         "xlwings/custom-functions-code.js",
-        "xlwings/custom-scripts-sheet-buttons.js",
         "xlwings/pyodide.json",
     ]
 
@@ -944,7 +943,9 @@ def wasm_build(url, output_dir, create_zip=False, clean=False, environment=None)
         ds_store.unlink(missing_ok=True)
 
     # Hash files
-    hasher = StaticFileHasher(static_dir=output_dir, templates_dir=output_dir)
+    hasher = StaticFileHasher(
+        static_dir=output_dir / "static", templates_dir=output_dir
+    )
     hasher.process_files()
 
     # ZIP file
