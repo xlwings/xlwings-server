@@ -1,4 +1,5 @@
 - docs
+- get rid of settings.base_dir
 
 - codespaces
 - docker compose dev (xlwings-server add docker)

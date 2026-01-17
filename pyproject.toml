@@ -77,6 +77,7 @@ exclude = [
     "xlwings_server/static/vendor/@microsoft/office-js/dist/**/*-ios-*.js",
     "xlwings_server/static/vendor/@microsoft/office-js/dist/**/*-android-*.js",
     "xlwings_server/static/vendor/@microsoft/office-js/dist/**/custom-functions-runtime*.js",
+    "xlwings_server/static/vendor/pyodide/**/*",
 ]
 
 [tool.hatch.build.targets.sdist]
@@ -88,6 +89,7 @@ exclude = [
     "xlwings_server/static/vendor/@microsoft/office-js/dist/**/*-ios-*.js",
     "xlwings_server/static/vendor/@microsoft/office-js/dist/**/*-android-*.js",
     "xlwings_server/static/vendor/@microsoft/office-js/dist/**/custom-functions-runtime*.js",
+    "xlwings_server/static/vendor/pyodide/**/*",
 ]
 
 [tool.ruff]
