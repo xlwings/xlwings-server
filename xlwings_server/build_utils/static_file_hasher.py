@@ -47,12 +47,22 @@ class StaticFileHasher:
         excluded_patterns = {
             ".map",
             ".md",
-            ".txt",
+            ".py",
             ".scss",
-            "fonts/",
-            "vendor/@microsoft/office-js/dist/",
-            "images/ribbon/",
+            ".txt",
+            ".whl",
+            ".xml",
             "custom-functions-code.js",
+            "custom-functions-meta.json",
+            "eula.html",
+            "fonts/",
+            "images/ribbon/",
+            "index.html",
+            "manifest.xml",
+            "privacy.html",
+            "support.html",
+            "taskpane.html",
+            "vendor/",
         }
 
         path_str = str(path)
