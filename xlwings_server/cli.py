@@ -12,6 +12,7 @@ from urllib.parse import urljoin, urlparse
 
 import uvicorn
 
+from xlwings_server.build_utils import StaticFileHasher
 from xlwings_server.config import PACKAGE_DIR, PROJECT_DIR
 
 
@@ -941,6 +942,10 @@ def wasm_build(url, output_dir, create_zip=False, clean=False, environment=None)
 
     for ds_store in output_dir.rglob(".DS_Store"):
         ds_store.unlink(missing_ok=True)
+
+    # Hash files
+    hasher = StaticFileHasher(static_dir=output_dir, templates_dir=output_dir)
+    hasher.process_files()
 
     # ZIP file
     if create_zip:

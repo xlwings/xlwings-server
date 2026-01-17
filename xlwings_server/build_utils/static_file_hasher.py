@@ -1,22 +1,36 @@
+"""Static file hasher for cache-busting in production builds.
+
+This module provides the StaticFileHasher class which adds content-based hashes
+to static file names (e.g., main.js -> main.a1b2c3d4.js) and updates all references
+in HTML, JS, and CSS files accordingly. This is primarily used during the Wasm
+build process to enable effective cache-busting in production deployments.
+"""
+
 import hashlib
 import os
 import re
 from pathlib import Path
-from typing import Dict, List, Set, Tuple
-
-this_dir = Path(__file__).resolve().parent
-static_dir = this_dir.parent / "xlwings_server" / "static"
-templates_dir = this_dir.parent / "xlwings_server" / "templates"
 
 
 class StaticFileHasher:
+    """Hashes static files and updates references for cache-busting.
+
+    This utility is used during the Wasm build process to add content-based
+    hashes to static file names (e.g., main.js -> main.a1b2c3d4.js) and update
+    all references in HTML, JS, and CSS files accordingly.
+
+    Args:
+        static_dir: Directory containing static files to hash
+        templates_dir: Directory containing templates with references to update
+    """
+
     def __init__(self, static_dir: Path, templates_dir: Path):
         self.static_dir = static_dir
         self.templates_dir = templates_dir
-        self.file_mapping: Dict[
-            str, Dict[str, str]
+        self.file_mapping: dict[
+            str, dict[str, str]
         ] = {}  # rel_path -> {old_name: new_name, path: Path}
-        self.processed_files: Set[Path] = set()
+        self.processed_files: set[Path] = set()
 
     def get_relative_path(self, path: Path, base_dir: Path) -> Path:
         """Get the relative path from base_dir to the given path"""
@@ -59,7 +73,7 @@ class StaticFileHasher:
 
     def get_replacement_patterns(
         self, file_path: Path, rel_path: str, old_name: str, new_name: str
-    ) -> List[Tuple[str, str]]:
+    ) -> list[tuple[str, str]]:
         """Generate all possible path patterns for replacement"""
         patterns = []
         dir_path = os.path.dirname(rel_path)
@@ -121,7 +135,9 @@ class StaticFileHasher:
 
         return patterns
 
-    def replace_in_file(self, file_path: Path, excluded_dirs: List[str] = None) -> None:
+    def replace_in_file(
+        self, file_path: Path, excluded_dirs: list[str] | None = None
+    ) -> None:
         """Replace all occurrences of original filenames with hashed versions"""
         if excluded_dirs is None:
             excluded_dirs = []
@@ -153,9 +169,9 @@ class StaticFileHasher:
     def process_files(self):
         """Process all static files and update references"""
         # First pass: hash all files and create mapping
-        for source_path in static_dir.rglob("*"):
+        for source_path in self.static_dir.rglob("*"):
             if self.should_process_file(source_path):
-                rel_path = self.get_relative_path(source_path, static_dir)
+                rel_path = self.get_relative_path(source_path, self.static_dir)
                 rel_path_str = str(rel_path).replace("\\", "/")
 
                 digest = self.hash_file(source_path)
@@ -176,16 +192,11 @@ class StaticFileHasher:
                 old_path.rename(new_path)
 
         # Third pass: update references in files
-        for template_file in templates_dir.rglob("*.html"):
+        for template_file in self.templates_dir.rglob("*.html"):
             self.replace_in_file(template_file)
 
-        for js_file in static_dir.rglob("*.js"):
+        for js_file in self.static_dir.rglob("*.js"):
             self.replace_in_file(js_file, excluded_dirs=["vendor"])
 
-        for css_file in static_dir.rglob("*.css"):
+        for css_file in self.static_dir.rglob("*.css"):
             self.replace_in_file(css_file, excluded_dirs=["vendor"])
-
-
-if __name__ == "__main__":
-    hasher = StaticFileHasher(static_dir, templates_dir)
-    hasher.process_files()
