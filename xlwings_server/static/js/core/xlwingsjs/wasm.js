@@ -36,10 +36,12 @@ async function initPyodide() {
     const pyodideConfigData = await pyodideConfigResponse.json();
 
     // Install dependencies
-    await pyodide.loadPackage("micropip");
-    const micropip = pyodide.pyimport("micropip");
-    let packages = pyodideConfigData["packages"];
-    await micropip.install(packages, { keep_going: true });
+    if (!config.isOfficialLiteAddin) {
+      await pyodide.loadPackage("micropip");
+      const micropip = pyodide.pyimport("micropip");
+      let packages = pyodideConfigData["packages"];
+      await micropip.install(packages, { keep_going: true });
+    }
 
     // Python files
     const files = pyodideConfigData["files"];
