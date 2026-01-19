@@ -12,7 +12,7 @@ Throughout the rest of this page, when we refer to Alpine or Alpine.js, we mean 
 
 To use Alpine.js, add the `x-data` directive to the part of your HTML that you want to bring to life. This converts the specified section into an Alpine component. For optimal performance, apply it to an HTML tag that wraps the smallest possible amount of code.
 
-Let's have a look at the first example under [`app/templates/examples/alpine`](https://github.com/xlwings/xlwings-server/tree/main/app/templates/examples/alpine). For clarity, the [](bootstrap.md) classes that are used in the example aren't shown here so that we can concentrate on the Alpine.js directives:
+Let's have a look at the first example under [`xlwings_server/templates/examples/alpine`](https://github.com/xlwings/xlwings-server/tree/main/xlwings_server/templates/examples/alpine). For clarity, the [](bootstrap.md) classes that are used in the example aren't shown here so that we can concentrate on the Alpine.js directives:
 
 ```html
 <div x-data="visibility">
@@ -43,9 +43,9 @@ registerAlpineComponent("visibility", visibility);
 
 ## Where to write the Alpine.js JavaScript code
 
-The JavaScript sample code lives in [`app/static/js/core/examples.js`](https://github.com/xlwings/xlwings-server/blob/main/app/static/js/core/examples.js).
+The JavaScript sample code lives in [`xlwings_server/static/js/core/examples.js`](https://github.com/xlwings/xlwings-server/blob/main/xlwings_server/static/js/core/examples.js).
 
-If you only have a few Alpine components, you can place the JavaScript code into [`app/static/js/main.js`](https://github.com/xlwings/xlwings-server/blob/main/app/static/js/main.js).
+If you only have a few Alpine components, you can place the JavaScript code into [`xlwings_server/static/js/main.js`](https://github.com/xlwings/xlwings-server/blob/main/xlwings_server/static/js/main.js).
 
 If your task pane turns into a complex app, you could also introduce a proper structure along the following lines:
 
@@ -122,7 +122,7 @@ focus() {
 }
 ```
 
-To see the full context and give it a try, have a look at the "Names" example under [`app/templates/examples/alpine`](https://github.com/xlwings/xlwings-server/tree/main/app/templates/examples/alpine).
+To see the full context and give it a try, have a look at the "Names" example under [`xlwings_server/templates/examples/alpine`](https://github.com/xlwings/xlwings-server/tree/main/xlwings_server/templates/examples/alpine).
 
 Let's go through how everything works:
 
@@ -135,7 +135,7 @@ For an overview of all available modifiers for your event listeners, have a look
 
 ## Event object
 
-If you have advanced needs, you can access the `event` object when handling an event. Let's have a look at the JavaScript part of the "Slider" example under [`app/templates/examples/alpine`](https://github.com/xlwings/xlwings-server/tree/main/app/templates/examples/alpine):
+If you have advanced needs, you can access the `event` object when handling an event. Let's have a look at the JavaScript part of the "Slider" example under [`xlwings_server/templates/examples/alpine`](https://github.com/xlwings/xlwings-server/tree/main/xlwings_server/templates/examples/alpine):
 
 ```js
 const slider = {

@@ -1,4 +1,4 @@
-# Migration to xlwings Server 1.0
+# Migrate to xlwings Server 1.0
 
 - uv add xlwings-server --extra dev
 - python run.py -> xlwings-server CLI

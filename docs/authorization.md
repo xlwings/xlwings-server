@@ -6,24 +6,6 @@ By adding an authentication provider via `XLWINGS_AUTH_PROVIDERS`, only logged i
 
 If you want to further differentiate between users, you need to implement authorization, either on a global level or for specific custom functions or custom scripts. You can do this by using _role-based access-control_ (RBAC), which allows you to restrict access to only users who possess the required roles.
 
-## Global authorization
-
-To add global authorization, you can implement the `User.is_authorized()` method under [`app/models/user.py`](https://github.com/xlwings/xlwings-server/blob/main/app/models/user.py). For example, if you have set `XLWINGS_AUTH_ENTRAID_MULTITENANT=true` but only want to allow users with the domain `mydomain.com` to run custom scripts and custom functions, you could do:
-
-```python
-class User(BaseUser):
-    async def is_authorized(self):
-        return self.domain == "mydomain.com" if self.domain else False
-```
-
-Or, for role-based access control (RBAC), i.e., only authorize users with certain roles, you could write:
-
-```python
-class User(BaseUser):
-    async def is_authorized(self):
-        return await self.has_required_roles(["xlwings.admin", "xlwings.user"])
-```
-
 ## Function-specific RBAC
 
 If you have individual custom functions or custom scripts where you want to require specific roles, you can use `required_roles` like so:
@@ -87,3 +69,21 @@ class User(BaseModel):
 ```
 
 This will define the user model as a [Pydantic](https://docs.pydantic.dev) model. Alternatively, you could also implement it as a `dataclass` or an SQLAlchemy model, etc.
+
+## Global authorization
+
+To add global authorization, you can implement the `User.is_authorized()` method under [`app/models/user.py`](https://github.com/xlwings/xlwings-server/blob/main/app/models/user.py). For example, if you have set `XLWINGS_AUTH_ENTRAID_MULTITENANT=true` but only want to allow users with the domain `mydomain.com` to run custom scripts and custom functions, you could do:
+
+```python
+class User(BaseUser):
+    async def is_authorized(self):
+        return self.domain == "mydomain.com" if self.domain else False
+```
+
+Or, for role-based access control (RBAC), i.e., only authorize users with certain roles, you could write:
+
+```python
+class User(BaseUser):
+    async def is_authorized(self):
+        return await self.has_required_roles(["xlwings.admin", "xlwings.user"])
+```

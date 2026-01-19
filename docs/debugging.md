@@ -2,13 +2,31 @@
 
 ## Server debugging
 
-To run your server in debug mode, simply open the `run.py` file in the root of the repository and start your debugger according to the IDE or editor you're using:
+To run a debug server in VS Code, add the following file `.vscode/launch.json`:
 
-- **VS Code**: Open `run.py` and click the dropdown of the `Play` button on the top right of the editor, then select `Python Debugger: Debug Python File`.
+```json
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "xlwings-server",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "xlwings_server.cli",
+            "args": [],
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "python": "${workspaceFolder}/.venv/bin/python",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            },
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
+```
 
-- **PyCharm**: Open `run.py`, right-click on the file and select `Debug 'run'`. If `run` is already selected on the top right of the IDE, to the left of the `Play` button, you can also directly click on the `Bug` icon, which is on the right hand side of the `Play` button.
-
-Once the `run.py` file is running in debug mode, you can set breakpoints in your Python files where code execution will pause.
+This allows you to start the debugger by pressing `F5`.
 
 ## Office.js add-in debugging
 

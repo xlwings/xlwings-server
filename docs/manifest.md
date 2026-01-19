@@ -1,6 +1,6 @@
 # Manifest.xml
 
-xlwings Server comes with a sample manifest that you can find under [`app/templates/manifest.xml`](https://github.com/xlwings/xlwings-server/blob/main/app/templates/manifest.xml). It is a a [Jinja2](https://jinja.palletsprojects.com/) template that will produce the correct manifest for all environments (`dev`, `prod`, ...) when going to the manifest URL of the respective environment (e.g. `https://your.domain.com/manifest`).
+xlwings Server comes with a sample manifest that you can find under [`xlwings_server/templates/manifest.xml`](https://github.com/xlwings/xlwings-server/blob/main/xlwings_server/templates/manifest.xml). It is a a [Jinja2](https://jinja.palletsprojects.com/) template that will produce the correct manifest for all environments (`dev`, `prod`, ...) when going to the manifest URL of the respective environment (e.g. `https://your.domain.com/manifest`).
 
 While not recommended, you can also ignore the template and write your manifests from scratch, see [](#further-reading).
 

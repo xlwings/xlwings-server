@@ -20,7 +20,7 @@ On the task pane, connecting a button is as easy as adding the `xw-click` attrib
 </button>
 ```
 
-The default task pane from the examples includes the full code: [`app/templates/examples/hello_world/taskpane_hello.html`](https://github.com/xlwings/xlwings-server/blob/main/app/templates/examples/hello_world/taskpane_hello.html).
+The default task pane from the examples includes the full code: [`xlwings_server/templates/examples/hello_world/taskpane_hello.html`](https://github.com/xlwings/xlwings-server/blob/main/xlwings_server/templates/examples/hello_world/taskpane_hello.html).
 
 See also [](#configuration).
 
@@ -77,7 +77,7 @@ See also [](#configuration).
 
 Connecting a button on the ribbon to your script [is awaiting a more developer-friendly implementation](https://github.com/xlwings/xlwings-server/issues/102), so currently, there's a bit of work to be done:
 
-[`app/templates/manifest.xml`](https://github.com/xlwings/xlwings-server/blob/main/app/templates/manifest.xml) has a section where it defines a ribbon button:
+[`xlwings_server/templates/manifest.xml`](https://github.com/xlwings/xlwings-server/blob/main/xlwings_server/templates/manifest.xml) has a section where it defines a ribbon button:
 
 ```xml
 <!-- Ribbon button that calls a function -->
@@ -103,7 +103,7 @@ Connecting a button on the ribbon to your script [is awaiting a more developer-f
 </Control>
 ```
 
-To make this work, you need to provide a bit of JavaScript code that you can find in [app/static/js/ribbon.js](https://github.com/xlwings/xlwings-server/blob/main/app/static/js/ribbon.js):
+To make this work, you need to provide a bit of JavaScript code that you can find in [xlwings_server/static/js/ribbon.js](https://github.com/xlwings/xlwings-server/blob/main/xlwings_server/static/js/ribbon.js):
 
 ```js
 async function helloRibbon(event) {

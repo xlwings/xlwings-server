@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 
 from fastapi import APIRouter, Header, Request
 
@@ -11,11 +12,9 @@ router = APIRouter(prefix=settings.app_path)
 logger = logging.getLogger(__name__)
 
 
-@router.get("/manifest")
-@router.get("/manifest.xml")
-async def manifest(
-    request: Request, protocol: str = Header(default="", alias="X-Forwarded-Proto")
-):
+def _get_manifest_response(
+    request: Request, protocol: str, download: bool = False
+) -> TemplateResponse:
     if settings.hostname:
         # Settings
         base_url = f"https://{settings.hostname}"
@@ -44,6 +43,14 @@ async def manifest(
     }
     manifest_id = manifest_ids[settings.environment]
 
+    headers = {}
+    if download:
+        sanitized_name = re.sub(
+            r"[^a-z0-9]+", "-", settings.project_name.lower()
+        ).strip("-")
+        filename = f"{sanitized_name}-{settings.environment}.xml"
+        headers["Content-Disposition"] = f"attachment; filename={filename}"
+
     return TemplateResponse(
         request=request,
         name="manifest.xml",
@@ -54,4 +61,22 @@ async def manifest(
             "manifest_id": manifest_id,
         },
         media_type="text/plain",
+        headers=headers,
     )
+
+
+@router.get("/manifest")
+@router.get("/manifest.xml")
+async def manifest(
+    request: Request,
+    protocol: str = Header(default="", alias="X-Forwarded-Proto"),
+):
+    return _get_manifest_response(request, protocol, download=False)
+
+
+@router.get("/manifest/download")
+async def manifest_download(
+    request: Request,
+    protocol: str = Header(default="", alias="X-Forwarded-Proto"),
+):
+    return _get_manifest_response(request, protocol, download=True)

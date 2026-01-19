@@ -20,12 +20,10 @@ Setting up an authentication provider requires users to be logged in to run [Cus
 
 ## Current user object
 
-At the core of the authentication system is the `User` model. You can find it under [`app/models/user.py`](https://github.com/xlwings/xlwings-server/blob/main/app/models/user.py) and it is introduced in more detail under [](authorization.md#custom-user-model).
-
-If you need access to the current user object from a custom script or a custom function, you can use a function parameter with the type hint `CurrentUser`:
+At the core of the authentication system is the `User` model. If you need access to the current user object from a custom script or a custom function, you can use a function parameter with the type hint `CurrentUser`:
 
 ```python
-from ..models import CurrentUser
+from xlwings_server.models import CurrentUser
 
 @func
 def my_function(current_user: CurrentUser):
@@ -38,4 +36,4 @@ Since the task pane is completely customizable, it is your responsibility to loc
 
 - The landing page of the task pane needs to be publicly available
 - The rest of the pages can be locked down using the `User` dependency injection. Note that within FastAPI endpoints, you use the `dependencies.User` dependency---`models.CurrentUser` is only available with [](custom_functions.md) and [](custom_scripts.md).
-- You will need to provide the `Authorization` header with every request. For `htmx`, there is a sample included under [`app/templates/examples/auth`](https://github.com/xlwings/xlwings-server/tree/main/app/templates/examples/auth).
+- You will need to provide the `Authorization` header with every request. For `htmx`, there is a sample included under [`xlwings_server/templates/examples/auth`](https://github.com/xlwings/xlwings-server/tree/main/xlwings_server/templates/examples/auth).

@@ -8,7 +8,7 @@ Instead, call the `book.app.macro()` method to run client-side functions in Java
 
 The first parameter will have to be the request context, which gives you access to the Excel JavaScript API. Note that you have to register JavaScript functions that you want to call from Python via `xlwings.registerCallback()` (last line):
 
-The following code snippet has to be copied to [static/js/main.js](https://github.com/xlwings/xlwings-server/blob/main/app/static/js/main.js):
+The following code snippet has to be copied to [static/js/main.js](https://github.com/xlwings/xlwings-server/blob/main/xlwings_server/static/js/main.js):
 
 ```js
 async function wrapText(context, sheetName, cellAddress) {

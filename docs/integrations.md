@@ -1,4 +1,4 @@
-# Integrations
+# Integrations Overview
 
 This page gives you an overview over the different integrations that you can use to talk from Excel or Google Sheets to xlwings Server. Note that various integrations can talk to the same server.
 

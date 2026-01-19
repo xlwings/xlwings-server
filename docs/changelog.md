@@ -19,7 +19,7 @@
 
 ## 0.11.3 (Aug 5, 2025)
 
-- Enhanced the Task pane [auth sample](https://github.com/xlwings/xlwings-server/tree/main/app/templates/examples/auth)
+- Enhanced the Task pane [auth sample](https://github.com/xlwings/xlwings-server/tree/main/xlwings_server/templates/examples/auth)
 - Better logging for authorization issues
 - Turned `main.js` into a ES Module
 - Upgraded dependencies.
@@ -34,7 +34,7 @@
 
 ## 0.11.1 (May 29, 2025)
 
-- Support multiple authentication providers. If you use a custom `globalThis.getAuth` in `app/static/js/auth.js`, you will need to update it.
+- Support multiple authentication providers. If you use a custom `globalThis.getAuth` in `xlwings_server/static/js/auth.js`, you will need to update it.
 - Enhanced NumPy serializer to respect `dtype`.
 - Bug fix: Fixed `app.macro()`.
 

@@ -1,4 +1,4 @@
-# Server Configuration
+# Configuration
 
 ```{toctree}
 :maxdepth: 1

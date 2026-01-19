@@ -14,7 +14,7 @@ In addition to [](auth_entraid.md), xlwings Server supports various authenticati
 
 3. Integration: On the frontend, you need to provide the token depending on your integration:
 
-   - **Office.js add-ins**: Adjust `globalThis.getAuth` under [`app/static/auth.js`](https://github.com/xlwings/xlwings-server/blob/main/app/static/js/auth.js) so that it returns the `token` and `provider` that you will validate with the `validate_token` function on the backend. For example, to use the `custom` provider, you'd do:
+   - **Office.js add-ins**: Adjust `globalThis.getAuth` under [`xlwings_server/static/auth.js`](https://github.com/xlwings/xlwings-server/blob/main/xlwings_server/static/js/auth.js) so that it returns the `token` and `provider` that you will validate with the `validate_token` function on the backend. For example, to use the `custom` provider, you'd do:
 
      ```js
      globalThis.getAuth = async function () {

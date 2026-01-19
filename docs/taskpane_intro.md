@@ -12,7 +12,7 @@ What all these libraries have in common is:
 - Developer experience: all of these libraries work without a JavaScript build tool such as webpack.
 - Security: they are compatible with the most restrictive [CSP header](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP).
 - Flexibility: these are libraries, not frameworks, so you can replace any or all of them without rewriting the entire application.
-- Easy to pick up: even if you haven't done any web development previously, you will be able to ship something that works by starting with the [included examples](https://github.com/xlwings/xlwings-server/tree/main/app/templates/examples).
+- Easy to pick up: even if you haven't done any web development previously, you will be able to ship something that works by starting with the [included examples](https://github.com/xlwings/xlwings-server/tree/main/xlwings_server/templates/examples).
 
 If you opt for a different stack, don't forget to disable those libraries that you don't use, see [](production.md). You should also note that the chosen libraries have been pre-configured for xlwings Server, providing benefits such as:
 
@@ -20,5 +20,3 @@ If you opt for a different stack, don't forget to disable those libraries that y
 - htmx: integrated authentication and access to the Excel object model
 - Alpine.js CSP build: easy registration of components via `registerAlpineComponent()`
 - Bootstrap: beautiful theme in the Excel look
-
-Start by looking at [`app/templates/examples`](https://github.com/xlwings/xlwings-server/tree/main/app/templates/examples) to get up and running quickly.

@@ -4,4 +4,4 @@ By setting `XLWINGS_AUTH_PROVIDERS` in the [](server_config.md), xlwings Server 
 
 - The landing page of the task pane needs to be publicly available
 - The rest of the pages can be locked down using the `User` dependency injection
-- You will need to provide the `Authorization` header with every request. For `htmx`, there is a sample included under [`app/templates/examples/auth`](https://github.com/xlwings/xlwings-server/tree/main/app/templates/examples/auth).
+- You will need to provide the `Authorization` header with every request. For `htmx`, there is a sample included under [`xlwings_server/templates/examples/auth`](https://github.com/xlwings/xlwings-server/tree/main/xlwings_server/templates/examples/auth).
