@@ -35,5 +35,5 @@ def my_function(current_user: CurrentUser):
 Since the task pane is completely customizable, it is your responsibility to lock down the desired endpoints:
 
 - The landing page of the task pane needs to be publicly available
-- The rest of the pages can be locked down using the `User` dependency injection. Note that within FastAPI endpoints, you use the `dependencies.User` dependency---`models.CurrentUser` is only available with [](custom_functions.md) and [](custom_scripts.md).
-- You will need to provide the `Authorization` header with every request. For `htmx`, there is a sample included under [`xlwings_server/templates/examples/auth`](https://github.com/xlwings/xlwings-server/tree/main/xlwings_server/templates/examples/auth).
+- The rest of the pages can be locked down using the `User` dependency injection. Note that within FastAPI endpoints, you use the `xlwings_server.dependencies.User` dependency.
+- You will need to provide the `Authorization` header with every request. For `htmx`, there is a [sample](https://github.com/xlwings/xlwings-server/tree/main/xlwings_server/templates/examples/auth).

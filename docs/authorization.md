@@ -23,56 +23,21 @@ def myfunction(name: str):
     ...
 ```
 
-## Custom user model
+If you have set up Entra ID to provide roles (see [](auth_entraid.md#entra-id-roles)), that's all that's needed.
 
-To customize how xlwings Server performs authorization, you can modify the `User` class in `app/models/user.py`. The `User` class inherits from `BaseUser`, which offers the following attributes by default:
+## Custom User Model
 
-```text
-id
-name
-domain
-email
-roles
-claims
-ip_address
+To customize how xlwings Server performs authorization, you can implement your own `User` model. On a Terminal, run:
+
+```
+uv run xlwings-server add model user
 ```
 
-For example, if you use Entra ID, all claims are added in the form of a dictionary to the `claims` attribute. So if you want to turn a specific claim into a direct user attribute, you could write:
-
-```python
-class User(BaseUser):
-    @property
-    def mycompany_id(self) -> str:
-        return self.claims.get("mycompany_id")
-```
-
-Another example is the handling of roles: many identity providers (such as Entra ID) support role definitions for users. However, if you prefer to use the identity provider solely for authentication while managing user roles through other means (like a database), you can customize this behavior by implementing the `roles` property.
-
-```python
-# Fake database to demonstrate the concept
-db = {"1000": ["admin"], "1001": ["user"]}
-
-class User(BaseUser):
-    @property
-    def roles(self) -> list[str]:
-        return db[self.id]
-```
-
-If your needs are completely different from the `BaseUser` and you want to implement the `User` class from scratch, inherit from `BaseModel` instead of `BaseUser`:
-
-```python
-from pydantic import BaseModel
-
-class User(BaseModel):
-    id: str
-    name: str
-```
-
-This will define the user model as a [Pydantic](https://docs.pydantic.dev) model. Alternatively, you could also implement it as a `dataclass` or an SQLAlchemy model, etc.
+This will add the file `models/user.py` where you can edit or replace the User model to fit your needs. By default, the user model is set up as a [Pydantic](https://docs.pydantic.dev) model, but you could also implement it as a `dataclass` or as an SQLAlchemy model, etc.
 
 ## Global authorization
 
-To add global authorization, you can implement the `User.is_authorized()` method under [`app/models/user.py`](https://github.com/xlwings/xlwings-server/blob/main/app/models/user.py). For example, if you have set `XLWINGS_AUTH_ENTRAID_MULTITENANT=true` but only want to allow users with the domain `mydomain.com` to run custom scripts and custom functions, you could do:
+To add global authorization, you can implement the `User.is_authorized()` method in the User model. For example, if you have set `XLWINGS_AUTH_ENTRAID_MULTITENANT=true` but only want to allow users with the domain `mydomain.com` to run custom scripts and custom functions, you could do:
 
 ```python
 class User(BaseUser):
