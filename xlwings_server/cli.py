@@ -252,7 +252,7 @@ def add_auth_custom_command():
     auth_js_content = """\
         globalThis.getAuth = async function () {
           return {
-            token: "",
+            token: "test-token",  // TODO: implement
             provider: "custom",
           };
         };

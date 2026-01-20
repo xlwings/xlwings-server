@@ -1,6 +1,9 @@
 import logging
+import secrets
 
 from aiocache import cached
+from fastapi import status
+from fastapi.exceptions import HTTPException
 
 from xlwings_server.models import User
 
@@ -14,4 +17,10 @@ async def validate_token(token_string: str):
     under static/js/auth.js.
     See https://server.xlwings.org/en/latest/auth_providers/#custom-authentication
     """
-    return User(id="customid", name="custom user")
+    if secrets.compare_digest(token_string, "test-token"):  # TODO: implement
+        return User(id="customid", name="custom user")
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Custom Auth Error: Couldn't validate token",
+        )
