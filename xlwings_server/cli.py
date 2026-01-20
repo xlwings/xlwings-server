@@ -437,35 +437,6 @@ def create_manifest_template(project_path: Path):
         shutil.copy(source_file, dest_file)
 
 
-def create_ribbon_icons(project_path: Path):
-    """Copy default ribbon icons from package to project for customization"""
-    # Source and destination paths
-    source_dir = PACKAGE_DIR / "static" / "images" / "ribbon" / "examples"
-    dest_dir = project_path / "static" / "images" / "ribbon" / "examples"
-
-    # Icon files to copy
-    icon_files = [
-        "xlwings-16.png",
-        "xlwings-32.png",
-        "xlwings-64.png",
-        "xlwings-80.png",
-    ]
-
-    # Check if icons already exist (idempotency)
-    if dest_dir.exists() and all((dest_dir / icon).exists() for icon in icon_files):
-        return
-
-    # Create destination directory
-    dest_dir.mkdir(parents=True, exist_ok=True)
-
-    # Copy each icon file
-    for icon_file in icon_files:
-        source_file = source_dir / icon_file
-        dest_file = dest_dir / icon_file
-        if source_file.exists() and not dest_file.exists():
-            shutil.copy(source_file, dest_file)
-
-
 def add_css_command():
     """Add style.css to project for customization"""
     project_path = validate_project_directory()
@@ -634,10 +605,26 @@ def init_command(path: str | None = None):
 
     create_project_structure(project_path)
     create_manifest_template(project_path)
-    create_ribbon_icons(project_path)
     create_dotenv(project_path)
     create_gitignore(project_path)
     create_uuids(project_path)
+
+    # Add CSS and JS files (reusing existing commands)
+    # Note: these functions print their own summaries, so we suppress that here
+    # by storing cwd and temporarily changing to project_path
+    original_cwd = Path.cwd()
+    try:
+        os.chdir(project_path)
+
+        # Create empty images directory
+        images_dir = project_path / "static" / "images"
+        images_dir.mkdir(parents=True, exist_ok=True)
+
+        # Add CSS and JS
+        add_css_command()
+        add_js_command()
+    finally:
+        os.chdir(original_cwd)
 
     print("Initialization complete!")
 
