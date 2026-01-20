@@ -99,7 +99,7 @@ def test_custom_functions_call_missing_roles(mocker):
     mocker.patch("xlwings_server.config.settings.auth_required_roles", ["role1"])
     response = client.post(
         f"{settings.app_path}/xlwings/custom-functions-call",
-        headers={"Authorization": ""},
+        headers={"Authorization": "test-token"},
         json={
             "func_name": "hello",
             "args": [[["xlwings"]]],
@@ -164,7 +164,7 @@ def test_custom_scripts_call_missing_roles(mocker):
     mocker.patch("xlwings_server.config.settings.auth_required_roles", ["role1"])
     response = client.post(
         f"{settings.app_path}/xlwings/custom-scripts-call/hello_world",
-        headers={"Authorization": "token"},
+        headers={"Authorization": "test-token"},
         json={
             "client": "Office.js",
             "version": xw.__version__,
@@ -189,7 +189,7 @@ def test_custom_scripts_call_missing_authorization(mocker):
     mocker.patch("xlwings_server.models.User.is_authorized", return_value=False)
     response = client.post(
         f"{settings.app_path}/xlwings/custom-scripts-call/hello_world",
-        headers={"Authorization": "token"},
+        headers={"Authorization": "test-token"},
         json={
             "client": "Office.js",
             "version": xw.__version__,
