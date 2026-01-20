@@ -178,15 +178,26 @@ def add_router_command():
     # Create sample custom.py
     sample_file = routers_dir / "custom.py"
     sample_code = """\
-        from fastapi import APIRouter
+        from fastapi import APIRouter, Request
+
+        from xlwings_server import settings
+        from xlwings_server.templates import TemplateResponse
+
+        router = APIRouter(prefix=settings.app_path)
 
 
-        router = APIRouter()
-
-
-        @router.get("/hello")
-        async def hello():
+        @router.get("/hello-json")
+        async def hello_json():
             return {"message": "Hello from custom router!"}
+
+
+        @router.get("/hello-template")
+        async def hello_template(request: Request):
+            return TemplateResponse(
+                request=request,
+                name="examples/hello_world/taskpane_hello.html",
+            )
+
     """
 
     if sample_file.exists():
