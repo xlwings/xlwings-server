@@ -4,6 +4,9 @@ from dotenv import load_dotenv
 
 load_dotenv(".env")
 
+# xlwings depends on this, so set before importing xlwings
+os.environ["XLWINGS_ON_SERVER"] = "true"
+
 
 def read_bool(env_name: str, default: str = "false") -> bool:
     return os.getenv(env_name, default).lower() == "true"
