@@ -35,10 +35,6 @@ class FileTracker:
     def print_summary(self, operation_name: str):
         """Print summary of created and skipped files."""
         print(f"\n{operation_name} complete!")
-        if self.created:
-            print(f"Created: {', '.join(self.created)}")
-        if self.skipped:
-            print(f"Skipped (already exists): {', '.join(self.skipped)}")
 
 
 def validate_project_directory() -> Path:
@@ -76,6 +72,132 @@ def create_sample_file_if_not_exists(file_path: Path, content: str) -> bool:
         return False
     file_path.write_text(dedent(content))
     return True
+
+
+# Migration Helper Functions
+def validate_old_project_directory(old_path: Path) -> Path:
+    """Validate that old_path contains a valid pre-1.0 project structure"""
+    if not old_path.exists():
+        print(f"Error: Path does not exist: {old_path}")
+        sys.exit(1)
+
+    if not old_path.is_dir():
+        print(f"Error: Path is not a directory: {old_path}")
+        sys.exit(1)
+
+    # Check for app/ directory
+    app_dir = old_path / "app"
+    if not app_dir.exists():
+        print("Error: Not an old xlwings-server project (no app/ directory found)")
+        print(f"Expected to find: {app_dir}")
+        sys.exit(1)
+
+    # Check for app/config.py
+    config_file = app_dir / "config.py"
+    if not config_file.exists():
+        print("Error: Not an old xlwings-server project (no app/config.py found)")
+        print(f"Expected to find: {config_file}")
+        sys.exit(1)
+
+    # Check for app/custom_functions and app/custom_scripts
+    if not (app_dir / "custom_functions").exists():
+        print("Error: app/custom_functions/ directory not found")
+        sys.exit(1)
+
+    if not (app_dir / "custom_scripts").exists():
+        print("Error: app/custom_scripts/ directory not found")
+        sys.exit(1)
+
+    return old_path
+
+
+def extract_uuids_from_old_config(config_path: Path) -> dict[str, str]:
+    """Extract manifest UUIDs from app/config.py using regex"""
+    import re
+
+    content = config_path.read_text()
+    uuids = {}
+
+    # Pattern matches both styles:
+    # manifest_id_dev = "uuid-here"
+    # manifest_id_dev: UUID4 = "uuid-here"
+    pattern = r'manifest_id_(\w+)\s*[:=]\s*(?:UUID4\s*=\s*)?["\']([0-9a-f\-]{36})["\']'
+
+    for match in re.finditer(pattern, content, re.MULTILINE):
+        env_name, uuid_val = match.groups()
+        uuids[f"manifest_id_{env_name}"] = uuid_val
+
+    return uuids
+
+
+def update_uuids_in_pyproject(uuids: dict[str, str]):
+    """Update pyproject.toml with extracted UUIDs using tomlkit"""
+    import tomlkit
+
+    pyproject_path = Path("pyproject.toml")
+
+    if not pyproject_path.exists():
+        print("Error: pyproject.toml not found in current directory")
+        sys.exit(1)
+
+    content = tomlkit.parse(pyproject_path.read_text())
+
+    # Ensure [tool.xlwings_server] section exists
+    if "tool" not in content:
+        content["tool"] = {}
+    if "xlwings_server" not in content["tool"]:
+        content["tool"]["xlwings_server"] = {}
+
+    # Update UUIDs
+    for key, value in uuids.items():
+        content["tool"]["xlwings_server"][key] = value
+
+    pyproject_path.write_text(tomlkit.dumps(content))
+
+
+def is_file_customized(file_path: Path) -> bool:
+    """Check if file exists and is not empty"""
+    if not file_path.exists():
+        return False
+
+    # Check if file has content (not just whitespace)
+    content = file_path.read_text().strip()
+    return len(content) > 0
+
+
+def copy_directory_recursive(
+    source: Path,
+    dest: Path,
+    tracker: FileTracker,
+    exclude_patterns: list[str] | None = None,
+):
+    """Recursively copy directory contents, tracking all files"""
+    import shutil
+
+    if not source.exists():
+        return
+
+    exclude_patterns = exclude_patterns or []
+
+    for item in source.rglob("*"):
+        if item.is_file():
+            # Check if file matches any exclude pattern
+            relative_path = item.relative_to(source)
+            should_exclude = any(
+                pattern in str(relative_path) for pattern in exclude_patterns
+            )
+
+            if should_exclude:
+                continue
+
+            dest_file = dest / relative_path
+
+            # Create parent directories
+            dest_file.parent.mkdir(parents=True, exist_ok=True)
+
+            # Copy file
+            shutil.copy2(item, dest_file)
+            tracker.mark_created(str(dest / relative_path))
 
 
 # Project Setup Functions
@@ -437,7 +559,7 @@ def create_manifest_template(project_path: Path):
         shutil.copy(source_file, dest_file)
 
 
-def add_css_command():
+def add_css_command(silent: bool = False):
     """Add style.css to project for customization"""
     project_path = validate_project_directory()
     tracker = FileTracker()
@@ -446,10 +568,11 @@ def add_css_command():
     dest_file = project_path / "static" / "css" / "style.css"
 
     copy_file_if_not_exists(source_file, dest_file, tracker, "static/css/style.css")
-    tracker.print_summary("CSS setup")
+    if not silent:
+        tracker.print_summary("CSS setup")
 
 
-def add_js_command():
+def add_js_command(silent: bool = False):
     """Add main.js to project for customization"""
     project_path = validate_project_directory()
     tracker = FileTracker()
@@ -458,7 +581,8 @@ def add_js_command():
     dest_file = project_path / "static" / "js" / "main.js"
 
     copy_file_if_not_exists(source_file, dest_file, tracker, "static/js/main.js")
-    tracker.print_summary("JS setup")
+    if not silent:
+        tracker.print_summary("JS setup")
 
 
 def create_dotenv(project_path: Path):
@@ -610,8 +734,6 @@ def init_command(path: str | None = None):
     create_uuids(project_path)
 
     # Add CSS and JS files (reusing existing commands)
-    # Note: these functions print their own summaries, so we suppress that here
-    # by storing cwd and temporarily changing to project_path
     original_cwd = Path.cwd()
     try:
         os.chdir(project_path)
@@ -620,9 +742,9 @@ def init_command(path: str | None = None):
         images_dir = project_path / "static" / "images"
         images_dir.mkdir(parents=True, exist_ok=True)
 
-        # Add CSS and JS
-        add_css_command()
-        add_js_command()
+        # Add CSS and JS (silent mode to avoid cluttering init output)
+        add_css_command(silent=True)
+        add_js_command(silent=True)
     finally:
         os.chdir(original_cwd)
 
@@ -656,6 +778,258 @@ def add_azure_functions_command():
         copy_file_if_not_exists(source_file, dest_file, tracker, filename)
 
     tracker.print_summary("Azure Functions setup")
+
+
+def migrate_command(old_project_path: str):
+    """Migrate from pre-1.0 project structure to new 1.0+ structure"""
+    import shutil
+
+    # Phase 1: Validation
+    print("Starting migration...")
+
+    # Validate current directory is a new project
+    validate_project_directory()
+
+    # Check for pyproject.toml
+    if not Path("pyproject.toml").exists():
+        print("Error: pyproject.toml not found in current directory")
+        print("Run this command from an initialized xlwings-server 1.0+ project")
+        sys.exit(1)
+
+    # Validate old project structure
+    old_path = validate_old_project_directory(Path(old_project_path))
+
+    tracker = FileTracker()
+
+    # Phase 2: Core File Migration
+    # Remove default templates (from init) and old examples (from pre-1.0)
+    files_to_remove = [
+        Path("custom_functions/functions.py"),  # Default from xlwings-server init
+        Path("custom_scripts/scripts.py"),  # Default from xlwings-server init
+        Path("main.py"),  # Default from uv init
+        Path("README.md"),  # Default from uv init
+    ]
+    for file_path in files_to_remove:
+        if file_path.exists():
+            file_path.unlink()
+
+    # 1. Custom functions & scripts
+    app_path = old_path / "app"
+    copy_directory_recursive(
+        app_path / "custom_functions",
+        Path("custom_functions"),
+        tracker,
+        exclude_patterns=["__pycache__", "examples.py"],
+    )
+    copy_directory_recursive(
+        app_path / "custom_scripts",
+        Path("custom_scripts"),
+        tracker,
+        exclude_patterns=["__pycache__", "examples.py"],
+    )
+
+    # Clean up __init__.py files - only keep lines with "import *"
+    for init_file in [
+        Path("custom_functions/__init__.py"),
+        Path("custom_scripts/__init__.py"),
+    ]:
+        if init_file.exists():
+            content = init_file.read_text()
+            lines = content.splitlines(keepends=True)
+
+            # Only keep lines that contain "import *" (but not .examples)
+            cleaned_lines = []
+            for line in lines:
+                # Keep only import * lines (excluding .examples imports)
+                if "import *" in line and ".examples" not in line:
+                    cleaned_lines.append(line)
+
+            # Write cleaned content
+            init_file.write_text("".join(cleaned_lines))
+
+    # 2. Certificates
+    old_certs = old_path / "certs"
+    if old_certs.exists():
+        copy_directory_recursive(old_certs, Path("certs"), tracker)
+
+    # 3. .env file
+    old_env = old_path / ".env"
+    if old_env.exists():
+        shutil.copy2(old_env, ".env")
+        tracker.mark_created(".env")
+
+    # 4. Templates - Manifest and Taskpane
+    Path("templates").mkdir(exist_ok=True)
+
+    # Copy manifest.xml as-is
+    old_manifest = app_path / "templates" / "manifest.xml"
+    if old_manifest.exists():
+        shutil.copy2(old_manifest, "templates/manifest.xml")
+        tracker.mark_created("templates/manifest.xml")
+
+    # Determine which taskpane template was used in old project
+    old_taskpane_router = app_path / "routers" / "taskpane.py"
+    taskpane_template_name = None
+
+    if old_taskpane_router.exists():
+        # Parse the router to find the template name
+        router_content = old_taskpane_router.read_text()
+
+        # Look for template name when enable_examples is False
+        import re
+
+        # First check if there's conditional logic based on enable_examples
+        if "enable_examples" in router_content:
+            # Parse conditional: if not settings.enable_examples: name="..."
+            match = re.search(
+                r'if\s+not\s+settings\.enable_examples.*?name\s*=\s*["\']([^"\']+)["\']',
+                router_content,
+                re.DOTALL,
+            )
+            if match:
+                taskpane_template_name = match.group(1)
+
+        # If no conditional found, look for direct template name
+        if not taskpane_template_name:
+            # Look for: name="..." or name='...'
+            match = re.search(r'name\s*=\s*["\']([^"\']+)["\']', router_content)
+            if match:
+                taskpane_template_name = match.group(1)
+            else:
+                # Look for: name=settings.something
+                match = re.search(r"name\s*=\s*settings\.(\w+)", router_content)
+                if match:
+                    taskpane_template_name = "taskpane.html"  # Default fallback
+
+    # Copy the identified taskpane template
+    if taskpane_template_name:
+        old_taskpane_template = app_path / "templates" / taskpane_template_name
+        if old_taskpane_template.exists():
+            shutil.copy2(old_taskpane_template, "templates/taskpane.html")
+            tracker.mark_created(
+                f"templates/taskpane.html (from {taskpane_template_name})"
+            )
+        else:
+            # Template doesn't exist, try direct copy
+            direct_taskpane = app_path / "templates" / "taskpane.html"
+            if direct_taskpane.exists():
+                shutil.copy2(direct_taskpane, "templates/taskpane.html")
+                tracker.mark_created("templates/taskpane.html")
+    else:
+        # No router found, copy taskpane.html if it exists
+        direct_taskpane = app_path / "templates" / "taskpane.html"
+        if direct_taskpane.exists():
+            shutil.copy2(direct_taskpane, "templates/taskpane.html")
+            tracker.mark_created("templates/taskpane.html")
+
+    # 5. Extract and update UUIDs
+    uuids = extract_uuids_from_old_config(app_path / "config.py")
+    if uuids:
+        update_uuids_in_pyproject(uuids)
+        tracker.mark_created("pyproject.toml (UUIDs updated)")
+
+    # Phase 3: Optional Components Detection & Migration
+    # Static files - CSS
+    old_css = app_path / "static" / "css" / "style.css"
+    if is_file_customized(old_css):
+        Path("static/css").mkdir(parents=True, exist_ok=True)
+        shutil.copy2(old_css, "static/css/style.css")
+        tracker.mark_created("static/css/style.css")
+
+    # Static files - JS
+    old_js = app_path / "static" / "js" / "main.js"
+    if is_file_customized(old_js):
+        Path("static/js").mkdir(parents=True, exist_ok=True)
+        shutil.copy2(old_js, "static/js/main.js")
+        tracker.mark_created("static/js/main.js")
+
+    # Static files - ribbon.js
+    old_ribbon_js = app_path / "static" / "js" / "ribbon.js"
+    if is_file_customized(old_ribbon_js):
+        Path("static/js").mkdir(parents=True, exist_ok=True)
+        shutil.copy2(old_ribbon_js, "static/js/ribbon.js")
+        tracker.mark_created("static/js/ribbon.js")
+
+    # Static files - Images
+    old_images = app_path / "static" / "images"
+    if old_images.exists() and any(old_images.iterdir()):
+        copy_directory_recursive(old_images, Path("static/images"), tracker)
+
+    # Static files - Other static content
+    old_static = app_path / "static"
+    if old_static.exists():
+        for item in old_static.iterdir():
+            # Skip already handled directories
+            if item.name in ["css", "js", "images", "vendor"]:
+                continue
+            if item.is_dir():
+                copy_directory_recursive(item, Path("static") / item.name, tracker)
+            elif item.is_file():
+                Path("static").mkdir(exist_ok=True)
+                shutil.copy2(item, Path("static") / item.name)
+                tracker.mark_created(f"static/{item.name}")
+
+    # Custom templates (excluding package templates and already-handled files)
+    old_templates = app_path / "templates"
+    # These are package templates that should not be migrated
+    excluded_templates = {
+        "manifest.xml",  # Already handled specially
+        "taskpane.html",  # Already handled specially
+        "_book.html",  # Package template
+        "alert_base.html",  # Package template
+        "base.html",  # Package template
+        "xlwings_alert.html",  # Package template
+        "examples",  # Package examples directory
+    }
+
+    if old_templates.exists():
+        for item in old_templates.iterdir():
+            if item.name in excluded_templates:
+                continue
+            if item.is_file():
+                dest_file = Path("templates") / item.name
+                shutil.copy2(item, dest_file)
+                tracker.mark_created(f"templates/{item.name}")
+            elif item.is_dir():
+                copy_directory_recursive(item, Path("templates") / item.name, tracker)
+
+    # Parse and install dependencies from old requirements.in
+    old_requirements_in = old_path / "requirements.in"
+    if old_requirements_in.exists():
+        print("\nInstalling dependencies from requirements.in...")
+        requirements_content = old_requirements_in.read_text()
+
+        # Parse dependencies (skip comments and -r references)
+        dependencies = []
+        for line in requirements_content.splitlines():
+            line = line.strip()
+            # Skip empty lines, comments, and -r references
+            if not line or line.startswith("#") or line.startswith("-r"):
+                continue
+            dependencies.append(line)
+
+        # Install dependencies using uv add
+        if dependencies:
+            import subprocess
+
+            try:
+                cmd = ["uv", "add"] + dependencies
+                subprocess.run(cmd, check=True, capture_output=True, text=True)
+                print(f"Successfully added: {', '.join(dependencies)}")
+                tracker.mark_created(f"Dependencies: {', '.join(dependencies)}")
+            except subprocess.CalledProcessError as e:
+                print(f"Warning: Failed to install some dependencies: {e}")
+                print(
+                    f"You can manually install them with: uv add {' '.join(dependencies)}"
+                )
+            except FileNotFoundError:
+                print("Warning: 'uv' command not found.")
+                print(
+                    f"Please manually install dependencies: uv add {' '.join(dependencies)}"
+                )
+
+    # Phase 4: Report
+    tracker.print_summary("Migration")
 
 
 def run_server():
@@ -1055,6 +1429,15 @@ def main():
         type=str,
     )
 
+    # Migrate command
+    migrate_parser = subparsers.add_parser(
+        "migrate", help="Migrate from pre-1.0 project structure"
+    )
+    migrate_parser.add_argument(
+        "old_project_path",
+        help="Path to old xlwings-server project (directory containing app/)",
+    )
+
     args = parser.parse_args()
 
     if args.command == "init":
@@ -1100,6 +1483,8 @@ def main():
             clean=args.clean,
             environment=args.environment,
         )
+    elif args.command == "migrate":
+        migrate_command(args.old_project_path)
     else:
         # Default: run server
         run_server()

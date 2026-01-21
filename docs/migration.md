@@ -2,7 +2,7 @@
 
 This guide is for existing users upgrading from pre-1.0 versions. If you're new to xlwings Server, follow the [Quickstart](quickstart.md) instead.
 
-Starting with v1.0, xlwingis Server is now distributed as a standard Python package instead of requiring you to work directly in the xlwings-server Git repository.
+Starting with v1.0, xlwings Server is distributed as a standard Python package instead of requiring you to work directly in the xlwings-server Git repository.
 
 This leads to the following improvements:
 
@@ -15,32 +15,74 @@ Other key changes:
 
 - Python 3.10 is now the minimal supported version
 - Run the server via `uv run xlwings-server` instead of `python run.py`
-- `pyproject.toml` can now be used to configure the application in addition to `.env` and environment variables, see [](server_config.md)
+- `pyproject.toml` can now be used to configure the application in addition to `.env` and environment variables, see [](server_config.md). This is helpful for settings that are non-sensitive and the same across environments.
 
-The migration requires one-time project restructuring. The changes below outline what's different in 1.0:
+## Migration
 
-1. Follow the [](quickstart.md)
-2. Replace the content of `custom_functions/` and `custom_scripts/` with the content of your old `app/custom_functions/` and `app/custom_scripts/`, respectively.
-3. Copy over the certificates from `certs/` to the same folder.
-4. Overwrite the UUIDs in `pyproject.toml` under `[tools.xlwings_server]` with those from `app/config.py`.
-5. Replace the `.env` file with the `.env` from the old project
-6. Copy `app/templates/manifest.xml` to `templates/manifest.xml`
-7. Run the server: `uv run xlwings-server`.
+To allow for a clean migration, we leave the legacy project untouched and work with a new project.
 
-Depending on how much you have customized, continue adding optional components:
+1. Install [uv](https://docs.astral.sh/uv/), Python's modern package manager. Run the following commands on a Terminal:
 
-- If your `app/static/css/style.css` isn't empty, copy it to `static/css/style.css`
-- If your `app/static/js/main.js` isn't empty, copy it to `static/js/main.js`
-- If you have other custom static files, copy them over from `app/static` to `static` into the respective subdirectory, e.g., `images`, `js`, `css`.
-- If you have custom templates, copy them over from `app/templates` to `templates`.
-- To support Azure functions: `uv run xlwings-server add azure functions`, then copy over `local.settings.json`
-- To implement your own `User` model: `uv run xlwings-server add model user`, then add back the logic from `app/models/user.py` to `models/user.py`. There's no need to inherit from `BaseUser` anymore and the model has been simplified.
-- If you want an empty task pane, you can simply delete `templates/taskpane.html`
-- If you were using custom configuration, run `uv run xlwings-server add config` and edit `config.py`.
+   ::::{tab-set}
+
+   :::{tab-item} Windows
+
+   ```bash
+   powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
+   ```
+
+   :::
+   :::{tab-item} macOS and Linux
+
+   ```bash
+   curl -LsSf https://astral.sh/uv/install.sh | sh
+   ```
+
+   :::
+
+   ::::
+
+2. Create a new uv project (I'll be calling it `myproject` here) and change into the directory:
+
+   ```text
+   uv init myproject
+   cd myproject
+   ```
+
+3. Install `xlwings-server` and `watchfiles` (for hot-reloading), then initialize xlwings-server:
+
+   ```bash
+   uv add xlwings-server
+   uv add watchfiles --dev
+   uv run xlwings-server init .
+   ```
+
+4. Run the migration command from your new project directory:
+
+   ```text
+   uv run xlwings-server migrate C:\path\to\old-project
+   ```
+
+After migration, review the migrated files and update any import statements as needed.
+
+Run the server to see if the server start correctly:
+
+```
+uv run xlwings-server
+```
+
+Stop the server again and go through the following list to migrate the additional items that affect you.
+
+## Additional Migration Steps
+
+- If you have custom static files other than `css/style.css`, `js/main.js`, and `images/`, copy them over from `app/static` to `static`.
+- If you use Azure functions for deployment, run: `uv run xlwings-server add azure functions`, then copy over `local.settings.json`. Note that Azure functions require a traditional `requirements.txt` file in the root of your project. If you use `uv`, run the following command before deploying (ideally, this is done automatically as part of your build step): `uv export --format requirements.txt -o requirements.txt`.
+- If you are using a custom `User` model: `uv run xlwings-server add model user`, then add back the logic from `app/models/user.py` to `models/user.py`. There's no need to inherit from `BaseUser` anymore and the model has been simplified (no more properties).
+- If you were using custom configuration in `app.config.py`, run `uv run xlwings-server add config` and edit `config.py`.
 - If you are using custom authentication, copy `app/auth/custom/__init__.py` to `/auth/custom/__init__.py` and `app/static/js/auth.js` to `static/js/auth.js`.
-- If you have custom FastAPI endpoints, run `uv run xlwings-server add router` and add them to `routers/custom.py`.
+- If you have custom FastAPI endpoints (e.g., added to `app/routers/taskpane.py`), run `uv run xlwings-server add router` and add them to `routers/custom.py`.
 - If you have customized `app/auth/entraid/jwks.py`, run `uv run xlwings-server add auth entraid` and replace the function in `auth/entraid/jwks.py` with that from `app/auth/entraid/jwks.py`.
-- You may need to update import statements as follows:
+- If you have custom User models, authentication, or other endpoints, make sure to change the imports into these:
   - `from xlwings_server.models import CurrentUser`
   - `from xlwings_server.dependencies import User`
   - `from xlwings_server.templates import TemplateResponse`

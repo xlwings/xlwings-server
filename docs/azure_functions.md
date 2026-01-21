@@ -34,6 +34,10 @@ The following files are part of Azure functions setup and can be edited accordin
 - `function_app.py`
 - `.funcignore`
 
+```{important}
+Azure functions require a traditional `requirements.txt` file in the root of your project. If you use `uv`, run the following command before deploying (ideally, this is done automatically as part of your build step): `uv export --format requirements.txt -o requirements.txt`.
+```
+
 ## Deployment
 
 First, set the following environment variables to match your preferences:
