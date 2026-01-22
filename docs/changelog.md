@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.12.3 (Jan 22, 2026)
+
+- Upgraded dependencies incl. xlwings to 0.33.20.
+
 ## 0.12.2 (Jan 7, 2026)
 
 - Renamed remaining instances of `lite` into `wasm` due to rebranding from 0.10.3.
