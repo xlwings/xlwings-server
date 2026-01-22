@@ -1,4 +1,4 @@
-# Install Office.js add-ins
+# Install Add-ins
 
 An Office.js add-in is defined via its _manifest_, which is a simple configuration file in the `XML` format. There are 3 different ways how you can install a manifest in Excel:
 

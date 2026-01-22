@@ -19,7 +19,7 @@ xlwings Server can be configured via
 
 ## Custom Settings
 
-To extend the built-in settings (see below) with yoru own, run the following command on a Terminal:
+To extend the built-in settings (see below) with your own, run the following command on a Terminal:
 
 ```
 uv run xlwings-server add config
@@ -29,7 +29,7 @@ This adds the `config.py` file in the root of your repository, where you can add
 
 ## Built-in Settings
 
-Please refer to the `.env` file, which is thoroughly commented. The `.env` file is created by running `python run.py init`. If you haven't done that yet, you can also look at [`.env.template`](https://github.com/xlwings/xlwings-server/blob/main/.env.template).
+Please refer to the `.env` file, which is thoroughly commented. The `.env` file is created by running `uv run xlwings-server init`.
 
 ## Edit the `.env` file
 

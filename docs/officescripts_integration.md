@@ -52,3 +52,35 @@ async function main(workbook: ExcelScript.Workbook) {
   );
 }
 ```
+
+## Missing Features
+
+Change your Office Script at the top of the file as follows:
+
+```ts
+// Note that you need to register your function before calling runPython
+async function main(workbook: ExcelScript.Workbook) {
+  registerCallback(wrapText);
+  await runPython(workbook, "url", { auth: "DEVELOPMENT" });
+}
+
+// The first parameter has to be the workbook, the others
+// are those parameters that you will provide via Python
+function wrapText(
+  workbook: ExcelScript.Workbook,
+  sheetName: string,
+  cellAddress: string,
+) {
+  const range = workbook.getWorksheet(sheetName).getRange(cellAddress);
+  range.getFormat().setWrapText(true);
+}
+```
+
+Now you can call this function from Python like so:
+
+```python
+# book is an xlwings Book object
+wrap_text = book.app.macro("wrapText")
+wrap_text("Sheet1", "A1")
+wrap_text("Sheet2", "B2")
+```

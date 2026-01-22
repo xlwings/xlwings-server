@@ -1,5 +1,12 @@
 # xlwings Server
 
+```{warning}
+This is the documentation for xlwings Server v1.0.
+
+- For older versions, see [v0.12.3](https://server.xlwings.org/en/0.12.3/).
+- To migrate to v1.0, see [](migration.md)
+```
+
 xlwings Server adds Python support to Microsoft Excel without the need of a local Python installation. xlwings Server is self-hosted and runs on any platform that supports Python or Containers, including bare-metal servers, Linux-based VMs, Docker Compose, Kubernetes, and serverless products like Azure functions or AWS Lambda. Here are a few highlights of xlwings Server:
 
 - Create modern Excel add-ins ("Office.js add-ins")---no VBA involved

@@ -57,3 +57,24 @@ function helloWorld() {
   });
 }
 ```
+
+## Missing Features
+
+Paste the following code in a Google Apps Script module:
+
+```js
+// The first parameter has to be the workbook, the others
+// are those parameters that you will provide via Python
+function wrapText(workbook, sheetName, cellAddress) {
+  workbook.getSheetByName(sheetName).getRange(cellAddress).setWrap(true);
+}
+```
+
+Now you can call this function from Python like so:
+
+```python
+# book is an xlwings Book object
+wrap_text = book.app.macro("wrapText")
+wrap_text("Sheet1", "A1")
+wrap_text("Sheet2", "B2")
+```

@@ -36,4 +36,4 @@ Since the task pane is completely customizable, it is your responsibility to loc
 
 - The landing page of the task pane needs to be publicly available
 - The rest of the pages can be locked down using the `User` dependency injection. Note that within FastAPI endpoints, you use the `xlwings_server.dependencies.User` dependency.
-- You will need to provide the `Authorization` header with every request. For `htmx`, there is a [sample](https://github.com/xlwings/xlwings-server/tree/main/xlwings_server/templates/examples/auth).
+- You will need to provide the `Authorization` header with every request. For `htmx`, there is a [sample](https://github.com/xlwings/xlwings-server/tree/v1/xlwings_server/templates/examples/auth).

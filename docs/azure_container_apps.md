@@ -1,5 +1,9 @@
 # Azure Container Apps
 
+```{warning}
+This page hasn't been updated to xlwings Server v1.0 yet.
+```
+
 This guide shows how to deploy xlwings Server to Azure Container Apps. You can use the [](#azure-dashboard) or the [](#azure-cli) or a combination of the two approaches.
 
 ## Prerequisites

@@ -1,18 +1,15 @@
 # Manifest.xml
 
-xlwings Server comes with a sample manifest that you can find under [`xlwings_server/templates/manifest.xml`](https://github.com/xlwings/xlwings-server/blob/main/xlwings_server/templates/manifest.xml). It is a a [Jinja2](https://jinja.palletsprojects.com/) template that will produce the correct manifest for all environments (`dev`, `prod`, ...) when going to the manifest URL of the respective environment (e.g. `https://your.domain.com/manifest`).
-
-While not recommended, you can also ignore the template and write your manifests from scratch, see [](#further-reading).
+xlwings Server comes with a sample manifest under `xlwings_server/templates/manifest.xml`. It is a a [Jinja2](https://jinja.palletsprojects.com/) template that will produce the correct manifest for all environments (`dev`, `prod`, ...) when going to the manifest URL of the respective environment (e.g., `https://your.domain.com/manifest/download`).
 
 ## Key concepts
 
 The manifest template has been set up so that you can have the same add-in installed for various environments (`dev`, `prod`, ...) without running into any conflicts:
 
-- Each environment uses a unique `Id` (a UUID) that is stored in [`app/config.py`](https://github.com/xlwings/xlwings-server/blob/main/app/config.py). The `Id`s are created when running `python run.py init`.
+- Each environment uses a unique `Id` (a UUID) that is stored in `pyproject.toml`. The `Id`s are created when running `uv run xlwings-server init`.
 - Except for the `prod` environment, the ribbon tab shows the name of the environment in square brackets (e.g., `My Project [dev]`).
 - Except for the `prod` environement, custom functions show the name of the environment at the end of the namespace (e.g., `MYPROJECT_DEV.MYFUNCTION()`).
-- If you use SSO authentication, the required XML part is automatically included.
-- The URLs are automatically correct when you go to the URL of your environment with the `/manifest` endpoint (e.g., `https://your.domain.com/manifest`). If that's not the case, you can always set the `XLWINGS_HOSTNAME` setting.
+- If the downloaded manifest from `/manifest/download` shows wrong URLs, set the `XLWINGS_HOSTNAME` environment variable.
 
 ## Editing the manifest template
 
@@ -50,7 +47,7 @@ To show the task pane when clicking a button in the ribbon, you’ll need to con
 
 ### Button to call Python
 
-See [](officejs_run_scripts.md#ribbon-button).
+See [](custom_scripts.md#run-custom-scripts).
 
 ## Ribbon location: Office tab vs. custom tab
 

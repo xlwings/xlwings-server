@@ -1,5 +1,9 @@
 # AWS App Runner
 
+```{warning}
+This page hasn't been updated to xlwings Server v1.0 yet.
+```
+
 ## Files
 
 - `apprunner.yaml`

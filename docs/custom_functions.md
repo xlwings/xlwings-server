@@ -1,10 +1,10 @@
 # Custom Functions
 
-This tutorial teaches you everything about custom functions. Note that custom functions are only supported with Office.js add-ins.
+This tutorial teaches you everything about custom functions.
 
 ## Basic syntax
 
-As you can see in the [examples](https://github.com/xlwings/xlwings-server/blob/main/app/custom_functions/examples.py), the simplest custom function only requires the `@func` decorator:
+As you can see in the included sample under `custom_functions/functions.py`, the simplest custom function only requires the `@func` decorator:
 
 ```python
 from xlwings import func
@@ -14,27 +14,16 @@ def hello(name):
     return f"Hello {name}!"
 ```
 
-```{note}
-- While it's ok to edit the functions in `examples.py` to try things out, you shouldn't commit the changes to Git to prevent future merge conflicts. Rather, create a new Python module as explained in the next section.
-```
+## Adding New Modules
 
-## Adding new custom functions
+You can add your custom functions to the `functions.py` module. You can, however, also create new modules:
 
-Here is how you can write your own custom functions:
+1. Add a Python module under `custom_functions`, e.g., `myfunctions.py`.
+2. Add the following import statement to `custom_functions/__init__.py`:
 
-1. Add a Python module under [`app/custom_functions`](https://github.com/xlwings/xlwings-server/blob/main/app/custom_functions), e.g., `myfunctions.py`.
-2. Add the following import statement (highlighted line) to [`app/custom_functions/__init__.py`](https://github.com/xlwings/xlwings-server/blob/main/app/custom_functions/__init__.py):
-
-```{code-block} python
-:emphasize-lines: 6
-
-from ..config import settings
-
-if settings.enable_examples:
-    from .examples import *
-
-from .myfunctions import *
-```
+   ```{code-block} python
+   from .myfunctions import *
+   ```
 
 ```{note}
 During development, changes to the functions will be automatically reloaded in Excel. However, in production, if your changes include adding/deleting functions or editing the function arguments, you will need to restart Excel. A restart is not required if you're just editing the body of an existing function.
@@ -324,7 +313,7 @@ XLWINGS_FUNCTIONS_NAMESPACE="XLWINGS"
 ```
 
 ```{note}
-- After changing the setting, you will need to update your `manifest.xml` with the values from the `/manifest` endpoint.
+- After changing the setting, you will need to update your `manifest.xml` by downloading it from `/manifest/download` again.
 - The `XLWINGS_ENVIRONMENT` is automatically appended to the global function namespace if it is not `"prod"` so if `XLWINGS_ENVIRONMENT="dev"`, your functions will appear under the namespace `XLWINGS_DEV`.
 ```
 
@@ -638,7 +627,7 @@ This turns an existing Excel range into a DataFrame. Using an Excel table as you
 - For development purposes, you don't need Redis, but the cache is in-memory and thus only works with a single worker/process for as long as the app runs. More importantly, there won't be any automatic cache purging happening.
 ```
 
-You can return the majority of Python data types such as simple lists, dictionaries, and tuples. NumPy arrays and pandas DataFrames/Series are also supported. For unsupported data types, a custom serializer can be written and registered (see [`app/serializers/pandas_serializer.py`](https://github.com/xlwings/xlwings-server/blob/main/app/serializers/pandas_serializer.py) for an example).
+You can return the majority of Python data types such as simple lists, dictionaries, and tuples. NumPy arrays and pandas DataFrames/Series are also supported. For unsupported data types, a custom serializer can be written and registered (see [`pandas_serializer.py`](https://github.com/xlwings/xlwings-server/blob/main/app/serializers/pandas_serializer.py) for an example).
 
 The object handles are stored in the cache using a key that derives from the add-in installation, workbook name and cell address, i.e, objects are not shared across different Excel installations or users.
 

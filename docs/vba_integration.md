@@ -79,3 +79,25 @@ Sub Hello()
         headers:=headers
 End Sub
 ```
+
+## Missing Features
+
+Copy the following code snippet into a VBA module:
+
+```vb.net
+' The first parameter has to be the workbook, the others
+' are those parameters that you will provide via Python
+' NOTE: you're limited to 10 parameters
+Sub WrapText(wb As Workbook, sheetName As String, cellAddress As String)
+    wb.Worksheets(sheetName).Range(cellAddress).WrapText = True
+End Sub
+```
+
+Now you can call this function from Python like so:
+
+```python
+# book is an xlwings Book object
+wrap_text = book.app.macro("'MyWorkbook.xlsm'!WrapText")
+wrap_text("Sheet1", "A1")
+wrap_text("Sheet2", "B2")
+```
