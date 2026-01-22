@@ -10,7 +10,7 @@ annotated-types==0.7.0
     # via
     #   -r requirements-core.txt
     #   pydantic
-anyio==4.12.0
+anyio==4.12.1
     # via
     #   -r requirements-core.txt
     #   httpx
@@ -21,7 +21,7 @@ bidict==0.23.1
     # via
     #   -r requirements-core.txt
     #   python-socketio
-certifi==2025.11.12
+certifi==2026.1.4
     # via
     #   -r requirements-core.txt
     #   httpcore
@@ -44,7 +44,7 @@ cryptography==46.0.3
     # via
     #   -r requirements-core.txt
     #   joserfc
-fastapi==0.125.0
+fastapi==0.128.0
     # via -r requirements-core.txt
 gunicorn==23.0.0 ; sys_platform != 'win32'
     # via -r requirements-core.txt
@@ -75,7 +75,7 @@ jinja2==3.1.6
     #   jinja2-fragments
 jinja2-fragments==1.11.0
     # via -r requirements-core.txt
-joserfc==1.6.0
+joserfc==1.6.1
     # via -r requirements-core.txt
 lxml==6.0.2 ; sys_platform == 'darwin'
     # via
@@ -86,17 +86,17 @@ markupsafe==3.0.3
     #   -r requirements-core.txt
     #   jinja2
     #   werkzeug
-numpy==2.3.5
+numpy==2.4.1
     # via
     #   -r requirements.in
     #   pandas
-packaging==25.0 ; sys_platform != 'win32'
+packaging==26.0 ; sys_platform != 'win32'
     # via
     #   -r requirements-core.txt
     #   gunicorn
-pandas==2.3.3
+pandas==3.0.0
     # via -r requirements.in
-pycparser==2.23 ; implementation_name != 'PyPy' and platform_python_implementation != 'PyPy'
+pycparser==3.0 ; implementation_name != 'PyPy' and platform_python_implementation != 'PyPy'
     # via
     #   -r requirements-core.txt
     #   cffi
@@ -120,19 +120,18 @@ python-dotenv==1.2.1
     # via
     #   -r requirements-core.txt
     #   pydantic-settings
-python-engineio==4.12.3
+python-engineio==4.13.0
     # via
     #   -r requirements-core.txt
     #   python-socketio
 python-multipart==0.0.21
     # via -r requirements-core.txt
-python-socketio==5.15.1
+python-socketio==5.16.0
     # via -r requirements-core.txt
 pytz==2025.2
     # via
     #   -r requirements-core.txt
     #   croniter
-    #   pandas
 redis==7.1.0
     # via -r requirements-core.txt
 simple-websocket==1.1.0
@@ -161,19 +160,19 @@ typing-inspection==0.4.2
     #   -r requirements-core.txt
     #   pydantic
     #   pydantic-settings
-tzdata==2025.3
+tzdata==2025.3 ; sys_platform == 'emscripten' or sys_platform == 'win32'
     # via pandas
-uvicorn==0.38.0
+uvicorn==0.40.0
     # via -r requirements-core.txt
 uvloop==0.22.1 ; sys_platform != 'win32'
     # via -r requirements-core.txt
-werkzeug==3.1.4 ; sys_platform != 'win32'
+werkzeug==3.1.5 ; sys_platform != 'win32'
     # via azure-functions
 wsproto==1.3.2
     # via
     #   -r requirements-core.txt
     #   simple-websocket
-xlwings==0.33.19
+xlwings==0.33.20
     # via -r requirements-core.txt
 
 # The following packages were excluded from the output:
