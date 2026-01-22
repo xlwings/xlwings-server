@@ -3,6 +3,9 @@ import warnings
 from pathlib import Path
 from typing import Dict, List, Literal, Optional
 
+# xlwings depends on this, so set before importing xlwings
+os.environ["XLWINGS_ON_SERVER"] = "true"
+
 import xlwings as xw
 from pydantic import UUID4, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
