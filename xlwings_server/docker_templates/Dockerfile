@@ -40,7 +40,7 @@ ENV PYTHONUNBUFFERED=1
 
 # Default port and workers
 ENV PORT=8000
-ENV GRANIAN_WORKERS=1
+ENV WORKERS=1
 EXPOSE 8000
 
 # Reset the entrypoint, don't invoke `uv`
@@ -52,11 +52,10 @@ USER nonroot
 # Run xlwings server with Granian
 # Uses shell to set GRANIAN_PORT from PORT, then exec for proper signal handling
 CMD ["sh", "-c", "\
-    exec granian \
+    exec uvicorn \
     --host 0.0.0.0 \
     --port $PORT \
-    --interface asgi \
-    --workers $GRANIAN_WORKERS \
+    --workers $WORKERS \
     --access-log \
     xlwings_server.main:main_app \
     "]

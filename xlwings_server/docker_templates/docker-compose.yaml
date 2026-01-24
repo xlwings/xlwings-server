@@ -7,13 +7,11 @@ services:
       sh -c '
         SSL_OPTS=""
         if [ -f /app/certs/localhost+2-key.pem ] && [ -f /app/certs/localhost+2.pem ]; then
-          SSL_OPTS="--ssl-keyfile /app/certs/localhost+2-key.pem --ssl-certificate /app/certs/localhost+2.pem"
+          SSL_OPTS="--ssl-keyfile /app/certs/localhost+2-key.pem --ssl-certfile /app/certs/localhost+2.pem"
         fi
-        exec granian \
+        exec uvicorn \
           --host 0.0.0.0 \
-          --port $${PORT:-8000} \
-          --interface asgi \
-          --workers $${GRANIAN_WORKERS:-1} \
+          --port 8000 \
           --reload \
           --access-log \
           $$SSL_OPTS \
@@ -23,8 +21,12 @@ services:
       - "8000:8000"
     env_file:
       - .env
-    environment:
-      - GRANIAN_WORKERS=1
     restart: "no"
+    init: true  # Helps with reload
     volumes:
       - ./certs:/app/certs
+      - ./custom_functions:/app/custom_functions
+      - ./custom_scripts:/app/custom_scripts
+      - ./dist:/app/dist
+      - ./static:/app/static
+      - ./templates:/app/templates
