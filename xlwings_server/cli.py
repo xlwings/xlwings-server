@@ -803,6 +803,32 @@ def add_azure_functions_command():
     tracker.print_summary("Azure Functions setup")
 
 
+def add_docker_command():
+    """Add Docker deployment files to project"""
+    project_path = validate_project_directory()
+    tracker = FileTracker()
+
+    source_dir = PACKAGE_DIR / "docker_templates"
+
+    docker_files = [
+        "Dockerfile",
+        "docker-compose.yaml",
+        ".dockerignore",
+    ]
+
+    for filename in docker_files:
+        source_file = source_dir / filename
+        dest_file = project_path / filename
+
+        if not source_file.exists():
+            print(f"Warning: Source file not found: {source_file}")
+            continue
+
+        copy_file_if_not_exists(source_file, dest_file, tracker, filename)
+
+    tracker.print_summary("Docker setup")
+
+
 def migrate_command(old_project_path: str):
     """Migrate from pre-1.0 project structure to new 1.0+ structure"""
     import shutil
@@ -1423,6 +1449,9 @@ def main():
         "entraid", help="Add Entra ID auth provider jwks.py for customization"
     )
 
+    # docker subcommand (standalone)
+    add_subparsers.add_parser("docker", help="Add Docker deployment files")
+
     # router subcommand (standalone, no nesting needed)
     add_subparsers.add_parser("router", help="Add routers directory and sample router")
 
@@ -1524,6 +1553,8 @@ def main():
             else:
                 print("Error: Please specify auth provider (e.g., custom, entraid)")
                 sys.exit(1)
+        elif args.add_category == "docker":
+            add_docker_command()
         elif args.add_category == "router":
             add_router_command()
         elif args.add_category == "css":
@@ -1534,7 +1565,7 @@ def main():
             add_config_command()
         else:
             print("Error: Please specify what to add")
-            print("Available: azure, model, auth, router, css, js, config")
+            print("Available: azure, docker, model, auth, router, css, js, config")
             sys.exit(1)
     elif args.command == "build":
         if args.build_command == "static":

@@ -1,0 +1,30 @@
+# This is for local development
+services:
+  xlwings-server:
+    build: .
+    # Allow the server to run with or without certs
+    command: >
+      sh -c '
+        SSL_OPTS=""
+        if [ -f /app/certs/localhost+2-key.pem ] && [ -f /app/certs/localhost+2.pem ]; then
+          SSL_OPTS="--ssl-keyfile /app/certs/localhost+2-key.pem --ssl-certificate /app/certs/localhost+2.pem"
+        fi
+        exec granian \
+          --host 0.0.0.0 \
+          --port $${PORT:-8000} \
+          --interface asgi \
+          --workers $${GRANIAN_WORKERS:-1} \
+          --reload \
+          --access-log \
+          $$SSL_OPTS \
+          xlwings_server.main:main_app
+      '
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - GRANIAN_WORKERS=1
+    restart: "no"
+    volumes:
+      - ./certs:/app/certs
