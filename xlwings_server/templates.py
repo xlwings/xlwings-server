@@ -9,13 +9,19 @@ from starlette.background import BackgroundTask
 
 from xlwings_server.config import PACKAGE_DIR, PROJECT_DIR, settings
 
-# Create Jinja2 loader that checks project templates first, then package templates
-loader = ChoiceLoader(
+# Create Jinja2 loader that checks dist templates first (if exists),
+# then project templates, then package templates
+loaders = []
+dist_templates = PROJECT_DIR / "dist" / "templates"
+if dist_templates.exists():
+    loaders.append(FileSystemLoader(dist_templates))
+loaders.extend(
     [
         FileSystemLoader(PROJECT_DIR / "templates"),
         FileSystemLoader(PACKAGE_DIR / "templates"),
     ]
 )
+loader = ChoiceLoader(loaders)
 
 
 templates = Jinja2Blocks(

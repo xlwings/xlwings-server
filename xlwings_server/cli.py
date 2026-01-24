@@ -74,6 +74,29 @@ def create_sample_file_if_not_exists(file_path: Path, content: str) -> bool:
     return True
 
 
+def _ignore_dirs(directory: str, files: list[str]) -> set[str]:  # noqa: ARG001
+    """Ignore function for shutil.copytree to skip .claude and __pycache__ dirs."""
+    return {f for f in files if f in (".claude", "__pycache__")}
+
+
+def _copy_folder(source_dir: Path, dest_dir: Path, folder_name: str) -> None:
+    """Copy folder, replacing destination if it exists."""
+    if source_dir.exists():
+        if dest_dir.exists():
+            shutil.rmtree(dest_dir)
+        shutil.copytree(source_dir, dest_dir, ignore=_ignore_dirs)
+        print(f"Copied {folder_name}.")
+    else:
+        print(f"No {folder_name} folder found.")
+
+
+def _copy_folder_merge(source_dir: Path, dest_dir: Path, folder_name: str) -> None:
+    """Copy folder contents, merging with existing files (overwrites on conflict)."""
+    if source_dir.exists():
+        shutil.copytree(source_dir, dest_dir, dirs_exist_ok=True, ignore=_ignore_dirs)
+        print(f"Merged {folder_name}.")
+
+
 # Migration Helper Functions
 def validate_old_project_directory(old_path: Path) -> Path:
     """Validate that old_path contains a valid pre-1.0 project structure"""
@@ -1128,7 +1151,43 @@ def update_wasm_settings(key: str, value: str, env_file: Path):
     env_file.write_text("\n".join(content) + "\n")
 
 
-def wasm_build(url, output_dir, create_zip=False, clean=False, environment=None):
+def build_static_command(output_dir: str = "./dist", clean: bool = False):
+    """Build static files and templates for production deployment with hashed filenames."""
+    project_path = validate_project_directory()
+    output_path = Path(output_dir)
+
+    if clean and output_path.exists():
+        shutil.rmtree(output_path)
+        print("Output directory cleaned.")
+
+    output_path.mkdir(exist_ok=True)
+
+    # Copy static: package first, then project overlays
+    _copy_folder(PACKAGE_DIR / "static", output_path / "static", "static (package)")
+    _copy_folder_merge(
+        project_path / "static", output_path / "static", "static (project)"
+    )
+
+    # Copy templates: package first, then project overlays
+    _copy_folder(
+        PACKAGE_DIR / "templates", output_path / "templates", "templates (package)"
+    )
+    _copy_folder_merge(
+        project_path / "templates", output_path / "templates", "templates (project)"
+    )
+
+    # Hash static files and update references in templates
+    hasher = StaticFileHasher(
+        static_dir=output_path / "static", templates_dir=output_path / "templates"
+    )
+    hasher.process_files()
+
+    print(f"\nBuild complete: {output_path.resolve()}")
+
+
+def build_wasm_command(
+    url, output_dir, create_zip=False, clean=False, environment=None
+):
     import xlwings
     import xlwings as xw
 
@@ -1211,53 +1270,31 @@ def wasm_build(url, output_dir, create_zip=False, clean=False, environment=None)
 
     print("Static site generation complete.")
 
-    # Copy folders
-    def ignore_local_settings(dir, files: list[str]) -> set[str]:  # noqa: ARG001
-        """Ignore function for shutil.copytree to skip settings.local.json and .claude dirs."""
-        return {f for f in files if f == ".claude"}
-
-    def copy_folder(source_dir: Path, dest_dir: Path, folder_name: str) -> None:
-        if source_dir.exists():
-            if dest_dir.exists():
-                shutil.rmtree(dest_dir)
-            shutil.copytree(source_dir, dest_dir, ignore=ignore_local_settings)
-            print(f"{folder_name.capitalize()} folder contents copied.")
-        else:
-            print(f"No {folder_name} folder found to copy")
-
-    def copy_folder_merge(source_dir: Path, dest_dir: Path, folder_name: str) -> None:
-        """Copy folder contents, merging with existing files (overwrites on conflict)."""
-        if source_dir.exists():
-            shutil.copytree(
-                source_dir, dest_dir, dirs_exist_ok=True, ignore=ignore_local_settings
-            )
-            print(f"{folder_name.capitalize()} folder contents copied.")
-        else:
-            print(f"No {folder_name} folder found to copy")
-
     # Copy from PACKAGE_DIR first (base files)
-    copy_folder(PACKAGE_DIR / "static", output_dir / "static", "Static")
-    copy_folder(PACKAGE_DIR / "wasm", output_dir / "wasm", "wasm")
-    copy_folder(
+    _copy_folder(PACKAGE_DIR / "static", output_dir / "static", "static (package)")
+    _copy_folder(PACKAGE_DIR / "wasm", output_dir / "wasm", "wasm (package)")
+    _copy_folder(
         PACKAGE_DIR / "custom_functions",
         output_dir / "custom_functions",
-        "custom_functions",
+        "custom_functions (package)",
     )
-    copy_folder(
+    _copy_folder(
         PACKAGE_DIR / "custom_scripts",
         output_dir / "custom_scripts",
-        "custom_scripts",
+        "custom_scripts (package)",
     )
 
     # Copy from PROJECT_DIR to overwrite with user customizations
-    copy_folder_merge(PROJECT_DIR / "static", output_dir / "static", "Static (project)")
-    copy_folder_merge(PROJECT_DIR / "wasm", output_dir / "wasm", "wasm (project)")
-    copy_folder_merge(
+    _copy_folder_merge(
+        PROJECT_DIR / "static", output_dir / "static", "static (project)"
+    )
+    _copy_folder_merge(PROJECT_DIR / "wasm", output_dir / "wasm", "wasm (project)")
+    _copy_folder_merge(
         PROJECT_DIR / "custom_functions",
         output_dir / "custom_functions",
         "custom_functions (project)",
     )
-    copy_folder_merge(
+    _copy_folder_merge(
         PROJECT_DIR / "custom_scripts",
         output_dir / "custom_scripts",
         "custom_scripts (project)",
@@ -1398,31 +1435,55 @@ def main():
     # config subcommand (standalone)
     add_subparsers.add_parser("config", help="Add config.py for extending settings")
 
-    # Wasm command
-    wasm_parser = subparsers.add_parser("wasm", help="Build xlwings Wasm distribution")
-    wasm_parser.add_argument(
-        "url", help="URL of where the xlwings Wasm app will be hosted"
+    # Build command with subcommands
+    build_parser = subparsers.add_parser("build", help="Build commands for deployment")
+    build_subparsers = build_parser.add_subparsers(
+        dest="build_command", help="Build targets"
     )
-    wasm_parser.add_argument(
+
+    # build static subcommand
+    build_static_parser = build_subparsers.add_parser(
+        "static", help="Build static files and templates with hashed filenames"
+    )
+    build_static_parser.add_argument(
         "-o",
         "--output-dir",
         help="Output directory path (default: ./dist)",
         type=str,
         default="./dist",
     )
-    wasm_parser.add_argument(
+    build_static_parser.add_argument(
+        "--no-clean",
+        help="Don't clean the output directory before building",
+        action="store_true",
+    )
+
+    # build wasm subcommand
+    build_wasm_parser = build_subparsers.add_parser(
+        "wasm", help="Build xlwings Wasm distribution"
+    )
+    build_wasm_parser.add_argument(
+        "url", help="URL of where the xlwings Wasm app will be hosted"
+    )
+    build_wasm_parser.add_argument(
+        "-o",
+        "--output-dir",
+        help="Output directory path (default: ./dist)",
+        type=str,
+        default="./dist",
+    )
+    build_wasm_parser.add_argument(
         "-z",
         "--create-zip",
         help="Create zip archive in addition to the static files",
         action="store_true",
     )
-    wasm_parser.add_argument(
-        "-c",
-        "--clean",
-        help="Clean the output directory before building",
+    build_wasm_parser.add_argument(
+        "--no-clean",
+        help="Don't clean the output directory before building",
         action="store_true",
     )
-    wasm_parser.add_argument(
+    build_wasm_parser.add_argument(
         "-e",
         "--environment",
         help="Sets XLWINGS_ENVIRONMENT (default: value from .env)",
@@ -1475,14 +1536,20 @@ def main():
             print("Error: Please specify what to add")
             print("Available: azure, model, auth, router, css, js, config")
             sys.exit(1)
-    elif args.command == "wasm":
-        wasm_build(
-            url=args.url,
-            output_dir=args.output_dir,
-            create_zip=args.create_zip,
-            clean=args.clean,
-            environment=args.environment,
-        )
+    elif args.command == "build":
+        if args.build_command == "static":
+            build_static_command(output_dir=args.output_dir, clean=not args.no_clean)
+        elif args.build_command == "wasm":
+            build_wasm_command(
+                url=args.url,
+                output_dir=args.output_dir,
+                create_zip=args.create_zip,
+                clean=not args.no_clean,
+                environment=args.environment,
+            )
+        else:
+            print("Error: Please specify build target (e.g., static, wasm)")
+            sys.exit(1)
     elif args.command == "migrate":
         migrate_command(args.old_project_path)
     else:
