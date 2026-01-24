@@ -2,13 +2,10 @@ import logging
 import os
 import sys
 import warnings
+from importlib.metadata import version as get_package_version
 from pathlib import Path
 from typing import Any, Literal
 
-# xlwings depends on this, so set before importing xlwings
-os.environ["XLWINGS_ON_SERVER"] = "true"
-
-import xlwings as xw
 from pydantic import UUID4, computed_field
 from pydantic_settings import (
     BaseSettings,
@@ -18,6 +15,9 @@ from pydantic_settings import (
 )
 
 logger = logging.getLogger(__name__)
+
+# Set before xlwings is imported elsewhere in the application
+os.environ["XLWINGS_ON_SERVER"] = "true"
 
 # Get project directory from environment (set by CLI)
 # Falls back to current working directory if not set (for backward compatibility)
@@ -166,7 +166,7 @@ class Settings(BaseSettings):
     socketio_server_app: bool = False
     static_url_path: str = "/static"
     license_key: str | None = ""
-    xlwings_version: str = xw.__version__
+    xlwings_version: str = get_package_version("xlwings")
 
     @computed_field
     @property
