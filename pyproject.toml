@@ -27,6 +27,7 @@ dependencies = [
     "aiocache>=0.12.3",
     "croniter>=6.0.0",
     "fastapi>=0.125.0",
+    "granian>=2.6.1",
     "gunicorn>=23.0.0 ; sys_platform != 'win32'",
     "hiredis>=3.3.0",
     "httptools>=0.7.1",
