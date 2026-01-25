@@ -113,6 +113,24 @@ uv run scripts/copy_node_modules_to_static_folder.py
 
 ## Architecture
 
+### Package vs Project Directory Model
+
+xlwings Server 1.0+ uses a Python package distribution model where:
+
+- **PACKAGE_DIR** (`xlwings_server/config.py`): Points to the installed package location in site-packages. Contains core framework code, default templates, and static assets.
+- **PROJECT_DIR** (`xlwings_server/config.py`): Points to the user's project directory (set via `XLWINGS_PROJECT_DIR` env var, defaults to cwd). Contains user customizations.
+
+User projects override package defaults by placing files in their project directory:
+
+- `custom_functions/` - User's Excel custom functions (UDFs)
+- `custom_scripts/` - User's Python scripts for task pane buttons or ribbon buttons
+- `templates/` - Custom Jinja2 templates
+- `static/` - Custom CSS/JS
+- `config.py` - Optional Settings subclass for custom configuration
+- `.env` - Environment-specific settings
+
+The CLI sets `XLWINGS_PROJECT_DIR` before importing the package. Static files and templates are resolved with project directory taking precedence over package directory.
+
 ### Application Structure
 
 - **xlwings_server/main.py**: FastAPI application setup, middleware, exception handlers, static file mounting
