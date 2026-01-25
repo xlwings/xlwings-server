@@ -169,7 +169,7 @@ async def add_security_headers(request, call_next):
 # https://github.com/matthiask/blacknoise or https://github.com/Archmonger/ServeStatic
 # Auto-detect dist/ directory for production builds with hashed filenames
 dist_static = PROJECT_DIR / "dist" / "static"
-if dist_static.exists():
+if dist_static.exists() and settings.environment != "dev":
     app.mount(
         settings.static_url_path,
         StaticFiles(directory=dist_static),

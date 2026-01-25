@@ -49,8 +49,7 @@ ENTRYPOINT []
 # Use the non-root user to run our application
 USER nonroot
 
-# Run xlwings server with Granian
-# Uses shell to set GRANIAN_PORT from PORT, then exec for proper signal handling
+# Uses shell to set PORT and WORKERS, then exec for proper signal handling
 CMD ["sh", "-c", "\
     exec uvicorn \
     --host 0.0.0.0 \

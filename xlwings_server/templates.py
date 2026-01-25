@@ -13,7 +13,7 @@ from xlwings_server.config import PACKAGE_DIR, PROJECT_DIR, settings
 # then project templates, then package templates
 loaders = []
 dist_templates = PROJECT_DIR / "dist" / "templates"
-if dist_templates.exists():
+if dist_templates.exists() and settings.environment != "dev":
     loaders.append(FileSystemLoader(dist_templates))
 loaders.extend(
     [
