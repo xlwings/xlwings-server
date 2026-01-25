@@ -167,13 +167,24 @@ async def add_security_headers(request, call_next):
 
 # Static files: in prod might be served by something like nginx or via
 # https://github.com/matthiask/blacknoise or https://github.com/Archmonger/ServeStatic
-app.mount(
-    settings.static_url_path,
-    OverridableStaticFiles(
-        package_directory=PACKAGE_DIR / "static", user_directory=PROJECT_DIR / "static"
-    ),
-    name="static",
-)
+# Auto-detect dist/ directory for production builds with hashed filenames
+dist_static = PROJECT_DIR / "dist" / "static"
+if dist_static.exists() and settings.environment != "dev":
+    app.mount(
+        settings.static_url_path,
+        StaticFiles(directory=dist_static),
+        name="static",
+    )
+    logger.info("Serving static files from dist/ (production build)")
+else:
+    app.mount(
+        settings.static_url_path,
+        OverridableStaticFiles(
+            package_directory=PACKAGE_DIR / "static",
+            user_directory=PROJECT_DIR / "static",
+        ),
+        name="static",
+    )
 
 
 if settings.enable_wasm:
@@ -182,7 +193,8 @@ if settings.enable_wasm:
         # Use the same path prefix as for static files
         settings.static_url_path.replace("static", "wasm"),
         OverridableStaticFiles(
-            package_directory=PACKAGE_DIR / "wasm", user_directory=PROJECT_DIR / "wasm"
+            package_directory=PACKAGE_DIR / "wasm",
+            user_directory=PROJECT_DIR / "wasm",
         ),
         name="wasm",
     )
