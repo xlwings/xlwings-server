@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.0 (Jan 25, 2026)
+
+- Added the CLI command `xlwings-server add docker`, which adds a `Dockerfile`, `.dockerignore`, and `docker-compose.yaml` to your project.
+- `xlwings-server wasm` was renamed to `xlwings-server build wasm`.
+
 ## 1.0.0 (Jan 22, 2026)
 
 This major release provides `xlwings-server` as an installable package. See the [migration guide](migration) for instructions how to upgrade. The minimum supported Python version is now 3.10.
