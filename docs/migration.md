@@ -40,10 +40,10 @@ To allow for a clean migration, we leave the legacy project untouched and work w
 
    ::::
 
-2. Create a new uv project (I'll be calling it `myproject` here) and change into the directory:
+2. Create a new uv project (I'll be calling it `myproject` here) and change into the directory (replace `3.14` with the Python version that you're currently using):
 
    ```text
-   uv init myproject
+   uv init --python=3.14 myproject
    cd myproject
    ```
 

@@ -97,6 +97,153 @@ def _copy_folder_merge(source_dir: Path, dest_dir: Path, folder_name: str) -> No
         print(f"Merged {folder_name}.")
 
 
+# Requirements Parsing Helper Functions
+def parse_requirements_in(file_path: Path) -> list[dict[str, str | None]]:
+    """Parse requirements.in to extract package specifications.
+
+    Returns list of dicts with keys:
+    - name: package name (without extras or version)
+    - extras: extras like 'linkify' or None
+    - version_spec: version specifier from requirements.in or None
+    """
+    import re
+
+    packages = []
+    content = file_path.read_text()
+
+    for line in content.splitlines():
+        line = line.strip()
+        # Skip empty lines, comments, and -r references
+        if not line or line.startswith("#") or line.startswith("-r"):
+            continue
+
+        # Parse the package specification
+        # Pattern: name[extras]version_spec ; markers
+        # Extract name (before any of: [ < > = ! ~ ;)
+        match = re.match(r"^([a-zA-Z0-9][-a-zA-Z0-9_.]*)", line)
+        if not match:
+            continue
+
+        name = match.group(1)
+        rest = line[len(name) :]
+
+        # Extract extras if present
+        extras = None
+        extras_match = re.match(r"^\[([^\]]+)\]", rest)
+        if extras_match:
+            extras = extras_match.group(1)
+            rest = rest[len(extras_match.group(0)) :]
+
+        # Extract version specifier if present (before any marker)
+        version_spec = None
+        # Remove markers first (everything after ;)
+        if ";" in rest:
+            rest = rest.split(";")[0].strip()
+        # Check for version specifier
+        if rest and re.match(r"^[<>=!~]", rest):
+            version_spec = rest.strip()
+
+        packages.append(
+            {
+                "name": name,
+                "extras": extras,
+                "version_spec": version_spec,
+            }
+        )
+
+    return packages
+
+
+def parse_requirements_txt(file_path: Path) -> dict[str, str]:
+    """Parse requirements.txt (lock file) to extract pinned versions.
+
+    Returns dict mapping normalized_name -> version string.
+    """
+    import re
+
+    from packaging.utils import canonicalize_name
+
+    version_map = {}
+    content = file_path.read_text()
+
+    for line in content.splitlines():
+        line = line.strip()
+        # Skip empty lines, comments, and indented annotations
+        if not line or line.startswith("#") or line.startswith(" "):
+            continue
+
+        # Look for pinned versions (package==version)
+        if "==" not in line:
+            continue
+
+        # Remove markers (everything after ;)
+        if ";" in line:
+            line = line.split(";")[0].strip()
+
+        # Split on == to get package and version
+        parts = line.split("==", 1)
+        if len(parts) != 2:
+            continue
+
+        package_part = parts[0].strip()
+        version = parts[1].strip()
+
+        # Extract package name (remove extras if present)
+        match = re.match(r"^([a-zA-Z0-9][-a-zA-Z0-9_.]*)", package_part)
+        if match:
+            name = match.group(1)
+            version_map[canonicalize_name(name)] = version
+
+    return version_map
+
+
+def extract_package_name_from_dependency(dep: str) -> str:
+    """Extract package name from a dependency string.
+
+    Examples:
+        'foo>=1.0.0' -> 'foo'
+        'foo[extra]>=1.0.0' -> 'foo'
+        'foo>=1.0.0 ; sys_platform != "win32"' -> 'foo'
+    """
+    import re
+
+    match = re.match(r"^([a-zA-Z0-9][-a-zA-Z0-9_.]*)", dep)
+    return match.group(1) if match else dep
+
+
+def relax_version_constraints(package_names: list[str]) -> None:
+    """Replace == with >= for specified packages in pyproject.toml."""
+    import tomlkit
+    from packaging.utils import canonicalize_name
+
+    pyproject_path = Path("pyproject.toml")
+    if not pyproject_path.exists():
+        return
+
+    content = tomlkit.parse(pyproject_path.read_text())
+
+    # Check for dependencies in [project.dependencies]
+    if "project" not in content or "dependencies" not in content["project"]:
+        return
+
+    dependencies = content["project"]["dependencies"]
+
+    # Create a set of normalized names for fast lookup
+    names_to_relax = set(package_names)
+
+    for i, dep in enumerate(dependencies):
+        # Parse the dependency string to extract package name
+        dep_name = extract_package_name_from_dependency(dep)
+        if canonicalize_name(dep_name) in names_to_relax:
+            # Replace == with >=
+            if "==" in dep:
+                new_dep = dep.replace("==", ">=", 1)
+                dependencies[i] = new_dep
+                print(f"  Relaxed version constraint: {dep} -> {new_dep}")
+
+    pyproject_path.write_text(tomlkit.dumps(content))
+
+
 # Migration Helper Functions
 def validate_old_project_directory(old_path: Path) -> Path:
     """Validate that old_path contains a valid pre-1.0 project structure"""
@@ -1044,37 +1191,72 @@ def migrate_command(old_project_path: str):
 
     # Parse and install dependencies from old requirements.in
     old_requirements_in = old_path / "requirements.in"
+    old_requirements_txt = old_path / "requirements.txt"
+
     if old_requirements_in.exists():
         print("\nInstalling dependencies from requirements.in...")
-        requirements_content = old_requirements_in.read_text()
 
-        # Parse dependencies (skip comments and -r references)
-        dependencies = []
-        for line in requirements_content.splitlines():
-            line = line.strip()
-            # Skip empty lines, comments, and -r references
-            if not line or line.startswith("#") or line.startswith("-r"):
-                continue
-            dependencies.append(line)
+        # Parse requirements.in for package names
+        packages = parse_requirements_in(old_requirements_in)
+
+        # Parse requirements.txt for pinned versions (optional)
+        version_map: dict[str, str] = {}
+        if old_requirements_txt.exists():
+            version_map = parse_requirements_txt(old_requirements_txt)
+        else:
+            print("Note: requirements.txt not found, installing without version pins")
+
+        # Build package specifications for installation
+        dependencies_to_install = []
+        packages_installed_with_pin = []
+
+        from packaging.utils import canonicalize_name
+
+        for pkg in packages:
+            name = pkg["name"]
+            extras = pkg["extras"]
+            base_ref = f"{name}[{extras}]" if extras else name
+            normalized = canonicalize_name(name)
+
+            if pkg["version_spec"]:
+                # Use version from requirements.in as-is
+                dependencies_to_install.append(f"{base_ref}{pkg['version_spec']}")
+            elif normalized in version_map:
+                # Use pinned version from requirements.txt
+                version = version_map[normalized]
+                dependencies_to_install.append(f"{base_ref}=={version}")
+                packages_installed_with_pin.append(normalized)
+            else:
+                # Package not in requirements.txt - install without version
+                dependencies_to_install.append(base_ref)
+                print(
+                    f"  Note: {name} not found in requirements.txt, installing latest"
+                )
 
         # Install dependencies using uv add
-        if dependencies:
+        if dependencies_to_install:
             import subprocess
 
             try:
-                cmd = ["uv", "add"] + dependencies
+                cmd = ["uv", "add"] + dependencies_to_install
                 subprocess.run(cmd, check=True, capture_output=True, text=True)
-                print(f"Successfully added: {', '.join(dependencies)}")
-                tracker.mark_created(f"Dependencies: {', '.join(dependencies)}")
+                print(f"Successfully added: {', '.join(dependencies_to_install)}")
+                tracker.mark_created(
+                    f"Dependencies: {', '.join(d.split('==')[0] for d in dependencies_to_install)}"
+                )
+
+                # Relax version constraints after successful installation
+                if packages_installed_with_pin:
+                    relax_version_constraints(packages_installed_with_pin)
             except subprocess.CalledProcessError as e:
                 print(f"Warning: Failed to install some dependencies: {e}")
                 print(
-                    f"You can manually install them with: uv add {' '.join(dependencies)}"
+                    f"You can manually install them with: uv add {' '.join(dependencies_to_install)}"
                 )
             except FileNotFoundError:
                 print("Warning: 'uv' command not found.")
                 print(
-                    f"Please manually install dependencies: uv add {' '.join(dependencies)}"
+                    f"Please manually install dependencies: uv add {' '.join(dependencies_to_install)}"
                 )
 
     # Phase 4: Report
