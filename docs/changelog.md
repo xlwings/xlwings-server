@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1 (Jan 26, 2026)
+
+- The `xlwings-server migrate` command now takes over the exact version of the dependencies from the legacy repository.
+
 ## 1.1.0 (Jan 25, 2026)
 
 - Added the CLI command `xlwings-server add docker`, which adds a `Dockerfile`, `.dockerignore`, and `docker-compose.yaml` to your project.
