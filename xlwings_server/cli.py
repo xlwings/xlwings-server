@@ -98,20 +98,11 @@ def _copy_folder_merge(source_dir: Path, dest_dir: Path, folder_name: str) -> No
 
 
 # Requirements Parsing Helper Functions
-def normalize_package_name(name: str) -> str:
-    """Normalize package name for comparison (PEP 503 compliant)."""
-    from packaging.utils import canonicalize_name
-
-    return canonicalize_name(name)
-
-
 def parse_requirements_in(file_path: Path) -> list[dict[str, str | None]]:
     """Parse requirements.in to extract package specifications.
 
     Returns list of dicts with keys:
-    - raw: original line (stripped)
     - name: package name (without extras or version)
-    - normalized_name: normalized name for lookup
     - extras: extras like 'linkify' or None
     - version_spec: version specifier from requirements.in or None
     """
@@ -154,9 +145,7 @@ def parse_requirements_in(file_path: Path) -> list[dict[str, str | None]]:
 
         packages.append(
             {
-                "raw": line,
                 "name": name,
-                "normalized_name": normalize_package_name(name),
                 "extras": extras,
                 "version_spec": version_spec,
             }
@@ -171,6 +160,8 @@ def parse_requirements_txt(file_path: Path) -> dict[str, str]:
     Returns dict mapping normalized_name -> version string.
     """
     import re
+
+    from packaging.utils import canonicalize_name
 
     version_map = {}
     content = file_path.read_text()
@@ -201,7 +192,7 @@ def parse_requirements_txt(file_path: Path) -> dict[str, str]:
         match = re.match(r"^([a-zA-Z0-9][-a-zA-Z0-9_.]*)", package_part)
         if match:
             name = match.group(1)
-            version_map[normalize_package_name(name)] = version
+            version_map[canonicalize_name(name)] = version
 
     return version_map
 
@@ -223,6 +214,7 @@ def extract_package_name_from_dependency(dep: str) -> str:
 def relax_version_constraints(package_names: list[str]) -> None:
     """Replace == with >= for specified packages in pyproject.toml."""
     import tomlkit
+    from packaging.utils import canonicalize_name
 
     pyproject_path = Path("pyproject.toml")
     if not pyproject_path.exists():
@@ -242,7 +234,7 @@ def relax_version_constraints(package_names: list[str]) -> None:
     for i, dep in enumerate(dependencies):
         # Parse the dependency string to extract package name
         dep_name = extract_package_name_from_dependency(dep)
-        if normalize_package_name(dep_name) in names_to_relax:
+        if canonicalize_name(dep_name) in names_to_relax:
             # Replace == with >=
             if "==" in dep:
                 new_dep = dep.replace("==", ">=", 1)
@@ -1218,11 +1210,13 @@ def migrate_command(old_project_path: str):
         dependencies_to_install = []
         packages_installed_with_pin = []
 
+        from packaging.utils import canonicalize_name
+
         for pkg in packages:
             name = pkg["name"]
-            normalized = pkg["normalized_name"]
             extras = pkg["extras"]
             base_ref = f"{name}[{extras}]" if extras else name
+            normalized = canonicalize_name(name)
 
             if pkg["version_spec"]:
                 # Use version from requirements.in as-is
