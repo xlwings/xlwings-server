@@ -976,6 +976,69 @@ def add_docker_command():
     tracker.print_summary("Docker setup")
 
 
+def add_iis_command():
+    """Add IIS deployment files to project"""
+    import tomlkit
+
+    project_path = validate_project_directory()
+    tracker = FileTracker()
+
+    web_config_content = dedent("""\
+        <?xml version="1.0" encoding="UTF-8"?>
+        <configuration>
+          <system.webServer>
+            <handlers>
+              <add name="httpPlatformHandler" path="*" verb="*" modules="httpPlatformHandler" resourceType="Unspecified" />
+            </handlers>
+            <httpPlatform processPath="C:\\uv\\.venv\\Scripts\\python.exe"
+                          arguments="-m uvicorn xlwings_server.main:main_app --host 127.0.0.1 --port %HTTP_PLATFORM_PORT%"
+                          startupTimeLimit="60"
+                          stdoutLogEnabled="true"
+                          stdoutLogFile="C:\\inetpub\\xlwings-app\\logs\\stdout.log"
+                          processesPerApplication="4">
+              <environmentVariables>
+                <environmentVariable name="PYTHONUNBUFFERED" value="1" />
+                <environmentVariable name="XLWINGS_PROJECT_DIR" value="C:\\inetpub\\xlwings-app" />
+              </environmentVariables>
+            </httpPlatform>
+          </system.webServer>
+        </configuration>
+        """)
+
+    web_config_file = project_path / "web.config"
+    if web_config_file.exists():
+        tracker.mark_skipped("web.config")
+    else:
+        web_config_file.write_text(web_config_content)
+        tracker.mark_created("web.config")
+
+    # Update pyproject.toml with [tool.uv] exclude-dependencies
+    pyproject_path = project_path / "pyproject.toml"
+    if pyproject_path.exists():
+        content = tomlkit.parse(pyproject_path.read_text())
+
+        # Ensure [tool.uv] section exists
+        if "tool" not in content:
+            content["tool"] = {}
+        if "uv" not in content["tool"]:
+            content["tool"]["uv"] = {}
+
+        # Check if exclude-dependencies already has pywin32
+        existing_excludes = content["tool"]["uv"].get("exclude-dependencies", [])
+        if "pywin32" not in existing_excludes:
+            content["tool"]["uv"]["exclude-dependencies"] = ["pywin32"]
+            pyproject_path.write_text(tomlkit.dumps(content))
+            tracker.mark_created(
+                "pyproject.toml (added [tool.uv] exclude-dependencies)"
+            )
+        else:
+            tracker.mark_skipped("pyproject.toml ([tool.uv] already configured)")
+    else:
+        print("Warning: pyproject.toml not found, skipping uv configuration")
+
+    tracker.print_summary("IIS setup")
+
+
 def migrate_command(old_project_path: str):
     """Migrate from pre-1.0 project structure to new 1.0+ structure"""
     import shutil
@@ -1646,6 +1709,9 @@ def main():
     # config subcommand (standalone)
     add_subparsers.add_parser("config", help="Add config.py for extending settings")
 
+    # iis subcommand (standalone)
+    add_subparsers.add_parser("iis", help="Add IIS deployment files (web.config)")
+
     # Build command with subcommands
     build_parser = subparsers.add_parser("build", help="Build commands for deployment")
     build_subparsers = build_parser.add_subparsers(
@@ -1745,9 +1811,11 @@ def main():
             add_js_command()
         elif args.add_category == "config":
             add_config_command()
+        elif args.add_category == "iis":
+            add_iis_command()
         else:
             print("Error: Please specify what to add")
-            print("Available: azure, docker, model, auth, router, css, js, config")
+            print("Available: azure, docker, model, auth, router, css, js, config, iis")
             sys.exit(1)
     elif args.command == "build":
         if args.build_command == "static":
