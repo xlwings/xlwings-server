@@ -67,7 +67,7 @@ Note that this also has to be done after each deployment, so should be part of y
 
 ### 6. Install IIS Components
 
-- Install ISS:
+- Install IIS:
 
   ```powershell
   Install-WindowsFeature -Name Web-Server -IncludeManagementTools
@@ -87,7 +87,7 @@ Note that this also has to be done after each deployment, so should be part of y
 
 ### 7. Configure IIS
 
-Run the following commands to configure ISS:
+Run the following commands to configure IIS:
 
 ```powershell
 Import-Module WebAdministration
@@ -159,12 +159,11 @@ Run the following in PowerShell as Administrator to import the certificate and b
 
 ```powershell
 $pfxPath = "C:\path\to\cert.pfx"
-$pfxPassword = "your_pfx_password"
+$pfxPassword = Read-Host -AsSecureString -Prompt "Enter the PFX password"
 $siteName = "xlwings-app"
 
 # 1. Import PFX to Local Machine Personal Store
-$securePwd = ConvertTo-SecureString -String $pfxPassword -Force -AsPlainText
-$cert = Import-PfxCertificate -FilePath $pfxPath -CertStoreLocation Cert:\LocalMachine\My -Password $securePwd
+$cert = Import-PfxCertificate -FilePath $pfxPath -CertStoreLocation Cert:\LocalMachine\My -Password $pfxPassword
 
 # 2. Create the HTTPS Binding for the site
 New-WebBinding -Name $siteName -Protocol "https" -Port 443

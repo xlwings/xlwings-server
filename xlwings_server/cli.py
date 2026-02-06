@@ -1026,7 +1026,9 @@ def add_iis_command():
         # Check if exclude-dependencies already has pywin32
         existing_excludes = content["tool"]["uv"].get("exclude-dependencies", [])
         if "pywin32" not in existing_excludes:
-            content["tool"]["uv"]["exclude-dependencies"] = ["pywin32"]
+            content["tool"]["uv"]["exclude-dependencies"] = existing_excludes + [
+                "pywin32"
+            ]
             pyproject_path.write_text(tomlkit.dumps(content))
             tracker.mark_created(
                 "pyproject.toml (added [tool.uv] exclude-dependencies)"
