@@ -22,7 +22,7 @@ Set the following env vars for uv:
 
 Set the following env vars for xlwings-server:
 
-```
+```powershell
 [System.Environment]::SetEnvironmentVariable('XLWINGS_LICENSE_KEY', 'YOUR-LICENSE-KEY', 'Machine')
 [System.Environment]::SetEnvironmentVariable('XLWINGS_ENVIRONMENT', 'prod', 'Machine')
 ```
@@ -40,13 +40,13 @@ uv --version
 
 ## 4. Deploy Application
 
-Deploy your repository to `C:\inetpub\xlwings-backend`. Usually, you do this via CI/CD workflow directly from your source repository.
+Deploy your repository to `C:\inetpub\xlwings-app`. Usually, you do this via CI/CD workflow directly from your source repository.
 
 ```powershell
-# Copy your app to C:\inetpub\xlwings-backend
+# Copy your app to C:\inetpub\xlwings-app
 
 # Add this to pyproject.toml to exclude problematic dependencies
-Add-Content -Path "C:\inetpub\xlwings-backend\pyproject.toml" -Value @"
+Add-Content -Path "C:\inetpub\xlwings-app\pyproject.toml" -Value @"
 
 [tool.uv]
 exclude-dependencies = [
@@ -58,29 +58,31 @@ exclude-dependencies = [
 ## 5. Install dependencies
 
 ```powershell
-cd C:\inetpub\xlwings-backend
+cd C:\inetpub\xlwings-app
 uv sync
 ```
 
+Note that this also has to be done after each deployment, so should be part of your CI/CD pipeline.
+
 ## 5. Install IIS Components
 
-Install ISS:
+- Install ISS:
 
-```powershell
-Install-WindowsFeature -Name Web-Server -IncludeManagementTools
-```
+  ```powershell
+  Install-WindowsFeature -Name Web-Server -IncludeManagementTools
+  ```
 
-Download and install HttpPlatformHandler from:
+- Download and install HttpPlatformHandler from:
 
-https://www.iis.net/downloads/microsoft/httpplatformhandler
+  https://www.iis.net/downloads/microsoft/httpplatformhandler
 
-The HttpPlatformHandler v1.2 is an IIS Module which enables process management of HTTP Listeners and proxies requests to the process it manages, i.e., this enables IIS to manage and talk to the Python application.
+  The HttpPlatformHandler v1.2 is an IIS Module which enables process management of HTTP Listeners and proxies requests to the process it manages, i.e., this enables IIS to talk to the Python application.
 
-Run the following to allow the `web.config` file to configure handlers:
+- Run the following to allow the `web.config` file to configure handlers:
 
-```powershell
-& $env:windir\system32\inetsrv\appcmd.exe unlock config -section:system.webServer/handlers
-```
+  ```powershell
+  & $env:windir\system32\inetsrv\appcmd.exe unlock config -section:system.webServer/handlers
+  ```
 
 ## 6. Configure IIS
 
@@ -93,22 +95,22 @@ Import-Module WebAdministration
 Remove-WebSite -Name "Default Web Site"
 
 # Create logs directory
-New-Item -ItemType Directory -Path "C:\inetpub\xlwings-backend\logs" -Force
+New-Item -ItemType Directory -Path "C:\inetpub\xlwings-app\logs" -Force
 
 # Create app pool
-New-WebAppPool -Name "xlwings-backend-pool"
+New-WebAppPool -Name "xlwings-app-pool"
 # Prevent loading managed code since this is a Python app
-Set-ItemProperty "IIS:\AppPools\xlwings-backend-pool" -Name "managedRuntimeVersion" -Value ""
-# Run application pool as run as the built-in NetworkService account
-Set-ItemProperty "IIS:\AppPools\xlwings-backend-pool" -Name processModel.identityType -Value 2
+Set-ItemProperty "IIS:\AppPools\xlwings-app-pool" -Name "managedRuntimeVersion" -Value ""
+# Run application pool with the NetworkService account so we can later give it permission to access C:\uv
+Set-ItemProperty "IIS:\AppPools\xlwings-app-pool" -Name processModel.identityType -Value 2
 
 # Create site (Port 443 will follow at the end)
-New-WebSite -Name "xlwings-backend" -Port 80 -PhysicalPath "C:\inetpub\xlwings-backend" -ApplicationPool "xlwings-backend-pool"
+New-WebSite -Name "xlwings-app" -Port 80 -PhysicalPath "C:\inetpub\xlwings-app" -ApplicationPool "xlwings-app-pool"
 ```
 
 ## 7. Create web.config
 
-Create `C:\inetpub\xlwings-backend\web.config`:
+Create `C:\inetpub\xlwings-app\web.config`:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -121,11 +123,11 @@ Create `C:\inetpub\xlwings-backend\web.config`:
                   arguments="-m uvicorn xlwings_server.main:main_app --host 127.0.0.1 --port %HTTP_PLATFORM_PORT%"
                   startupTimeLimit="60"
                   stdoutLogEnabled="true"
-                  stdoutLogFile="C:\inetpub\xlwings-backend\logs\stdout.log"
+                  stdoutLogFile="C:\inetpub\xlwings-app\logs\stdout.log"
                   processesPerApplication="4">
       <environmentVariables>
         <environmentVariable name="PYTHONUNBUFFERED" value="1" />
-        <environmentVariable name="XLWINGS_PROJECT_DIR" value="C:\inetpub\xlwings-backend" />
+        <environmentVariable name="XLWINGS_PROJECT_DIR" value="C:\inetpub\xlwings-app" />
         <environmentVariable name="XLWINGS_LICENSE_KEY" value="TODO" />
       </environmentVariables>
     </httpPlatform>
@@ -137,10 +139,10 @@ Create `C:\inetpub\xlwings-backend\web.config`:
 
 ```powershell
 # App directory
-icacls "C:\inetpub\xlwings-backend" /grant "IIS AppPool\xlwings-backend-pool:(OI)(CI)RX" /T
+icacls "C:\inetpub\xlwings-app" /grant "IIS AppPool\xlwings-app-pool:(OI)(CI)RX" /T
 
 # Logs folder
-icacls "C:\inetpub\xlwings-backend\logs" /grant "IIS AppPool\xlwings-backend-pool:(OI)(CI)F" /T
+icacls "C:\inetpub\xlwings-app\logs" /grant "IIS AppPool\xlwings-app-pool:(OI)(CI)F" /T
 
 # uv folder
 icacls "C:\uv" /grant "IIS_IUSRS:(OI)(CI)RX" /T /Q
@@ -152,7 +154,7 @@ Start the IIS server and the website:
 
 ```powershell
 iisreset
-Start-WebSite -Name "xlwings-backend"
+Start-WebSite -Name "xlwings-app"
 ```
 
 At this point, you can browse to `http://localhost` (or your server's hostname/IP from another machine) in a browser and should see `{"status":"ok"}`. If this works, continue with the next step to install SSL/TLS certificates.
@@ -160,7 +162,7 @@ At this point, you can browse to `http://localhost` (or your server's hostname/I
 If this doesn't work, check logs for any errors:
 
 ```powershell
-Get-ChildItem "C:\inetpub\xlwings-backend\logs\" | Sort-Object LastWriteTime -Descending | Select-Object -First 5 | Get-Content
+Get-ChildItem "C:\inetpub\xlwings-app\logs\" | Sort-Object LastWriteTime -Descending | Select-Object -First 5 | Get-Content
 ```
 
 ## 10. SSL/TLS Setup (Required)
@@ -184,7 +186,7 @@ Run the following in PowerShell as Administrator to import the certificate and b
 ```powershell
 $pfxPath = "C:\path\to\cert.pfx"
 $pfxPassword = "your_pfx_password"
-$siteName = "xlwings-backend"
+$siteName = "xlwings-app"
 
 # 1. Import PFX to Local Machine Personal Store
 $securePwd = ConvertTo-SecureString -String $pfxPassword -Force -AsPlainText
