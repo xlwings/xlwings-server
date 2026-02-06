@@ -10,4 +10,5 @@ azure_container_apps
 docker_compose
 aws_app_runner
 render
+windows_server
 ```

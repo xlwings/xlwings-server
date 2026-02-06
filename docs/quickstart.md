@@ -1,5 +1,7 @@
 # Quick Start
 
+This quick start guide sets up a local development environment.
+
 ## 1. Get a License Key
 
 Get a [trial license key](https://www.xlwings.org/trial) as you will need it in the next step.
@@ -48,7 +50,7 @@ Get a [trial license key](https://www.xlwings.org/trial) as you will need it in 
    XLWINGS_LICENSE_KEY="your-license-key"
    ```
 
-5. Create local TLS certificates:
+5. Create SSL/TLS certificates for local development:
 
    Excel requires the server to run on HTTPS (not HTTP), even for local development. [Download mkcert](https://github.com/FiloSottile/mkcert/releases) (pick the correct file according to your platform), rename the file to `mkcert`, then run the following commands from a Terminal/Command Prompt (make sure you're in the same directory as `mkcert`):
 
@@ -57,7 +59,7 @@ Get a [trial license key](https://www.xlwings.org/trial) as you will need it in 
    ./mkcert localhost 127.0.0.1 ::1
    ```
 
-   This will generate two files `localhost+2.pem` and `localhost+2-key.pem`. Move them to the `certs` directory of your project.
+   This will generate two files `localhost+2.pem` and `localhost+2-key.pem`. Move them to the `certs` directory of your project. Note that `mkcert` is only for local development, not for production deployments!
 
 6. Run the server
 
@@ -96,3 +98,7 @@ Now you are ready to play around with the provided examples:
 
 - Scripts: `custom_scripts/scripts.py` -> click the button in the task pane (see `templates/taskpane.html`). See [](custom_scripts.md) for more information.
 - Custom Functions: `custom_functions/functions.py` -> write the following formula into Excel `=XLWINGS_DEV.HELLO("xlwings")`. See [](custom_functions.md) for more information.
+
+## 5. Set up Version Control
+
+Once you have a working development environment, you should commit everything to Git.

@@ -1,20 +1,46 @@
 # Windows Server
 
-### 1. Install uv and Configure
+Run all commands in PowerShell (Run as Administrator).
+
+## 1. Install uv
+
+uv is a Python package manager that will handle both the Python installation and the virtual environment with all 3rd party packages.
 
 ```powershell
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-
-# Configure uv for system-wide access (permanent)
-[System.Environment]::SetEnvironmentVariable('UV_PYTHON_INSTALL_DIR', 'C:\uv', 'Machine')
-[System.Environment]::SetEnvironmentVariable('UV_LINK_MODE', 'copy', 'Machine')
-
-# Also set for current session (so we can continue without restarting terminal)
-$env:UV_PYTHON_INSTALL_DIR = "C:\uv"
-$env:UV_LINK_MODE = "copy"
 ```
 
-### 2. Deploy Application
+## 2. Environment Variables
+
+Set the following env vars for uv:
+
+```powershell
+[System.Environment]::SetEnvironmentVariable('UV_PYTHON_INSTALL_DIR', 'C:\uv', 'Machine')
+[System.Environment]::SetEnvironmentVariable('UV_LINK_MODE', 'copy', 'Machine')
+[System.Environment]::SetEnvironmentVariable('UV_PROJECT_ENVIRONMENT', 'C:\uv\.venv', 'Machine')
+```
+
+Set the following env vars for xlwings-server:
+
+```
+[System.Environment]::SetEnvironmentVariable('XLWINGS_LICENSE_KEY', 'YOUR-LICENSE-KEY', 'Machine')
+[System.Environment]::SetEnvironmentVariable('XLWINGS_ENVIRONMENT', 'prod', 'Machine')
+```
+
+- Make sure to replace `YOUR-LICENSE-KEY` with your actual license key
+- For `XLWINGS_ENVIRONMENT`, use one of "qa", "uat", "staging", or "prod"
+
+## 3. Restart PowerShell
+
+After restarting PowerShell (Run as Administrator), run the following command to make sure uv is installed correctly:
+
+```powershell
+uv --version
+```
+
+## 4. Deploy Application
+
+Deploy your repository to `C:\inetpub\xlwings-backend`. Usually, you do this via CI/CD workflow directly from your source repository.
 
 ```powershell
 # Copy your app to C:\inetpub\xlwings-backend
@@ -27,25 +53,38 @@ exclude-dependencies = [
     "pywin32",
 ]
 "@
+```
 
-# Install dependencies
+## 5. Install dependencies
+
+```powershell
 cd C:\inetpub\xlwings-backend
 uv sync
 ```
 
-### 3. Install IIS Components
+## 5. Install IIS Components
+
+Install ISS:
 
 ```powershell
 Install-WindowsFeature -Name Web-Server -IncludeManagementTools
 ```
 
-Download and install from: https://www.iis.net/downloads/microsoft/httpplatformhandler
+Download and install HttpPlatformHandler from:
+
+https://www.iis.net/downloads/microsoft/httpplatformhandler
+
+The HttpPlatformHandler v1.2 is an IIS Module which enables process management of HTTP Listeners and proxies requests to the process it manages, i.e., this enables IIS to manage and talk to the Python application.
+
+Run the following to allow the `web.config` file to configure handlers:
 
 ```powershell
 & $env:windir\system32\inetsrv\appcmd.exe unlock config -section:system.webServer/handlers
 ```
 
-### 4. Configure IIS
+## 6. Configure IIS
+
+Run the following commands to configure ISS:
 
 ```powershell
 Import-Module WebAdministration
@@ -58,14 +97,16 @@ New-Item -ItemType Directory -Path "C:\inetpub\xlwings-backend\logs" -Force
 
 # Create app pool
 New-WebAppPool -Name "xlwings-backend-pool"
+# Prevent loading managed code since this is a Python app
 Set-ItemProperty "IIS:\AppPools\xlwings-backend-pool" -Name "managedRuntimeVersion" -Value ""
+# Run application pool as run as the built-in NetworkService account
 Set-ItemProperty "IIS:\AppPools\xlwings-backend-pool" -Name processModel.identityType -Value 2
 
-# Create site
+# Create site (Port 443 will follow at the end)
 New-WebSite -Name "xlwings-backend" -Port 80 -PhysicalPath "C:\inetpub\xlwings-backend" -ApplicationPool "xlwings-backend-pool"
 ```
 
-### 5. Create web.config
+## 7. Create web.config
 
 Create `C:\inetpub\xlwings-backend\web.config`:
 
@@ -76,7 +117,7 @@ Create `C:\inetpub\xlwings-backend\web.config`:
     <handlers>
       <add name="httpPlatformHandler" path="*" verb="*" modules="httpPlatformHandler" resourceType="Unspecified" />
     </handlers>
-    <httpPlatform processPath="C:\inetpub\xlwings-backend\.venv\Scripts\python.exe"
+    <httpPlatform processPath="C:\uv\.venv\Scripts\python.exe"
                   arguments="-m uvicorn xlwings_server.main:main_app --host 127.0.0.1 --port %HTTP_PLATFORM_PORT%"
                   startupTimeLimit="60"
                   stdoutLogEnabled="true"
@@ -92,38 +133,66 @@ Create `C:\inetpub\xlwings-backend\web.config`:
 </configuration>
 ```
 
-### 6. Set Permissions
+## 8. Set Permissions
 
 ```powershell
 # App directory
 icacls "C:\inetpub\xlwings-backend" /grant "IIS AppPool\xlwings-backend-pool:(OI)(CI)RX" /T
 
-# .venv folder
-icacls "C:\inetpub\xlwings-backend\.venv" /grant "IIS_IUSRS:(OI)(CI)RX" /T /Q
-
 # Logs folder
 icacls "C:\inetpub\xlwings-backend\logs" /grant "IIS AppPool\xlwings-backend-pool:(OI)(CI)F" /T
 
-# Toolchain folder (for Python symlinks)
-if (-not (Test-Path "C:\uv-toolchain")) { mkdir "C:\uv-toolchain" }
-icacls "C:\uv-toolchain" /grant "IIS_IUSRS:(OI)(CI)RX" /T /Q
+# uv folder
+icacls "C:\uv" /grant "IIS_IUSRS:(OI)(CI)RX" /T /Q
 ```
 
-### 7. Start
+## 9. Start Server
+
+Start the IIS server and the website:
 
 ```powershell
 iisreset
 Start-WebSite -Name "xlwings-backend"
 ```
 
-## SSL Setup (Required)
+At this point, you can browse to `http://localhost` (or your server's hostname/IP from another machine) in a browser and should see `{"status":"ok"}`. If this works, continue with the next step to install SSL/TLS certificates.
+
+If this doesn't work, check logs for any errors:
 
 ```powershell
-# Import certificate
-$certPassword = ConvertTo-SecureString -String "your_password" -Force -AsPlainText
-Import-PfxCertificate -FilePath "cert.pfx" -CertStoreLocation Cert:\LocalMachine\My -Password $certPassword
+Get-ChildItem "C:\inetpub\xlwings-backend\logs\" | Sort-Object LastWriteTime -Descending | Select-Object -First 5 | Get-Content
+```
 
-# Add HTTPS binding
-New-WebBinding -Name "xlwings-backend" -Protocol "https" -Port 443
-# Then bind certificate in IIS Manager
+## 10. SSL/TLS Setup (Required)
+
+Office.js add-ins require SSL, even if this is for company-internal use only.
+
+IIS requires certificates to be in the **PFX (PKCS#12)** format. If you have separate `.crt` (certificate) and `.key` (private key) files, you must convert them first.
+
+### 1. Convert CRT/KEY to PFX (if needed)
+
+If you already have a `.pfx` file, skip to step 2. Otherwise, use `openssl` to create it (run in PowerShell where you have your certs):
+
+```powershell
+openssl pkcs12 -export -out cert.pfx -inkey private.key -in certificate.crt
+```
+
+### 2. Import and Bind
+
+Run the following in PowerShell as Administrator to import the certificate and bind it to the site.
+
+```powershell
+$pfxPath = "C:\path\to\cert.pfx"
+$pfxPassword = "your_pfx_password"
+$siteName = "xlwings-backend"
+
+# 1. Import PFX to Local Machine Personal Store
+$securePwd = ConvertTo-SecureString -String $pfxPassword -Force -AsPlainText
+$cert = Import-PfxCertificate -FilePath $pfxPath -CertStoreLocation Cert:\LocalMachine\My -Password $securePwd
+
+# 2. Create the HTTPS Binding for the site
+New-WebBinding -Name $siteName -Protocol "https" -Port 443
+
+# 3. Associate the Certificate with the Binding
+Get-Item -Path "Cert:\LocalMachine\My\$($cert.Thumbprint)" | New-Item -Path "IIS:\SslBindings\0.0.0.0!443"
 ```
