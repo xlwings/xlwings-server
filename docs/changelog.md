@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0 (Feb 6, 2026)
+
+- Added the CLI command `xlwings-server add iis`, which adds support for deployment on Windows Server.
+
 ## 1.1.1 (Jan 26, 2026)
 
 - The `xlwings-server migrate` command now takes over the exact version of the dependencies from the legacy repository.
