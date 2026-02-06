@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.2.0 (Feb 6, 2026)
+## 1.2.0 and 1.2.1 (Feb 6, 2026)
 
 - Added the CLI command `xlwings-server add iis`, which adds support for deployment on Windows Server.
 
