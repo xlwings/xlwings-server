@@ -1,8 +1,22 @@
 # Windows Server
 
-Run all commands in PowerShell (Run as Administrator).
+## A. Repository Setup
 
-## 1. Install uv
+In your xlwings Server repository (on your local machine), run the following command:
+
+```
+uv run xlwings-server add iis
+```
+
+This will add `web.config` to the root of the repository and add an entry to `pyproject.toml` to prevent the installation of `pywin32`, which isn't used with xlwings Server, and would lead to permission issues.
+
+Now commit these two files to Git.
+
+## B. Windows Server Configuration
+
+Run all commands in PowerShell (Run as Administrator) on Windows Server.
+
+### 1. Install uv
 
 uv is a Python package manager that will handle both the Python installation and the virtual environment with all 3rd party packages.
 
@@ -10,7 +24,7 @@ uv is a Python package manager that will handle both the Python installation and
 powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
 ```
 
-## 2. Environment Variables
+### 2. Environment Variables
 
 Set the following env vars for uv:
 
@@ -30,7 +44,7 @@ Set the following env vars for xlwings-server:
 - Make sure to replace `YOUR-LICENSE-KEY` with your actual license key
 - For `XLWINGS_ENVIRONMENT`, use one of "qa", "uat", "staging", or "prod"
 
-## 3. Restart PowerShell
+### 3. Restart PowerShell
 
 After restarting PowerShell (Run as Administrator), run the following command to make sure uv is installed correctly:
 
@@ -38,24 +52,11 @@ After restarting PowerShell (Run as Administrator), run the following command to
 uv --version
 ```
 
-## 4. Deploy Application
+### 4. Deploy Application
 
 Deploy your repository to `C:\inetpub\xlwings-app`. Usually, you do this via CI/CD workflow directly from your source repository.
 
-```powershell
-# Copy your app to C:\inetpub\xlwings-app
-
-# Add this to pyproject.toml to exclude problematic dependencies
-Add-Content -Path "C:\inetpub\xlwings-app\pyproject.toml" -Value @"
-
-[tool.uv]
-exclude-dependencies = [
-    "pywin32",
-]
-"@
-```
-
-## 5. Install dependencies
+### 5. Install Python and Dependencies
 
 ```powershell
 cd C:\inetpub\xlwings-app
@@ -64,7 +65,7 @@ uv sync
 
 Note that this also has to be done after each deployment, so should be part of your CI/CD pipeline.
 
-## 5. Install IIS Components
+### 6. Install IIS Components
 
 - Install ISS:
 
@@ -76,7 +77,7 @@ Note that this also has to be done after each deployment, so should be part of y
 
   https://www.iis.net/downloads/microsoft/httpplatformhandler
 
-  The HttpPlatformHandler v1.2 is an IIS Module which enables process management of HTTP Listeners and proxies requests to the process it manages, i.e., this enables IIS to talk to the Python application.
+  HttpPlatformHandler is an IIS Module which enables process management of HTTP Listeners and proxies requests to the process it manages, i.e., this enables IIS to talk to xlwings Server, which is a Python application.
 
 - Run the following to allow the `web.config` file to configure handlers:
 
@@ -84,7 +85,7 @@ Note that this also has to be done after each deployment, so should be part of y
   & $env:windir\system32\inetsrv\appcmd.exe unlock config -section:system.webServer/handlers
   ```
 
-## 6. Configure IIS
+### 7. Configure IIS
 
 Run the following commands to configure ISS:
 
@@ -108,34 +109,7 @@ Set-ItemProperty "IIS:\AppPools\xlwings-app-pool" -Name processModel.identityTyp
 New-WebSite -Name "xlwings-app" -Port 80 -PhysicalPath "C:\inetpub\xlwings-app" -ApplicationPool "xlwings-app-pool"
 ```
 
-## 7. Create web.config
-
-Create `C:\inetpub\xlwings-app\web.config`:
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<configuration>
-  <system.webServer>
-    <handlers>
-      <add name="httpPlatformHandler" path="*" verb="*" modules="httpPlatformHandler" resourceType="Unspecified" />
-    </handlers>
-    <httpPlatform processPath="C:\uv\.venv\Scripts\python.exe"
-                  arguments="-m uvicorn xlwings_server.main:main_app --host 127.0.0.1 --port %HTTP_PLATFORM_PORT%"
-                  startupTimeLimit="60"
-                  stdoutLogEnabled="true"
-                  stdoutLogFile="C:\inetpub\xlwings-app\logs\stdout.log"
-                  processesPerApplication="4">
-      <environmentVariables>
-        <environmentVariable name="PYTHONUNBUFFERED" value="1" />
-        <environmentVariable name="XLWINGS_PROJECT_DIR" value="C:\inetpub\xlwings-app" />
-        <environmentVariable name="XLWINGS_LICENSE_KEY" value="TODO" />
-      </environmentVariables>
-    </httpPlatform>
-  </system.webServer>
-</configuration>
-```
-
-## 8. Set Permissions
+### 8. Set Permissions
 
 ```powershell
 # App directory
@@ -148,7 +122,7 @@ icacls "C:\inetpub\xlwings-app\logs" /grant "IIS AppPool\xlwings-app-pool:(OI)(C
 icacls "C:\uv" /grant "IIS_IUSRS:(OI)(CI)RX" /T /Q
 ```
 
-## 9. Start Server
+### 9. Start Server
 
 Start the IIS server and the website:
 
@@ -165,13 +139,13 @@ If this doesn't work, check logs for any errors:
 Get-ChildItem "C:\inetpub\xlwings-app\logs\" | Sort-Object LastWriteTime -Descending | Select-Object -First 5 | Get-Content
 ```
 
-## 10. SSL/TLS Setup (Required)
+### 10. SSL/TLS Setup (Required)
 
 Office.js add-ins require SSL, even if this is for company-internal use only.
 
 IIS requires certificates to be in the **PFX (PKCS#12)** format. If you have separate `.crt` (certificate) and `.key` (private key) files, you must convert them first.
 
-### 1. Convert CRT/KEY to PFX (if needed)
+#### 1. Convert CRT/KEY to PFX (if needed)
 
 If you already have a `.pfx` file, skip to step 2. Otherwise, use `openssl` to create it (run in PowerShell where you have your certs):
 
@@ -179,7 +153,7 @@ If you already have a `.pfx` file, skip to step 2. Otherwise, use `openssl` to c
 openssl pkcs12 -export -out cert.pfx -inkey private.key -in certificate.crt
 ```
 
-### 2. Import and Bind
+#### 2. Import and Bind
 
 Run the following in PowerShell as Administrator to import the certificate and bind it to the site.
 
@@ -198,3 +172,11 @@ New-WebBinding -Name $siteName -Protocol "https" -Port 443
 # 3. Associate the Certificate with the Binding
 Get-Item -Path "Cert:\LocalMachine\My\$($cert.Thumbprint)" | New-Item -Path "IIS:\SslBindings\0.0.0.0!443"
 ```
+
+### 11. Download Manifest
+
+Download the manifest by going to:
+
+https://<your-domain>/manifest/download
+
+For testing, you can sideload the manifest, for proper deployment, use Microsoft 365 admin center, see [](install_officejs_addin.md).
