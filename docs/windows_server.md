@@ -174,8 +174,6 @@ Get-Item -Path "Cert:\LocalMachine\My\$($cert.Thumbprint)" | New-Item -Path "IIS
 
 ### 11. Download Manifest
 
-Download the manifest by going to:
-
-https://<your-domain>/manifest/download
+Download the manifest by going to `https://<your-domain>/manifest/download`.
 
 For testing, you can sideload the manifest, for proper deployment, use Microsoft 365 admin center, see [](install_officejs_addin.md).
