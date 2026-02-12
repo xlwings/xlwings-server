@@ -35,8 +35,11 @@ RUN uv run xlwings-server build static
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Python settings
+# Show logs immediately
 ENV PYTHONUNBUFFERED=1
+
+# Required if WORKDIR isn't /app
+ENV XLWINGS_PROJECT_DIR=/app
 
 # Default port and workers
 ENV PORT=8000

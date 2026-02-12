@@ -8,7 +8,9 @@ Edit the content of your task pane under `templates/taskpane.html`. If you want 
 
 ## Settings
 
-- Make sure that the environment is set to `"prod"`. This disables hotreload and will prevent unhandled exceptions to be shown in Excel. `xlwings.XlwingsError` continue to be shown:
+- xlwings Server requires `uvicorn` to be run from the root of your code repository. Alternatively, you can run it from any directory by setting the `XLWINGS_PROJECT_DIR` environment variable to point to your repository root.
+
+- Make sure that the environment is set to `"prod"` (or `"qa"`, `"uat"`, `"staging"`). This disables hotreload and will prevent unhandled exceptions to be shown in Excel. `xlwings.XlwingsError` continue to be shown:
 
   ```ini
   XLWINGS_ENVIRONMENT="prod"
