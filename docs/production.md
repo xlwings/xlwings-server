@@ -8,7 +8,7 @@ Edit the content of your task pane under `templates/taskpane.html`. If you want 
 
 ## Settings
 
-- xlwings Server requires `uvicorn` to be run from the root of your code repository. Alternatively, you can run it from any directory by setting the `XLWINGS_PROJECT_DIR` environment variable to point to your repository root.
+- xlwings Server resolves the project directory from the current working directory of the ASGI server process. Start your ASGI server (for example, `uvicorn`) from the root of your code repository, or set the `XLWINGS_PROJECT_DIR` environment variable to point to your repository root when starting it from elsewhere.
 
 - Make sure that the environment is set to `"prod"` (or `"qa"`, `"uat"`, `"staging"`). This disables hotreload and will prevent unhandled exceptions to be shown in Excel. `xlwings.XlwingsError` continue to be shown:
 
