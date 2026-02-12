@@ -27,6 +27,5 @@ services:
       - ./certs:/app/certs
       - ./custom_functions:/app/custom_functions
       - ./custom_scripts:/app/custom_scripts
-      - ./dist:/app/dist
       - ./static:/app/static
       - ./templates:/app/templates
