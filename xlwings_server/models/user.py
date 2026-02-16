@@ -53,13 +53,17 @@ class User(BaseModel):
         """Method that can be overridden to implement a global authorization logic"""
         return True
 
-    async def get_graph_client(
+    def get_graph_client(
         self,
         scopes: list[str] | None = None,
     ):
         """
         Returns a GraphClient for making Microsoft Graph API calls on behalf
-        of this user using the On-Behalf-Of (OBO) flow.
+        of this user using the On-Behalf-Of (OBO) flow. Use as an async
+        context manager::
+
+            async with current_user.get_graph_client() as graph:
+                response = await graph.get("/me")
 
         Requires XLWINGS_AUTH_ENTRAID_CLIENT_SECRET to be configured.
 
@@ -69,4 +73,4 @@ class User(BaseModel):
         """
         from ..auth.entraid.obo import get_graph_client  # prevents circular reference
 
-        return await get_graph_client(self, scopes=scopes)
+        return get_graph_client(self, scopes=scopes)

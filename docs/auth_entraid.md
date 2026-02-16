@@ -85,7 +85,7 @@ from xlwings_server.models import CurrentUser
 
 @script
 async def get_user_profile(book: xw.Book, current_user: CurrentUser):
-    async with await current_user.get_graph_client() as graph:
+    async with current_user.get_graph_client() as graph:
         # Get user profile
         response = await graph.get("/me")
         me = response.json()

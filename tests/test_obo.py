@@ -47,6 +47,7 @@ def mock_obo_response(mocker):
         response = httpx.Response(status_code, json=json_data)
         mock_client = mocker.AsyncMock()
         mock_client.post.return_value = response
+        mock_client.get.return_value = httpx.Response(200, json={"displayName": "John"})
         mock_client.__aenter__ = mocker.AsyncMock(return_value=mock_client)
         mock_client.__aexit__ = mocker.AsyncMock(return_value=False)
         mocker.patch(
@@ -177,41 +178,47 @@ async def test_acquire_obo_token_other_error(mock_settings, mock_obo_response):
 
 
 @pytest.mark.anyio
-async def test_graph_client_get(mocker):
-    response = httpx.Response(200, json={"displayName": "John"})
-    mock_client = mocker.AsyncMock()
-    mock_client.get.return_value = response
-    mocker.patch(
-        "xlwings_server.auth.entraid.obo.httpx.AsyncClient",
-        return_value=mock_client,
-    )
-    async with GraphClient("test-token") as graph:
+async def test_graph_client_get(mock_settings, mock_obo_response):
+    mock_client = mock_obo_response()
+    mock_client.get.return_value = httpx.Response(200, json={"displayName": "John"})
+    async with GraphClient("sso-token") as graph:
         result = await graph.get("/me")
     assert result.json() == {"displayName": "John"}
 
 
 @pytest.mark.anyio
-async def test_graph_client_post(mocker):
-    response = httpx.Response(202)
-    mock_client = mocker.AsyncMock()
-    mock_client.post.return_value = response
-    mocker.patch(
-        "xlwings_server.auth.entraid.obo.httpx.AsyncClient",
-        return_value=mock_client,
-    )
-    async with GraphClient("test-token") as graph:
+async def test_graph_client_post(mock_settings, mock_obo_response):
+    mock_client = mock_obo_response()
+    mock_client.post.return_value = httpx.Response(202)
+    # Override post to return 202 for the Graph call (after OBO token exchange)
+    call_count = 0
+
+    async def post_side_effect(*args, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            # First call is OBO token exchange
+            return httpx.Response(
+                200,
+                json={
+                    "access_token": "mock-obo-token",
+                    "expires_in": 3600,
+                    "token_type": "Bearer",
+                },
+            )
+        # Subsequent calls are Graph API
+        return httpx.Response(202)
+
+    mock_client.post.side_effect = post_side_effect
+    async with GraphClient("sso-token") as graph:
         result = await graph.post("/me/sendMail", json={"message": {}})
     assert result.status_code == 202
 
 
 @pytest.mark.anyio
-async def test_graph_client_context_manager_closes(mocker):
-    mock_client = mocker.AsyncMock()
-    mocker.patch(
-        "xlwings_server.auth.entraid.obo.httpx.AsyncClient",
-        return_value=mock_client,
-    )
-    async with GraphClient("test-token"):
+async def test_graph_client_context_manager_closes(mock_settings, mock_obo_response):
+    mock_client = mock_obo_response()
+    async with GraphClient("sso-token"):
         pass
     mock_client.aclose.assert_awaited_once()
 
@@ -219,26 +226,21 @@ async def test_graph_client_context_manager_closes(mocker):
 # --- get_graph_client ---
 
 
-@pytest.mark.anyio
-async def test_get_graph_client_no_sso_token():
+def test_get_graph_client_no_sso_token():
     user = models.User(name="Test User")
     with pytest.raises(HTTPException) as exc_info:
-        await get_graph_client(user)
+        get_graph_client(user)
     assert exc_info.value.status_code == status.HTTP_401_UNAUTHORIZED
     assert "No SSO token" in exc_info.value.detail
 
 
-@pytest.mark.anyio
-async def test_get_graph_client_success(mock_settings, mock_obo_response):
-    mock_obo_response()
+def test_get_graph_client_returns_graph_client():
     user = models.User(name="Test User", sso_token="sso-token")
-    graph = await get_graph_client(user)
+    graph = get_graph_client(user)
     assert isinstance(graph, GraphClient)
 
 
-@pytest.mark.anyio
-async def test_user_get_graph_client(mock_settings, mock_obo_response):
-    mock_obo_response()
+def test_user_get_graph_client():
     user = models.User(name="Test User", sso_token="sso-token")
-    graph = await user.get_graph_client()
+    graph = user.get_graph_client()
     assert isinstance(graph, GraphClient)

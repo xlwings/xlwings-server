@@ -100,6 +100,16 @@ async def acquire_obo_token(
         )
 
     token_data = response.json()
+    # Format
+    # {
+    #     "token_type": "Bearer",
+    #     "scope": "profile openid email https://graph.microsoft.com/User.Read https://graph.microsoft.com/.default",
+    #     "expires_in": 3915,
+    #     "ext_expires_in": 3915,
+    #     "access_token": "...",
+    #     "refresh_token": "...",
+    # }
+
     access_token = token_data["access_token"]
     expires_in = token_data.get("expires_in", 3600)
 
@@ -114,7 +124,7 @@ class GraphClient:
 
     Usage::
 
-        async with await current_user.get_graph_client() as graph:
+        async with current_user.get_graph_client() as graph:
             response = await graph.get("/me")
             me = response.json()
             messages = await graph.get("/me/messages", params={"$top": 10})
@@ -126,17 +136,22 @@ class GraphClient:
 
     BASE_URL = "https://graph.microsoft.com/v1.0"
 
-    def __init__(self, access_token: str):
+    def __init__(self, sso_token: str, scopes: list[str] | None = None):
+        self._sso_token = sso_token
+        self._scopes = scopes
+        self._client: httpx.AsyncClient | None = None
+
+    async def __aenter__(self):
+        access_token = await acquire_obo_token(self._sso_token, scopes=self._scopes)
         self._client = httpx.AsyncClient(
             base_url=self.BASE_URL,
             headers={"Authorization": f"Bearer {access_token}"},
         )
-
-    async def __aenter__(self):
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
-        await self._client.aclose()
+        if self._client:
+            await self._client.aclose()
 
     async def get(self, path: str, **kwargs) -> httpx.Response:
         return await self._client.get(path, **kwargs)
@@ -151,12 +166,12 @@ class GraphClient:
         return await self._client.delete(path, **kwargs)
 
 
-async def get_graph_client(
+def get_graph_client(
     user: User,
     scopes: list[str] | None = None,
 ) -> GraphClient:
     """
-    Acquire an OBO token and return a GraphClient.
+    Return a GraphClient for use as an async context manager.
     Called from User.get_graph_client().
     """
     if not user.sso_token:
@@ -164,5 +179,4 @@ async def get_graph_client(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="No SSO token available. Ensure authentication is configured.",
         )
-    access_token = await acquire_obo_token(user.sso_token, scopes=scopes)
-    return GraphClient(access_token)
+    return GraphClient(user.sso_token, scopes=scopes)
