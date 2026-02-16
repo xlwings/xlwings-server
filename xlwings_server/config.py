@@ -123,7 +123,9 @@ class Settings(BaseSettings):
     auth_required_roles: list[str] | None = []
     auth_entraid_client_id: str | None = None
     auth_entraid_tenant_id: str | None = None
+    auth_entraid_client_secret: str | None = None
     auth_entraid_multitenant: bool = False
+    auth_entraid_token_scopes: list[str] = ["https://graph.microsoft.com/.default"]
     app_path: str = ""
     base_dir: Path = Path(__file__).resolve().parent
     object_cache_url: str | None = None
