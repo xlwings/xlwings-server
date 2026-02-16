@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.0 (Feb 16, 2026)
+
+- Added support for Microsoft Graph API via On-Behalf-Of (OBO) Flow, see: [](auth_entraid.md#microsoft-graph-api-via-on-behalf-of-obo-flow).
+
 ## 1.2.0 and 1.2.1 (Feb 6, 2026)
 
 - Added the CLI command `xlwings-server add iis`, which adds support for deployment on Windows Server.
