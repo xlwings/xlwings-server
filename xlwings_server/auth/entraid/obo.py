@@ -108,11 +108,11 @@ class GraphClient:
 
     Usage::
 
-        graph = await current_user.get_graph_client()
-        response = await graph.get("/me")
-        me = response.json()
-        messages = await graph.get("/me/messages", params={"$top": 10})
-        await graph.post("/me/sendMail", json={...})
+        async with await current_user.get_graph_client() as graph:
+            response = await graph.get("/me")
+            me = response.json()
+            messages = await graph.get("/me/messages", params={"$top": 10})
+            await graph.post("/me/sendMail", json={...})
 
     All methods return an httpx.Response object. Use .json(), .text, .content,
     .status_code, .headers, etc. as needed.
@@ -121,53 +121,28 @@ class GraphClient:
     BASE_URL = "https://graph.microsoft.com/v1.0"
 
     def __init__(self, access_token: str):
-        self._access_token = access_token
+        self._client = httpx.AsyncClient(
+            base_url=self.BASE_URL,
+            headers={"Authorization": f"Bearer {access_token}"},
+        )
 
-    @property
-    def _headers(self) -> dict[str, str]:
-        return {
-            "Authorization": f"Bearer {self._access_token}",
-        }
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self._client.aclose()
 
     async def get(self, path: str, **kwargs) -> httpx.Response:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"{self.BASE_URL}{path}",
-                headers=self._headers,
-                **kwargs,
-            )
-            response.raise_for_status()
-            return response
+        return await self._client.get(path, **kwargs)
 
     async def post(self, path: str, **kwargs) -> httpx.Response:
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"{self.BASE_URL}{path}",
-                headers=self._headers,
-                **kwargs,
-            )
-            response.raise_for_status()
-            return response
+        return await self._client.post(path, **kwargs)
 
     async def patch(self, path: str, **kwargs) -> httpx.Response:
-        async with httpx.AsyncClient() as client:
-            response = await client.patch(
-                f"{self.BASE_URL}{path}",
-                headers=self._headers,
-                **kwargs,
-            )
-            response.raise_for_status()
-            return response
+        return await self._client.patch(path, **kwargs)
 
     async def delete(self, path: str, **kwargs) -> httpx.Response:
-        async with httpx.AsyncClient() as client:
-            response = await client.delete(
-                f"{self.BASE_URL}{path}",
-                headers=self._headers,
-                **kwargs,
-            )
-            response.raise_for_status()
-            return response
+        return await self._client.delete(path, **kwargs)
 
 
 async def get_graph_client(

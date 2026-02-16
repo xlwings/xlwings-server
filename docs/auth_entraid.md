@@ -85,14 +85,13 @@ from xlwings_server.models import CurrentUser
 
 @script
 async def get_user_profile(book: xw.Book, current_user: CurrentUser):
-    graph = await current_user.get_graph_client()
-
-    # Get user profile
-    response = await graph.get("/me")
-    me = response.json()
-    sheet = book.sheets.active
-    sheet["A1"].value = me["displayName"]
-    sheet["A2"].value = me["mail"]
+    async with await current_user.get_graph_client() as graph:
+        # Get user profile
+        response = await graph.get("/me")
+        me = response.json()
+        sheet = book.sheets.active
+        sheet["A1"].value = me["displayName"]
+        sheet["A2"].value = me["mail"]
 ```
 
 The `GraphClient` provides `get()`, `post()`, `patch()`, and `delete()` methods. The path is relative to `https://graph.microsoft.com/v1.0`. All keyword arguments are passed through to [httpx](https://www.python-httpx.org/), so you can use `params`, `json`, `headers`, `timeout`, etc. All methods return an `httpx.Response` object. A few examples:
