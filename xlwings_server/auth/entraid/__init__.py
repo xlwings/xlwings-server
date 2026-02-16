@@ -126,6 +126,6 @@ async def validate_token(token_string: str):
             detail="Auth error: Couldn't validate token",
         )
 
-    current_user = models.User(claims=token.claims)
+    current_user = models.User(claims=token.claims, sso_token=token_string)
     logger.info(f"User authenticated: {current_user.name}")
     return current_user

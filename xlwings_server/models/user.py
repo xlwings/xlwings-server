@@ -26,6 +26,7 @@ class User(BaseModel):
     roles: list[str] = []
     ip_address: str | None = None
     claims: dict[str, Any] = Field({}, repr=False)
+    sso_token: str | None = Field(None, repr=False)
 
     @model_validator(mode="after")
     def populate_from_claims(self) -> Self:
@@ -51,3 +52,25 @@ class User(BaseModel):
     async def is_authorized(self):
         """Method that can be overridden to implement a global authorization logic"""
         return True
+
+    def get_graph_client(
+        self,
+        scopes: list[str] | None = None,
+    ):
+        """
+        Returns a GraphClient for making Microsoft Graph API calls on behalf
+        of this user using the On-Behalf-Of (OBO) flow. Use as an async
+        context manager::
+
+            async with current_user.get_graph_client() as graph:
+                response = await graph.get("/me")
+
+        Requires XLWINGS_AUTH_ENTRAID_CLIENT_SECRET to be configured.
+
+        Args:
+            scopes: OAuth scopes for the Graph API token. Defaults to
+                    XLWINGS_AUTH_ENTRAID_TOKEN_SCOPES setting.
+        """
+        from ..auth.entraid.obo import get_graph_client  # prevents circular reference
+
+        return get_graph_client(self, scopes=scopes)

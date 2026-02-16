@@ -73,16 +73,8 @@ uv run pytest -v
 ### Code Quality
 
 ```bash
-# Ruff handles both linting and formatting (configured in pyproject.toml)
-uv ruff check .
-uv ruff format .
-
 # Pre-commit hooks (ruff + prettier for JS/HTML/Jinja)
-uv pre-commit install
 uv pre-commit run --all-files
-
-# Prettier for frontend files (JS, HTML, Jinja templates)
-# Note: VS Code extension requires explicit .prettierrc.js config
 ```
 
 ### Wasm Build
