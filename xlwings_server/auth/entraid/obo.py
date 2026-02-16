@@ -4,13 +4,19 @@ Exchanges an SSO access token for a downstream API token (e.g., Microsoft Graph)
 See: https://learn.microsoft.com/en-us/entra/identity-platform/v2-oauth2-on-behalf-of-flow
 """
 
+from __future__ import annotations
+
 import logging
 import time
+from typing import TYPE_CHECKING
 
 import httpx
 from fastapi import HTTPException, status
 
 from ...config import settings
+
+if TYPE_CHECKING:
+    from ...models import User
 
 logger = logging.getLogger(__name__)
 
@@ -146,7 +152,7 @@ class GraphClient:
 
 
 async def get_graph_client(
-    user,
+    user: User,
     scopes: list[str] | None = None,
 ) -> GraphClient:
     """
