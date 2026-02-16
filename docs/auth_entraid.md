@@ -97,18 +97,18 @@ async def get_user_profile(book: xw.Book, current_user: CurrentUser):
 The `GraphClient` provides `get()`, `post()`, `patch()`, and `delete()` methods. The path is relative to `https://graph.microsoft.com/v1.0`. All keyword arguments are passed through to [httpx](https://www.python-httpx.org/), so you can use `params`, `json`, `headers`, `timeout`, etc. All methods return an `httpx.Response` object. A few examples:
 
 ```python
-# List files in OneDrive
+# List files in OneDrive (Files.Read)
 response = await graph.get("/me/drive/recent")
 files = response.json()
 
-# Query parameters
+# Query parameters (Mail.Read)
 response = await graph.get("/me/messages", params={"$top": 10})
 messages = response.json()
 
-# POST with JSON body
+# POST with JSON body (Mail.Send)
 await graph.post("/me/sendMail", json={"message": {...}})
 
-# Binary content (e.g., file download)
+# Binary content, e.g., file download (Files.Read)
 response = await graph.get("/me/drive/items/{id}/content")
 file_bytes = response.content
 ```
