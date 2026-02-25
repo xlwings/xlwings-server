@@ -128,4 +128,45 @@ async function initPyodide() {
 
 // Call as follows:
 // let pyodide = await pyodideReadyPromise;
-export let pyodideReadyPromise = initPyodide();
+let resolvePyodideStart;
+let rejectPyodideStart;
+export let pyodideReadyPromise = config.isOfficialLiteAddin
+  ? new Promise((resolve, reject) => {
+      resolvePyodideStart = resolve;
+      rejectPyodideStart = reject;
+    })
+  : initPyodide();
+
+// Only used when isOfficialLiteAddin: load Pyodide dynamically with the given version,
+// then run initPyodide() and resolve pyodideReadyPromise.
+// version: bare version string without "v" prefix, e.g. "0.27.5"
+// integrity: optional SRI hash string for CDN loads, e.g. "sha384-..."
+export async function startPyodide(version, integrity) {
+  try {
+    const url = config.cdnPyodide
+      ? `https://cdn.jsdelivr.net/pyodide/v${version}/full/pyodide.mjs`
+      : `/static/vendor/pyodide/${version}/pyodide.mjs`;
+
+    // Enforce SRI for CDN loads via modulepreload link, which primes the browser
+    // cache with the verified resource before the dynamic import fetches it.
+    if (config.cdnPyodide && integrity) {
+      const link = document.createElement("link");
+      link.rel = "modulepreload";
+      link.href = url;
+      link.integrity = integrity;
+      link.crossOrigin = "anonymous";
+      document.head.appendChild(link);
+      // Give the browser a tick to register the preload before importing
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    }
+
+    const { loadPyodide } = await import(url);
+    globalThis.loadPyodide = loadPyodide;
+    const result = await initPyodide();
+    resolvePyodideStart(result);
+    return result;
+  } catch (err) {
+    rejectPyodideStart(err);
+    throw err;
+  }
+}

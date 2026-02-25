@@ -12,7 +12,7 @@ import {
   hideGlobalStatus,
 } from "./utils.js";
 export { getActiveBookName, getCultureInfoName, getDateFormat };
-import { pyodideReadyPromise } from "./wasm.js";
+import { pyodideReadyPromise, startPyodide } from "./wasm.js";
 import { registerSheetButtons } from "./sheet-buttons.js";
 
 // Prints the supported API versions into the Console
@@ -26,6 +26,7 @@ const xlwings = {
   getBookData,
   runActions,
   pyodideReadyPromise,
+  startPyodide,
   getCultureInfoName,
   getDateFormat,
   init,
