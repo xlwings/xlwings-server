@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.1 (Feb 27, 2026)
+
+- Maintenance release.
+
 ## 1.3.0 (Feb 16, 2026)
 
 - Added support for Microsoft Graph API via On-Behalf-Of (OBO) Flow, see: [](auth_entraid.md#microsoft-graph-api-via-on-behalf-of-obo-flow).
