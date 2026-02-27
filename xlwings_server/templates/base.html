@@ -7,7 +7,7 @@
       <title>Task pane</title>
       <link rel="icon" type="image/png" href="{{ url_for('static', path='/images/favicon.png') }}" />
       {# xlwings Wasm #}
-      {% if settings.enable_wasm %}
+      {% if settings.enable_wasm and not settings.is_official_lite_addin %}
         {% if settings.cdn_pyodide %}
           <script
             src="https://cdn.jsdelivr.net/pyodide/v0.27.5/full/pyodide.js"
