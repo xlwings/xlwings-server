@@ -144,7 +144,7 @@ export let pyodideReadyPromise = config.isOfficialLiteAddin
 export async function startPyodide(version, integrity) {
   try {
     const url = config.cdnPyodide
-      ? `${config.cdnPyodideBaseUrl}v${version}/full/pyodide.mjs`
+      ? `${config.cdnPyodideBaseUrl.replace(/\/$/, "")}/v${version}/full/pyodide.mjs`
       : `/static/vendor/pyodide/${version}/pyodide.mjs`;
 
     // Enforce SRI for CDN loads via modulepreload link, which primes the browser
