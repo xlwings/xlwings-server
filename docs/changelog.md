@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.2 (Mar 13, 2026)
+
+- Made Pyodide CDN configurable.
+
 ## 1.3.1 (Feb 27, 2026)
 
 - Maintenance release.
