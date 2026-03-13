@@ -151,6 +151,7 @@ class Settings(BaseSettings):
     hostname: str | None = None
     is_official_lite_addin: bool | None = False
     cdn_pyodide: bool = True
+    cdn_pyodide_base_url: str = "https://cdn.jsdelivr.net/pyodide/"
     cdn_officejs: bool = False
     log_level: str = "INFO"
     # Manifest UUIDs - loaded from pyproject.toml [tool.xlwings_server] or defaults
@@ -181,6 +182,7 @@ class Settings(BaseSettings):
             "environment": self.environment,
             "isOfficialLiteAddin": self.is_official_lite_addin,
             "onWasm": self.enable_wasm,
+            "cdnPyodideBaseUrl": self.cdn_pyodide_base_url,
             "requestTimeout": self.request_timeout,
             "xlwingsVersion": self.xlwings_version,
         }
