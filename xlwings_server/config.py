@@ -181,8 +181,9 @@ class Settings(BaseSettings):
             "customFunctionsRetryCodes": self.custom_functions_retry_codes,
             "environment": self.environment,
             "isOfficialLiteAddin": self.is_official_lite_addin,
-            "onWasm": self.enable_wasm,
+            "cdnPyodide": self.cdn_pyodide,
             "cdnPyodideBaseUrl": self.cdn_pyodide_base_url,
+            "onWasm": self.enable_wasm,
             "requestTimeout": self.request_timeout,
             "xlwingsVersion": self.xlwings_version,
         }
