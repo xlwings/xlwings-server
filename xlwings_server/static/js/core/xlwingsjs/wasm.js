@@ -143,13 +143,11 @@ export let pyodideReadyPromise = config.isOfficialLiteAddin
 // integrity: optional SRI hash string for CDN loads, e.g. "sha384-..."
 export async function startPyodide(version, integrity) {
   try {
-    const url = config.cdnPyodide
-      ? `${config.cdnPyodideBaseUrl.replace(/\/$/, "")}/v${version}/full/pyodide.mjs`
-      : `/static/vendor/pyodide/${version}/pyodide.mjs`;
+    const url = `${config.pyodideBaseUrl.replace(/\/$/, "")}/v${version}/full/pyodide.mjs`;
 
-    // Enforce SRI for CDN loads via modulepreload link, which primes the browser
+    // Enforce SRI via modulepreload link, which primes the browser
     // cache with the verified resource before the dynamic import fetches it.
-    if (config.cdnPyodide && integrity) {
+    if (integrity) {
       const link = document.createElement("link");
       link.rel = "modulepreload";
       link.href = url;

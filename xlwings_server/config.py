@@ -150,8 +150,7 @@ class Settings(BaseSettings):
     functions_namespace: str = "XLWINGS"
     hostname: str | None = None
     is_official_lite_addin: bool | None = False
-    cdn_pyodide: bool = True
-    cdn_pyodide_base_url: str = "https://cdn.jsdelivr.net/pyodide/"
+    pyodide_base_url: str = "https://cdn.jsdelivr.net/pyodide/"
     cdn_officejs: bool = False
     log_level: str = "INFO"
     # Manifest UUIDs - loaded from pyproject.toml [tool.xlwings_server] or defaults
@@ -181,8 +180,7 @@ class Settings(BaseSettings):
             "customFunctionsRetryCodes": self.custom_functions_retry_codes,
             "environment": self.environment,
             "isOfficialLiteAddin": self.is_official_lite_addin,
-            "cdnPyodide": self.cdn_pyodide,
-            "cdnPyodideBaseUrl": self.cdn_pyodide_base_url,
+            "pyodideBaseUrl": self.pyodide_base_url,
             "onWasm": self.enable_wasm,
             "requestTimeout": self.request_timeout,
             "xlwingsVersion": self.xlwings_version,
