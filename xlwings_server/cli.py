@@ -1612,7 +1612,7 @@ def build_wasm_command(
         with open(requirements_file, "r") as f:
             return any("/static/vendor/pyodide/" in line for line in f)
 
-    if settings.cdn_pyodide:
+    if "/static/vendor/pyodide" not in settings.pyodide_base_url:
         requirements_path = output_dir / "wasm" / "requirements.txt"
         if not has_pyodide_requirement(requirements_path):
             remove_dir_if_exists(output_dir / "static" / "vendor" / "pyodide")

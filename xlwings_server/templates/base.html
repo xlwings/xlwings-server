@@ -8,14 +8,7 @@
       <link rel="icon" type="image/png" href="{{ url_for('static', path='/images/favicon.png') }}" />
       {# xlwings Wasm #}
       {% if settings.enable_wasm and not settings.is_official_lite_addin %}
-        {% if settings.cdn_pyodide %}
-          <script
-            src="{{ settings.cdn_pyodide_base_url.rstrip('/') }}/v0.27.5/full/pyodide.js"
-            integrity="sha384-rm4QcPMX69sqmX2kWiJa3BF02sgdJkVyATWkw5NHAxBUAvmLXhToWZYaP2wCcyEe"
-            crossorigin="anonymous"></script>
-        {% else %}
-          <script src="{{ url_for('static', path='/vendor/pyodide/pyodide.js') }}"></script>
-        {% endif %}
+        <script src="{{ settings.pyodide_base_url.rstrip('/') }}/v0.27.5/full/pyodide.js"></script>
       {% endif %}
       {# Config #}
       <script src="{{ url_for('static', path='/js/config.js') }}" defer></script>
