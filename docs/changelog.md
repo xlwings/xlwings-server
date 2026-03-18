@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.4 (Mar 18, 2026)
+
+- Improved error with Pyodide loading issues.
+
 ## 1.3.3 (Mar 14, 2026)
 
 - Improved the Pyodide configuration.
