@@ -158,7 +158,14 @@ export async function startPyodide(version, integrity) {
       await new Promise((resolve) => setTimeout(resolve, 0));
     }
 
-    const { loadPyodide } = await import(url);
+    let loadPyodide;
+    try {
+      ({ loadPyodide } = await import(url));
+    } catch (err) {
+      throw new Error(
+        `Failed to load Pyodide v${version} from ${config.pyodideBaseUrl} [${err.message}]`,
+      );
+    }
     globalThis.loadPyodide = loadPyodide;
     const result = await initPyodide();
     resolvePyodideStart(result);
