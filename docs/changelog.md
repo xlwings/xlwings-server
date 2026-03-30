@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.5 (Mar 30, 2026)
+
+- Bug Fix: Fixed an issue with the Jinja template loader in connection with Starlette 1.0.
+
 ## 1.3.4 (Mar 18, 2026)
 
 - Improved error with Pyodide loading issues.
