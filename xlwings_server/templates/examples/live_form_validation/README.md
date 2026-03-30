@@ -44,7 +44,7 @@ async def name(request: Request, book: dep.Book, name: str = Form(None)):
         request=request,
         name="examples/live_form_validation/add_name_form.html",
         context={"book": book},
-        block_names="content",
+        block_names=["content"],
     )
 
 

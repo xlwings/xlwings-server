@@ -39,7 +39,7 @@ async def name(request: Request, book: dep.Book, name: str = Form(None)):
             "error": error,
             "book": book,
         },
-        block_names="content",
+        block_names=["content"],
     )
 ```
 
