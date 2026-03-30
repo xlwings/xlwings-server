@@ -36,6 +36,9 @@ const xlwings = {
   showGlobalStatus,
   hideGlobalStatus,
   registerCallback,
+  getRangeValues,
+  getSheetValues,
+  getExpandedAddress,
 };
 globalThis.xlwings = xlwings;
 
@@ -230,6 +233,20 @@ async function getSelectedRangeAddress(context) {
     // No range is selected (e.g., a shape is selected)
   }
   return selectionAddress;
+}
+
+function convertDateValues(values, categories) {
+  values.forEach((row, ri) => {
+    const catRow = categories[ri];
+    row.forEach((val, ci) => {
+      const cat = catRow[ci].toString();
+      if ((cat === "Date" || cat === "Time") && typeof val === "number") {
+        values[ri][ci] = new Date(
+          Math.round((val - 25569) * 86400 * 1000),
+        ).toISOString();
+      }
+    });
+  });
 }
 
 async function getBookData(
@@ -466,24 +483,8 @@ async function getBookData(
       if (Office.context.requirements.isSetSupported("ExcelApi", "1.12")) {
         // numberFormatCategories requires Excel 2021/365
         // i.e., dates aren't transformed to Python's datetime in Excel <=2019
-        let categories = item["range"].numberFormatCategories;
-        // Handle dates
-        // https://learn.microsoft.com/en-us/office/dev/scripts/resources/samples/excel-samples#dates
-        values.forEach((valueRow, rowIndex) => {
-          const categoryRow = categories[rowIndex];
-          valueRow.forEach((value, colIndex) => {
-            const category = categoryRow[colIndex];
-            if (
-              (category.toString() === "Date" ||
-                category.toString() === "Time") &&
-              typeof value === "number"
-            ) {
-              values[rowIndex][colIndex] = new Date(
-                Math.round((value - 25569) * 86400 * 1000),
-              ).toISOString();
-            }
-          });
-        });
+
+        convertDateValues(values, item["range"].numberFormatCategories);
       }
     }
     // Tables
@@ -562,34 +563,26 @@ async function getBookData(
   return payload;
 }
 
-// On-demand data fetching globals for lazy loading
-globalThis.xlwingsGetRangeValues = async function (sheetName, address) {
+// On-demand data fetching for lazy loading
+async function getRangeValues(sheetName, address) {
   return await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItem(sheetName);
     const range = sheet.getRange(address);
-    range.load("values");
+    const hasDateCategories = Office.context.requirements.isSetSupported(
+      "ExcelApi",
+      "1.12",
+    );
+    range.load(hasDateCategories ? "values, numberFormatCategories" : "values");
     await context.sync();
     let values = range.values;
-    if (Office.context.requirements.isSetSupported("ExcelApi", "1.12")) {
-      range.load("numberFormatCategories");
-      await context.sync();
-      const categories = range.numberFormatCategories;
-      values.forEach((row, ri) => {
-        row.forEach((val, ci) => {
-          const cat = categories[ri][ci].toString();
-          if ((cat === "Date" || cat === "Time") && typeof val === "number") {
-            values[ri][ci] = new Date(
-              Math.round((val - 25569) * 86400 * 1000),
-            ).toISOString();
-          }
-        });
-      });
+    if (hasDateCategories) {
+      convertDateValues(values, range.numberFormatCategories);
     }
     return values;
   });
-};
+}
 
-globalThis.xlwingsGetSheetValues = async function (sheetName) {
+async function getSheetValues(sheetName) {
   return await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItem(sheetName);
     const usedRange = sheet.getUsedRangeOrNullObject(true);
@@ -598,34 +591,22 @@ globalThis.xlwingsGetSheetValues = async function (sheetName) {
     // Must load from A1 to last cell, matching getBookData() behavior
     const lastCell = usedRange.getLastCell().load("address");
     await context.sync();
+    const hasDateCategories = Office.context.requirements.isSetSupported(
+      "ExcelApi",
+      "1.12",
+    );
     const range = sheet.getRange(`A1:${lastCell.address}`);
-    range.load("values");
+    range.load(hasDateCategories ? "values, numberFormatCategories" : "values");
     await context.sync();
     let values = range.values;
-    if (Office.context.requirements.isSetSupported("ExcelApi", "1.12")) {
-      range.load("numberFormatCategories");
-      await context.sync();
-      const categories = range.numberFormatCategories;
-      values.forEach((row, ri) => {
-        row.forEach((val, ci) => {
-          const cat = categories[ri][ci].toString();
-          if ((cat === "Date" || cat === "Time") && typeof val === "number") {
-            values[ri][ci] = new Date(
-              Math.round((val - 25569) * 86400 * 1000),
-            ).toISOString();
-          }
-        });
-      });
+    if (hasDateCategories) {
+      convertDateValues(values, range.numberFormatCategories);
     }
     return values;
   });
-};
+}
 
-globalThis.xlwingsGetExpandedAddress = async function (
-  sheetName,
-  address,
-  direction,
-) {
+async function getExpandedAddress(sheetName, address, direction) {
   // getRangeEdge requires ExcelApi 1.13 — fall back to no expansion if unavailable
   if (!Office.context.requirements.isSetSupported("ExcelApi", "1.13")) {
     return address;
@@ -767,7 +748,7 @@ globalThis.xlwingsGetExpandedAddress = async function (
 
     return address;
   });
-};
+}
 
 async function runActions(rawData, context = null) {
   if (typeof rawData === "string") {
