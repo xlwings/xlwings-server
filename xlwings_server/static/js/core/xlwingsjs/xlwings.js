@@ -37,8 +37,9 @@ const xlwings = {
   hideGlobalStatus,
   registerCallback,
   getRangeValues,
-  getSheetValues,
   getExpandedAddress,
+  getActiveSheetIndex,
+  getSelection,
 };
 globalThis.xlwings = xlwings;
 
@@ -233,6 +234,27 @@ async function getSelectedRangeAddress(context) {
     // No range is selected (e.g., a shape is selected)
   }
   return selectionAddress;
+}
+
+async function getActiveSheetIndex() {
+  return await Excel.run(async (context) => {
+    const activeSheet = context.workbook.worksheets
+      .getActiveWorksheet()
+      .load("position");
+    await context.sync();
+    return activeSheet.position;
+  });
+}
+
+async function getSelection() {
+  return await Excel.run(async (context) => {
+    const activeSheet = context.workbook.worksheets
+      .getActiveWorksheet()
+      .load("position");
+    const selectionAddress = await getSelectedRangeAddress(context);
+    await context.sync();
+    return { sheetIndex: activeSheet.position, address: selectionAddress };
+  });
 }
 
 function convertDateValues(values, categories) {
@@ -572,30 +594,6 @@ async function getRangeValues(sheetName, address) {
       "ExcelApi",
       "1.12",
     );
-    range.load(hasDateCategories ? "values, numberFormatCategories" : "values");
-    await context.sync();
-    let values = range.values;
-    if (hasDateCategories) {
-      convertDateValues(values, range.numberFormatCategories);
-    }
-    return values;
-  });
-}
-
-async function getSheetValues(sheetName) {
-  return await Excel.run(async (context) => {
-    const sheet = context.workbook.worksheets.getItem(sheetName);
-    const usedRange = sheet.getUsedRangeOrNullObject(true);
-    await context.sync();
-    if (usedRange.isNullObject) return [[]];
-    // Must load from A1 to last cell, matching getBookData() behavior
-    const lastCell = usedRange.getLastCell().load("address");
-    await context.sync();
-    const hasDateCategories = Office.context.requirements.isSetSupported(
-      "ExcelApi",
-      "1.12",
-    );
-    const range = sheet.getRange(`A1:${lastCell.address}`);
     range.load(hasDateCategories ? "values, numberFormatCategories" : "values");
     await context.sync();
     let values = range.values;
