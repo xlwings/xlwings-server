@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.0 (Apr 5, 2026)
+
+- Added support for the new lazy API (xlwings Lite for now only).
+
 ## 1.3.5 (Mar 30, 2026)
 
 - Bug Fix: Fixed an issue with the Jinja template loader in connection with Starlette 1.0.
