@@ -36,6 +36,10 @@ const xlwings = {
   showGlobalStatus,
   hideGlobalStatus,
   registerCallback,
+  getRangeValues,
+  getExpandedAddress,
+  getActiveSheetIndex,
+  getSelection,
 };
 globalThis.xlwings = xlwings;
 
@@ -112,6 +116,7 @@ export async function init() {
           ...xwConfig,
           exclude: matchingMeta.exclude || "",
           include: matchingMeta.include || "",
+          lazy: matchingMeta.lazy || false,
         };
       }
       // Call runPython and restore button default state
@@ -140,6 +145,7 @@ export async function runPython({
   exclude = "",
   headers = {},
   errorDisplayMode = "alert",
+  lazy = false,
 } = {}) {
   await Office.onReady();
   try {
@@ -151,6 +157,7 @@ export async function runPython({
           include,
           exclude,
           headers,
+          lazy,
         },
         context,
       );
@@ -229,8 +236,43 @@ async function getSelectedRangeAddress(context) {
   return selectionAddress;
 }
 
+async function getActiveSheetIndex() {
+  return await Excel.run(async (context) => {
+    const activeSheet = context.workbook.worksheets
+      .getActiveWorksheet()
+      .load("position");
+    await context.sync();
+    return activeSheet.position;
+  });
+}
+
+async function getSelection() {
+  return await Excel.run(async (context) => {
+    const activeSheet = context.workbook.worksheets
+      .getActiveWorksheet()
+      .load("position");
+    const selectionAddress = await getSelectedRangeAddress(context);
+    await context.sync();
+    return { sheetIndex: activeSheet.position, address: selectionAddress };
+  });
+}
+
+function convertDateValues(values, categories) {
+  values.forEach((row, ri) => {
+    const catRow = categories[ri];
+    row.forEach((val, ci) => {
+      const cat = catRow[ci].toString();
+      if ((cat === "Date" || cat === "Time") && typeof val === "number") {
+        values[ri][ci] = new Date(
+          Math.round((val - 25569) * 86400 * 1000),
+        ).toISOString();
+      }
+    });
+  });
+}
+
 async function getBookData(
-  { auth = "", include = "", exclude = "", headers = {} } = {},
+  { auth = "", include = "", exclude = "", headers = {}, lazy = false } = {},
   context = null,
 ) {
   // Context
@@ -243,6 +285,7 @@ async function getBookData(
           include,
           exclude,
           headers,
+          lazy,
         },
         innerContext,
       );
@@ -380,7 +423,7 @@ async function getBookData(
   sheets.forEach((sheet) => {
     sheet.load("name names");
     let lastCell;
-    if (excludeArray.includes(sheet.name)) {
+    if (lazy || excludeArray.includes(sheet.name)) {
       lastCell = null;
     } else if (sheet.getUsedRange() !== undefined) {
       lastCell = sheet.getUsedRange().getLastCell().load("address");
@@ -396,13 +439,15 @@ async function getBookData(
   await context.sync();
 
   sheetsLoader.forEach((item, ix) => {
-    if (!excludeArray.includes(item["sheet"].name)) {
+    if (!lazy && !excludeArray.includes(item["sheet"].name)) {
       let range;
       range = item["sheet"]
         .getRange(`A1:${item["lastCell"].address}`)
         .load("values, numberFormatCategories");
       sheetsLoader[ix]["range"] = range;
-      // Names (sheet scope)
+    }
+    // Names (sheet scope) — always load, even in lazy mode
+    if (!excludeArray.includes(item["sheet"].name)) {
       sheetsLoader[ix]["names"] = item["sheet"].names.load("name, type");
     }
   });
@@ -453,31 +498,15 @@ async function getBookData(
   for (let item of sheetsLoader) {
     let sheet = item["sheet"]; // TODO: replace item["sheet"] with sheet
     let values;
-    if (excludeArray.includes(item["sheet"].name)) {
+    if (lazy || excludeArray.includes(item["sheet"].name)) {
       values = [[]];
     } else {
       values = item["range"].values;
       if (Office.context.requirements.isSetSupported("ExcelApi", "1.12")) {
         // numberFormatCategories requires Excel 2021/365
         // i.e., dates aren't transformed to Python's datetime in Excel <=2019
-        let categories = item["range"].numberFormatCategories;
-        // Handle dates
-        // https://learn.microsoft.com/en-us/office/dev/scripts/resources/samples/excel-samples#dates
-        values.forEach((valueRow, rowIndex) => {
-          const categoryRow = categories[rowIndex];
-          valueRow.forEach((value, colIndex) => {
-            const category = categoryRow[colIndex];
-            if (
-              (category.toString() === "Date" ||
-                category.toString() === "Time") &&
-              typeof value === "number"
-            ) {
-              values[rowIndex][colIndex] = new Date(
-                Math.round((value - 25569) * 86400 * 1000),
-              ).toISOString();
-            }
-          });
-        });
+
+        convertDateValues(values, item["range"].numberFormatCategories);
       }
     }
     // Tables
@@ -554,6 +583,169 @@ async function getBookData(
     });
   }
   return payload;
+}
+
+// On-demand data fetching for lazy loading
+async function getRangeValues(sheetName, address) {
+  return await Excel.run(async (context) => {
+    const sheet = context.workbook.worksheets.getItem(sheetName);
+    const range = sheet.getRange(address);
+    const hasDateCategories = Office.context.requirements.isSetSupported(
+      "ExcelApi",
+      "1.12",
+    );
+    range.load(hasDateCategories ? "values, numberFormatCategories" : "values");
+    await context.sync();
+    let values = range.values;
+    if (hasDateCategories) {
+      convertDateValues(values, range.numberFormatCategories);
+    }
+    return values;
+  });
+}
+
+async function getExpandedAddress(sheetName, address, direction) {
+  // getRangeEdge requires ExcelApi 1.13 — fall back to no expansion if unavailable
+  if (!Office.context.requirements.isSetSupported("ExcelApi", "1.13")) {
+    return address;
+  }
+
+  return await Excel.run(async (context) => {
+    const sheet = context.workbook.worksheets.getItem(sheetName);
+    const startRange = sheet.getRange(address);
+    const usedRange = sheet.getUsedRangeOrNullObject(true);
+    startRange.load("rowIndex, columnIndex, rowCount, columnCount");
+    usedRange.load("rowIndex, columnIndex, rowCount, columnCount");
+    await context.sync();
+
+    if (usedRange.isNullObject) return address;
+
+    const originRow = startRange.rowIndex;
+    const originCol = startRange.columnIndex;
+    const maxRow = usedRange.rowIndex + usedRange.rowCount - 1;
+    const maxCol = usedRange.columnIndex + usedRange.columnCount - 1;
+
+    // Helper: read a single cell's value (equivalent to rng(row, col).raw_value)
+    async function cellValue(row, col) {
+      if (row > maxRow || col > maxCol || row < 0 || col < 0) return null;
+      const cell = sheet.getRangeByIndexes(row, col, 1, 1);
+      cell.load("values");
+      await context.sync();
+      return cell.values[0][0];
+    }
+
+    function isEmpty(val) {
+      return val === null || val === "" || val === undefined;
+    }
+
+    // Helper: equivalent to rng.end("down"/"right") using Office.js getRangeEdge()
+    async function rangeEdge(row, col, dir) {
+      const cell = sheet.getRangeByIndexes(row, col, 1, 1);
+      const edge = cell.getRangeEdge(dir === "down" ? "Down" : "Right");
+      edge.load("rowIndex, columnIndex");
+      await context.sync();
+      return edge;
+    }
+
+    if (direction === "table") {
+      // TableExpander.expand() from expansion.py
+      let bottomRow;
+      const cell2down = await cellValue(originRow + 1, originCol);
+      if (isEmpty(cell2down)) {
+        bottomRow = originRow;
+      } else {
+        const cell3down = await cellValue(originRow + 2, originCol);
+        if (isEmpty(cell3down)) {
+          bottomRow = originRow + 1;
+        } else {
+          const edge = await rangeEdge(originRow + 1, originCol, "down");
+          bottomRow = edge.rowIndex;
+        }
+      }
+
+      let rightCol;
+      const cell2right = await cellValue(originRow, originCol + 1);
+      if (isEmpty(cell2right)) {
+        rightCol = originCol;
+      } else {
+        const cell3right = await cellValue(originRow, originCol + 2);
+        if (isEmpty(cell3right)) {
+          rightCol = originCol + 1;
+        } else {
+          const edge = await rangeEdge(originRow, originCol + 1, "right");
+          rightCol = edge.columnIndex;
+        }
+      }
+
+      const expanded = sheet.getRangeByIndexes(
+        originRow,
+        originCol,
+        bottomRow - originRow + 1,
+        rightCol - originCol + 1,
+      );
+      expanded.load("address");
+      await context.sync();
+      return expanded.address;
+    }
+
+    if (direction === "down" || direction === "vertical" || direction === "d") {
+      // VerticalExpander.expand() from expansion.py
+      let endRow;
+      const cell2down = await cellValue(originRow + 1, originCol);
+      if (isEmpty(cell2down)) {
+        endRow = originRow;
+      } else {
+        const cell3down = await cellValue(originRow + 2, originCol);
+        if (isEmpty(cell3down)) {
+          endRow = originRow + 1;
+        } else {
+          const edge = await rangeEdge(originRow + 1, originCol, "down");
+          endRow = edge.rowIndex;
+        }
+      }
+      const expanded = sheet.getRangeByIndexes(
+        originRow,
+        originCol,
+        endRow - originRow + 1,
+        startRange.columnCount,
+      );
+      expanded.load("address");
+      await context.sync();
+      return expanded.address;
+    }
+
+    if (
+      direction === "right" ||
+      direction === "horizontal" ||
+      direction === "r"
+    ) {
+      // HorizontalExpander.expand() from expansion.py
+      let endCol;
+      const cell2right = await cellValue(originRow, originCol + 1);
+      if (isEmpty(cell2right)) {
+        endCol = originCol;
+      } else {
+        const cell3right = await cellValue(originRow, originCol + 2);
+        if (isEmpty(cell3right)) {
+          endCol = originCol + 1;
+        } else {
+          const edge = await rangeEdge(originRow, originCol + 1, "right");
+          endCol = edge.columnIndex;
+        }
+      }
+      const expanded = sheet.getRangeByIndexes(
+        originRow,
+        originCol,
+        startRange.rowCount,
+        endCol - originCol + 1,
+      );
+      expanded.load("address");
+      await context.sync();
+      return expanded.address;
+    }
+
+    return address;
+  });
 }
 
 async function runActions(rawData, context = null) {

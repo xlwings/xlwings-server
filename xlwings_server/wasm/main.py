@@ -129,6 +129,11 @@ async def custom_scripts_call(data, script_name):
     else:
         module = custom_scripts
 
+    # Save the notebook's active book so the script gets its own isolated book
+    remote_books = xw.engines["remote"].apps.active.books
+    prev_active = remote_books._active
+    prev_count = len(remote_books.books)
+
     book = xw.Book(json=data.to_py())
     try:
         if settings.is_official_lite_addin:
@@ -160,6 +165,11 @@ async def custom_scripts_call(data, script_name):
         else:
             result = {"error": str(e), "details": error_traceback}
             return to_js(result, dict_converter=js.Object.fromEntries)
+    finally:
+        # Remove the script's book and restore the notebook's active book
+        while len(remote_books.books) > prev_count:
+            remote_books.books.pop()
+        remote_books._active = prev_active
 
 
 def custom_scripts_meta():

@@ -65,6 +65,7 @@ async function registerSheetButton(buttonRef, meta) {
           await xlwings.runPython({
             include: meta?.include || "",
             exclude: meta?.exclude || "",
+            lazy: meta?.lazy || false,
             auth: authResult.token,
             headers: { "Auth-Provider": authResult.provider },
             scriptName: scriptName,
