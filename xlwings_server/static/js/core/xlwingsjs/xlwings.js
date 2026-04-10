@@ -788,6 +788,7 @@ async function getSheet(context, action) {
 async function getTable(context, action) {
   // Requires action.args[0] to be the table index
   let sheets = context.workbook.worksheets.load("items");
+  await context.sync();
   const tables = sheets.items[action.sheet_position].tables.load("items");
   await context.sync();
   return tables.items[parseInt(action.args[0].toString())];
@@ -795,6 +796,7 @@ async function getTable(context, action) {
 
 async function getShapeByType(context, sheetPosition, shapeIndex, shapeType) {
   let sheets = context.workbook.worksheets.load("items");
+  await context.sync();
   const shapes = sheets.items[sheetPosition].shapes.load("items");
   await context.sync();
   const myshapes = shapes.items.filter((shape) => shape.type === shapeType);
@@ -903,6 +905,7 @@ async function addSheet(context, action) {
 
 async function setSheetName(context, action) {
   let sheets = context.workbook.worksheets.load("items");
+  await context.sync();
   sheets.items[action.sheet_position].name = action.args[0].toString();
 }
 
