@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.1 (Apr 10, 2026)
+
+- Bug Fix: Calling `await book.flush()` could result in `PropertyNotLoaded` errors.
+
 ## 1.4.0 (Apr 5, 2026)
 
 - Added support for the new lazy API (xlwings Lite for now only).
