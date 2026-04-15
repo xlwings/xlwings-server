@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.2 (Apr 15, 2026)
+
+- Bug Fix: Move icons into a dedicated `images/icons` folder to exclude them from hashing so they can be referenced from the manifest.
+
 ## 1.4.1 (Apr 10, 2026)
 
 - Bug Fix: Calling `await book.flush()` could result in `PropertyNotLoaded` errors.
