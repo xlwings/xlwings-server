@@ -57,6 +57,8 @@ class StaticFileHasher:
             "eula.html",
             "fonts/",
             "images/ribbon/",
+            "images/icons/",
+            "images/xlwings-",
             "index.html",
             "manifest.xml",
             "privacy.html",
@@ -65,7 +67,7 @@ class StaticFileHasher:
             "vendor/",
         }
 
-        path_str = str(path)
+        path_str = path.as_posix()
         return (
             "." in path.name  # requires extension
             and not any(pattern in path_str for pattern in excluded_patterns)
