@@ -1624,7 +1624,10 @@ def build_wasm_command(
     for ds_store in output_dir.rglob(".DS_Store"):
         ds_store.unlink(missing_ok=True)
 
-    # Hash files
+    # Tag static file names with a per-build id so a fresh build invalidates
+    # any cached copies in browsers / Office WebViews. Each StaticFileHasher
+    # instance generates a fresh random suffix by default; pass build_id=...
+    # to pin it (e.g. to a git SHA) for reproducible builds.
     hasher = StaticFileHasher(static_dir=output_dir, templates_dir=output_dir)
     hasher.process_files()
 

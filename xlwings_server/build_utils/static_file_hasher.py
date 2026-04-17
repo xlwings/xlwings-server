@@ -1,35 +1,57 @@
 """Static file hasher for cache-busting in production builds.
 
-This module provides the StaticFileHasher class which adds content-based hashes
-to static file names (e.g., main.js -> main.a1b2c3d4.js) and updates all references
-in HTML, JS, and CSS files accordingly. This is primarily used during the Wasm
-build process to enable effective cache-busting in production deployments.
+This module provides the StaticFileHasher class which adds a per-build tag
+to static file names (e.g., main.js -> main.a1b2c3d4.js) and updates all
+references in HTML, JS, and CSS files accordingly. This is used to enable
+effective cache-busting in production deployments.
+
+A single build_id is used for every file in a build (rather than per-file
+content hashes). This is intentional: it ensures a referencing file's
+embedded reference and the file it points to are invalidated together, and
+it avoids the propagation problem where a content-stable file (e.g. wasm.js)
+ends up with a stale embedded reference to a dependency whose hash changed.
+The cost is that one build invalidates every cached asset.
 """
 
-import hashlib
 import os
 import re
+import secrets
 from pathlib import Path
+from typing import TypedDict
+
+
+class FileMappingEntry(TypedDict):
+    old_name: str
+    new_name: str
+    path: Path
 
 
 class StaticFileHasher:
-    """Hashes static files and updates references for cache-busting.
+    """Tags static files with a per-build id and updates references.
 
-    This utility is used during the Wasm build process to add content-based
-    hashes to static file names (e.g., main.js -> main.a1b2c3d4.js) and update
-    all references in HTML, JS, and CSS files accordingly.
+    Renames eligible files (e.g., main.js -> main.a1b2c3d4.js) using a single
+    build_id shared across the whole build, then rewrites references in HTML,
+    JS, and CSS to match.
 
     Args:
-        static_dir: Directory containing static files to hash
+        static_dir: Directory containing static files to tag
         templates_dir: Directory containing templates with references to update
+        build_id: Optional build identifier; a random 8-char value is used if
+            not given. Pin it (e.g. to package version + git SHA) for
+            reproducible builds.
     """
 
-    def __init__(self, static_dir: Path, templates_dir: Path):
+    def __init__(
+        self, static_dir: Path, templates_dir: Path, build_id: str | None = None
+    ):
         self.static_dir = static_dir
         self.templates_dir = templates_dir
-        self.file_mapping: dict[
-            str, dict[str, str]
-        ] = {}  # rel_path -> {old_name: new_name, path: Path}
+        # One tag per build, used as the suffix on every renamed file. A
+        # caller may pin it (e.g. to the package version + git SHA); otherwise
+        # we generate a random 8-char value so back-to-back builds differ.
+        self.build_id = build_id or secrets.token_hex(4)
+        # rel_path -> entry describing the rename
+        self.file_mapping: dict[str, FileMappingEntry] = {}
         self.processed_files: set[Path] = set()
 
     def get_relative_path(self, path: Path, base_dir: Path) -> Path:
@@ -73,15 +95,10 @@ class StaticFileHasher:
             and not any(pattern in path_str for pattern in excluded_patterns)
         )
 
-    def hash_file(self, path: Path) -> str:
-        """Generate a hash for the given file"""
-        contents = path.read_bytes()
-        return hashlib.sha256(contents).hexdigest()[:8]
-
-    def generate_new_name(self, filename: str, digest: str) -> str:
-        """Generate the new filename with hash included"""
+    def generate_new_name(self, filename: str) -> str:
+        """Generate the new filename with the build_id included"""
         name, ext = os.path.splitext(filename)
-        return f"{name}.{digest}{ext}"
+        return f"{name}.{self.build_id}{ext}"
 
     def get_replacement_patterns(
         self, file_path: Path, rel_path: str, old_name: str, new_name: str
@@ -89,11 +106,16 @@ class StaticFileHasher:
         """Generate all possible path patterns for replacement"""
         patterns = []
         dir_path = os.path.dirname(rel_path)
+        # Join dir_path + filename without producing a leading "/" when
+        # dir_path is empty (top-level file). Absolute patterns prepend "/"
+        # separately below.
+        old_abs = f"{dir_path}/{old_name}" if dir_path else old_name
+        new_abs = f"{dir_path}/{new_name}" if dir_path else new_name
 
-        # For absolute paths (mainly HTML references)
+        # Absolute paths (mainly HTML references)
         abs_patterns = [
-            (f"{rel_path}", f"{dir_path}/{new_name}"),
-            (f"/{rel_path}", f"/{dir_path}/{new_name}"),
+            (old_abs, new_abs),
+            (f"/{old_abs}", f"/{new_abs}"),
         ]
 
         # For relative paths (mainly JS imports)
@@ -179,31 +201,29 @@ class StaticFileHasher:
             file_path.write_text(new_content)
 
     def process_files(self):
-        """Process all static files and update references"""
-        # First pass: hash all files and create mapping
+        """Rename eligible static files to include the per-build tag and
+        rewrite references in HTML/JS/CSS to point at the new names.
+
+        Because every file shares the same build_id suffix, a single rewrite
+        pass is enough — no convergence loop is needed (unlike per-file
+        content hashing, where rewriting a reference can change the
+        referencing file's own hash).
+        """
+        # First pass: build the rename mapping for every eligible file.
         for source_path in self.static_dir.rglob("*"):
             if self.should_process_file(source_path):
                 rel_path = self.get_relative_path(source_path, self.static_dir)
                 rel_path_str = str(rel_path).replace("\\", "/")
-
-                digest = self.hash_file(source_path)
                 old_name = source_path.name
-                new_name = self.generate_new_name(old_name, digest)
-
+                new_name = self.generate_new_name(old_name)
                 self.file_mapping[rel_path_str] = {
                     "old_name": old_name,
                     "new_name": new_name,
                     "path": source_path,
                 }
 
-        # Second pass: rename files
-        for file_info in self.file_mapping.values():
-            old_path = file_info["path"]
-            if old_path.exists():  # Check if not already renamed
-                new_path = old_path.with_name(file_info["new_name"])
-                old_path.rename(new_path)
-
-        # Third pass: update references in files
+        # Second pass: rewrite references first (while files still live at
+        # their original paths and referencing files contain the old names).
         for template_file in self.templates_dir.rglob("*.html"):
             self.replace_in_file(template_file)
 
@@ -212,3 +232,10 @@ class StaticFileHasher:
 
         for css_file in self.static_dir.rglob("*.css"):
             self.replace_in_file(css_file, excluded_dirs=["vendor"])
+
+        # Third pass: rename files on disk.
+        for file_info in self.file_mapping.values():
+            old_path = file_info["path"]
+            if old_path.exists():
+                new_path = old_path.with_name(file_info["new_name"])
+                old_path.rename(new_path)
