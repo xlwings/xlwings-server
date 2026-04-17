@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.3 (Apr 17, 2026)
+
+- Fixed the static file hashing, which could lead to stale file caching (self-hosting).
+
 ## 1.4.2 (Apr 15, 2026)
 
 - Bug Fix: Move icons into a dedicated `images/icons` folder to exclude them from hashing so they can be referenced from the manifest.
