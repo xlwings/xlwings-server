@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.4 (Apr 25, 2026)
+
+- Maintenance release.
+
 ## 1.4.3 (Apr 17, 2026)
 
 - Fixed the static file hashing, which could lead to stale file caching (self-hosting).
