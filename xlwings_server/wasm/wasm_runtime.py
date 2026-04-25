@@ -93,9 +93,9 @@ def create_module_from_string(module_string, module_name, html_output=None):
 
 async def custom_functions_call(data):
     if settings.is_official_lite_addin:
-        import main_editor
+        import main
 
-        module = main_editor
+        module = main
     else:
         module = custom_functions
 
@@ -123,9 +123,9 @@ async def custom_functions_call(data):
 
 async def custom_scripts_call(data, script_name):
     if settings.is_official_lite_addin:
-        import main_editor
+        import main
 
-        module = main_editor
+        module = main
     else:
         module = custom_scripts
 
@@ -164,9 +164,9 @@ async def custom_scripts_call(data, script_name):
 
 def custom_scripts_meta():
     if settings.is_official_lite_addin:
-        import main_editor
+        import main
 
-        module = main_editor
+        module = main
     else:
         module = custom_scripts
     scripts_meta = xlwings.server.custom_scripts_meta(module)

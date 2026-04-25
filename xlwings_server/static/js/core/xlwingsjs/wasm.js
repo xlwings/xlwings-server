@@ -76,8 +76,10 @@ async function initPyodide() {
 
     if (!config.isOfficialLiteAddin) {
       // Entrypoint
-      let mainText = pyodide.FS.readFile("./main.py", { encoding: "utf8" });
-      await pyodide.runPythonAsync(mainText);
+      let runtimeText = pyodide.FS.readFile("./wasm_runtime.py", {
+        encoding: "utf8",
+      });
+      await pyodide.runPythonAsync(runtimeText);
 
       // Functions
       // You can't simply export them as the will be null when used in
