@@ -12,7 +12,7 @@ client = TestClient(main_app)
     [
         "/custom_functions/examples.py",
         "/custom_scripts/examples.py",
-        "/wasm/main.py",
+        "/wasm/wasm_runtime.py",
     ],
 )
 def test_static_endpoints(url_path):

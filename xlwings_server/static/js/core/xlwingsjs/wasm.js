@@ -87,7 +87,6 @@ async function initPyodide() {
       globalThis.wasmCustomFunctionsCall = pyodide.globals.get(
         "custom_functions_call",
       );
-      globalThis.getXlwingsScripts = pyodide.globals.get("get_xlwings_scripts");
       globalThis.wasmCustomFunctionsMeta = pyodide.globals.get(
         "custom_functions_meta",
       );
