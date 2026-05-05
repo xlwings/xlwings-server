@@ -34,6 +34,10 @@ In Excel, go to `Add-ins` on the ribbon's `Home` tab:
 
 The users should get the add-in to show up automatically although it may take a few minutes until they show up. Alternatively, they can go to `Add-ins` on the ribbon's `Home` tab and click on `More Add-ins`. They will see the add-in under the tab `Admin Managed` from where they can install it.
 
+```{note}
+If you want to remove the add-in again and run into issues ("Remove apps failed. No apps were successfully removed. Please try to remove them later."), use this legacy URL: https://admin.microsoft.com/#/Settings/AddIns
+```
+
 ## Office add-in store ("AppSource")
 
 To publish an add-in to the Office add-in store, you will need to become a [Microsoft Partner](https://partner.microsoft.com/).
