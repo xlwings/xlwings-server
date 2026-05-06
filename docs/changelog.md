@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.5 (May 6, 2026)
+
+- Throw custom functions reload errors.
+
 ## 1.4.4 (Apr 25, 2026)
 
 - Maintenance release.

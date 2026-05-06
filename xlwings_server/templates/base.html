@@ -51,6 +51,7 @@
         {{ settings.jsconfig|tojson }}
       </script>
       {# prettier-ignore-end #}
+      <script src="{{ url_for('static', path='/js/core/taskpane-reload.js') }}"></script>
       <script src="{{ url_for('static', path='/js/auth.js') }}"></script>
       {% block custom_functions_code %}
         <script src="{{ url_for('custom_functions_code') }}" defer></script>
@@ -103,6 +104,12 @@
     <div id="global-status-alert" class="alert alert-warning alert-dismissible fade show d-none" role="alert">
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       <span></span>
+    </div>
+    <div id="xlwings-office-ready-error" class="d-none">
+      <div class="xlwings-office-ready-error-inner text-center">
+        <div class="mb-3">The add-in didn't load properly.<br />Please reload to try again.</div>
+        <button type="button" class="btn btn-primary" id="xlwings-taskpane-reload-btn">Reload</button>
+      </div>
     </div>
     {% block content %}
     {% endblock content %}
