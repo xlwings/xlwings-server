@@ -41,6 +41,7 @@ async function reloadCustomFunctions(meta = null, code = null) {
       console.log("Successfully reloaded custom functions!");
     } catch (error) {
       console.error("Error reloading custom functions:", error);
+      throw error;
     }
   } else {
     try {
@@ -53,6 +54,7 @@ async function reloadCustomFunctions(meta = null, code = null) {
       });
     } catch (error) {
       console.error("Failed to register custom functions:", error);
+      throw error;
     }
   }
 }
