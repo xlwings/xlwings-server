@@ -6,11 +6,11 @@ This guide assumes that you have set up your local Git repository according to [
 
 ## Upgrade process
 
-1. Fetch changes from `upstream` and merge them. Make sure to replace `<VERSION>` with the desired version, such as `0.5.3` or `upstream/main` for bleeding edge (see [Changelog](changelog.md)).
+1. Fetch changes from `upstream/legacy` and merge them:
 
    ```text
    git fetch upstream
-   git merge --no-edit <VERSION>
+   git merge --no-edit upstream/legacy
    ```
 
 2. If you get a merge conflict, resolve it.
