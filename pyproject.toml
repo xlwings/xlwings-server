@@ -58,6 +58,13 @@ dev = ["watchfiles>=1.1.1"]
 [project.scripts]
 xlwings-server = "xlwings_server.cli:main"
 
+[tool.uv]
+# These are hard dependencies of xlwings that aren't used with xlwings Server
+override-dependencies = [
+    "appscript ; sys_platform == 'never'",
+    "pywin32 ; sys_platform == 'never'",
+]
+
 [tool.hatch.version]
 source = "vcs"
 
