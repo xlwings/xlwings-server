@@ -1,0 +1,28 @@
+# Virtual environments
+.venv/
+venv/
+
+# Secrets & certificates
+.env
+certs/
+*.pem
+*.key
+
+# Git
+.git/
+.gitignore
+
+# Python artifacts
+__pycache__/
+*.pyc
+
+# Local dev settings
+local.settings.json
+
+# IDE
+.vscode/
+.idea/
+
+# Misc
+*.md
+.DS_Store

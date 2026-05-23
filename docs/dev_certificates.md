@@ -1,10 +1,6 @@
 # Development Certificates
 
-If you are developing on your local computer with the following integration:
-
-- Office.js Add-in
-
-you will need to create development TLS certificates to run the web server on https instead of http. Note that development certificates are never required if you use an online development environment such as [](github_codespaces.md).
+Developing modern Office.js add-ins requires development TLS certificates to run the web server on https instead of http. Note that development certificates are never required if you use an online development environment such as [](github_codespaces.md).
 
 mkcert makes it easy to install self-signed certificates that are trusted by your web browser.
 

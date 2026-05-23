@@ -1,5 +1,70 @@
 # Changelog
 
+## 1.4.5 (May 6, 2026)
+
+- Throw custom functions reload errors.
+
+## 1.4.4 (Apr 25, 2026)
+
+- Maintenance release.
+
+## 1.4.3 (Apr 17, 2026)
+
+- Fixed the static file hashing, which could lead to stale file caching (self-hosting).
+
+## 1.4.2 (Apr 15, 2026)
+
+- Bug Fix: Move icons into a dedicated `images/icons` folder to exclude them from hashing so they can be referenced from the manifest.
+
+## 1.4.1 (Apr 10, 2026)
+
+- Bug Fix: Calling `await book.flush()` could result in `PropertyNotLoaded` errors.
+
+## 1.4.0 (Apr 5, 2026)
+
+- Added support for the new lazy API (xlwings Lite for now only).
+
+## 1.3.5 (Mar 30, 2026)
+
+- Bug Fix: Fixed an issue with the Jinja template loader in connection with Starlette 1.0.
+
+## 1.3.4 (Mar 18, 2026)
+
+- Improved error with Pyodide loading issues.
+
+## 1.3.3 (Mar 14, 2026)
+
+- Improved the Pyodide configuration.
+
+## 1.3.2 (Mar 13, 2026)
+
+- Made Pyodide CDN configurable.
+
+## 1.3.1 (Feb 27, 2026)
+
+- Maintenance release.
+
+## 1.3.0 (Feb 16, 2026)
+
+- Added support for Microsoft Graph API via On-Behalf-Of (OBO) Flow, see: [](auth_entraid.md#microsoft-graph-api-via-on-behalf-of-obo-flow).
+
+## 1.2.0 and 1.2.1 (Feb 6, 2026)
+
+- Added the CLI command `xlwings-server add iis`, which adds support for deployment on Windows Server.
+
+## 1.1.1 (Jan 26, 2026)
+
+- The `xlwings-server migrate` command now takes over the exact version of the dependencies from the legacy repository.
+
+## 1.1.0 (Jan 25, 2026)
+
+- Added the CLI command `xlwings-server add docker`, which adds a `Dockerfile`, `.dockerignore`, and `docker-compose.yaml` to your project.
+- `xlwings-server wasm` was renamed to `xlwings-server build wasm`.
+
+## 1.0.0 (Jan 22, 2026)
+
+This major release provides `xlwings-server` as an installable package. See the [migration guide](migration) for instructions how to upgrade. The minimum supported Python version is now 3.10.
+
 ## 0.12.3 (Jan 22, 2026)
 
 - Upgraded dependencies incl. xlwings to 0.33.20.
@@ -44,11 +109,11 @@
 
 ## 0.11.0 (May 3, 2025)
 
-- Simplified configuration for custom scripts via `@script` decorator instead of `xw-config` in HTML, see [](officejs_run_scripts.md#configuration)
+- Simplified configuration for custom scripts via `@script` decorator instead of `xw-config` in HTML, see [](custom_scripts.md#configuration)
 - Bug Fix: The `.gitattributes` setup so that changes to `requirements-core.txt` are pulled in.
 - Upgraded dependencies incl. xlwings to 0.33.14.
 - **Breaking change:** `XLWINGS_CORS_ALLOW_ORIGINS` now defaults to `[]`. If you use the Office Scripts integration or custom functions with Excel on the web, you need to set this to ["*"].
-- **Breaking change:** The `runPython` call has to be changed when calling it directly from Office.js ribbon buttons, see [](officejs_run_scripts.md#ribbon-button)
+- **Breaking change:** The `runPython` call has to be changed when calling it directly from Office.js ribbon buttons, see [](custom_scripts.md#ribbon-button)
 
 ## 0.10.11 (Apr 21, 2025)
 

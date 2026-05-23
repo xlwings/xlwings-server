@@ -8,35 +8,49 @@ xlwings Server is a self-hosted platform that adds Python support to Microsoft E
 
 ## Development Commands
 
-### Conda environment activation
-
-Run all Terminal commands with an activated conda environment:
-
-```bash
-conda activate xlwings-server
-```
+Run all Terminal commands with `uv run`.
 
 ### Initial Setup
 
 ```bash
-# Install uv package manager
-pip install uv
-
 # Install dependencies
-uv pip sync requirements-dev.txt
+uv sync --group all
 
 # Initialize repo (creates .env, generates UUIDs in config.py)
-python run.py init
+uv run run.py init
+```
+
+### Minimum Python Version and Type Hints
+
+This project requires Python 3.10+ (see `requires-python` in `pyproject.toml`). Use modern Python 3.10+ features:
+
+**Type Hints (PEP 604 and PEP 585):**
+
+- Use `|` for unions: `str | None` instead of `Optional[str]` or `Union[str, None]`
+- Use built-in types for generics: `list[str]`, `dict[str, int]` instead of `List[str]`, `Dict[str, int]`
+- Only import from `typing` when necessary (e.g., `Literal`, `TypedDict`)
+
+**Examples:**
+
+```python
+# Good (Python 3.10+)
+def process(data: dict[str, Any], default: str | None = None) -> list[str]:
+    ...
+
+# Bad (old style)
+from typing import Dict, List, Optional, Union
+def process(data: Dict[str, Any], default: Optional[str] = None) -> List[str]:
+    ...
 ```
 
 ### Running the Server
 
 ```bash
 # Standard development server (with hot reload)
-python run.py
+uv run run.py
 
 # Or using uvicorn directly with HTTPS
-uvicorn app.main:main_app --host 0.0.0.0 --port 8000 --reload --ssl-keyfile ./certs/localhost+2-key.pem --ssl-certfile ./certs/localhost+2.pem
+uv run uvicorn xlwings_server.main:main_app --host 0.0.0.0 --port 8000 --reload --ssl-keyfile ./certs/localhost+2-key.pem --ssl-certfile ./certs/localhost+2.pem
 ```
 
 For production-like local setup with Socket.io on separate port, see DEVELOPER_GUIDE.md.
@@ -45,54 +59,36 @@ For production-like local setup with Socket.io on separate port, see DEVELOPER_G
 
 ```bash
 # Run all tests
-pytest
+uv run pytest
 
 # Run specific test file
-pytest tests/test_dependencies.py
+uv run pytest tests/test_dependencies.py
 
 # Run with verbose output
-pytest -v
+uv run pytest -v
 
 # Tests use .env.test for configuration (loaded via conftest.py)
-```
-
-### Dependency Management
-
-```bash
-# Compile dependencies (after editing requirements*.in files)
-python run.py deps compile
-
-# Upgrade all dependencies to latest versions
-python run.py deps upgrade
 ```
 
 ### Code Quality
 
 ```bash
-# Ruff handles both linting and formatting (configured in pyproject.toml)
-ruff check .
-ruff format .
-
 # Pre-commit hooks (ruff + prettier for JS/HTML/Jinja)
-pre-commit install
-pre-commit run --all-files
-
-# Prettier for frontend files (JS, HTML, Jinja templates)
-# Note: VS Code extension requires explicit .prettierrc.js config
+uv pre-commit run --all-files
 ```
 
 ### Wasm Build
 
 ```bash
 # Build xlwings Wasm distribution
-python run.py wasm --url <url> --output-dir <dir> [--create-zip] [--clean]
+uv run run.py wasm --url <url> --output-dir <dir> [--create-zip] [--clean]
 ```
 
 ### Documentation
 
 ```bash
 # Build docs with live reload (requires docs/requirements.txt)
-sphinx-autobuild docs docs/_build/html --port 9000 -E
+uv run sphinx-autobuild docs docs/_build/html --port 9000 -E
 ```
 
 ### NPM Dependencies
@@ -104,25 +100,43 @@ Node.js files are vendored - not required for runtime, only for upgrades:
 npm install mypackage@latest
 
 # Copy to static folder after updating package.json
-python scripts/copy_node_modules_to_static_folder.py
+uv run scripts/copy_node_modules_to_static_folder.py
 ```
 
 ## Architecture
 
+### Package vs Project Directory Model
+
+xlwings Server 1.0+ uses a Python package distribution model where:
+
+- **PACKAGE_DIR** (`xlwings_server/config.py`): Points to the installed package location in site-packages. Contains core framework code, default templates, and static assets.
+- **PROJECT_DIR** (`xlwings_server/config.py`): Points to the user's project directory (set via `XLWINGS_PROJECT_DIR` env var, defaults to cwd). Contains user customizations.
+
+User projects override package defaults by placing files in their project directory:
+
+- `custom_functions/` - User's Excel custom functions (UDFs)
+- `custom_scripts/` - User's Python scripts for task pane buttons or ribbon buttons
+- `templates/` - Custom Jinja2 templates
+- `static/` - Custom CSS/JS
+- `config.py` - Optional Settings subclass for custom configuration
+- `.env` - Environment-specific settings
+
+The CLI sets `XLWINGS_PROJECT_DIR` before importing the package. Static files and templates are resolved with project directory taking precedence over package directory.
+
 ### Application Structure
 
-- **app/main.py**: FastAPI application setup, middleware, exception handlers, static file mounting
+- **xlwings_server/main.py**: FastAPI application setup, middleware, exception handlers, static file mounting
 
   - Creates two ASGI apps: `main_app` (CORS-wrapped FastAPI) and `sio_app` (Socket.io wrapper)
   - Mounts static files and conditionally mounts wasm/custom_functions/custom_scripts directories
   - Applies OWASP security headers (configurable via XLWINGS_ADD_SECURITY_HEADERS)
 
-- **app/config.py**: Pydantic settings loaded from .env (all settings prefixed with `XLWINGS_`)
+- **xlwings_server/config.py**: Pydantic settings loaded from .env (all settings prefixed with `XLWINGS_`)
 
   - `Settings` class with computed fields like `static_dir` and `jsconfig`
   - Environment-specific manifest UUIDs (dev/qa/uat/staging/prod)
 
-- **app/routers/**: FastAPI routers organized by feature
+- **xlwings_server/routers/**: FastAPI routers organized by feature
   - `xlwings.py`: Main Python execution endpoint, custom functions metadata, alerts
   - `taskpane.py`: Task pane rendering and examples
   - `manifest.py`: Office.js manifest generation
@@ -131,23 +145,23 @@ python scripts/copy_node_modules_to_static_folder.py
 
 ### Authentication System
 
-- **app/auth/**: Pluggable authentication providers
+- **xlwings_server/auth/**: Pluggable authentication providers
   - `entraid/`: Microsoft Entra ID (formerly Azure AD) SSO
   - `custom/`: Template for custom auth providers
   - Configured via `XLWINGS_AUTH_PROVIDERS` list in `.env`
-  - Auth providers must implement standard interface (see app/dependencies.py:authenticate)
+  - Auth providers must implement standard interface (see xlwings_server/dependencies.py:authenticate)
   - Supports role-based access control via `XLWINGS_AUTH_REQUIRED_ROLES`
 
 ### Object Serialization
 
-- **app/serializers/**: Framework for serializing Python objects to/from JSON
+- **xlwings_server/serializers/**: Framework for serializing Python objects to/from JSON
 
   - `framework.py`: Base `Serializer` class and registry system
   - Type-specific serializers: pandas, numpy, dictionary, default
   - Custom encoder/decoder for datetime and registered types
   - Serializers register themselves for specific Python types
 
-- **app/object_handles.py**: Object caching system
+- **xlwings_server/object_handles.py**: Object caching system
   - `ObjectCacheConverter`: Custom URL parameter converter for object handles
   - Supports in-memory (dict) or Redis backend (via `XLWINGS_OBJECT_CACHE_URL`)
   - Optional compression with `XLWINGS_OBJECT_CACHE_ENABLE_COMPRESSION`
@@ -156,22 +170,22 @@ python scripts/copy_node_modules_to_static_folder.py
 
 1. **Server-side execution**: Python runs on server, called from Excel via xlwings endpoints
 2. **xlwings Wasm**: Client-side Python execution using Pyodide (browser-based)
-   - **app/wasm/**: Separate config and main.py for Wasm mode
-   - **app/custom_functions/**: Excel custom functions (UDFs) in Python
-   - **app/custom_scripts/**: Python scripts callable from task pane
+   - **xlwings_server/wasm/**: Separate config and main.py for Wasm mode
+   - **xlwings_server/custom_functions/**: Excel custom functions (UDFs) in Python
+   - **xlwings_server/custom_scripts/**: Python scripts callable from task pane
 
 ### Frontend Integration
 
-- **app/static/js/core/**: Core JavaScript functionality
+- **xlwings_server/static/js/core/**: Core JavaScript functionality
 
   - `xlwingsjs/`: Auth, utils, sheet-buttons
   - `socketio-handlers.js`: Socket.io client connection
   - `hotreload.js`: Auto-refresh in dev mode
   - Office.js integration and Alpine.js CSP boilerplate
 
-- **app/templates/**: Jinja2 templates for task panes and UI
+- **xlwings_server/templates/**: Jinja2 templates for task panes and UI
   - Task pane examples in subdirectories
-  - Template rendering via `app.templates.TemplateResponse`
+  - Template rendering via `.templates.TemplateResponse`
 
 ### Key Dependencies
 
@@ -215,36 +229,25 @@ OWASP security headers applied by middleware in main.py unless `XLWINGS_ADD_SECU
 
 ### Logging and Sanitization
 
-Log injection prevention in `app/routers/xlwings.py:sanitize_log_input()` - replaces newlines/carriage returns. Always sanitize user input before logging.
+Log injection prevention in `xlwings_server/routers/xlwings.py:sanitize_log_input()` - replaces newlines/carriage returns. Always sanitize user input before logging.
 
 ### Hot Reload
 
-In dev mode, `app/hotreload.py` uses watchfiles to monitor file changes and trigger browser refresh via SocketIO.
+In dev mode, `xlwings_server/hotreload.py` uses watchfiles to monitor file changes and trigger browser refresh via SocketIO.
 
 ## Testing Notes
 
 - Tests use pytest with pytest-anyio for async test support
-- `tests/conftest.py` loads `.env.test` before importing app modules (important for settings override)
-- Mock settings using `mocker.patch` on `app.config.settings`
+- `tests/conftest.py` loads `.env.test` before importing xlwings_server modules (important for settings override)
+- Mock settings using `mocker.patch` on `xlwings_server.config.settings`
 - Test fixtures use `anyio_backend` fixture for async compatibility
-
-## Working with xlwings Python Package
-
-To develop against local xlwings package in editable mode:
-
-```bash
-cd ../xlwings
-python setup.py develop
-cd ../xlwings-server
-pip uninstall xlwings  # Remove installed version first
-```
 
 ## Common Gotchas
 
-- **Static file vendoring**: JavaScript dependencies in `node_modules/` must be copied to `app/static/vendor/` using the copy script
+- **Static file vendoring**: JavaScript dependencies in `node_modules/` must be copied to `xlwings_server/static/vendor/` using the copy script
 - **Manifest UUIDs**: Each environment needs unique UUIDs - regenerated by `python run.py init`
 - **CSP headers**: Restrictive by default. Use `XLWINGS_ENABLE_EXCEL_ONLINE=false` for most restrictive local dev CSP
 - **Certificate requirements**: Office.js add-ins require HTTPS with trusted certs even in dev (see docs/dev_certificates.md)
 - **Alert window debugging**: Requires separate dev tools instance (see DEVELOPER_GUIDE.md)
-- **Pyodide offline mode for self-hosting**: Requires micropip and packaging packages in `app/static/vendor/pyodide/`
+- **Pyodide offline mode for self-hosting**: Requires micropip and packaging packages in `xlwings_server/static/vendor/pyodide/`
 - **Wasm**: Unless specifically told, work on the FastAPI backend, not the Wasm mode

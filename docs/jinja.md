@@ -4,21 +4,27 @@ Jinja is a templating engine that uses a syntax similar to Python. In xlwings Se
 
 ## First steps
 
-Under [`app/routers/taskpane.py`](https://github.com/xlwings/xlwings-server/blob/main/app/routers/taskpane.py), you can see that you render HTML templates via `TemplateResponse`. To learn the basics of Jinja templating, first, replace `taskpane.py` with the following:
+To render HTML templates, use `TemplateResponse`. To learn the basics of Jinja templating, first run:
+
+```
+uv run xlwings-server add router
+```
+
+This generates the file `routers/custom.py`. Replace the sample code with this one:
 
 ```python
 from fastapi import APIRouter, Request
 
-from ..templates import TemplateResponse
+from xlwings_server.templates import TemplateResponse
 
 router = APIRouter()
 
 
-@router.get("/taskpane")
-async def taskpane(request: Request):
+@router.get("/example")
+async def example(request: Request):
     return TemplateResponse(
         request=request,
-        name="/examples/hello_world/taskpane_hello.html",
+        name="/examples.html",
         context={
             "languages": ["Python", "Java", "JavaScript"],
             "show": True,
@@ -28,7 +34,7 @@ async def taskpane(request: Request):
 
 ```
 
-Then, replace the content of [`app/templates/examples/hello_world/taskpane_hello.html`](https://github.com/xlwings/xlwings-server/blob/main/app/templates/examples/hello_world/taskpane_hello.html) with the following:
+Then, add a file `example.html` to the `templates` folder with the following content:
 
 ```jinja
 {% extends "base.html" %}
@@ -44,6 +50,8 @@ Then, replace the content of [`app/templates/examples/hello_world/taskpane_hello
   {% endif %}
 {% endblock content %}
 ```
+
+Now, in a normal browser go to https://127.0.0.1:8000/example to see the rendered example page.
 
 The values passed in the `context` dictionary will be available as variables under the names of the dictionary keys. You can put variables in between double curly braces to render their values:
 
@@ -99,7 +107,7 @@ For an in-depth tutorial about Jinja templating, have a look at the [official do
 
 ## Partials
 
-By convention, xlwings Server uses a leading underscore in HTML files to indicate that the file contains only a snippet of HTML, which doesn't render to a complete HTML page, see e.g., [`app/templates/_book.html`](https://github.com/xlwings/xlwings-server/blob/main/app/templates/_book.html).
+By convention, the Jinja community uses a leading underscore in HTML files to indicate that the file contains only a snippet of HTML, which doesn't render to a complete HTML page.
 
 If you use [](htmx.md), you will often return such snippets directly. Otherwise, you can put reusable HTML code in there, which you can include in other files via the following syntax:
 

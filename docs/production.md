@@ -4,30 +4,19 @@ Before deploying to production, there's a few things that you should check for s
 
 ## Taskpane
 
-Replace the [example task pane](https://github.com/xlwings/xlwings-server/blob/main/app/templates/examples/hello_world/taskpane_hello.html) with your own. If you don't have any meaningful content, just leave it empty by providing the following:
-
-<!-- prettier-ignore-->
-```html
-{% extends "base.html" %}
-
-{% block content %}
-  <div class="container-fluid pt-3 ps-3">
-    <h1>Name of your Add-in</h1>
-  </div>
-{% endblock content %}
-```
-
-Store this under `app/templates/taskpane.html` and update the `name` argument under [`app/routers/taskpane.py`](https://github.com/xlwings/xlwings-server/blob/main/app/routers/taskpane.py) to `"taskpane.html"`.
+Edit the content of your task pane under `templates/taskpane.html`. If you want to leave it empty, you can also delete the file.
 
 ## Settings
 
-- Make sure that the environment is set to `"prod"`. This disables hotreload and will prevent unhandled exceptions to be shown in Excel. `xlwings.XlwingsError` continue to be shown:
+- xlwings Server resolves the project directory from the current working directory of the ASGI server process. Start your ASGI server (for example, `uvicorn`) from the root of your code repository, or set the `XLWINGS_PROJECT_DIR` environment variable to point to your repository root when starting it from elsewhere.
+
+- Make sure that the environment is set to `"prod"` (or `"qa"`, `"uat"`, `"staging"`). This disables hotreload and will prevent unhandled exceptions to be shown in Excel. `xlwings.XlwingsError` continue to be shown:
 
   ```ini
   XLWINGS_ENVIRONMENT="prod"
   ```
 
-- Manifest: replace all xlwings references & icons with your own name & icons. Currently, you'll need to do this both in [`app/templates/manifest.xml`](https://github.com/xlwings/xlwings-server/blob/main/app/templates/manifest.xml) as well as in a few settings:
+- Manifest: replace all xlwings references & icons with your own name & icons. Currently, you'll need to do this both in `templates/manifest.xml` as well as in a few settings:
 
   ```ini
   XLWINGS_FUNCTIONS_NAMESPACE="YOUR_NAME"
@@ -40,20 +29,15 @@ Store this under `app/templates/taskpane.html` and update the `name` argument un
   XLWINGS_ENABLE_ALPINEJS_CSP=false
   XLWINGS_ENABLE_HTMX=false
   XLWINGS_ENABLE_SOCKETIO=false
-  XLWINGS_ENABLE_BOOTSTRAP=false
   ```
 
-- Disable the examples:
-
-  ```ini
-  XLWINGS_ENABLE_EXAMPLES=false
-  ```
-
-- If you want to publish the add-in to the public Excel add-in store ("App Source"), you need to set this to `true`. This will load the Office.js JS library from Microsoft's CDN as required by Microsoft:
+- If you want to publish the add-in to the public Excel add-in store ("Marketplace", previously called "App Source"), you need to set the following setting to `true`:
 
   ```ini
   XLWINGS_CDN_OFFICEJS=true
   ```
+
+  This will load the Office.js library from Microsoft's CDN as required by Microsoft.
 
 - Make sure that the log level is not on `"DEBUG"` as this can log sensitive tokens:
 
@@ -91,36 +75,6 @@ Store this under `app/templates/taskpane.html` and update the `name` argument un
   XLWINGS_ENABLE_EXCEL_ONLINE=false
   ```
 
-## License key
-
-When trying out xlwings, you should set your trial key as `XLWINGS_LICENSE_KEY`. Once you enroll in a paid plan, you can either use your developer license key directly or create a deploy key first.
-
-- **Developer key**: this is the key that you will be provided with after purchase. Developer keys are valid for one or more developers (depending on your plan) and expire after 1 year, which means you'll have to update the license key each year.
-
-- **Deploy key**: A deploy key doesn’t expire but is bound to a specific version of xlwings, which means that you need to generate a new deploy key every time you update xlwings. Note that you can’t generate deploy keys with a trial license.
-
-If you have your developer license key set as `XLWINGS_DEVELOPER_KEY` env var in your build environment, it will install the deploy key directly in the Docker image when building the docker file with the following `--build-arg`:
-
-```text
-docker build --build-arg XLWINGS_DEVELOPER_KEY=${XLWINGS_DEVELOPER_KEY} .
-```
-
-If you want to create a deploy key manually, you fist need to activate your developer license like this:
-
-```text
-xlwings license update -k YOUR_LICENSE_KEY
-```
-
-Then you can generate deploy keys (make sure that the xlwings version is the same as the one used in production):
-
-```text
-xlwings license deploy
-```
-
-```{note}
-xlwings licenses keys are verified offline (i.e., no telemetry/license server involved).
-```
-
 ## Workers
 
 ```{note}
@@ -134,7 +88,7 @@ Each worker runs an own instance of the xlwings Server app, and so with each add
 You can have a look at [`docker-compose.prod.yaml`](https://github.com/xlwings/xlwings-server/blob/main/deployment/docker-compose.prod.yaml) to see the gunicorn command with the `workers` argument:
 
 ```text
-gunicorn app.main:main_app
+gunicorn xlwings_server.main:main_app
 --bind 0.0.0.0:8000
 --access-logfile -
 --workers 2

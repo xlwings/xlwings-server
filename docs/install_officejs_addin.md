@@ -1,4 +1,4 @@
-# Install Office.js add-ins
+# Install Add-ins
 
 An Office.js add-in is defined via its _manifest_, which is a simple configuration file in the `XML` format. There are 3 different ways how you can install a manifest in Excel:
 
@@ -33,6 +33,10 @@ In Excel, go to `Add-ins` on the ribbon's `Home` tab:
 - Choose how to upload the app: the easiest way is to activate `Provide link to manifest file` and point to `https://YOUR_SERVER_URL/manifest` (make sure that this endpoint is publicly accessible and not e.g., only accessible internally). Click on `Validate`, then on `Next` where you'll be able to select the users you want to deploy the add-in to. Alternatively, you can also copy/paste the content of `https://<YOUR SERVER>/manifest` into a file that you call `xlwings-server-prod.xml` or something similar, then upload it via `Choose File`.
 
 The users should get the add-in to show up automatically although it may take a few minutes until they show up. Alternatively, they can go to `Add-ins` on the ribbon's `Home` tab and click on `More Add-ins`. They will see the add-in under the tab `Admin Managed` from where they can install it.
+
+```{note}
+If you want to remove the add-in again and run into issues ("Remove apps failed. No apps were successfully removed. Please try to remove them later."), use this legacy URL: https://admin.microsoft.com/#/Settings/AddIns
+```
 
 ## Office add-in store ("AppSource")
 

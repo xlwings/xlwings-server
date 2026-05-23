@@ -1,7 +1,101 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[project]
+name = "xlwings-server"
+dynamic = ["version"]
+description = "Modern Excel add-ins with Python, running on your self-hosted server."
+readme = "README.md"
+license = { text = "xlwings PRO License OR PolyForm Noncommercial License 1.0.0" }
+authors = [
+    { name = "Zoomer Analytics GmbH", email = "felix.zumstein@zoomeranalytics.com" },
+]
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Topic :: Office/Business :: Financial :: Spreadsheet",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+keywords = ["xls", "excel", "spreadsheet", "workbook", "vba", "macro"]
+dependencies = [
+    "aiocache>=0.12.3",
+    "croniter>=6.0.0",
+    "fastapi>=0.125.0",
+    "gunicorn>=23.0.0 ; sys_platform != 'win32'",
+    "hiredis>=3.3.0",
+    "httptools>=0.7.1",
+    "httpx>=0.28.1",
+    "jinja2>=3.1.6",
+    "jinja2-fragments>=1.11.0",
+    "joserfc>=1.6.0",
+    "pydantic-settings>=2.12.0",
+    "python-dotenv>=1.2.1",
+    "python-multipart>=0.0.21",
+    "python-socketio>=5.15.1",
+    "redis>=7.1.0",
+    "tomlkit>=0.13.2",
+    "typing-extensions>=4.15.0 ; python_full_version < '3.11'",
+    "uvicorn>=0.38.0",
+    "uvloop>=0.22.1 ; sys_platform != 'win32'",
+    "xlwings>=0.33.20",
+]
+
+[project.urls]
+Homepage = "https://server.xlwings.org"
+Documentation = "https://server.xlwings.org"
+Repository = "https://github.com/xlwings/xlwings-server"
+Issues = "https://github.com/xlwings/xlwings-server/issues"
+
+[project.optional-dependencies]
+dev = ["watchfiles>=1.1.1"]
+
+[project.scripts]
+xlwings-server = "xlwings_server.cli:main"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.version.raw-options]
+local_scheme = "node-and-date"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "xlwings_server/_version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["xlwings_server"]
+include = ["xlwings_server/**/*", "pyproject.toml", "README.md", "LICENSE.txt"]
+exclude = [
+    "TODO.md",
+    "xlwings_server/static/vendor/@microsoft/office-js/dist/office.d.ts",
+    "xlwings_server/static/vendor/@microsoft/office-js/dist/**/*debug.js",
+    "xlwings_server/static/vendor/@microsoft/office-js/dist/**/*-ios-*.js",
+    "xlwings_server/static/vendor/@microsoft/office-js/dist/**/*-android-*.js",
+    "xlwings_server/static/vendor/@microsoft/office-js/dist/**/custom-functions-runtime*.js",
+    "xlwings_server/static/vendor/pyodide/**/*",
+]
+
+[tool.hatch.build.targets.sdist]
+include = ["xlwings_server/**/*", "pyproject.toml", "README.md", "LICENSE.txt"]
+exclude = [
+    "TODO.md",
+    "xlwings_server/static/vendor/@microsoft/office-js/dist/office.d.ts",
+    "xlwings_server/static/vendor/@microsoft/office-js/dist/**/*debug.js",
+    "xlwings_server/static/vendor/@microsoft/office-js/dist/**/*-ios-*.js",
+    "xlwings_server/static/vendor/@microsoft/office-js/dist/**/*-android-*.js",
+    "xlwings_server/static/vendor/@microsoft/office-js/dist/**/custom-functions-runtime*.js",
+    "xlwings_server/static/vendor/pyodide/**/*",
+]
+
 [tool.ruff]
 line-length = 88
 fix = true
-target-version = "py39"
+target-version = "py310"
 
 [tool.ruff.lint]
 unfixable = [
@@ -30,4 +124,35 @@ select = [
 
 [tool.ruff.lint.isort]
 combine-as-imports = true
-known-first-party = ["app"]
+known-first-party = ["xlwings_server"]
+
+[tool.pytest]
+addopts = ["--import-mode=importlib"]
+
+[dependency-groups]
+dev = ["watchfiles>=1.1.1"]
+
+test = [
+    "azure-functions>=1.24.0; sys_platform != 'win32'",
+    "beautifulsoup4>=4.14.3",
+    "matplotlib>=3.10.8",
+    "pre-commit>=4.5.1",
+    "pytest>=9.0.2",
+    "pytest-mock>=3.15.1",
+    "pandas>=2.3.3",
+]
+
+docs = [
+    "furo>=2025.12.19",
+    "myst-parser[linkify]>=4.0.1",
+    "sphinx>=8.1.3",
+    "sphinx-autobuild>=2024.10.3",
+    "sphinx-copybutton>=0.5.2",
+    "sphinx-design>=0.6.1",
+]
+
+all = [
+    { include-group = "dev" },
+    { include-group = "test" },
+    { include-group = "docs" },
+]

@@ -6,7 +6,7 @@ import pytest
 from numpy.testing import assert_array_equal
 from pandas.testing import assert_frame_equal, assert_series_equal
 
-from app.serializers import deserialize, serialize
+from xlwings_server.serializers import deserialize, serialize
 
 
 def test_serialize():

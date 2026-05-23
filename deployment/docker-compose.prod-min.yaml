@@ -12,7 +12,7 @@ services:
       - "443:8000"
     # Workers can be scaled to whatever meets the traffic
     command: >
-       gunicorn app.main:main_app
+       gunicorn xlwings_server.main:main_app
        --bind 0.0.0.0:8000
        --keyfile /project/certs/privkey.pem
        --certfile /project/certs/fullchain.pem

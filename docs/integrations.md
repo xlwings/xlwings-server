@@ -1,4 +1,4 @@
-# Integrations
+# Integrations Overview
 
 This page gives you an overview over the different integrations that you can use to talk from Excel or Google Sheets to xlwings Server. Note that various integrations can talk to the same server.
 
@@ -52,9 +52,10 @@ If you have access to Office Scripts and aren't affected by the cons, this is a 
 - No support for custom functions.
 - No support for authentication.
 - Requires Microsoft 365 with OneDrive/SharePoint, does not work with the permanent versions of Office like Office 2024.
-- Cannot be used in PowerAutomate flows as running Office Scripts via PowerAutomate doesn't support calls to the external servers.
+- Cannot be used in PowerAutomate flows as running Office Scripts via PowerAutomate doesn't support calls to external servers.
 - Does not work without an Internet connection.
 - Does not comply with privacy standards: transmits content to Microsoft.
+- Local files can't be accessed.
 - Developing requires a [tunneling solution](tunneling.md) like ngrok.
 
 ## Google Apps Script

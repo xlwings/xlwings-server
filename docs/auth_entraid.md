@@ -35,7 +35,6 @@ SSO is only available for Office.js add-ins.
 Optionally, you can work with roles. On the [Azure Dashboard](https://portal.azure.com/), go to `Microsoft Entra ID`. On the left side bar under `Manage`, click on `App registrations`. Click on the correct app, then:
 
 - `App roles` (left sidebar, under `Manage`):
-
   - Click on `Create app role`
   - `Display name`: e.g. `Writer`
   - `Allowed member types`: `Users/Groups`
@@ -56,10 +55,78 @@ Optionally, you can work with roles. On the [Azure Dashboard](https://portal.azu
 
 These roles will be available under `User.roles` and can be used in order to implement role-based access control (RBAC), see [](#authorization).
 
-## Air-gapped servers
+## Microsoft Graph API via On-Behalf-Of (OBO) Flow
+
+You can access the Microsoft Graph API on behalf of the authenticated user using the On-Behalf-Of (OBO) flow. This allows your custom scripts and custom functions to interact with SharePoint, OneDrive, Outlook, and other Microsoft 365 services.
+
+### Setup
+
+1. On the [Azure Dashboard](https://portal.azure.com/), go to `Microsoft Entra ID` > `App registrations` and select your app.
+
+2. Under `Certificates & secrets` (left sidebar), create a new client secret and add it to your `.env` file or environment variables, respectively:
+
+   ```ini
+   XLWINGS_AUTH_ENTRAID_CLIENT_SECRET="your-client-secret"
+   ```
+
+3. Under `API permissions` (left sidebar), click `Add a permission` > `Microsoft Graph` > `Delegated permissions`, then add the permissions your application needs (e.g., `User.Read`, `Sites.Read.All`, `Files.Read.All`) and confirm via `Add permissions`.
+
+4. Click `Grant admin consent` (next to `+ Add permission`) to consent to the permissions on behalf of all users in your organization. This is required because the OBO flow cannot prompt users for interactive consent.
+
+### Usage
+
+Use `current_user.get_graph_client()` in your custom scripts or custom functions to get a Graph API client:
+
+```python
+import xlwings as xw
+from xlwings import script
+from xlwings_server.models import CurrentUser
+
+
+@script
+async def get_user_profile(book: xw.Book, current_user: CurrentUser):
+    async with current_user.get_graph_client() as graph:
+        # Get user profile
+        response = await graph.get("/me")
+        me = response.json()
+        sheet = book.sheets.active
+        sheet["A1"].value = me["displayName"]
+        sheet["A2"].value = me["mail"]
+```
+
+The `GraphClient` provides `get()`, `post()`, `patch()`, and `delete()` methods. The path is relative to `https://graph.microsoft.com/v1.0`. All keyword arguments are passed through to [httpx](https://www.python-httpx.org/), so you can use `params`, `json`, `headers`, `timeout`, etc. All methods return an `httpx.Response` object. A few examples:
+
+```python
+# List files in OneDrive (Files.Read)
+response = await graph.get("/me/drive/recent")
+files = response.json()
+
+# Query parameters (Mail.Read)
+response = await graph.get("/me/messages", params={"$top": 10})
+messages = response.json()
+
+# POST with JSON body (Mail.Send)
+await graph.post("/me/sendMail", json={"message": {...}})
+
+# Binary content, e.g., file download (Files.Read)
+response = await graph.get("/me/drive/items/{id}/content")
+file_bytes = response.content
+```
+
+```{note}
+The OBO token is kept server-side and is never sent back to the Excel client. Only the results of the Graph API calls are returned.
+```
+
+## JWKS with air-gapped servers
 
 In order to verify the JWT token that Office.js sends to the backend, the backend needs access to the latest version of the Azure JSON Web Key Set (JWKS).
 
-If your application runs on an air-gapped server and can't download the JWKS directly from the Internet, you can provide your own function under [`app/auth/entraid/jwks.py`](https://github.com/xlwings/xlwings-server/blob/main/app/auth/entraid/jwks.py) to access the JSON file. For example, you could have a cron job that downloads the JSON document once every 24 hours and stores it in a location where the air-gapped server has access.
+If your application runs on an air-gapped server and can't download the JWKS directly from the internet, you can provide your own function to access the JSON file. For example, you could have a cron job that downloads the JSON document once every 24 hours and stores it in a location where the air-gapped server has access. The URL to retrieve the JWKS JSON file is: https://login.microsoftonline.com/common/discovery/v2.0/keys
 
-The URL to retrieve the JWKS JSON file is: https://login.microsoftonline.com/common/discovery/v2.0/keys
+To implement your own function, run the following command on a Terminal:
+
+```
+uv run xlwings-server add auth entraid
+```
+
+This will create the following file `auth/entraid/jwks.py` where you can implement the `get_jwks_json` function to read the externally downloaded JSON file.

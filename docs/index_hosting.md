@@ -1,6 +1,6 @@
 # Hosting Solutions
 
-This section is about deploying xlwings Server to a backend running Python. If you don't want to run Python on the server, check out [](index_wasm.md).
+This section shows a few examples of how to deploy xlwings Server to a hosted backend.
 
 ```{toctree}
 :maxdepth: 1
@@ -10,4 +10,5 @@ azure_container_apps
 docker_compose
 aws_app_runner
 render
+windows_server
 ```

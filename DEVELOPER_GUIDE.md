@@ -1,12 +1,20 @@
 # Developer Guide
 
+## New package setup
+
+Install xlwings-server in editable mode from another project:
+
+```
+uv pip install -e "xlwings-server[dev] @ ../xlwings-server"
+```
+
 ## Run everything local
 
 To get a prod-like setup while running the app locally, run the following in separate terminals:
 
 - `docker compose -f tests/docker-compose.redis.yaml up`
-- `uvicorn app.main:main_app --host 0.0.0.0 --port 8000 --reload --ssl-keyfile ./certs/localhost+2-key.pem --ssl-certfile ./certs/localhost+2.pem`
-- `export XLWINGS_SOCKETIO_SERVER_APP=true && uvicorn app.main:sio_app --host 0.0.0.0 --port 8001 --reload --ssl-keyfile ./certs/localhost+2-key.pem --ssl-certfile ./certs/localhost+2.pem`
+- `uv run uvicorn xlwings_server.main:main_app --host 0.0.0.0 --port 8000 --reload --ssl-keyfile ./certs/localhost+2-key.pem --ssl-certfile ./certs/localhost+2.pem`
+- `export XLWINGS_SOCKETIO_SERVER_APP=true && uv run uvicorn xlwings_server.main:sio_app --host 0.0.0.0 --port 8001 --reload --ssl-keyfile ./certs/localhost+2-key.pem --ssl-certfile ./certs/localhost+2.pem`
 
 in `.env`:
 
@@ -39,7 +47,7 @@ globalThis.socket = io("https://127.0.0.1:8001", {
 From the root dir, run:
 
 ```
-sphinx-autobuild docs docs/_build/html  --port 9000 -E
+uv run sphinx-autobuild docs docs/_build/html  --port 9000 -E
 ```
 
 The requirements are currently under `docs/requirements.txt` and have not been included in `requirements-dev.txt` as there's an incompatibility with Python 3.9.
@@ -62,7 +70,7 @@ Or use the VS Code extension `Version Lens`, which allows you to update the pack
 After updating a package in `packages.json`, run `sudo npm install` followed by:
 
 ```
-python scripts/copy_node_modules_to_static_folder.py
+uv run scripts/copy_node_modules_to_static_folder.py
 ```
 
 to copy over the files to the static folder.

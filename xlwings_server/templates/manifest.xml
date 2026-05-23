@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<OfficeApp xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+  xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="TaskPaneApp">
+  <Id>{{ manifest_id }}</Id>
+  <Version>1.0.0.0</Version>
+  <ProviderName>xlwings</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="{{ settings.project_name }}{{ ' [' + settings.environment + ']' if settings.environment != 'prod'}}" />
+  <Description DefaultValue="{{ settings.project_name }}{{ ' [' + settings.environment + ']' if settings.environment != 'prod'}}" />
+  <IconUrl DefaultValue="{{ base_url }}{{ settings.static_url_path }}/images/icons/xlwings-32.png" />
+  <HighResolutionIconUrl DefaultValue="{{ base_url }}{{ settings.static_url_path }}/images/icons/xlwings-64.png" />
+  <SupportUrl DefaultValue="https://www.xlwings.org/contact" />
+  <AppDomains>
+    <AppDomain>{{ base_url_with_app_path }}</AppDomain>
+  </AppDomains>
+  <Hosts>
+    <Host Name="Workbook" />
+  </Hosts>
+  <!-- SharedRuntime for Custom Functions -->
+  <Requirements>
+    <Sets DefaultMinVersion="1.1">
+      <Set Name="SharedRuntime" MinVersion="1.1" />
+    </Sets>
+  </Requirements>
+  <DefaultSettings>
+    <SourceLocation DefaultValue="{{ base_url_with_app_path }}/taskpane.html" />
+  </DefaultSettings>
+  <Permissions>ReadWriteDocument</Permissions>
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Hosts>
+      <Host xsi:type="Workbook">
+        <!-- Custom Functions -->
+        <Runtimes>
+          <Runtime resid="Taskpane.Url" lifetime="long" />
+        </Runtimes>
+        <AllFormFactors>
+          <ExtensionPoint xsi:type="CustomFunctions">
+            <Script>
+              <SourceLocation resid="Functions.Script.Url" />
+            </Script>
+            <Page>
+              <SourceLocation resid="Taskpane.Url" />
+            </Page>
+            <Metadata>
+              <SourceLocation resid="Functions.Metadata.Url" />
+            </Metadata>
+            {% if settings.functions_namespace or settings.environment != 'prod' %}
+            <Namespace resid="Functions.Namespace" />
+            {% endif %}
+          </ExtensionPoint>
+        </AllFormFactors>
+
+        <DesktopFormFactor>
+          <!-- FunctionFile is used to bind functions directly to Ribbon buttons -->
+          <FunctionFile resid="Taskpane.Url" />
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <CustomTab id="MyTab">
+              <Group id="MyCommandsGroup">
+                <Label resid="MyCommandsGroup.Label" />
+                <Icon>
+                  <bt:Image size="16" resid="Icon.16x16" />
+                  <bt:Image size="32" resid="Icon.32x32" />
+                  <bt:Image size="80" resid="Icon.80x80" />
+                </Icon>
+
+                <!-- Ribbon button that calls a function -->
+                <Control xsi:type="Button" id="MyFunctionButton">
+                  <!-- Label for your button. resid must point to a ShortString resource -->
+                  <Label resid="MyFunctionButton.Label" />
+                  <Supertip>
+                    <!-- ToolTip title. resid must point to a ShortString resource -->
+                    <Title resid="MyFunctionButton.Label" />
+                    <!-- ToolTip description. resid must point to a LongString resource -->
+                    <Description resid="MyFunctionButton.Tooltip" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16" />
+                    <bt:Image size="32" resid="Icon.32x32" />
+                    <bt:Image size="80" resid="Icon.80x80" />
+                  </Icon>
+                  <!--Action type must be ExecuteFunction -->
+                  <Action xsi:type="ExecuteFunction">
+                    <!-- This is the name that you use in Office.actions.associate() to connect it to a function -->
+                    <FunctionName>hello-ribbon</FunctionName>
+                  </Action>
+                </Control>
+
+                <!-- Ribbon button that opens the task pane -->
+                <Control xsi:type="Button" id="MyTaskpaneButton">
+                  <Label resid="MyTaskpaneButton.Label" />
+                  <Supertip>
+                    <Title resid="MyTaskpaneButton.Label" />
+                    <Description resid="MyTaskpaneButton.Tooltip" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="Icon.16x16" />
+                    <bt:Image size="32" resid="Icon.32x32" />
+                    <bt:Image size="80" resid="Icon.80x80" />
+                  </Icon>
+                  <!-- Action type must be ShowTaskpane -->
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>ButtonId1</TaskpaneId>
+                    <!-- resid must point to a Url Resource -->
+                    <SourceLocation resid="Taskpane.Url" />
+                  </Action>
+                </Control>
+              </Group>
+              <Label resid="MyTab.TabLabel" />
+            </CustomTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+
+    <Resources>
+      <bt:Images>
+        <bt:Image id="Icon.16x16" DefaultValue="{{ base_url }}{{ settings.static_url_path }}/images/icons/xlwings-16.png" />
+        <bt:Image id="Icon.32x32" DefaultValue="{{ base_url }}{{ settings.static_url_path }}/images/icons/xlwings-32.png" />
+        <bt:Image id="Icon.80x80" DefaultValue="{{ base_url }}{{ settings.static_url_path }}/images/icons/xlwings-80.png" />
+      </bt:Images>
+      <bt:Urls>
+        <!-- This must point to the HTML document with the task pane -->
+        <bt:Url id="Taskpane.Url" DefaultValue="{{ base_url_with_app_path }}/taskpane.html" />
+        <bt:Url id="Functions.Script.Url" DefaultValue="{{ base_url_with_app_path }}/xlwings/custom-functions-code.js" />
+        <bt:Url id="Functions.Metadata.Url" DefaultValue="{{ base_url_with_app_path }}/xlwings/custom-functions-meta.json" />
+      </bt:Urls>
+      <bt:ShortStrings>
+        {% if settings.functions_namespace or settings.environment != 'prod' %}
+        <bt:String id="Functions.Namespace" DefaultValue="{{ settings.functions_namespace|upper }}{{ '_' if settings.functions_namespace and settings.environment != 'prod'}}{{ settings.environment|upper if settings.environment != 'prod'}}" />
+        {% endif %}
+        <bt:String id="MyTab.TabLabel" DefaultValue="{{ settings.project_name }}{{ ' [' + settings.environment + ']' if settings.environment != 'prod'}}" />
+        <bt:String id="MyCommandsGroup.Label" DefaultValue="MyGroup" />
+        <bt:String id="MyFunctionButton.Label" DefaultValue="Hello World" />
+        <bt:String id="MyTaskpaneButton.Label" DefaultValue="Show Taskpane" />
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="MyFunctionButton.Tooltip" DefaultValue="Click to call the hello function" />
+        <bt:String id="MyTaskpaneButton.Tooltip" DefaultValue="Click to show the task pane" />
+      </bt:LongStrings>
+    </Resources>
+
+    {% if "entraid" in settings.auth_providers %}
+    <WebApplicationInfo>
+      <Id>{{ settings.auth_entraid_client_id }}</Id>
+      <Resource>api://{{ base_url_with_app_path|replace("https://", "") }}/{{ settings.auth_entraid_client_id }}</Resource>
+      <Scopes>
+        <Scope>openid</Scope>
+        <Scope>profile</Scope>
+      </Scopes>
+    </WebApplicationInfo>
+    {% endif %}
+  </VersionOverrides>
+</OfficeApp>

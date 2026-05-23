@@ -8,7 +8,7 @@ xlwings Server integrates with htmx to facilitate authentication and provide acc
 
 ## First steps
 
-htmx works by adding attributes (`hx-...`) to your HTML tags. Let's have a look at a simple [form example](https://github.com/xlwings/xlwings-server/tree/main/app/templates/examples/htmx_form). The file `taskpane_htmx_form.html` contains this form:
+htmx works by adding attributes (`hx-...`) to your HTML tags. Let's have a look at a simple [form example](https://github.com/xlwings/xlwings-server/tree/main/xlwings_server/templates/examples/htmx_form). The file `taskpane_htmx_form.html` contains this form:
 
 ```html
 <form hx-post="/hello" hx-target="#result">
@@ -24,7 +24,7 @@ htmx works by adding attributes (`hx-...`) to your HTML tags. Let's have a look 
 - `hx-post`: This will trigger a POST request to the indicated endpoint when the button is clicked. It will send the inputs of the form to the backend. Note that `input` elements require a `name` attribute under which the value will be accessible on the backend.
 - `hx-target`: this specifies where the response from the server (an HTML snippet), will be swapped. `hx-target="#result"` means that it will be swapped inside the `div` with the `id="result"`. By default, htmx swaps the inner part of the target element. If you wanted to change this to also replace the outer `<div id="result" class="mt-4"></div>`, you would have to add the attribute `hx-swap="outerHTML"`.
 
-On the backend, FastAPI allows you to handle the POST request like this in `taskpane.py`:
+On the backend, FastAPI allows you to handle the POST request like this (run `uv run xlwings-server add router` to get `routers/custom.py` where you can paste this):
 
 ```python
 @router.post("/hello")
@@ -60,9 +60,9 @@ The `TemplateResponse` renders this template and returns it to the frontend, whe
 
 ## Interacting with Excel
 
-To see how you can interact with the Excel object model from an htmx task pane, have a look at the example [`app/templates/examples/excel_object_model`](https://github.com/xlwings/xlwings-server/tree/main/app/templates/examples/excel_object_model). In summary, here's what you need to do:
+To see how you can interact with the Excel object model from an htmx task pane, have a look at the example [`xlwings_server/templates/examples/excel_object_model`](https://github.com/xlwings/xlwings-server/tree/main/xlwings_server/templates/examples/excel_object_model). In summary, here's what you need to do:
 
-- On the same element where you put the `hx-post` attribute, add `xw-book="true"`. This will provide the backend with the content of the workbook. If you need to include or exclude certain sheets, additionally provide `xw-config='{"exclude": "MySheet"}'` as an attribute with the desired [config](officejs_run_scripts.md#configuration).
+- On the same element where you put the `hx-post` attribute, add `xw-book="true"`. This will provide the backend with the content of the workbook. If you need to include or exclude certain sheets, additionally provide `xw-config='{"exclude": "MySheet"}'` as an attribute with the desired [config](custom_scripts.md#configuration).
 - Include the `Book` dependency in your endpoint: `book: dep.Book` (note the import: `from .. import dependencies as dep`).
 - Include the `"book"` key in the `context` of your `TemplateResponse`, e.g., `context={"book": book}`. If you call your book object differently, let's say `wb`, it would look like this: `context={"book": wb}`.
 - In your template, in the part that is being swapped into the HTML, add the following line: `{% include "_book.html" %}`.
@@ -71,14 +71,14 @@ To see how you can interact with the Excel object model from an htmx task pane, 
 ## Security
 
 - Always return your HTML response via `TemplateResponse` to make sure that user inputs are properly escaped.
-- Other security-related htmx configs are set under [`app/static/js/core/htmx-handlers.js`](https://github.com/xlwings/xlwings-server/blob/main/app/static/js/core/htmx-handlers.js).
+- Other security-related htmx configs are set under [`xlwings_server/static/js/core/htmx-handlers.js`](https://github.com/xlwings/xlwings-server/blob/main/xlwings_server/static/js/core/htmx-handlers.js).
 - Read about htmx security in the official docs: https://htmx.org/docs/#security
 
 ## Examples
 
-- Simple form: [`app/templates/examples/htmx_form`](https://github.com/xlwings/xlwings-server/tree/main/app/templates/examples/htmx_form)
-- Form with Excel interaction: [`app/templates/examples/excel_object_model`](https://github.com/xlwings/xlwings-server/tree/main/app/templates/examples/excel_object_model)
-- Authentication: [`app/templates/examples/auth`](https://github.com/xlwings/xlwings-server/tree/main/app/templates/examples/auth)
+- Simple form: [`xlwings_server/templates/examples/htmx_form`](https://github.com/xlwings/xlwings-server/tree/main/xlwings_server/templates/examples/htmx_form)
+- Form with Excel interaction: [`xlwings_server/templates/examples/excel_object_model`](https://github.com/xlwings/xlwings-server/tree/main/xlwings_server/templates/examples/excel_object_model)
+- Authentication: [`xlwings_server/templates/examples/auth`](https://github.com/xlwings/xlwings-server/tree/main/xlwings_server/templates/examples/auth)
 
 ## Further Reading
 

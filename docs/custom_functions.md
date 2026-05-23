@@ -1,41 +1,29 @@
 # Custom Functions
 
-This tutorial teaches you everything about custom functions. Note that custom functions are only supported with Office.js add-ins.
+This tutorial teaches you everything about custom functions.
 
 ## Basic syntax
 
-As you can see in the [examples](https://github.com/xlwings/xlwings-server/blob/main/app/custom_functions/examples.py), the simplest custom function only requires the `@func` decorator:
+As you can see in the included sample under `custom_functions/functions.py`, the simplest custom function only requires the `@func` decorator:
 
 ```python
-from xlwings.server import func
+from xlwings import func
 
 @func
 def hello(name):
     return f"Hello {name}!"
 ```
 
-```{note}
-- The `func` decorator is imported from `xlwings.server` rather than `xlwings`.
-- While it's ok to edit the functions in `examples.py` to try things out, you shouldn't commit the changes to Git to prevent future merge conflicts. Rather, create a new Python module as explained in the next section.
-```
+## Adding New Modules
 
-## Adding new custom functions
+You can add your custom functions to the `functions.py` module. You can, however, also create new modules:
 
-Here is how you can write your own custom functions:
+1. Add a Python module under `custom_functions`, e.g., `myfunctions.py`.
+2. Add the following import statement to `custom_functions/__init__.py`:
 
-1. Add a Python module under [`app/custom_functions`](https://github.com/xlwings/xlwings-server/blob/main/app/custom_functions), e.g., `myfunctions.py`.
-2. Add the following import statement (highlighted line) to [`app/custom_functions/__init__.py`](https://github.com/xlwings/xlwings-server/blob/main/app/custom_functions/__init__.py):
-
-```{code-block} python
-:emphasize-lines: 6
-
-from ..config import settings
-
-if settings.enable_examples:
-    from .examples import *
-
-from .myfunctions import *
-```
+   ```{code-block} python
+   from .myfunctions import *
+   ```
 
 ```{note}
 During development, changes to the functions will be automatically reloaded in Excel. However, in production, if your changes include adding/deleting functions or editing the function arguments, you will need to restart Excel. A restart is not required if you're just editing the body of an existing function.
@@ -49,7 +37,7 @@ For example, to read in the values of a range as pandas DataFrame and return the
 
 ```python
 import pandas as pd
-from xlwings.server import func, arg, ret
+from xlwings import func, arg, ret
 
 @func
 @arg("df", pd.DataFrame, index=False, header=False)
@@ -65,7 +53,7 @@ For an overview of the available converters and options, have a look at [Convert
 You can use type hints instead of or in combination with decorators:
 
 ```python
-from xlwings.server import func
+from xlwings import func
 import pandas as pd
 
 @func
@@ -82,7 +70,7 @@ To set `index=False` for both the argument and the return value, you can annotat
 
 ```python
 from typing import Annotated
-from xlwings.server import func
+from xlwings import func
 import pandas as pd
 
 @func
@@ -97,7 +85,7 @@ As this might be a little harder to read, you can extract the type definition, w
 
 ```python
 from typing import Annotated
-from xlwings.server import func
+from xlwings import func
 import pandas as pd
 
 Df = Annotated[pd.DataFrame, {"index": False}]
@@ -112,7 +100,7 @@ Alternatively, you could also combine type hints with decorators:
 
 ```python
 from typing import Annotated
-from xlwings.server import func, arg, ret
+from xlwings import func, arg, ret
 import pandas as pd
 
 @func
@@ -128,7 +116,7 @@ def myfunction(df: pd.DataFrame) -> pd.DataFrame:
 Varargs are supported. You can also use a converter, which will be applied to all arguments provided by `*args`:
 
 ```python
-from xlwings.server import func, arg
+from xlwings import func, arg
 
 @func
 @arg("*args", pd.DataFrame, index=False)
@@ -140,7 +128,7 @@ and the same with type hints:
 
 ```python
 from typing import Annotated
-from xlwings.server import func
+from xlwings import func
 
 @func
 def concat(*args: Annotated[pd.DataFrame, {"index": False}]):
@@ -152,7 +140,7 @@ def concat(*args: Annotated[pd.DataFrame, {"index": False}]):
 To describe your function and its arguments, you can use a function docstring or the `arg` decorator, respectively:
 
 ```python
-from xlwings.server import func, arg
+from xlwings import func, arg
 
 @func
 @arg("name", doc='A name such as "World"')
@@ -165,7 +153,7 @@ And again with type hints:
 
 ```python
 from typing import Annotated
-from xlwings.server import func
+from xlwings import func
 
 @func
 def hello(name: Annotated[str, {"doc": 'A name such as "World"'}]):
@@ -185,7 +173,7 @@ In the context of custom functions, xlwings will detect numbers, strings, and bo
 
 ```python
 import datetime as dt
-from xlwings.server import func
+from xlwings import func
 
 @func
 @arg("date", dt.datetime)
@@ -197,7 +185,7 @@ And again with type hints:
 
 ```python
 import datetime as dt
-from xlwings.server import func
+from xlwings import func
 
 @func
 def isoformat(date: dt.datetime):
@@ -211,7 +199,7 @@ If you have multiple values that you need to convert, you can use the `xlwings.t
 ```python
 import datetime as dt
 import xlwings as xw
-from xlwings.server import func
+from xlwings import func
 
 @func
 def isoformat(dates):
@@ -223,7 +211,7 @@ And if you are dealing with pandas DataFrames, you can simply use the `parse_dat
 
 ```python
 import pandas as pd
-from xlwings.server import func, arg
+from xlwings import func, arg
 
 @func
 @arg("df", pd.DataFrame, parse_dates=[0])
@@ -236,7 +224,7 @@ and again with type hints:
 ```python
 from typing import Annotated
 import pandas as pd
-from xlwings.server import func
+from xlwings import func
 
 @func
 def timeseries_start(df: Annotated[pd.DataFrame, {"parse_dates": [0]}]):
@@ -252,7 +240,7 @@ When writing datetime object to Excel, xlwings automatically formats the cells a
 ```python
 import datetime as dt
 import xlwings as xw
-from xlwings.server import func
+from xlwings import func
 
 @func
 def pytoday():
@@ -264,7 +252,7 @@ By default, it will format the date according to the cultural info of your Excel
 ```python
 import datetime as dt
 import xlwings as xw
-from xlwings.server import func
+from xlwings import func
 
 @func
 @ret(date_format="yyyy-m-d")
@@ -277,7 +265,7 @@ and again with type hints:
 ```python
 import datetime as dt
 import xlwings as xw
-from xlwings.server import func
+from xlwings import func
 
 @func
 def pytoday() -> Annotated[dt.date, {"date_format": "yyyy-m-d"}]:
@@ -296,7 +284,7 @@ A namespace groups related custom functions together by prepending the namespace
 
 ```python
 import numpy as np
-from xlwings.server import func
+from xlwings import func
 
 @func(namespace="numpy")
 def standard_normal(rows, columns):
@@ -325,7 +313,7 @@ XLWINGS_FUNCTIONS_NAMESPACE="XLWINGS"
 ```
 
 ```{note}
-- After changing the setting, you will need to update your `manifest.xml` with the values from the `/manifest` endpoint.
+- After changing the setting, you will need to update your `manifest.xml` by downloading it from `/manifest/download` again.
 - The `XLWINGS_ENVIRONMENT` is automatically appended to the global function namespace if it is not `"prod"` so if `XLWINGS_ENVIRONMENT="dev"`, your functions will appear under the namespace `XLWINGS_DEV`.
 ```
 
@@ -336,7 +324,7 @@ If you define a namespace as part of the function decorator while also having a 
 You can include a link to an internet page with more information about your function by using the `help_url` option. The function wizard/formula builder will show that link under "More help on this function".
 
 ```python
-from xlwings.server import func
+from xlwings import func
 
 @func(help_url="https://www.xlwings.org")
 def hello(name):
@@ -360,7 +348,7 @@ This behavior is not only consistent in itself, it's also in line with how NumPy
 However, if the argument can be anything from a single cell to a one- or two-dimensional range, you'll want to use the `ndim` option: this allows you to always get the inputs as a one- or two-dimensional list, no matter what the input dimension is:
 
 ```python
-from xlwings.server import func, arg
+from xlwings import func, arg
 
 @func
 @arg("x", ndim=2)
@@ -372,7 +360,7 @@ and again with type hints:
 
 ```python
 from typing import Annotated
-from xlwings.server import func
+from xlwings import func
 
 @func
 def add_one(x: Annotated[float, {"ndim": 2}]):
@@ -386,7 +374,7 @@ The above sample would raise an error if you'd leave away the `ndim=2` and use a
 If you need to write out a list in vertical orientation, the `transpose` option comes in handy:
 
 ```python
-from xlwings.server import func, ret
+from xlwings import func, ret
 
 @func
 @ret(transpose=True)
@@ -398,7 +386,7 @@ and again with type hints:
 
 ```python
 from typing import Annotated
-from xlwings.server import func
+from xlwings import func
 
 @func
 def vertical_list() -> Annotated[list, {"transpose": True}]:
@@ -430,7 +418,7 @@ When you run xlwings Server with `XLWINGS_ENVIRONMENT=prod`, it only shows `xlwi
 By default, error cells are converted to `None` (scalars and lists) or `np.nan` (NumPy arrays and pandas DataFrames). If you'd like to get them in their string representation, use `err_to_str` option:
 
 ```python
-from xlwings.server import func, arg
+from xlwings import func, arg
 
 @func
 @arg("x", err_to_str=True)
@@ -442,7 +430,7 @@ and again with type hints:
 
 ```python
 from typing import Annotated, Any
-from xlwings.server import func
+from xlwings import func
 
 @func
 def myfunc(x: Annotated[list[list[Any]], {"err_to_str"=True}):
@@ -454,7 +442,7 @@ def myfunc(x: Annotated[list[list[Any]], {"err_to_str"=True}):
 To format cells as proper error cells in Excel, simply use their string representation (`#DIV/0!`, `#N/A`, `#NAME?`, `#NULL!`, `#NUM!`, `#REF!`, `#VALUE!`):
 
 ```python
-from xlwings.server import func
+from xlwings import func
 
 @func
 def myfunc(x):
@@ -472,7 +460,7 @@ If your return value is a one- or two-dimensional array such as a list, NumPy ar
 Returning a simple list:
 
 ```python
-from xlwings.server import func
+from xlwings import func
 
 @func
 def programming_languages():
@@ -483,7 +471,7 @@ Returning a NumPy array with standard normally distributed random numbers:
 
 ```python
 import numpy as np
-from xlwings.server import func
+from xlwings import func
 
 @func
 def standard_normal(rows, columns):
@@ -495,7 +483,7 @@ Returning a pandas DataFrame:
 
 ```python
 import pandas as pd
-from xlwings.server import func
+from xlwings import func
 
 @func
 def get_dataframe():
@@ -509,7 +497,7 @@ Volatile functions are recalculated whenever Excel calculates something, even if
 
 ```python
 import datetime as dt
-from xlwings.server import func
+from xlwings import func
 
 @func(volatile=True)
 def last_calculated():
@@ -530,7 +518,7 @@ To create a streaming function, you simply need to write an asynchronous generat
 import asyncio
 import numpy as np
 import pandas as pd
-from xlwings.server import func
+from xlwings import func
 
 @func
 async def streaming_random(rows, cols):
@@ -549,7 +537,7 @@ As a bit of a more real-world sample, here's how you can transform a REST API in
 import asyncio
 import httpx
 import pandas as pd
-from xlwings.server import func, ret
+from xlwings import func, ret
 
 @func
 @ret(date_format="hh:mm:ss", index=False)
@@ -583,7 +571,7 @@ To make a custom function return an object, simply specify the `object` type hin
 
 ```python
 from typing import Annotated
-from xlwings.server import func, ret
+from xlwings import func, ret
 from xlwings.constants import ObjectHandleIcons
 
 @func
@@ -639,7 +627,7 @@ This turns an existing Excel range into a DataFrame. Using an Excel table as you
 - For development purposes, you don't need Redis, but the cache is in-memory and thus only works with a single worker/process for as long as the app runs. More importantly, there won't be any automatic cache purging happening.
 ```
 
-You can return the majority of Python data types such as simple lists, dictionaries, and tuples. NumPy arrays and pandas DataFrames/Series are also supported. For unsupported data types, a custom serializer can be written and registered (see [`app/serializers/pandas_serializer.py`](https://github.com/xlwings/xlwings-server/blob/main/app/serializers/pandas_serializer.py) for an example).
+You can return the majority of Python data types such as simple lists, dictionaries, and tuples. NumPy arrays and pandas DataFrames/Series are also supported. For unsupported data types, a custom serializer can be written and registered (see [`pandas_serializer.py`](https://github.com/xlwings/xlwings-server/blob/main/app/serializers/pandas_serializer.py) for an example).
 
 The object handles are stored in the cache using a key that derives from the add-in installation, workbook name and cell address, i.e, objects are not shared across different Excel installations or users.
 
@@ -693,7 +681,7 @@ While Office.js-based custom functions are mostly compatible with the VBA-based 
   - Requires `@xw.func(async_mode="threading")`
 
 - - Decorators
-  - `from xlwings.server import func, ret, arg`, then `func` etc.
+  - `from xlwings import func, ret, arg`, then `func` etc.
   - `import xlwings as xw`, then `xw.func` etc.
 
 - - Formula Intellisense

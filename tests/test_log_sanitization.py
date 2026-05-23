@@ -1,6 +1,6 @@
 import pytest
 
-from app.routers.xlwings import sanitize_log_input
+from xlwings_server.routers.xlwings import sanitize_log_input
 
 
 @pytest.mark.parametrize(

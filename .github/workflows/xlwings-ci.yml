@@ -5,59 +5,82 @@ on:
   push:
     branches:
       - "**"
+    tags:
+      - "**"
 
 jobs:
   lint:
     if: github.repository == 'xlwings/xlwings-server'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - uses: pre-commit/action@v3.0.1
+      - uses: actions/checkout@v6
+      - uses: j178/prek-action@0bb87d7f00b0c99306c8bcb8b8beba1eb581c037  # v1.1.1
 
   test:
     if: github.repository == 'xlwings/xlwings-server'
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
     env:
       XLWINGS_LICENSE_KEY: ${{ secrets.XLWINGS_LICENSE_KEY }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@v7
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
-          # cache: "pip"
-
-      - name: Compile dependencies for older Python versions
-        if: matrix.python-version == '3.9' || matrix.python-version == '3.10'
-        run: |
-          uv pip compile requirements-core.in -o requirements-core.txt
-          uv pip compile requirements.in -o requirements.txt
-          uv pip compile requirements-dev.in -o requirements-dev.txt
 
       - name: Install dependencies
         run: |
-          uv pip sync requirements-dev.txt --system
+          uv sync --group all
 
       - name: Run tests with xlwings Server and .env.test
-        run: pytest -v
+        run: uv run pytest -v
 
       - name: Run tests with xlwings Server that depend on env.test2 (examples disabled)
         env:
           ENV_FILE: ".env.test2"
-        run: pytest tests/test_env2.py
+        run: uv run pytest tests/test_env2.py
 
       - name: Run tests with xlwings Wasm
         if: matrix.python-version == '3.12'
         env:
           ENV_FILE: ".env.testwasm"
-        run: pytest -v
+        run: uv run pytest -v
+
+  publish:
+    if: github.repository == 'xlwings/xlwings-server' && startsWith(github.ref, 'refs/tags/')
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/xlwings-server/
+    permissions:
+      id-token: write  # Required for trusted publishing
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0  # Required for hatch-vcs to determine version from git tags
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          # Install a specific version of uv.
+          version: "0.9.25"
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Build package
+        run: uv build
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

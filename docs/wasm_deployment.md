@@ -94,7 +94,7 @@ XLWINGS_CDN_OFFICEJS=true
 XLWINGS_CDN_PYODIDE=true
 ```
 
-If you want xlwings Wasm to work without connection to the public Internet, you will need to switch both settings to `false` though. You will then need to copy all Python packages (`.whl` files) into the `app/static/vendor/pyodide` folder and reference them explicitly in the `app/wasm/requirements.txt` file like so:
+If you want xlwings Wasm to work without connection to the public Internet, you will need to switch both settings to `false` though. You will then need to copy all Python packages (`.whl` files) into the `xlwings_server/static/vendor/pyodide` folder and reference them explicitly in the `app/wasm/requirements.txt` file like so:
 
 ```
 /static/vendor/pyodide/mypackage.whl

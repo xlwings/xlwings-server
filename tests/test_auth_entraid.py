@@ -1,17 +1,28 @@
 import pytest
 from fastapi import HTTPException, status
 
-import app.auth.entraid
-from app.auth.entraid import get_key_set, validate_token
+import xlwings_server.auth.entraid
+from xlwings_server.auth.entraid import get_key_set, validate_token
 
 
 @pytest.mark.anyio
 async def test_custom_get_jwks_json(mocker):
+    # Use a valid 2048-bit RSA modulus to avoid SecurityWarning
     mock_get_jwks_json = mocker.patch(
-        "app.auth.entraid.jwks.get_jwks_json",
-        return_value={"keys": [{"kty": "RSA", "n": "test", "e": "AQAB"}]},
+        "xlwings_server.auth.entraid.jwks.get_jwks_json",
+        return_value={
+            "keys": [
+                {
+                    "kty": "RSA",
+                    "n": "0vx7agoebGcQSuuPiLJXZptN9nndrQmbXEps2aiAFbWhM78LhWx4cbbfAAtVT86zwu1RK7aPFFxuhDR1L6tSoc_BJECPebWKRXjBZCiFV4n3oknjhMstn64tZ_2W-5JsGY4Hc5n9yBXArwl93lqt7_RN5w6Cf0h4QyQ5v-65YGjQR0_FDW2QvzqY368QQMicAtaSqzs8KJZgnYb9c7d0zgdAZHzu6qMQvRL5hajrn1n91CbOpbISD08qNLyrdkt-bFTWhAI4vMQFh6WeZu0fM4lFd2NcRwr3XPksINHaQ-G_xBniIqbw0Ls1jF44-csFCur-kEgU8awapJzKnqDKgw",
+                    "e": "AQAB",
+                }
+            ]
+        },
     )
-    spy_get_jwks_json_default = mocker.spy(app.auth.entraid, "get_jwks_json_default")
+    spy_get_jwks_json_default = mocker.spy(
+        xlwings_server.auth.entraid, "get_jwks_json_default"
+    )
     await get_key_set()
     mock_get_jwks_json.assert_called_once()
     spy_get_jwks_json_default.assert_not_called()
@@ -19,7 +30,9 @@ async def test_custom_get_jwks_json(mocker):
 
 @pytest.mark.anyio
 async def test_default_get_jwks_json(mocker):
-    spy_get_jwks_json_default = mocker.spy(app.auth.entraid, "get_jwks_json_default")
+    spy_get_jwks_json_default = mocker.spy(
+        xlwings_server.auth.entraid, "get_jwks_json_default"
+    )
     await get_key_set()
     spy_get_jwks_json_default.assert_called_once()
 

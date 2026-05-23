@@ -20,7 +20,7 @@ services:
       target: dev
       dockerfile: Dockerfile
     command: >
-      uvicorn app.main:main_app
+      uvicorn xlwings_server.main:main_app
       --host 0.0.0.0 --port 8000
       --ssl-keyfile /project/certs/localhost+2-key.pem
       --ssl-certfile /project/certs/localhost+2.pem

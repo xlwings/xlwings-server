@@ -8,3 +8,9 @@ body:not([data-theme="light"]) .highlight .err {
   color: inherit !important;
   background-color: transparent !important;
 }
+
+/* Remove underlines from syntax highlighting in code blocks */
+.highlight .nc,
+.highlight .nn {
+  text-decoration: none !important;
+}

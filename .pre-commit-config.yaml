@@ -12,7 +12,7 @@ default_language_version:
 
 exclude: |
   (?x)^(
-  app/static/vendor/.*
+  xlwings_server/static/vendor/.*
   )$
 
 repos:

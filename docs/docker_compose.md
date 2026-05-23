@@ -1,5 +1,9 @@
 # Docker Compose
 
+```{warning}
+This page hasn't been updated to xlwings Server v1.0 yet.
+```
+
 ## Prerequisites
 
 - Follow [](repo_setup.md)

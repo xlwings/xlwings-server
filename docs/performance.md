@@ -4,7 +4,7 @@ Here are a few recipes that you can consider to improve performance.
 
 ## Custom Scripts
 
-By default, custom scripts send the content of the entire workbook to the backend. Most of the time, this is not required, so you can include or exclude specific sheets via the `include` and `exclude` config, see your specific integration for more details: [Office.js Add-ins](officejs_run_scripts.md), [](vba_integration.md), [](googleappsscript_integration.md), or [](officescripts_integration.md).
+By default, custom scripts send the content of the entire workbook to the backend. Most of the time, this is not required, so you can include or exclude specific sheets via the `include` and `exclude` config, see [](custom_scripts.md#configuration).
 
 ## Custom Functions
 
@@ -12,7 +12,7 @@ While xlwings can handle 10,000s of custom functions, there is an easy way to to
 
 ```python
 import numpy as np
-from xlwings.server import func, arg
+from xlwings import func, arg
 
 
 @func

@@ -2,31 +2,31 @@
 
 In addition to [](auth_entraid.md), xlwings Server supports various authentication providers, including custom ones, which are described here.
 
-## Custom authentication
+## Custom Authentication
 
-1. Config: To use your own authentication method, activate the `custom` authentication provider:
+To use your own authentication method, run the following command:
 
-   ```ini
-   XLWINGS_AUTH_PROVIDERS=["custom"]
-   ```
+```
+uv run xlwings-server add auth custom
+```
 
-2. Server: To make this work on the backend, you need to implement the `validate_token` function under [`app/auth/custom/__init__.py`](https://github.com/xlwings/xlwings-server/blob/main/app/auth/custom/__init__.py).
+This will add `auth/custom/__init__` and `static/js/auth.js`. The command also activates the `custom` authentication provider in the `.env` file:
 
-3. Integration: On the frontend, you need to provide the token depending on your integration:
+```ini
+XLWINGS_AUTH_PROVIDERS=["custom"]
+```
 
-   - **Office.js add-ins**: Adjust `globalThis.getAuth` under [`app/static/auth.js`](https://github.com/xlwings/xlwings-server/blob/main/app/static/js/auth.js) so that it returns the `token` and `provider` that you will validate with the `validate_token` function on the backend. For example, to use the `custom` provider, you'd do:
+- For the backend, implement the `validate_token` function in `auth/custom/__init__`.
 
-     ```js
-     globalThis.getAuth = async function () {
-       return {
-          token: "...",
-          provider: "custom",
-       };
-     };
-     ```
+- For the frontend, you need to provide the token by editing `globalThis.getAuth` under `static/js/auth.js` so that it returns the `token` and `provider` that you will validate with the `validate_token` function on the backend:
 
-   - **Other integrations**: provide the token via the `auth` config, see your specific integration for more details: [](vba_integration.md), [](googleappsscript_integration.md), or [](officescripts_integration.md).
+  ```js
+  globalThis.getAuth = async function () {
+    return {
+       token: "test-token",  // TODO: implement
+       provider: "custom",
+    };
+  };
+  ```
 
-## Google OAuth2 (SSO)
-
-TODO
+  **Other integrations**: provide the token via the `auth` config, see your specific integration for more details: [](vba_integration.md), [](googleappsscript_integration.md), or [](officescripts_integration.md).

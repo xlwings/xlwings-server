@@ -1,8 +1,8 @@
 import pytest
 from fastapi import HTTPException
 
-from app import settings
-from app.dependencies import authenticate
+from xlwings_server import settings
+from xlwings_server.dependencies import authenticate
 
 
 @pytest.mark.anyio
@@ -14,7 +14,9 @@ async def test_no_auth_providers_configured(mocker):
 
 @pytest.mark.anyio
 async def test_multiple_auth_providers_without_auth_provider_header(mocker):
-    mocker.patch("app.config.settings.auth_providers", ["provider1", "provider2"])
+    mocker.patch(
+        "xlwings_server.config.settings.auth_providers", ["provider1", "provider2"]
+    )
     with pytest.raises(HTTPException) as exc_info:
         await authenticate(token_string="token", auth_provider=None)
     assert exc_info.value.status_code == 400
@@ -26,7 +28,9 @@ async def test_multiple_auth_providers_without_auth_provider_header(mocker):
 
 @pytest.mark.anyio
 async def test_invalid_auth_provider_header(mocker):
-    mocker.patch("app.config.settings.auth_providers", ["provider1", "provider2"])
+    mocker.patch(
+        "xlwings_server.config.settings.auth_providers", ["provider1", "provider2"]
+    )
     with pytest.raises(HTTPException) as exc_info:
         await authenticate(token_string="token", auth_provider="invalid_provider")
     assert exc_info.value.status_code == 400
@@ -38,7 +42,7 @@ async def test_invalid_auth_provider_header(mocker):
 
 @pytest.mark.anyio
 async def test_auth_provider_not_found(mocker):
-    mocker.patch("app.config.settings.auth_providers", ["provider1"])
+    mocker.patch("xlwings_server.config.settings.auth_providers", ["provider1"])
     with pytest.raises(HTTPException) as exc_info:
         await authenticate(token_string="token")
     assert exc_info.value.status_code == 500

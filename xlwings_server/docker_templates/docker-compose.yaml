@@ -1,0 +1,31 @@
+# This is for local development
+services:
+  xlwings-server:
+    build: .
+    # Allow the server to run with or without certs
+    command: >
+      sh -c '
+        SSL_OPTS=""
+        if [ -f /app/certs/localhost+2-key.pem ] && [ -f /app/certs/localhost+2.pem ]; then
+          SSL_OPTS="--ssl-keyfile /app/certs/localhost+2-key.pem --ssl-certfile /app/certs/localhost+2.pem"
+        fi
+        exec uvicorn \
+          --host 0.0.0.0 \
+          --port 8000 \
+          --reload \
+          --access-log \
+          $$SSL_OPTS \
+          xlwings_server.main:main_app
+      '
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    restart: "no"
+    init: true  # Helps with reload
+    volumes:
+      - ./certs:/app/certs
+      - ./custom_functions:/app/custom_functions
+      - ./custom_scripts:/app/custom_scripts
+      - ./static:/app/static
+      - ./templates:/app/templates

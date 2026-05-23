@@ -1,10 +1,35 @@
-# Config
+# Settings
 
-xlwings Server can be configured via a `.env` file in the root of the repository or via environment variables.
+xlwings Server can be configured via
 
-## Available Settings
+- `.env` file in the root of the repository for sensitive settings during local development
+- Environment variables for sensitive settings when deployed
+- `pyproject.toml`, under `[tool.xlwings_server]` for settings that aren't sensitive and the same across all environments (e.g,. dev, prod, etc.).
 
-Please refer to the `.env` file, which is thoroughly commented. The `.env` file is created by running `python run.py init`. If you haven't done that yet, you can also look at [`.env.template`](https://github.com/xlwings/xlwings-server/blob/main/.env.template).
+## Using Settings in Code
+
+- In templates, you access settings like so: `{{ settings.environment }}`, i.e., lower-case and without the leading `XLWINGS_`.
+- In Python code, you have access to settings as follows:
+
+  ```python
+  from xlwings_server import settings
+
+  settings.environment
+  ```
+
+## Custom Settings
+
+To extend the built-in settings (see below) with your own, run the following command on a Terminal:
+
+```
+uv run xlwings-server add config
+```
+
+This adds the `config.py` file in the root of your repository, where you can add your own settings. Note that this uses [Pydantic Settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/).
+
+## Built-in Settings
+
+Please refer to the `.env` file, which is thoroughly commented. The `.env` file is created by running `uv run xlwings-server init`.
 
 ## Edit the `.env` file
 
