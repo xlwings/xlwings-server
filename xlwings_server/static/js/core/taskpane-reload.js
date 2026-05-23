@@ -39,7 +39,7 @@
     }
   })();
   if (!storageWorks && reloadAttempts > 0) {
-    console.warn(
+    console.log(
       "taskpane-reload: sessionStorage unavailable, disabling auto-reload",
     );
     reloadAttempts = 0;
