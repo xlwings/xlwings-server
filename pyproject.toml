@@ -79,24 +79,22 @@ packages = ["xlwings_server"]
 include = ["xlwings_server/**/*", "pyproject.toml", "README.md", "LICENSE.txt"]
 exclude = [
     "TODO.md",
-    "xlwings_server/static/vendor/@microsoft/office-js/dist/office.d.ts",
-    "xlwings_server/static/vendor/@microsoft/office-js/dist/**/*debug.js",
-    "xlwings_server/static/vendor/@microsoft/office-js/dist/**/*-ios-*.js",
-    "xlwings_server/static/vendor/@microsoft/office-js/dist/**/*-android-*.js",
-    "xlwings_server/static/vendor/@microsoft/office-js/dist/**/custom-functions-runtime*.js",
-    "xlwings_server/static/vendor/pyodide/**/*",
+    "xlwings_server/static/vendor/@microsoft/office-js/*/dist/office.d.ts",
+    "xlwings_server/static/vendor/@microsoft/office-js/*/dist/**/*debug.js",
+    "xlwings_server/static/vendor/@microsoft/office-js/*/dist/**/*-ios-*.js",
+    "xlwings_server/static/vendor/@microsoft/office-js/*/dist/**/*-android-*.js",
+    "xlwings_server/static/vendor/@microsoft/office-js/*/dist/**/custom-functions-runtime*.js",
 ]
 
 [tool.hatch.build.targets.sdist]
 include = ["xlwings_server/**/*", "pyproject.toml", "README.md", "LICENSE.txt"]
 exclude = [
     "TODO.md",
-    "xlwings_server/static/vendor/@microsoft/office-js/dist/office.d.ts",
-    "xlwings_server/static/vendor/@microsoft/office-js/dist/**/*debug.js",
-    "xlwings_server/static/vendor/@microsoft/office-js/dist/**/*-ios-*.js",
-    "xlwings_server/static/vendor/@microsoft/office-js/dist/**/*-android-*.js",
-    "xlwings_server/static/vendor/@microsoft/office-js/dist/**/custom-functions-runtime*.js",
-    "xlwings_server/static/vendor/pyodide/**/*",
+    "xlwings_server/static/vendor/@microsoft/office-js/*/dist/office.d.ts",
+    "xlwings_server/static/vendor/@microsoft/office-js/*/dist/**/*debug.js",
+    "xlwings_server/static/vendor/@microsoft/office-js/*/dist/**/*-ios-*.js",
+    "xlwings_server/static/vendor/@microsoft/office-js/*/dist/**/*-android-*.js",
+    "xlwings_server/static/vendor/@microsoft/office-js/*/dist/**/custom-functions-runtime*.js",
 ]
 
 [tool.ruff]

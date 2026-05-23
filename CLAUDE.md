@@ -96,11 +96,8 @@ uv run sphinx-autobuild docs docs/_build/html --port 9000 -E
 Node.js files are vendored - not required for runtime, only for upgrades:
 
 ```bash
-# Update npm packages
+# Update npm packages (postinstall hook copies them to the static folder)
 npm install mypackage@latest
-
-# Copy to static folder after updating package.json
-uv run scripts/copy_node_modules_to_static_folder.py
 ```
 
 ## Architecture
@@ -249,5 +246,5 @@ In dev mode, `xlwings_server/hotreload.py` uses watchfiles to monitor file chang
 - **CSP headers**: Restrictive by default. Use `XLWINGS_ENABLE_EXCEL_ONLINE=false` for most restrictive local dev CSP
 - **Certificate requirements**: Office.js add-ins require HTTPS with trusted certs even in dev (see docs/dev_certificates.md)
 - **Alert window debugging**: Requires separate dev tools instance (see DEVELOPER_GUIDE.md)
-- **Pyodide offline mode for self-hosting**: Requires micropip and packaging packages in `xlwings_server/static/vendor/pyodide/`
+- **Pyodide offline mode for self-hosting**: Users place wheels and pyodide assets in `xlwings_server/static/vendor/pyodide/` themselves (downloaded from Pyodide's GitHub releases); xlwings-server does not vendor pyodide via npm.
 - **Wasm**: Unless specifically told, work on the FastAPI backend, not the Wasm mode
