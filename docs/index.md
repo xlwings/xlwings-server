@@ -3,7 +3,7 @@
 ```{warning}
 This is the documentation for xlwings Server v1.0.
 
-- For older versions, see [v0.12.3](https://server.xlwings.org/en/0.12.3/).
+- For older versions, see [legacy docs](https://server.xlwings.org/en/legacy/).
 - To migrate to v1.0, see [](migration.md)
 ```
 
