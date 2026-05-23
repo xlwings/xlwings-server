@@ -65,6 +65,10 @@
 
 This major release provides `xlwings-server` as an installable package. See the [migration guide](migration) for instructions how to upgrade. The minimum supported Python version is now 3.10.
 
+## 0.12.3 (Jan 22, 2026)
+
+- Upgraded dependencies incl. xlwings to 0.33.20.
+
 ## 0.12.2 (Jan 7, 2026)
 
 - Renamed remaining instances of `lite` into `wasm` due to rebranding from 0.10.3.
@@ -84,7 +88,7 @@ This major release provides `xlwings-server` as an installable package. See the 
 
 ## 0.11.3 (Aug 5, 2025)
 
-- Enhanced the Task pane [auth sample](https://github.com/xlwings/xlwings-server/tree/main/xlwings_server/templates/examples/auth)
+- Enhanced the Task pane [auth sample](https://github.com/xlwings/xlwings-server/tree/main/app/templates/examples/auth)
 - Better logging for authorization issues
 - Turned `main.js` into a ES Module
 - Upgraded dependencies.
@@ -99,17 +103,17 @@ This major release provides `xlwings-server` as an installable package. See the 
 
 ## 0.11.1 (May 29, 2025)
 
-- Support multiple authentication providers. If you use a custom `globalThis.getAuth` in `xlwings_server/static/js/auth.js`, you will need to update it.
+- Support multiple authentication providers. If you use a custom `globalThis.getAuth` in `app/static/js/auth.js`, you will need to update it.
 - Enhanced NumPy serializer to respect `dtype`.
 - Bug fix: Fixed `app.macro()`.
 
 ## 0.11.0 (May 3, 2025)
 
-- Simplified configuration for custom scripts via `@script` decorator instead of `xw-config` in HTML, see [](custom_scripts.md#configuration)
+- Simplified configuration for custom scripts via `@script` decorator instead of `xw-config` in HTML, see [](officejs_run_scripts.md#configuration)
 - Bug Fix: The `.gitattributes` setup so that changes to `requirements-core.txt` are pulled in.
 - Upgraded dependencies incl. xlwings to 0.33.14.
 - **Breaking change:** `XLWINGS_CORS_ALLOW_ORIGINS` now defaults to `[]`. If you use the Office Scripts integration or custom functions with Excel on the web, you need to set this to ["*"].
-- **Breaking change:** The `runPython` call has to be changed when calling it directly from Office.js ribbon buttons, see [](custom_scripts.md#run-custom-scripts)
+- **Breaking change:** The `runPython` call has to be changed when calling it directly from Office.js ribbon buttons, see [](officejs_run_scripts.md#ribbon-button)
 
 ## 0.10.11 (Apr 21, 2025)
 
@@ -321,7 +325,7 @@ This major release provides `xlwings-server` as an installable package. See the 
 ## 0.3.0 (Jun 18, 2024)
 
 - Introduced `@script` decorator and `xw-click` HTML tag, see `app/custom_scripts/examples.py`.
-- Introduced `xlwings_server.utils.trigger_script()` to trigger a custom script from within a custom function, see `app/custom_functions/examples.py`.
+- Introduced `app.utils.trigger_script()` to trigger a custom script from within a custom function, see `app/custom_functions/examples.py`.
 - Bootstrap can now be disabled via `XLWINGS_ENABLE_BOOTSTRAP=false`.
 - `python run.py` now runs locally without `certs`, which allows it to be used with VBA or Office Scripts (Office.js always require certs).
 - Upgraded dependencies incl. xlwings to 0.31.5.
