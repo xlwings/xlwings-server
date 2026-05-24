@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.5.0 (May 24, 2026)
+
+- Automatically reload the task pane in case it gets stuck during loading.
+- Upgrade frontend dependencies.
+
 ## 1.4.5 (May 6, 2026)
 
 - Throw custom functions reload errors.
@@ -10,7 +15,7 @@
 
 ## 1.4.3 (Apr 17, 2026)
 
-- Fixed the static file hashing, which could lead to stale file caching (self-hosting).
+- Fixed the static file hashing, which could lead to stale file caching.
 
 ## 1.4.2 (Apr 15, 2026)
 
