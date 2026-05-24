@@ -58,6 +58,13 @@ dev = ["watchfiles>=1.1.1"]
 [project.scripts]
 xlwings-server = "xlwings_server.cli:main"
 
+[tool.uv]
+# These are hard dependencies of xlwings that aren't used with xlwings Server
+override-dependencies = [
+    "appscript ; sys_platform == 'never'",
+    "pywin32 ; sys_platform == 'never'",
+]
+
 [tool.hatch.version]
 source = "vcs"
 
@@ -72,24 +79,22 @@ packages = ["xlwings_server"]
 include = ["xlwings_server/**/*", "pyproject.toml", "README.md", "LICENSE.txt"]
 exclude = [
     "TODO.md",
-    "xlwings_server/static/vendor/@microsoft/office-js/dist/office.d.ts",
-    "xlwings_server/static/vendor/@microsoft/office-js/dist/**/*debug.js",
-    "xlwings_server/static/vendor/@microsoft/office-js/dist/**/*-ios-*.js",
-    "xlwings_server/static/vendor/@microsoft/office-js/dist/**/*-android-*.js",
-    "xlwings_server/static/vendor/@microsoft/office-js/dist/**/custom-functions-runtime*.js",
-    "xlwings_server/static/vendor/pyodide/**/*",
+    "xlwings_server/static/vendor/@microsoft/office-js/*/dist/office.d.ts",
+    "xlwings_server/static/vendor/@microsoft/office-js/*/dist/**/*debug.js",
+    "xlwings_server/static/vendor/@microsoft/office-js/*/dist/**/*-ios-*.js",
+    "xlwings_server/static/vendor/@microsoft/office-js/*/dist/**/*-android-*.js",
+    "xlwings_server/static/vendor/@microsoft/office-js/*/dist/**/custom-functions-runtime*.js",
 ]
 
 [tool.hatch.build.targets.sdist]
 include = ["xlwings_server/**/*", "pyproject.toml", "README.md", "LICENSE.txt"]
 exclude = [
     "TODO.md",
-    "xlwings_server/static/vendor/@microsoft/office-js/dist/office.d.ts",
-    "xlwings_server/static/vendor/@microsoft/office-js/dist/**/*debug.js",
-    "xlwings_server/static/vendor/@microsoft/office-js/dist/**/*-ios-*.js",
-    "xlwings_server/static/vendor/@microsoft/office-js/dist/**/*-android-*.js",
-    "xlwings_server/static/vendor/@microsoft/office-js/dist/**/custom-functions-runtime*.js",
-    "xlwings_server/static/vendor/pyodide/**/*",
+    "xlwings_server/static/vendor/@microsoft/office-js/*/dist/office.d.ts",
+    "xlwings_server/static/vendor/@microsoft/office-js/*/dist/**/*debug.js",
+    "xlwings_server/static/vendor/@microsoft/office-js/*/dist/**/*-ios-*.js",
+    "xlwings_server/static/vendor/@microsoft/office-js/*/dist/**/*-android-*.js",
+    "xlwings_server/static/vendor/@microsoft/office-js/*/dist/**/custom-functions-runtime*.js",
 ]
 
 [tool.ruff]

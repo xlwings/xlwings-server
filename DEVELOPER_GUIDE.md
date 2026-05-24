@@ -67,13 +67,7 @@ npm install mypackage@latest
 
 Or use the VS Code extension `Version Lens`, which allows you to update the packages directly from `packages.json` (click the `V` at the top right).
 
-After updating a package in `packages.json`, run `sudo npm install` followed by:
-
-```
-uv run scripts/copy_node_modules_to_static_folder.py
-```
-
-to copy over the files to the static folder.
+After updating a package in `packages.json`, run `sudo npm install` — the `postinstall` hook (defined in `package.json`) automatically copies the relevant files into the static folder by running `scripts/postinstall.py`.
 
 ## CSP header
 
