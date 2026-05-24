@@ -1,4 +1,4 @@
 name: "Custom CodeQL Configuration"
 
 paths-ignore:
-    - 'app/static/vendor/**'
+    - 'xlwings_server/static/vendor/**'
