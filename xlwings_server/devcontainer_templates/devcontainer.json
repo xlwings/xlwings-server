@@ -3,24 +3,23 @@
 // To share Git ssh keys with the container on macOS, run on the LOCAL terminal:
 //   ssh-add ~/.ssh/id_ed25519
 {
-    "name": "xlwings-server (dev)",
+    "name": "xlwings Server",
     "image": "mcr.microsoft.com/devcontainers/python:3-3.14-bookworm",
-    "features": {
-        // Node is only needed for upgrading vendored npm dependencies in static/vendor/.
-        "ghcr.io/devcontainers/features/node:1": {
-            "version": "lts"
-        }
-    },
-    // Persist the uv cache across container rebuilds.
+    // Persist the uv cache across container rebuilds for faster `uv sync`.
+    // On local Docker this gives real reuse across rebuilds. On Codespaces the
+    // cache and workspace are on different filesystems regardless, so
+    // UV_LINK_MODE=copy is required there (and harmless locally).
     "mounts": [
-        "source=xlwings-server-dev-uv-cache,target=/home/vscode/.cache/uv,type=volume"
+        "source=xlwings-server-uv-cache,target=/home/vscode/.cache/uv,type=volume"
     ],
     "containerEnv": {
         "UV_LINK_MODE": "copy",
         "UV_COMPILE_BYTECODE": "1"
     },
+    // Forward FastAPI dev server.
     "forwardPorts": [8000],
-    "postCreateCommand": "sudo chown -R vscode:vscode /home/vscode/.cache/uv && pip install --user --upgrade uv && uv sync --locked --all-groups && uv run pre-commit install || true",
+    // Fix ownership on the named volume, then install uv and sync dependencies.
+    "postCreateCommand": "sudo chown -R vscode:vscode /home/vscode/.cache/uv && pip install --user --upgrade uv && uv sync",
     // pre-commit and git need this when the workspace is bind-mounted.
     "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
     "customizations": {
@@ -29,7 +28,6 @@
                 "ms-python.python",
                 "charliermarsh.ruff",
                 "samuelcolvin.jinjahtml",
-                "esbenp.prettier-vscode",
                 "tamasfe.even-better-toml"
             ],
             "settings": {

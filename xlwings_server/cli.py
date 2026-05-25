@@ -976,6 +976,21 @@ def add_docker_command():
     tracker.print_summary("Docker setup")
 
 
+def add_devcontainer_command():
+    """Add .devcontainer/devcontainer.json to project for VS Code / Codespaces."""
+    project_path = validate_project_directory()
+    tracker = FileTracker()
+
+    source_file = PACKAGE_DIR / "devcontainer_templates" / "devcontainer.json"
+    dest_file = project_path / ".devcontainer" / "devcontainer.json"
+
+    copy_file_if_not_exists(
+        source_file, dest_file, tracker, ".devcontainer/devcontainer.json"
+    )
+
+    tracker.print_summary("Dev container setup")
+
+
 def add_iis_command():
     """Add IIS deployment files to project"""
     import tomlkit
@@ -1702,6 +1717,12 @@ def main():
     # docker subcommand (standalone)
     add_subparsers.add_parser("docker", help="Add Docker deployment files")
 
+    # devcontainer subcommand (standalone)
+    add_subparsers.add_parser(
+        "devcontainer",
+        help="Add .devcontainer/devcontainer.json for VS Code / GitHub Codespaces",
+    )
+
     # router subcommand (standalone, no nesting needed)
     add_subparsers.add_parser("router", help="Add routers directory and sample router")
 
@@ -1808,6 +1829,8 @@ def main():
                 sys.exit(1)
         elif args.add_category == "docker":
             add_docker_command()
+        elif args.add_category == "devcontainer":
+            add_devcontainer_command()
         elif args.add_category == "router":
             add_router_command()
         elif args.add_category == "css":
@@ -1820,7 +1843,10 @@ def main():
             add_iis_command()
         else:
             print("Error: Please specify what to add")
-            print("Available: azure, docker, model, auth, router, css, js, config, iis")
+            print(
+                "Available: azure, docker, devcontainer, model, auth, router, "
+                "css, js, config, iis"
+            )
             sys.exit(1)
     elif args.command == "build":
         if args.build_command == "static":
