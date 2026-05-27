@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.1 (May 27, 2026)
+
+- Fix the automatic task pane reloader.
+
 ## 1.5.0 (May 24, 2026)
 
 - Automatically reload the task pane in case it gets stuck during loading.
