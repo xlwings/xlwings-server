@@ -66,3 +66,18 @@
 :where(#xlwings-taskpane-reload-btn:hover) {
   background-color: #0d6837;
 }
+:where(#xlwings-taskpane-reload-cancel-btn) {
+  display: inline-block;
+  margin-left: 0.5rem;
+  padding: 0.375rem 0.75rem;
+  border: none;
+  background: transparent;
+  color: #6c757d;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  cursor: pointer;
+  text-decoration: underline;
+}
+:where(#xlwings-taskpane-reload-cancel-btn:hover) {
+  color: #495057;
+}

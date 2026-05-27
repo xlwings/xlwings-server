@@ -4,10 +4,6 @@
 // since a single reload usually clears it; fall back to a manual reload
 // button so the user has an escape if the auto-retries also hang.
 (function () {
-  if (typeof Office === "undefined" || !Office.onReady) {
-    return;
-  }
-
   const TIMEOUT_MS = 5000;
   const STORAGE_KEY = "xlwings.taskpaneReloadCount";
 
@@ -75,11 +71,31 @@
     const overlay = getOverlay();
     if (!overlay) return;
     overlay.classList.remove("d-none");
-    const btn = document.getElementById("xlwings-taskpane-reload-btn");
-    if (btn) {
-      btn.addEventListener("click", () => {
-        clearReloadCount();
+  };
+
+  // Wire up the prompt's buttons once at script load. The overlay markup
+  // lives in base.html so the buttons exist before showReloadPrompt() ever
+  // runs, and binding here avoids attaching duplicate handlers if the
+  // prompt is triggered more than once (e.g., timer + onReady rejection).
+  const wireButtons = () => {
+    const reloadBtn = document.getElementById("xlwings-taskpane-reload-btn");
+    if (reloadBtn) {
+      reloadBtn.addEventListener("click", () => {
+        // Exhaust the auto-reload budget so the next page load is a single
+        // user-driven try, not another silent retry cycle. If it fails again,
+        // the prompt reappears and the user clicks again.
+        setReloadCount(reloadAttempts);
         window.location.reload();
+      });
+    }
+    const cancelBtn = document.getElementById(
+      "xlwings-taskpane-reload-cancel-btn",
+    );
+    if (cancelBtn) {
+      cancelBtn.addEventListener("click", () => {
+        clearReloadCount();
+        const overlay = getOverlay();
+        if (overlay) overlay.classList.add("d-none");
       });
     }
   };
@@ -103,22 +119,29 @@
     }
   };
 
+  whenDomReady(wireButtons);
+
   const timerId = setTimeout(() => whenDomReady(handleTimeout), TIMEOUT_MS);
 
-  Office.onReady().then(
-    () => {
-      officeReady = true;
-      clearTimeout(timerId);
-      clearReloadCount();
-      const overlay = getOverlay();
-      if (overlay) overlay.classList.add("d-none");
-    },
-    (err) => {
-      console.error("Office.onReady() rejected:", err);
-      clearTimeout(timerId);
-      // Rejection is likely deterministic — skip auto-reload, go straight
-      // to the manual button so the user isn't trapped in a reload loop.
-      whenDomReady(showReloadPrompt);
-    },
-  );
+  // Only attach the Office.onReady handler if it's actually available.
+  // If office.js failed to load (Office is undefined or onReady is missing),
+  // the timer above is what surfaces the reload UI — no handler needed.
+  if (typeof Office !== "undefined" && Office.onReady) {
+    Office.onReady().then(
+      () => {
+        officeReady = true;
+        clearTimeout(timerId);
+        clearReloadCount();
+        const overlay = getOverlay();
+        if (overlay) overlay.classList.add("d-none");
+      },
+      (err) => {
+        console.error("Office.onReady() rejected:", err);
+        clearTimeout(timerId);
+        // Rejection is likely deterministic — skip auto-reload, go straight
+        // to the manual button so the user isn't trapped in a reload loop.
+        whenDomReady(showReloadPrompt);
+      },
+    );
+  }
 })();
