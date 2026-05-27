@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.2 (May 27, 2026)
+
+- Fixes to support default icons in manifest when deployed in Office admin center.
+
 ## 1.5.1 (May 27, 2026)
 
 - Fix the automatic task pane reloader.
