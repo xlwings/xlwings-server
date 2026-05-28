@@ -6,6 +6,7 @@
 (function () {
   const TIMEOUT_MS = 5000;
   const STORAGE_KEY = "xlwings.taskpaneReloadCount";
+  const REASON_KEY = "xlwings.taskpaneReloadReason";
 
   let reloadAttempts = 0;
   try {
@@ -58,8 +59,28 @@
   const clearReloadCount = () => {
     try {
       sessionStorage.removeItem(STORAGE_KEY);
+      sessionStorage.removeItem(REASON_KEY);
     } catch (e) {}
   };
+
+  const setReloadReason = (reason) => {
+    try {
+      sessionStorage.setItem(REASON_KEY, reason);
+    } catch (e) {}
+  };
+
+  const getReloadReason = () => {
+    try {
+      return sessionStorage.getItem(REASON_KEY);
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const lastReason = getReloadReason();
+  console.log(
+    `taskpane-reload: active (timeout=${TIMEOUT_MS}ms, budget=${reloadAttempts}, count=${getReloadCount()}${lastReason ? `, last=${lastReason}` : ""})`,
+  );
 
   let officeReady = false;
 
@@ -100,14 +121,24 @@
     }
   };
 
-  const handleTimeout = () => {
+  // Auto-reload up to reloadAttempts, then show the manual prompt.
+  // Used by the 5s timer, by Office.onReady() rejection, and by
+  // Office.onReady() resolving with no host.
+  const recoverOrPrompt = () => {
     if (officeReady) return;
     const count = getReloadCount();
     if (count < reloadAttempts) {
-      setReloadCount(count + 1);
+      const next = count + 1;
+      setReloadCount(next);
+      console.log(
+        `taskpane-reload: auto-reloading (attempt ${next}/${reloadAttempts})`,
+      );
       window.location.reload();
       return;
     }
+    console.log(
+      `taskpane-reload: budget exhausted (${reloadAttempts} attempts), showing manual prompt`,
+    );
     showReloadPrompt();
   };
 
@@ -121,14 +152,31 @@
 
   whenDomReady(wireButtons);
 
-  const timerId = setTimeout(() => whenDomReady(handleTimeout), TIMEOUT_MS);
+  const timerId = setTimeout(() => {
+    setReloadReason("timeout");
+    whenDomReady(recoverOrPrompt);
+  }, TIMEOUT_MS);
 
   // Only attach the Office.onReady handler if it's actually available.
   // If office.js failed to load (Office is undefined or onReady is missing),
   // the timer above is what surfaces the reload UI — no handler needed.
   if (typeof Office !== "undefined" && Office.onReady) {
     Office.onReady().then(
-      () => {
+      (info) => {
+        // Office.onReady() can resolve with info.host = undefined when
+        // Office.js initialized but never attached to the host (Excel) — a
+        // recoverable failure observed on Windows after restarting Excel.
+        // Trigger recovery now rather than waiting for the timer; this
+        // auto-reloads if the budget allows, or shows the manual prompt.
+        if (!info || !info.host) {
+          console.log(
+            "taskpane-reload: Office.onReady() resolved without a host, attempting recovery",
+          );
+          setReloadReason("no-host");
+          clearTimeout(timerId);
+          whenDomReady(recoverOrPrompt);
+          return;
+        }
         officeReady = true;
         clearTimeout(timerId);
         clearReloadCount();
@@ -137,10 +185,9 @@
       },
       (err) => {
         console.error("Office.onReady() rejected:", err);
+        setReloadReason("rejected");
         clearTimeout(timerId);
-        // Rejection is likely deterministic — skip auto-reload, go straight
-        // to the manual button so the user isn't trapped in a reload loop.
-        whenDomReady(showReloadPrompt);
+        whenDomReady(recoverOrPrompt);
       },
     );
   }
