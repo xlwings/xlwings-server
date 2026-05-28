@@ -9,10 +9,10 @@
   <DefaultLocale>en-US</DefaultLocale>
   <DisplayName DefaultValue="{{ settings.project_name }}{{ ' [' + settings.environment + ']' if settings.environment != 'prod'}}" />
   <Description DefaultValue="{{ settings.project_name }}{{ ' [' + settings.environment + ']' if settings.environment != 'prod'}}" />
-  <!-- Hosted on the public docs site so the Office Admin Center can fetch them
-       even when the add-in itself is deployed on a private network. -->
-  <IconUrl DefaultValue="https://server.xlwings.org/xlwings-32.png" />
-  <HighResolutionIconUrl DefaultValue="https://server.xlwings.org/xlwings-64.png" />
+  <!-- Hosted on the public xlwings.org site so the Office Admin Center can fetch
+       them even when the add-in itself is deployed on a private network. -->
+  <IconUrl DefaultValue="https://www.xlwings.org/xlwings-32.png" />
+  <HighResolutionIconUrl DefaultValue="https://www.xlwings.org/xlwings-64.png" />
   <SupportUrl DefaultValue="https://www.xlwings.org/contact" />
   <AppDomains>
     <AppDomain>{{ base_url_with_app_path }}</AppDomain>
