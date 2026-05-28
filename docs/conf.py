@@ -34,7 +34,6 @@ myst_linkify_fuzzy_links = False  # Require links to start with http://
 
 html_theme = "furo"
 html_static_path = ["_static"]
-html_extra_path = ["../xlwings_server/static/images/icons"]
 html_favicon = "_static/favicon.png"
 html_show_sourcelink = False
 html_copy_source = False
