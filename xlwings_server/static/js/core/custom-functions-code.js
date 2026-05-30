@@ -1,8 +1,31 @@
 const debug = false;
 let invocations = new Set();
 let bodies = new Set();
+let streamingSubscriptions = new Map();
 let runtime;
 let socket = null;
+
+function getStreamingSubscriptionId(taskKey, invocation) {
+  return `${taskKey}::${invocation.address}`;
+}
+
+function removeStreamingSubscription(subscriptionId, emitCancel = false) {
+  const subscription = streamingSubscriptions.get(subscriptionId);
+  if (!subscription) {
+    return;
+  }
+
+  if (socket !== null) {
+    socket.off(subscription.eventName, subscription.listener);
+  }
+  invocations.delete(subscription.invocation);
+  bodies.delete(subscription.body);
+  streamingSubscriptions.delete(subscriptionId);
+
+  if (emitCancel && socket !== null) {
+    socket.emit("xlwings:cancel-task", { task_key: subscription.taskKey });
+  }
+}
 
 Office.onReady(function (info) {
   // Socket.io
@@ -181,22 +204,49 @@ async function base() {
     }
     let taskKey = `${funcName}_${args}`;
     body.task_key = taskKey;
+    const subscriptionId = getStreamingSubscriptionId(taskKey, invocation);
+
+    // Replace any previous listener for the same invocation slot.
+    // This prevents duplicate listeners if the runtime re-invokes before cancellation.
+    removeStreamingSubscription(subscriptionId, true);
+
     socket.emit("xlwings:function-call", body);
     if (debug) {
       console.log(`emit xlwings:function-call ${funcName}`);
     }
     invocation.setResult([["Waiting for stream..."]]);
 
-    socket.off(`xlwings:set-result-${taskKey}`);
-    socket.on(`xlwings:set-result-${taskKey}`, (data) => {
-      invocation.setResult(data.result);
+    const eventName = `xlwings:set-result-${taskKey}`;
+    const listener = (data) => {
+      try {
+        invocation.setResult(data.result);
+      } catch (error) {
+        // If an invocation became stale without cancellation callbacks,
+        // clean it up and decrement server-side refcount.
+        removeStreamingSubscription(subscriptionId, true);
+        if (debug) {
+          console.log("Removed stale streaming listener", error);
+        }
+      }
       if (debug) {
         console.log(`Set Result`);
       }
-    });
+    };
+    socket.on(eventName, listener);
 
     invocations.add(invocation);
     bodies.add(body);
+    streamingSubscriptions.set(subscriptionId, {
+      taskKey,
+      eventName,
+      listener,
+      invocation,
+      body,
+    });
+
+    invocation.onCanceled = () => {
+      removeStreamingSubscription(subscriptionId, true);
+    };
 
     return;
   }
