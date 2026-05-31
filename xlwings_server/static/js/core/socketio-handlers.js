@@ -19,16 +19,18 @@ try {
   globalThis.socket = null;
 }
 
-globalThis.socket.on("xlwings:trigger-script", async (data) => {
-  let authResult =
-    typeof globalThis.getAuth === "function"
-      ? await globalThis.getAuth()
-      : { token: "", provider: "" };
-  xlwings.runPython({
-    include: data?.include || "",
-    exclude: data?.exclude || "",
-    auth: authResult.token,
-    headers: { "Auth-Provider": authResult.provider },
-    scriptName: data.script_name,
+if (globalThis.socket) {
+  globalThis.socket.on("xlwings:trigger-script", async (data) => {
+    let authResult =
+      typeof globalThis.getAuth === "function"
+        ? await globalThis.getAuth()
+        : { token: "", provider: "" };
+    xlwings.runPython({
+      include: data?.include || "",
+      exclude: data?.exclude || "",
+      auth: authResult.token,
+      headers: { "Auth-Provider": authResult.provider },
+      scriptName: data.script_name,
+    });
   });
-});
+}
