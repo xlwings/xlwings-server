@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.0 (May 31, 2026)
+
+- Streaming functions are now more robust.
+
 ## 1.5.3 (May 28, 2026)
 
 - Icon URL fixes in the manifest.
