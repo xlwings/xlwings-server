@@ -194,6 +194,26 @@ async function base() {
     runtime: runtime,
   };
 
+  // Streaming functions on Wasm use direct Pyodide callbacks
+  if (isStreaming && config.onWasm) {
+    let taskKey = `${funcName}_${args}`;
+    body.task_key = taskKey;
+    invocation.setResult([["Waiting for stream..."]]);
+
+    const setResult = (result) => {
+      invocation.setResult(result);
+    };
+    globalThis.wasmStreamingCall(body, setResult).catch((error) => {
+      console.error(error);
+      invocation.setResult([[`ERROR: ${error}`]]);
+    });
+
+    invocation.onCanceled = () => {
+      globalThis.wasmStreamingCancel(taskKey);
+    };
+    return;
+  }
+
   // Streaming functions communicate via socket.io
   if (isStreaming) {
     if (socket === null) {
