@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.1 (Jun 1, 2026)
+
+- Added streaming functions for Wasm.
+
 ## 1.6.0 (May 31, 2026)
 
 - Streaming functions are now more robust.
