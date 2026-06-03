@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.0 (Jun 3, 2026)
+
+- Support for arbitrary arguments with `@script`, see [](custom_scripts.md#script-arguments).
+
 ## 1.6.2 (Jun 3, 2026)
 
 - Improved error messages with streaming functions on Wasm.

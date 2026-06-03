@@ -245,7 +245,7 @@ In addition to the special type-hinted arguments (`xw.Book` and `CurrentUser`), 
 
 ```python
 import xlwings as xw
-from xlwings.server import script
+from xlwings import script
 
 @script
 def write_value(book: xw.Book, value: str, target: str = "A1"):
