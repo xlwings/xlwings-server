@@ -205,7 +205,9 @@ async function base() {
     };
     globalThis.wasmStreamingCall(body, setResult).catch((error) => {
       console.error(error);
-      invocation.setResult([[`ERROR: ${error}`]]);
+      const msg = error?.message || String(error);
+      const lastLine = msg.trim().split("\n").pop();
+      invocation.setResult([[`ERROR: ${lastLine}`]]);
     });
 
     invocation.onCanceled = () => {
