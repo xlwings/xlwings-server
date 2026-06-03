@@ -119,6 +119,25 @@ export async function init() {
           lazy: matchingMeta.lazy || false,
         };
       }
+      // Args
+      let xwArgs = [];
+      const xwArgsAttr = element.getAttribute("xw-args");
+      if (xwArgsAttr) {
+        try {
+          xwArgs = JSON.parse(xwArgsAttr);
+        } catch (e) {
+          console.error("Invalid JSON in xw-args attribute:", e);
+          element.removeChild(spinner);
+          element.removeAttribute("disabled");
+          return;
+        }
+        if (!Array.isArray(xwArgs)) {
+          console.error("xw-args must be a JSON array, got:", typeof xwArgs);
+          element.removeChild(spinner);
+          element.removeAttribute("disabled");
+          return;
+        }
+      }
       // Call runPython and restore button default state
       await runPython({
         ...xwConfig,
@@ -126,6 +145,7 @@ export async function init() {
         auth: authResult.token,
         headers: { "Auth-Provider": authResult.provider },
         errorDisplayMode: "taskpane",
+        args: xwArgs,
       });
       element.removeChild(spinner);
       element.removeAttribute("disabled");
@@ -146,7 +166,11 @@ export async function runPython({
   headers = {},
   errorDisplayMode = "alert",
   lazy = false,
+  args = [],
 } = {}) {
+  if (!Array.isArray(args)) {
+    throw new Error("runPython: 'args' must be an array");
+  }
   await Office.onReady();
   try {
     await Excel.run(async (context) => {
@@ -161,6 +185,9 @@ export async function runPython({
         },
         context,
       );
+      if (args.length > 0) {
+        payload.args = args;
+      }
       let rawData;
       if (config.onWasm) {
         // xlwings Wasm

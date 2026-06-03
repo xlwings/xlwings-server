@@ -84,6 +84,11 @@ def show_plot(book: xw.Book):
 
 
 @script
+def write_value(book: xw.Book, value: str, target: str = "A1"):
+    book.sheets.active[target].value = value
+
+
+@script
 def show_error(book: xw.Book):
     raise xw.XlwingsError("This would be your error message")
 

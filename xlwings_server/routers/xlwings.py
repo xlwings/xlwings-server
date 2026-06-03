@@ -6,7 +6,7 @@ from textwrap import dedent
 
 import xlwings as xw
 import xlwings.server
-from fastapi import APIRouter, Body, Header, Request, Response
+from fastapi import APIRouter, Body, Header, HTTPException, Request, Response
 
 # Try to import custom modules from project directory first (CLI/Azure mode)
 # Fall back to package location (tests/package mode)
@@ -127,17 +127,26 @@ async def custom_functions_call(
 
 
 @router.post("/custom-scripts-call/{script_name}")
-async def custom_scripts_call(script_name: str, book: dep.Book, current_user: dep.User):
+async def custom_scripts_call(
+    script_name: str, args: dep.ScriptArgs, book: dep.Book, current_user: dep.User
+):
     # Replace newline and carriage return characters to prevent log injection
     safe_script_name = sanitize_log_input(script_name)
     safe_user_name = sanitize_log_input(current_user.name)
     logger.info(f"""Script "{safe_script_name}" called by {safe_user_name}""")
-    book = await xlwings.server.custom_scripts_call(
-        custom_scripts,
-        script_name,
-        current_user,
-        typehint_to_value={CurrentUser: current_user, xw.Book: book},
-    )
+    try:
+        book = await xlwings.server.custom_scripts_call(
+            custom_scripts,
+            script_name,
+            current_user,
+            typehint_to_value={CurrentUser: current_user, xw.Book: book},
+            args=args,
+        )
+    except xw.XlwingsError as e:
+        error_msg = str(e)
+        if "missing required argument" in error_msg or "extra argument" in error_msg:
+            raise HTTPException(status_code=400, detail=error_msg)
+        raise
     return book.json()
 
 
