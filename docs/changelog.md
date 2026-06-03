@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.6.2 (Jun 3, 2026)
+
+- Improved error messages with streaming functions on Wasm.
+
 ## 1.6.1 (Jun 1, 2026)
 
 - Added streaming functions for Wasm.
