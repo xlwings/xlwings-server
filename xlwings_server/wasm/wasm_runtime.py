@@ -50,12 +50,22 @@ async def custom_functions_call(data):
 
 
 async def custom_scripts_call(data, script_name):
-    book = xw.Book(json=data.to_py())
+    payload = data.to_py()
+    script_args = payload.pop("args", None)
+    if script_args is None:
+        script_args = []
+    if not isinstance(script_args, list):
+        return to_js(
+            {"error": "'args' must be a JSON array", "details": ""},
+            dict_converter=js.Object.fromEntries,
+        )
+    book = xw.Book(json=payload)
     try:
         book = await xlwings.server.custom_scripts_call(
             module=custom_scripts,
             script_name=script_name,
             typehint_to_value={xw.Book: book},
+            args=script_args,
         )
         result = book.json()
         return to_js(result, dict_converter=js.Object.fromEntries)

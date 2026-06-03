@@ -43,6 +43,19 @@ async def get_book(book_data: dict = Depends(parse_book_input)):
 Book = Annotated[xw.Book, Depends(get_book)]
 
 
+# Script args
+async def get_script_args(book_data: dict = Depends(parse_book_input)) -> list:
+    args = book_data.pop("args", None)
+    if args is None:
+        return []
+    if not isinstance(args, list):
+        raise HTTPException(status_code=400, detail="'args' must be a JSON array")
+    return args
+
+
+ScriptArgs = Annotated[list, Depends(get_script_args)]
+
+
 # Users/Auth
 async def authenticate(
     token_string: str = Header(default="", alias="Authorization"),

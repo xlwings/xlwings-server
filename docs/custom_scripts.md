@@ -235,6 +235,41 @@ Here are the settings that you can provide:
 
 - `show_taskpane` (optional): Use this in connection with `button`. If `show_taskpane=True`, the task pane will automatically show up when the user clicks on a sheet button.
 
-## Limitations
+## Script Arguments
 
-Currently, custom scripts don't accept arguments other than the special type-hinted ones (`xw.Book` and `xlwings_server.models.CurrentUser`).
+```{versionadded} 1.7.0
+
+```
+
+In addition to the special type-hinted arguments (`xw.Book` and `CurrentUser`), custom scripts accept arbitrary arguments (strings, numbers, booleans, lists, dicts):
+
+```python
+import xlwings as xw
+from xlwings.server import script
+
+@script
+def write_value(book: xw.Book, value: str, target: str = "A1"):
+    book.sheets.active[target].value = value
+```
+
+- With HTML, use the `xw-args` HTML attribute to pass arguments as a JSON array:
+
+  ```html
+  <button
+    xw-click="write_value"
+    xw-args='["Hello!", "B2"]'
+    class="btn btn-primary btn-sm"
+    type="button"
+  >
+    Write Value
+  </button>
+  ```
+
+- With JavaScript, pass `args` as an array to `runPython()`:
+
+  ```js
+  await xlwings.runPython({
+    scriptName: "write_value",
+    args: ["Hello!", "B2"],
+  });
+  ```
