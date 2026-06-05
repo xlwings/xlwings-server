@@ -51,6 +51,9 @@ html_theme_options = {
     },
     "dark_css_variables": {
         "color-brand-primary": "white",
+        # Lighter green than light mode (#28a745) for contrast on the dark
+        # sidebar; drives the active sidebar item's accent bar/text/tint.
+        "color-brand-content": "#3fbf5f",
         "color-announcement-background": "#28a745",
     },
     "footer_icons": [
