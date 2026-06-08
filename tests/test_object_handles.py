@@ -33,10 +33,15 @@ def test_write_value_returns_entity_with_hidden_cache_key():
 
     assert entity["type"] == "Entity"
     assert entity["text"] == "DataFrame"
-    # The cache key is a UUID and lives in the reserved, non-layout property so it stays
-    # hidden from the card but survives copy/paste and `=A1`.
+    # The cache key is a UUID stored in the reserved property...
     uuid.UUID(key)
-    assert oh.RESERVED_PROPERTY not in entity["layouts"].get("card", {})
+    # ...which is excluded from the card and formulas so it stays hidden from the user
+    # while still travelling with the Entity (survives copy/paste and `=A1`).
+    exclusions = entity["properties"][oh.RESERVED_PROPERTY]["propertyMetadata"][
+        "excludeFrom"
+    ]
+    assert exclusions["cardView"] is True
+    assert exclusions["calcCompare"] is True
     # Derived properties are present.
     assert set(entity["properties"]) >= {"Type", "Shape", "Columns", "Index"}
 

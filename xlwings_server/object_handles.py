@@ -196,10 +196,23 @@ class ObjectCacheConverter(Converter):
         properties = _derived_properties(obj)
         # User-supplied properties win over the derived ones.
         properties.update(user_properties)
-        # The reserved cache key is written last so it can never be shadowed. It's not
-        # referenced in `layouts`, so it stays hidden from the card but persists on the
-        # Entity (and so survives copy/paste and `=A1`).
-        properties[RESERVED_PROPERTY] = {"type": "String", "basicValue": cache_id}
+        # The reserved cache key is written last so it can never be shadowed. `excludeFrom`
+        # keeps it out of the card and formulas while it still persists on the Entity (and
+        # so survives copy/paste and `=A1`): cardView hides it from the card, autoComplete
+        # from formula suggestions, dotNotation from FIELDVALUE(), and calcCompare from
+        # recalc change-detection (the UUID changes on every recalc).
+        properties[RESERVED_PROPERTY] = {
+            "type": "String",
+            "basicValue": cache_id,
+            "propertyMetadata": {
+                "excludeFrom": {
+                    "cardView": True,
+                    "autoComplete": True,
+                    "dotNotation": True,
+                    "calcCompare": True,
+                },
+            },
+        }
 
         return {
             "type": "Entity",
