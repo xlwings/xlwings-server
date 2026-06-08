@@ -133,7 +133,7 @@ async def custom_functions_call(
         # Imported here to avoid a circular import (object_handles imports this module).
         from xlwings_server import object_handles
 
-        rv = object_handles.stale_object_handle(client=data.get("client"))
+        rv = object_handles.stale_object_handle()
     return {"result": rv}
 
 

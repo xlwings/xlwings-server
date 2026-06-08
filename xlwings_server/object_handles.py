@@ -133,16 +133,16 @@ def _get_shape(obj):
             return None
 
 
-def stale_object_handle(client=None):
+def stale_object_handle():
     """Builds the Entity shown when a consumed object handle is no longer cached. It stays
     an Entity (rather than an error) so downstream cards still render and the user sees an
     actionable message. There's no refresh button (Excel entity cards can't host one), so
     the user recalculates to regenerate the object."""
-    # Ctrl+Alt+F9 isn't available on Excel on the web.
-    if client == "Office.js":
-        hint = "recalculate the source cell"
-    else:
-        hint = "press Ctrl+Alt+F9 to refresh"
+    # Recovery is a full recalculation, which regenerates the object handles. We point at
+    # Excel's built-in recalc rather than a custom button: a button could only do a full
+    # recalc too (Excel can't enumerate which cells hold stale handles), so it would add
+    # nothing over Calculate Now / Ctrl+Alt+F9, which every platform already provides.
+    hint = "recalculate (Formulas > Calculate Now, or press Ctrl+Alt+F9 on the desktop)"
     icon = ObjectHandleIcons.warning
     if isinstance(icon, ObjectHandleIcons):
         icon = icon.value

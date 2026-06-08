@@ -63,8 +63,9 @@ specific mechanism, noted in _italics_, so a failure points at the code to look 
 - [ ] Re-trigger a consumer of the evicted handle (recalc a `VIEW(A1)` pointing at it) → the
       cell shows a card with the **warning icon** and the text **"Expired object"**, not a
       `#VALUE!` error or a Python traceback. _(Central `ObjectCacheMissError` catch.)_
-- [ ] ★ Open the card → its `Status` reads **"…press Ctrl+Alt+F9 to refresh"** on desktop.
-      On **Excel web** it reads **"…recalculate the source cell"** (no Ctrl+Alt+F9 there).
+- [ ] ★ Open the card → its `Status` points at Excel's built-in recalc (**Formulas →
+      Calculate Now**, or **Ctrl+Alt+F9** on the desktop). There's no custom refresh button:
+      a button could only do a full recalc too, which Excel already provides everywhere.
 - [ ] **Recover**: recalc the producing formula (re-enter `=GET_DF()`, or Ctrl+Alt+F9) → a
       fresh handle appears and consumers resolve again.
 
