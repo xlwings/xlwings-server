@@ -70,6 +70,31 @@ def test_read_value_rejects_foreign_entity():
         Converter.read_value(oh.NOT_A_HANDLE_MARKER, {})
 
 
+def test_not_a_handle_error_is_not_retryable():
+    # End-to-end through the route: a foreign-entity marker must surface as a deliberate
+    # client error whose status code is NOT in the retry codes, so custom functions don't
+    # retry a deterministic failure.
+    from fastapi.testclient import TestClient
+
+    from xlwings_server.config import settings
+    from xlwings_server.main import main_app
+
+    client = TestClient(main_app, raise_server_exceptions=False)
+    response = client.post(
+        f"{settings.app_path}/xlwings/custom-functions-call",
+        json={
+            "func_name": "view",
+            "args": [[[oh.NOT_A_HANDLE_MARKER]]],
+            "caller_address": "Sheet1!A1",
+            "version": xw.__version__,
+            "client": "Office.js",
+            "runtime": "1.4",
+        },
+    )
+    assert response.status_code not in settings.custom_functions_retry_codes
+    assert "not an xlwings object handle" in response.text
+
+
 def test_object_handle_wrapper_customizes_presentation():
     df = pd.DataFrame({"a": [1]})
     handle = xw.ObjectHandle(

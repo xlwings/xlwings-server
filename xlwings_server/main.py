@@ -229,7 +229,10 @@ if settings.environment == "dev":
 async def xlwings_exception_handler(request, exception):
     logger.error(exception)
     msg = str(exception)
-    return PlainTextResponse(msg, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    # 400, not 500: an XlwingsError is a deliberate, deterministic error (bad argument,
+    # missing role, not an object handle, ...), not a transient server fault. Returning a
+    # non-5xx status keeps custom functions from retrying it (see custom_functions_retry_codes).
+    return PlainTextResponse(msg, status_code=status.HTTP_400_BAD_REQUEST)
 
 
 @app.exception_handler(Exception)
