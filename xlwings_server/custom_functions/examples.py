@@ -11,6 +11,7 @@ from typing import Annotated
 
 import numpy as np
 import pandas as pd
+from xlwings import ObjectHandle
 from xlwings.server import arg, func, ret
 
 from . import settings
@@ -76,10 +77,11 @@ def correl2(df: Df):
 
 if not settings.enable_wasm:
     # 5) Object handles: This returns an object handle to a DataFrame that is generated on
-    # the backend. You can change the `text` and `icon` via annotated type hint or via ret
-    # decorator.
+    # the backend. The `-> ObjectHandle` return type hint stores the returned object in the
+    # object cache (`-> object` also works). You can change the `text` and `icon` via
+    # annotated type hint or via ret decorator.
     @func
-    async def get_df() -> object:
+    async def get_df() -> ObjectHandle:
         """Returns an object handle to the Excel cell (for production, this requires
         XLWINGS_OBJECT_CACHE_URL)."""
         return pd.DataFrame(
@@ -93,7 +95,7 @@ if not settings.enable_wasm:
     @ret(icon=ObjectHandleIcons.table, text="healthexp")
     async def get_healthexp(
         csv_url="https://raw.githubusercontent.com/mwaskom/seaborn-data/master/healthexp.csv",
-    ) -> object:
+    ) -> ObjectHandle:
         """Returns an object handle to the Excel cell (for production, this requires
         XLWINGS_OBJECT_CACHE_URL)."""
         return pd.read_csv(csv_url)
@@ -102,18 +104,22 @@ if not settings.enable_wasm:
     # table as source makes it easy to work with dynamic source ranges. This sample reuses
     # the Df type hint from above to set index=False.
     @func
-    async def to_df(df: Df) -> object:
+    async def to_df(df: Df) -> ObjectHandle:
         return df
 
     # 8) Object handles: use a pandas DataFrame query by providing a DataFrame via object
-    # handle and the query as string: [NAMESPACE].DF_QUERY(A1, "A > B")
+    # handle and the query as string: [NAMESPACE].DF_QUERY(A1, "A > B"). The
+    # `ObjectHandle[pd.DataFrame]` type hint resolves the object handle to the cached
+    # DataFrame while keeping `df` typed as a DataFrame inside the function (`object` also
+    # works, but then you lose the type information).
     @func
-    async def df_query(df: object, query: str) -> Df:
+    async def df_query(df: ObjectHandle[pd.DataFrame], query: str) -> Df:
         return df.query(query)
 
-    # 9) Object handles: Generic function that turns an object handle into Excel values
+    # 9) Object handles: Generic function that turns an object handle into Excel values.
+    # `ObjectHandle[object]` accepts any object handle (DataFrame, list, array, ...).
     @func
-    async def view(obj: object, head=None):
+    async def view(obj: ObjectHandle[object], head=None):
         """Converts an object handle to cell values. `head` can be TRUE or an integer, which
         represents the number of rows from the top that you want to see. TRUE returns the
         first 5 rows.

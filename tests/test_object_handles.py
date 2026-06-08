@@ -13,6 +13,8 @@ Converter = oh.ObjectCacheConverter
 @pytest.fixture(autouse=True)
 def _cache_context():
     # In-memory cache (no Redis configured in .env.test) and clean contextvars per test.
+    # Register the converter as main.py does, so resolution via conversion.read() works.
+    Converter.register(object, "object", "obj")
     xlwings_router.redis_client_context.set(None)
     xlwings_router.user_id_context.set(None)
     oh.cache.clear()
@@ -138,3 +140,48 @@ def test_object_handle_type_hint_resolves_via_cache():
     annotation = view.__annotations__["obj"]
     assert annotation.__args__[0] is pd.DataFrame
     assert xw.ObjectHandle in annotation.__metadata__
+
+
+def test_bare_object_handle_return_hint_is_alias_for_object():
+    # `-> ObjectHandle` is an alias for `-> object`: it converts via the object cache.
+    from xlwings.server import func
+
+    @func
+    async def make() -> xw.ObjectHandle:
+        return pd.DataFrame({"a": [1]})
+
+    assert make.__xlfunc__["ret"]["options"]["convert"] is object
+
+
+@pytest.mark.anyio
+async def test_object_handle_argument_resolves_to_wrapped_object():
+    # End-to-end: a function annotated with ObjectHandle[pd.DataFrame] receives the cached
+    # DataFrame (not the cache key) in its body.
+    from xlwings.server import custom_functions_call, func
+
+    @func
+    async def consume(df: xw.ObjectHandle[pd.DataFrame]):
+        # If resolution works, `df` is a DataFrame and `.shape` succeeds. Return it as
+        # plain values (not an object handle) so we can assert on the result directly.
+        return list(df.shape)
+
+    import sys
+    import types
+
+    module = types.ModuleType("_oh_test_module")
+    module.consume = consume
+    sys.modules["_oh_test_module"] = module
+
+    # Write a handle, then call the function with the handle's cache key as its argument.
+    _, key = _write(pd.DataFrame({"a": [1, 2, 3]}))
+    result = await custom_functions_call(
+        {
+            "func_name": "consume",
+            "args": [[[key]]],
+            "version": xw.__version__,
+            "client": "Office.js",
+            "runtime": "1.4",
+        },
+        module,
+    )
+    assert result == [[3, 1]]  # (3 rows, 1 col)

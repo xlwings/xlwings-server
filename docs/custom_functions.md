@@ -567,18 +567,22 @@ Object handles allow you to return Python objects such as a pandas DataFrame to 
 
 ```
 
-To make a custom function return an object, simply specify the `object` type hint for the return value:
+To make a custom function return an object handle, specify the `ObjectHandle` type hint for the return value:
 
 ```python
 from typing import Annotated
-from xlwings import func, ret
+from xlwings import func, ret, ObjectHandle
 from xlwings.constants import ObjectHandleIcons
 
 @func
-async def get_mymodel() -> object:
+async def get_mymodel() -> ObjectHandle:
     return pd.DataFrame(
         {"A": [1, 2, 3, 4, 5], "B": [10, 8, 6, 4, 2], "C": [10, 9, 8, 7, 6]}
     )
+```
+
+```{note}
+You can also use `-> object` instead of `-> ObjectHandle`. Both behave identically, but `-> ObjectHandle` makes the intent clearer.
 ```
 
 By default, this will display an icon in the cell together with the data type of the object (cell `A1` in the screenshot). By clicking on the icon, you will get some info about that object. You can, however, add valuable information by specifying a different text and/or icon (cell `A3` in the screenshot). You can use an annotated type hint for this or provide the additional arguments via the `ret` decorator:
@@ -623,15 +627,7 @@ async def get_mymodel() -> object:
 
 `ObjectHandle` accepts the wrapped object as the first argument, followed by the optional `text`, `icon`, and `properties` keyword arguments. The `properties` you provide are shown on the object handle's card in addition to the automatically derived ones (such as the type and shape) and follow the [Excel entity property](https://learn.microsoft.com/office/dev/add-ins/excel/excel-data-types-entity-card) format. Values set via `ObjectHandle` take precedence over those set via `ret` or the annotated type hint.
 
-To be able to use an object handle as argument in another function, use the `object` type hint with the argument. A simple `view` function to translate an object handle to Excel values would look like this:
-
-```python
-@func
-async def view(obj: object):
-    return obj
-```
-
-Using `object` as the type hint, however, means you lose the static type information inside the function: editors and type checkers won't know that `obj` is, for example, a `pd.DataFrame`. To keep the real type, annotate the argument with `ObjectHandle[...]` instead, which marks the argument as an object handle while preserving the wrapped type:
+To be able to use an object handle as argument in another function, annotate the argument with `ObjectHandle[...]`, where `...` is the type of the wrapped object. A simple `view` function to translate an object handle to Excel values would look like this:
 
 ```python
 import pandas as pd
@@ -642,13 +638,19 @@ async def view(obj: ObjectHandle[pd.DataFrame]):
     return obj  # obj is a DataFrame as far as your editor is concerned
 ```
 
+The subscript keeps the static type information inside the function, so editors and type checkers know that `obj` is, for example, a `pd.DataFrame`. If the function should accept any object handle, use `ObjectHandle[object]`.
+
+```{note}
+You can also annotate the argument with `object` instead of `ObjectHandle[...]`. This works identically but loses the static type information inside the function.
+```
+
 In the [custom functions examples](https://github.com/xlwings/xlwings-server/blob/main/app/custom_functions/examples.py), you will find a slightly more sophisticated `view` function that optionally allows you to return just the first couple of rows.
 
 If you are looking for functionality similar to how the `xl()` function works in Microsoft's Python in Excel, you can do it as follows:
 
 ```python
 @func
-async def to_df(df: pd.DataFrame) -> object:
+async def to_df(df: pd.DataFrame) -> ObjectHandle:
     return df
 ```
 
