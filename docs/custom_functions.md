@@ -602,6 +602,27 @@ async def get_mymodel() -> Annotated[object, {"icon": ObjectHandleIcons.table, "
     )
 ```
 
+The `ret` decorator and the annotated type hint set the icon and text for _every_ object returned by that function. If you instead want to customize them _per object_—for example, to show a text that depends on the value—wrap the return value in an `ObjectHandle`:
+
+```python
+from xlwings import func, ObjectHandle
+from xlwings.constants import ObjectHandleIcons
+
+@func
+async def get_mymodel() -> object:
+    df = pd.DataFrame(
+        {"A": [1, 2, 3, 4, 5], "B": [10, 8, 6, 4, 2], "C": [10, 9, 8, 7, 6]}
+    )
+    return ObjectHandle(
+        df,
+        text=f"{len(df)} rows",
+        icon=ObjectHandleIcons.table,
+        properties={"Source": {"type": "String", "basicValue": "Model A"}},
+    )
+```
+
+`ObjectHandle` accepts the wrapped object as the first argument, followed by the optional `text`, `icon`, and `properties` keyword arguments. The `properties` you provide are shown on the object handle's card in addition to the automatically derived ones (such as the type and shape) and follow the [Excel entity property](https://learn.microsoft.com/office/dev/add-ins/excel/excel-data-types-entity-card) format. Values set via `ObjectHandle` take precedence over those set via `ret` or the annotated type hint.
+
 To be able to use an object handle as argument in another function, just use the `object` type hint with the argument. A simple `view` function to translate an object handle to Excel values would look like this:
 
 ```python
@@ -629,7 +650,7 @@ This turns an existing Excel range into a DataFrame. Using an Excel table as you
 
 You can return the majority of Python data types such as simple lists, dictionaries, and tuples. NumPy arrays and pandas DataFrames/Series are also supported. For unsupported data types, a custom serializer can be written and registered (see [`pandas_serializer.py`](https://github.com/xlwings/xlwings-server/blob/main/app/serializers/pandas_serializer.py) for an example).
 
-The object handles are stored in the cache using a key that derives from the add-in installation, workbook name and cell address, i.e, objects are not shared across different Excel installations or users.
+Each object handle is stored in the cache under a unique, randomly generated key that travels inside the object handle itself. As a result, an object handle keeps working when you copy it to another cell or reference it via a formula such as `=A1`, and it can be resolved from any workbook or Excel installation for as long as the object is cached. If you run a shared backend for mutually untrusted users and want to prevent one user from resolving another user's cached objects, set `XLWINGS_OBJECT_CACHE_PARTITION_BY_USER=true`. This scopes object handles to the user who created them, at the cost of no longer being able to share them across users.
 
 ## Custom functions vs. classic UDFs
 
