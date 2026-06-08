@@ -590,7 +590,7 @@ By default, this will display an icon in the cell together with the data type of
 ```python
 @func
 @ret(icon=ObjectHandleIcons.table, text="My Model")
-async def get_mymodel() -> object:
+async def get_mymodel() -> ObjectHandle:
     return pd.DataFrame(
         {"A": [1, 2, 3, 4, 5], "B": [10, 8, 6, 4, 2], "C": [10, 9, 8, 7, 6]}
     )
@@ -600,7 +600,7 @@ To do the same via annotated type hint, you would do:
 
 ```python
 @func
-async def get_mymodel() -> Annotated[object, {"icon": ObjectHandleIcons.table, "text": "My Model"}]:
+async def get_mymodel() -> Annotated[ObjectHandle, {"icon": ObjectHandleIcons.table, "text": "My Model"}]:
     return pd.DataFrame(
         {"A": [1, 2, 3, 4, 5], "B": [10, 8, 6, 4, 2], "C": [10, 9, 8, 7, 6]}
     )
@@ -613,7 +613,7 @@ from xlwings import func, ObjectHandle
 from xlwings.constants import ObjectHandleIcons
 
 @func
-async def get_mymodel() -> object:
+async def get_mymodel() -> ObjectHandle:
     df = pd.DataFrame(
         {"A": [1, 2, 3, 4, 5], "B": [10, 8, 6, 4, 2], "C": [10, 9, 8, 7, 6]}
     )
