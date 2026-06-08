@@ -119,3 +119,22 @@ def test_stale_object_handle_text_is_platform_aware():
     assert web["text"] == "#STALE!"
     assert "recalculate" in web["properties"]["Status"]["basicValue"]
     assert "Ctrl+Alt+F9" in desktop["properties"]["Status"]["basicValue"]
+
+
+def test_object_handle_type_hint_resolves_via_cache():
+    # ObjectHandle[T] opts an argument into object-cache resolution while keeping T as the
+    # type seen by editors/type checkers, instead of having to annotate the arg as object.
+    from xlwings.server import func
+
+    @func
+    async def view(obj: xw.ObjectHandle[pd.DataFrame]):
+        return obj
+
+    arg_options = view.__xlfunc__["args"][0]["options"]
+    # The arg is converted via the object cache (registered for `object`)...
+    assert arg_options["convert"] is object
+    # ...while the annotation still carries the real type for static tooling: it resolves
+    # to Annotated[pd.DataFrame, ObjectHandle], which type checkers read as pd.DataFrame.
+    annotation = view.__annotations__["obj"]
+    assert annotation.__args__[0] is pd.DataFrame
+    assert xw.ObjectHandle in annotation.__metadata__

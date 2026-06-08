@@ -623,12 +623,23 @@ async def get_mymodel() -> object:
 
 `ObjectHandle` accepts the wrapped object as the first argument, followed by the optional `text`, `icon`, and `properties` keyword arguments. The `properties` you provide are shown on the object handle's card in addition to the automatically derived ones (such as the type and shape) and follow the [Excel entity property](https://learn.microsoft.com/office/dev/add-ins/excel/excel-data-types-entity-card) format. Values set via `ObjectHandle` take precedence over those set via `ret` or the annotated type hint.
 
-To be able to use an object handle as argument in another function, just use the `object` type hint with the argument. A simple `view` function to translate an object handle to Excel values would look like this:
+To be able to use an object handle as argument in another function, use the `object` type hint with the argument. A simple `view` function to translate an object handle to Excel values would look like this:
 
 ```python
 @func
 async def view(obj: object):
     return obj
+```
+
+Using `object` as the type hint, however, means you lose the static type information inside the function: editors and type checkers won't know that `obj` is, for example, a `pd.DataFrame`. To keep the real type, annotate the argument with `ObjectHandle[...]` instead, which marks the argument as an object handle while preserving the wrapped type:
+
+```python
+import pandas as pd
+from xlwings import func, ObjectHandle
+
+@func
+async def view(obj: ObjectHandle[pd.DataFrame]):
+    return obj  # obj is a DataFrame as far as your editor is concerned
 ```
 
 In the [custom functions examples](https://github.com/xlwings/xlwings-server/blob/main/app/custom_functions/examples.py), you will find a slightly more sophisticated `view` function that optionally allows you to return just the first couple of rows.
