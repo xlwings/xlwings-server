@@ -625,7 +625,7 @@ async def get_mymodel() -> object:
     )
 ```
 
-`ObjectHandle` accepts the wrapped object as the first argument, followed by the optional `text`, `icon`, and `properties` keyword arguments. The `properties` you provide are shown on the object handle's card in addition to the automatically derived ones (such as the type and shape) and follow the [Excel entity property](https://learn.microsoft.com/office/dev/add-ins/excel/excel-data-types-entity-card) format. Values set via `ObjectHandle` take precedence over those set via `ret` or the annotated type hint.
+`ObjectHandle` accepts the wrapped object as the first argument, followed by the optional `text`, `icon`, and `properties` keyword arguments. The `properties` follow the [Excel entity property](https://learn.microsoft.com/office/dev/add-ins/excel/excel-data-types-entity-card) format and, when provided, are the _complete_ set shown on the object handle's card—they replace the automatically derived ones (such as the type and shape) rather than adding to them. If you omit `properties`, the derived ones are shown. Values set via `ObjectHandle` take precedence over those set via `ret` or the annotated type hint.
 
 To be able to use an object handle as argument in another function, annotate the argument with `ObjectHandle[...]`, where `...` is the type of the wrapped object. A simple `view` function to translate an object handle to Excel values would look like this:
 

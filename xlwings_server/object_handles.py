@@ -204,9 +204,12 @@ class ObjectCacheConverter(Converter):
         if isinstance(icon, ObjectHandleIcons):
             icon = icon.value
 
-        properties = _derived_properties(obj)
-        # User-supplied properties win over the derived ones.
-        properties.update(user_properties)
+        # If the user supplies properties via ObjectHandle, they're the complete set shown
+        # on the card; otherwise fall back to the automatically derived ones (type, shape,
+        # ...). The reserved cache key is always added below, regardless.
+        properties = (
+            dict(user_properties) if user_properties else _derived_properties(obj)
+        )
         # The reserved cache key is written last so it can never be shadowed. `excludeFrom`
         # hides it from the user (cardView: not on the card, autoComplete: not in formula
         # suggestions, dotNotation: not readable via FIELDVALUE()) while it still persists

@@ -108,8 +108,18 @@ def test_object_handle_wrapper_customizes_presentation():
     assert entity["text"] == "1 row"
     assert entity["layouts"]["compact"]["icon"] == xw.ObjectHandleIcons.table.value
     assert entity["properties"]["Region"]["basicValue"] == "EU"
+    # Supplied properties are the complete set: the auto-derived ones are NOT shown
+    # (only the supplied properties plus the always-present reserved cache key).
+    assert set(entity["properties"]) == {"Region", oh.RESERVED_PROPERTY}
     # The wrapped object (not the wrapper) is what gets cached.
     assert Converter.read_value(key, {}).equals(df)
+
+
+def test_object_handle_without_properties_keeps_derived_ones():
+    # When no properties are supplied, the auto-derived ones are still shown.
+    handle = xw.ObjectHandle(pd.DataFrame({"a": [1]}), text="just text")
+    entity, _ = _write(handle)
+    assert set(entity["properties"]) >= {"Type", "Shape", "Columns", "Index"}
 
 
 def test_object_handle_properties_cannot_shadow_reserved_key():
