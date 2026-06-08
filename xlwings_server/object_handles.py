@@ -205,10 +205,14 @@ class ObjectCacheConverter(Converter):
         # User-supplied properties win over the derived ones.
         properties.update(user_properties)
         # The reserved cache key is written last so it can never be shadowed. `excludeFrom`
-        # keeps it out of the card and formulas while it still persists on the Entity (and
-        # so survives copy/paste and `=A1`): cardView hides it from the card, autoComplete
-        # from formula suggestions, dotNotation from FIELDVALUE(), and calcCompare from
-        # recalc change-detection (the UUID changes on every recalc).
+        # hides it from the user (cardView: not on the card, autoComplete: not in formula
+        # suggestions, dotNotation: not readable via FIELDVALUE()) while it still persists
+        # on the Entity, so it survives copy/paste and `=A1`.
+        #
+        # Note: `calcCompare` is intentionally NOT excluded. The UUID is the only property
+        # that changes when a handle is regenerated, so it must take part in recalc
+        # change-detection - otherwise Excel considers the entity unchanged and skips
+        # recalculating functions that consume it (e.g. =VIEW(A1) wouldn't update).
         properties[RESERVED_PROPERTY] = {
             "type": "String",
             "basicValue": cache_id,
@@ -217,7 +221,6 @@ class ObjectCacheConverter(Converter):
                     "cardView": True,
                     "autoComplete": True,
                     "dotNotation": True,
-                    "calcCompare": True,
                 },
             },
         }

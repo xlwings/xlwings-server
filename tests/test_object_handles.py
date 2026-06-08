@@ -43,7 +43,10 @@ def test_write_value_returns_entity_with_hidden_cache_key():
         "excludeFrom"
     ]
     assert exclusions["cardView"] is True
-    assert exclusions["calcCompare"] is True
+    assert exclusions["dotNotation"] is True
+    # calcCompare must NOT be excluded: the UUID has to take part in recalc
+    # change-detection so consumers (e.g. =VIEW(A1)) recalculate when the handle changes.
+    assert "calcCompare" not in exclusions
     # Derived properties are present.
     assert set(entity["properties"]) >= {"Type", "Shape", "Columns", "Index"}
 
