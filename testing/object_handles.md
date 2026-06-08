@@ -23,8 +23,9 @@ specific mechanism, noted in _italics_, so a failure points at the code to look 
 - [ ] `=XLWINGS_DEV.GET_DF()` → cell shows an **object-handle card** (icon + text).
 - [ ] ★ Open the card. It shows `Type`, `Shape`, `Columns`, `Index` — and **must NOT show
       `object_handle_cache_key`**. _(`excludeFrom.cardView` — the originally reported bug.)_
-- [ ] `=FIELDVALUE(A1, "object_handle_cache_key")` (A1 = the `GET_DF` cell) → returns an
-      **error / not-found**, not the UUID. _(`excludeFrom.dotNotation`.)_
+- [ ] `=FIELDVALUE(A1, "object_handle_cache_key")` (A1 = the `GET_DF` cell) → returns
+      **`#FIELD!`** (field not retrievable), not the UUID. _(`excludeFrom.dotNotation` — the
+      `#FIELD!` error is the pass condition here.)_
 
 ## 2. Resolve a handle as an argument (round-trip + `ObjectHandle[T]`)
 
