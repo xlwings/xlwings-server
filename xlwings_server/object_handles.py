@@ -22,6 +22,13 @@ from .serializers import deserialize, serialize
 
 logger = logging.getLogger(__name__)
 
+
+class XlwingsOperationalError(XlwingsError):
+    """A transient/operational failure (e.g. the object cache backend is unreachable), as
+    opposed to a deterministic client error. The API maps it to a 5xx so that custom
+    functions retry it (see custom_functions_retry_codes), unlike a plain XlwingsError."""
+
+
 # Used if XLWINGS_OBJECT_CACHE_URL, i.e., Redis isn't configured.
 # Only useful with a single worker e.g., during development.
 cache = {}
@@ -60,7 +67,7 @@ def _cache_key(cache_id):
 def _redis_client():
     redis_client: redis.Redis = xlwings_router.redis_client_context.get()
     if settings.object_cache_url and not redis_client:
-        raise XlwingsError("Failed to connect to Redis")
+        raise XlwingsOperationalError("Failed to connect to Redis")
     return redis_client
 
 

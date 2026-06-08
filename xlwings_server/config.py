@@ -138,7 +138,7 @@ class Settings(BaseSettings):
     object_cache_partition_by_user: bool = False
     cors_allow_origins: list[str] = []
     custom_functions_max_retries: int = 3
-    custom_functions_retry_codes: list[int] = [500, 502, 504]
+    custom_functions_retry_codes: list[int] = [500, 502, 503, 504]
     custom_headers: dict[str, str] = {}
     date_format: str | None = None
     taskpane_html: str = "taskpane.html"

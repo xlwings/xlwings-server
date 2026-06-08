@@ -95,6 +95,33 @@ def test_not_a_handle_error_is_not_retryable():
     assert "not an xlwings object handle" in response.text
 
 
+def test_cache_backend_unreachable_is_retryable(mocker):
+    # A transient operational failure (cache backend down) must return a retryable status,
+    # unlike the deterministic client errors above.
+    from fastapi.testclient import TestClient
+
+    from xlwings_server.config import settings
+    from xlwings_server.main import main_app
+
+    # Pretend Redis is configured; with no client in context, _redis_client() raises
+    # XlwingsOperationalError when get_df tries to write.
+    mocker.patch.object(settings, "object_cache_url", "redis://localhost:6379/0")
+    client = TestClient(main_app, raise_server_exceptions=False)
+    response = client.post(
+        f"{settings.app_path}/xlwings/custom-functions-call",
+        json={
+            "func_name": "get_df",
+            "args": [],
+            "caller_address": "Sheet1!A1",
+            "version": xw.__version__,
+            "client": "Office.js",
+            "runtime": "1.4",
+        },
+    )
+    assert response.status_code == 503
+    assert response.status_code in settings.custom_functions_retry_codes
+
+
 def test_object_handle_wrapper_customizes_presentation():
     df = pd.DataFrame({"a": [1]})
     handle = xw.ObjectHandle(
