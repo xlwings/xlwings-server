@@ -600,7 +600,9 @@ To do the same via annotated type hint, you would do:
 
 ```python
 @func
-async def get_mymodel() -> Annotated[ObjectHandle, {"icon": ObjectHandleIcons.table, "text": "My Model"}]:
+async def get_mymodel() -> Annotated[
+    ObjectHandle, {"icon": ObjectHandleIcons.table, "text": "My Model"}
+]:
     return pd.DataFrame(
         {"A": [1, 2, 3, 4, 5], "B": [10, 8, 6, 4, 2], "C": [10, 9, 8, 7, 6]}
     )
@@ -644,7 +646,7 @@ The subscript keeps the static type information inside the function, so editors 
 You can also annotate the argument with `object` instead of `ObjectHandle[...]`. This works identically but loses the static type information inside the function.
 ```
 
-In the [custom functions examples](https://github.com/xlwings/xlwings-server/blob/main/app/custom_functions/examples.py), you will find a slightly more sophisticated `view` function that optionally allows you to return just the first couple of rows.
+In the [custom functions examples](https://github.com/xlwings/xlwings-server/blob/main/xlwings_server/custom_functions/examples.py), you will find a slightly more sophisticated `view` function that optionally allows you to return just the first couple of rows.
 
 If you are looking for functionality similar to how the `xl()` function works in Microsoft's Python in Excel, you can do it as follows:
 
@@ -661,7 +663,7 @@ This turns an existing Excel range into a DataFrame. Using an Excel table as you
 - For development purposes, you don't need Redis, but the cache is in-memory and thus only works with a single worker/process for as long as the app runs. More importantly, there won't be any automatic cache purging happening.
 ```
 
-You can return the majority of Python data types such as simple lists, dictionaries, and tuples. NumPy arrays and pandas DataFrames/Series are also supported. For unsupported data types, a custom serializer can be written and registered (see [`pandas_serializer.py`](https://github.com/xlwings/xlwings-server/blob/main/app/serializers/pandas_serializer.py) for an example).
+You can return the majority of Python data types such as simple lists, dictionaries, and tuples. NumPy arrays and pandas DataFrames/Series are also supported. For unsupported data types, a custom serializer can be written and registered (see [`pandas_serializer.py`](https://github.com/xlwings/xlwings-server/blob/main/xlwings_server/serializers/pandas_serializer.py) for an example).
 
 Each object handle is stored in the cache under a unique, randomly generated key that travels inside the object handle itself. As a result, an object handle keeps working when you copy it to another cell or reference it via a formula such as `=A1`, and it can be resolved from any workbook or Excel installation for as long as the object is cached. If you run a shared backend for mutually untrusted users and want to prevent one user from resolving another user's cached objects, set `XLWINGS_OBJECT_CACHE_PARTITION_BY_USER=true`. This scopes object handles to the user who created them, at the cost of no longer being able to share them across users.
 
