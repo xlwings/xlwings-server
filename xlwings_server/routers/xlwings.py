@@ -98,8 +98,9 @@ async def custom_functions_code():
 
 # ContextVars
 socketio_id_context = contextvars.ContextVar("socketio_id_context")
-caller_address_context = contextvars.ContextVar("caller_address_context")
 redis_client_context = contextvars.ContextVar("redis_client_context")
+# Only used when XLWINGS_OBJECT_CACHE_PARTITION_BY_USER is enabled (see object_handles).
+user_id_context = contextvars.ContextVar("user_id_context", default=None)
 
 
 @router.post("/custom-functions-call")
@@ -114,15 +115,25 @@ async def custom_functions_call(
     safe_user_name = sanitize_log_input(current_user.name)
     logger.info(f"""Function "{safe_func_name}" called by {safe_user_name}""")
     socketio_id_context.set(sid)  # For utils.trigger_script()
-    caller_address_context.set(data["caller_address"])  # For ObjectCache converter
     redis_client_context.set(redis_client)  # For ObjectCache converter
+    user_id_context.set(
+        current_user.id
+    )  # For ObjectCache converter (when partitioning)
 
-    rv = await xlwings.server.custom_functions_call(
-        data,
-        custom_functions,
-        current_user,
-        typehint_to_value={CurrentUser: current_user},
-    )
+    try:
+        rv = await xlwings.server.custom_functions_call(
+            data,
+            custom_functions,
+            current_user,
+            typehint_to_value={CurrentUser: current_user},
+        )
+    except xw.ObjectCacheMissError:
+        # A consumed object handle is no longer cached. Return a "stale" object handle
+        # instead of an error so the user gets an actionable card (rather than a #VALUE!).
+        # Imported here to avoid a circular import (object_handles imports this module).
+        from xlwings_server import object_handles
+
+        rv = object_handles.stale_object_handle(client=data.get("client"))
     return {"result": rv}
 
 

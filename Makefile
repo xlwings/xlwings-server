@@ -14,6 +14,12 @@ test:
 	uv sync --group all
 	uv run pytest
 
+.PHONY: tests-dev
+tests-dev:
+	uv sync --group all
+	uv pip install -e ../xlwings
+	uv run --no-sync pytest
+
 .PHONY: lint
 lint:
 	uv sync --group all
