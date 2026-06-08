@@ -160,15 +160,18 @@ async function base() {
   const workbookName = await getWorkbookName();
   const officeApiClient = localStorage.getItem("Office API client");
 
-  // For arguments that are Entities, replace the arg with their address (cache key).
-  // The issues is that invocation.parameterAddresses returns a flat list while args
-  // contains a nested array for varargs (in Office.js called 'repeating').
+  // For arguments that are object handles, replace the Entity arg with its cache key so
+  // that the backend can resolve the cached object. The key is stored in the Entity's
+  // hidden "_xlwings" property, which travels with the Entity itself - so the object
+  // handle keeps working through =A1, copy/paste, and temporaries (e.g. USE(MAKE())).
+  // The issue is that args contains a nested array for varargs (in Office.js called
+  // 'repeating'), so we flatten first and write back via each item's path.
   const { result: flatArgs, indices } = flattenVarargsArray(args);
 
   // Process each flattened item with respect to its path
   flatArgs.forEach((item, index) => {
     if (item && item[0][0]?.type === "Entity") {
-      const address = `${officeApiClient}[${workbookName}]${invocation.parameterAddresses[index]}`;
+      const cacheKey = item[0][0].properties?._xlwings?.basicValue;
 
       let target = args;
       const path = indices[index];
@@ -178,7 +181,12 @@ async function base() {
       }
 
       const lastIndex = path[path.length - 1];
-      target[lastIndex] = [address];
+      // An Entity without our hidden key isn't an xlwings object handle (e.g. a Stocks or
+      // Geography entity passed by mistake): send a marker so the backend can raise a
+      // clear error instead of trying to deserialize an arbitrary Entity payload.
+      target[lastIndex] = cacheKey
+        ? [cacheKey]
+        : [{ __xlwingsNotAHandle: true }];
     }
   });
 
