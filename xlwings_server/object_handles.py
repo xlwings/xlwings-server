@@ -44,7 +44,15 @@ def _cache_key(cache_id):
     that object handles are portable; with XLWINGS_OBJECT_CACHE_PARTITION_BY_USER it's
     scoped to the user so that one user can't resolve another user's cached object."""
     if settings.object_cache_partition_by_user:
-        user_id = xlwings_router.user_id_context.get() or "anonymous"
+        user_id = xlwings_router.user_id_context.get()
+        if not user_id:
+            # Partitioning is an isolation control: without a user to scope to, we'd
+            # silently bucket everyone together and give a false sense of isolation. Fail
+            # loudly instead so the misconfiguration (e.g. partitioning on without auth) is
+            # surfaced rather than papered over.
+            raise XlwingsError(
+                "XLWINGS_OBJECT_CACHE_PARTITION_BY_USER requires an authenticated user"
+            )
         return f"object:{user_id}:{cache_id}"
     return f"object:{cache_id}"
 

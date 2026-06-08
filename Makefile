@@ -9,7 +9,7 @@ serve-dev:
 	uv pip install -e ../xlwings
 	uv run --no-sync run.py
 
-.PHONY: test
+.PHONY: tests
 test:
 	uv sync --group all
 	uv run pytest

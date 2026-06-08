@@ -155,6 +155,15 @@ def test_partition_by_user_isolates_objects(mocker):
         Converter.read_value(key, {})
 
 
+def test_partition_by_user_requires_a_user(mocker):
+    # With partitioning on, an unauthenticated request (no user id) must fail loudly rather
+    # than silently bucketing everyone into a shared partition (false isolation).
+    mocker.patch("xlwings_server.config.settings.object_cache_partition_by_user", True)
+    xlwings_router.user_id_context.set(None)
+    with pytest.raises(xw.XlwingsError, match="requires an authenticated user"):
+        Converter.write_value(pd.DataFrame({"a": [1]}), {})
+
+
 def test_stale_object_handle():
     # Custom function results must be a 2D array, so the stale entity is wrapped in [[...]].
     result = oh.stale_object_handle()
