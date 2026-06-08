@@ -171,19 +171,18 @@ async function base() {
   // Process each flattened item with respect to its path
   flatArgs.forEach((item, index) => {
     const cellValue = item?.[0]?.[0];
-    // Rich (data type) cell values are objects with a `type`, e.g. our object handles
-    // ("Entity") as well as Stocks/Geography ("LinkedEntity"), web images, arrays, etc.
-    // Plain values (numbers, strings, booleans) have no `type` and are left untouched -
-    // the backend can't deserialize a rich cell value as a normal argument anyway.
-    const isRichCellValue =
-      cellValue && typeof cellValue === "object" && "type" in cellValue;
-    if (!isRichCellValue) {
+    // Only entity-like cell values are object-handle candidates: our own object handles
+    // are "Entity", and Stocks/Geography are "LinkedEntity". Everything else (plain values,
+    // errors, arrays, web images, ...) is left untouched so the backend reads it normally -
+    // notably, error cells are "Error" and must NOT be treated as handles.
+    const type = cellValue?.type;
+    if (type !== "Entity" && type !== "LinkedEntity") {
       return;
     }
 
     // Our object handles are Entities carrying the hidden cache key.
     const cacheKey =
-      cellValue.type === "Entity"
+      type === "Entity"
         ? cellValue.properties?.object_handle_cache_key?.basicValue
         : undefined;
 
@@ -194,7 +193,7 @@ async function base() {
     }
     const lastIndex = path[path.length - 1];
 
-    // A rich cell value without our hidden key isn't an xlwings object handle (e.g. a
+    // An entity-like value without our hidden key isn't an xlwings object handle (e.g. a
     // Stocks or Geography entity passed by mistake): send a marker string so the backend
     // can raise a clear error instead of choking on an arbitrary payload. It must be a
     // string (not an object) so it passes through xlwings' value cleaning unchanged.
