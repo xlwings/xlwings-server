@@ -38,7 +38,7 @@ The caching of [object handles](custom_functions.md#object-handles) is configure
 - `XLWINGS_OBJECT_CACHE_URL`: the Redis/ValKey URL for the object cache. Required for production.
 - `XLWINGS_OBJECT_CACHE_EXPIRE_AT`: a cron expression that determines when cached objects are purged (default: every Saturday at 12:00 PM UTC).
 - `XLWINGS_OBJECT_CACHE_ENABLE_COMPRESSION`: whether to compress cached objects in Redis.
-- `XLWINGS_OBJECT_CACHE_PARTITION_BY_USER`: by default, object handles are not tied to a specific user and can be shared (e.g., by sending a workbook to a colleague who can resolve the object while it's cached). Set this to `true` on a shared backend with mutually untrusted users to scope object handles to the user who created them, which prevents one user from resolving another user's cached objects.
+- `XLWINGS_OBJECT_CACHE_PARTITION_BY_USER`: by default, object handles are not tied to a specific user. This means that as long as an object is still cached, anyone can resolve it without recalculating—e.g., a colleague who opens a shared workbook can use its object handles right away. Set this to `true` on a shared backend with mutually untrusted users to scope object handles to the user who created them; this prevents one user from resolving another user's cached objects, at the cost of that convenience (other users then have to recalculate to populate their own cache).
 
 ## Edit the `.env` file
 
