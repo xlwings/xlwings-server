@@ -29,3 +29,9 @@ lint:
 docs:
 	uv sync --group all
 	uv run sphinx-autobuild docs docs/_build/html --port 9000 -E
+
+.PHONY: docs-dev
+docs-dev:
+	uv sync --group all
+	uv pip install -e ../xlwings
+	uv run --no-sync sphinx-autobuild docs docs/_build/html --port 9000 -E
