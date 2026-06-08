@@ -143,9 +143,7 @@ def stale_object_handle(client=None):
     icon = ObjectHandleIcons.alert
     if isinstance(icon, ObjectHandleIcons):
         icon = icon.value
-    # Note: the `text` must not look like an Excel error literal (e.g. "#STALE!"), or Excel
-    # renders the cell as a #VALUE! error instead of an object handle card.
-    return {
+    entity = {
         "type": "Entity",
         "text": "Expired object",
         "properties": {
@@ -156,6 +154,11 @@ def stale_object_handle(client=None):
         },
         "layouts": {"compact": {"icon": icon}},
     }
+    # Custom function results must be a 2D array. The normal return path goes through
+    # conversion.write(), which wraps the entity in [[...]]; the stale path bypasses that
+    # (it's returned directly by the router), so wrap it here. Without this, Excel receives
+    # a scalar where it expects a grid and renders the cell as a #VALUE! error.
+    return [[entity]]
 
 
 class ObjectCacheConverter(Converter):
