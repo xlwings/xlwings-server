@@ -26,10 +26,10 @@ logger = logging.getLogger(__name__)
 # Only useful with a single worker e.g., during development.
 cache = {}
 
-# Reserved Entity property that carries the cache key (a UUID). It's deliberately kept out
-# of the card `layouts` so it round-trips through copy/paste and `=A1` without being shown
-# to the user. User-supplied properties must never overwrite it (see write_value).
-RESERVED_PROPERTY = "_xlwings"
+# Reserved Entity property that carries the cache key (a UUID). It travels with the Entity
+# (so it survives copy/paste and `=A1`) but is hidden from the user via excludeFrom (see
+# write_value). User-supplied properties must never overwrite it.
+RESERVED_PROPERTY = "object_handle_cache_key"
 
 # Marker the frontend substitutes for an Entity argument that isn't one of our object
 # handles (e.g., a Stocks/Geography entity passed by mistake).

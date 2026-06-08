@@ -162,16 +162,17 @@ async function base() {
 
   // For arguments that are object handles, replace the Entity arg with its cache key so
   // that the backend can resolve the cached object. The key is stored in the Entity's
-  // hidden "_xlwings" property, which travels with the Entity itself - so the object
-  // handle keeps working through =A1, copy/paste, and temporaries (e.g. USE(MAKE())).
-  // The issue is that args contains a nested array for varargs (in Office.js called
-  // 'repeating'), so we flatten first and write back via each item's path.
+  // hidden "object_handle_cache_key" property, which travels with the Entity itself - so
+  // the object handle keeps working through =A1, copy/paste, and temporaries (e.g.
+  // USE(MAKE())). The issue is that args contains a nested array for varargs (in Office.js
+  // called 'repeating'), so we flatten first and write back via each item's path.
   const { result: flatArgs, indices } = flattenVarargsArray(args);
 
   // Process each flattened item with respect to its path
   flatArgs.forEach((item, index) => {
     if (item && item[0][0]?.type === "Entity") {
-      const cacheKey = item[0][0].properties?._xlwings?.basicValue;
+      const cacheKey =
+        item[0][0].properties?.object_handle_cache_key?.basicValue;
 
       let target = args;
       const path = indices[index];
