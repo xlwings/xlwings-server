@@ -118,9 +118,13 @@ def test_partition_by_user_isolates_objects(mocker):
 def test_stale_object_handle_text_is_platform_aware():
     web = oh.stale_object_handle(client="Office.js")
     desktop = oh.stale_object_handle(client="VBA")
-    assert web["text"] == "#STALE!"
+    # The text must not look like an Excel error literal (e.g. "#STALE!"), or Excel renders
+    # the cell as a #VALUE! error instead of an object handle card.
+    assert not web["text"].startswith("#")
     assert "recalculate" in web["properties"]["Status"]["basicValue"]
     assert "Ctrl+Alt+F9" in desktop["properties"]["Status"]["basicValue"]
+    # The icon must be the serialized enum value (a string), not the enum object.
+    assert isinstance(web["layouts"]["compact"]["icon"], str)
 
 
 def test_object_handle_type_hint_resolves_via_cache():

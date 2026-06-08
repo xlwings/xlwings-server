@@ -140,16 +140,21 @@ def stale_object_handle(client=None):
         hint = "recalculate the source cell"
     else:
         hint = "press Ctrl+Alt+F9 to refresh"
+    icon = ObjectHandleIcons.alert
+    if isinstance(icon, ObjectHandleIcons):
+        icon = icon.value
+    # Note: the `text` must not look like an Excel error literal (e.g. "#STALE!"), or Excel
+    # renders the cell as a #VALUE! error instead of an object handle card.
     return {
         "type": "Entity",
-        "text": "#STALE!",
+        "text": "Expired object",
         "properties": {
             "Status": {
                 "type": "String",
                 "basicValue": f"This object is no longer cached. Please {hint}.",
             },
         },
-        "layouts": {"compact": {"icon": ObjectHandleIcons.alert}},
+        "layouts": {"compact": {"icon": icon}},
     }
 
 

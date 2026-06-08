@@ -59,7 +59,7 @@ specific mechanism, noted in _italics_, so a failure points at the code to look 
 - [ ] Make a handle, then `=XLWINGS_DEV.CLEAR_OBJECT_CACHE()` to evict it (simulates
       expiry).
 - [ ] Re-trigger a consumer of the evicted handle (recalc a `VIEW(A1)` pointing at it) → it
-      shows a **`#STALE!` card**, not a `#VALUE!` error or a Python traceback.
+      shows an **"Expired object" card**, not a `#VALUE!` error or a Python traceback.
       _(Central `ObjectCacheMissError` catch.)_
 - [ ] ★ Open the stale card → text reads **"…press Ctrl+Alt+F9 to refresh"** on desktop.
       On **Excel web** it reads **"…recalculate the source cell"** (no Ctrl+Alt+F9 there).
