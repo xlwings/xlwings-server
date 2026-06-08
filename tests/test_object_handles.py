@@ -64,8 +64,10 @@ def test_read_value_raises_on_cache_miss():
 
 
 def test_read_value_rejects_foreign_entity():
-    with pytest.raises(xw.XlwingsError):
-        Converter.read_value({oh.NOT_A_HANDLE_MARKER: True}, {})
+    # The frontend sends a plain marker string (not a dict) for a non-handle Entity, so it
+    # passes through xlwings' value cleaning unchanged before reaching read_value.
+    with pytest.raises(xw.XlwingsError, match="not an xlwings object handle"):
+        Converter.read_value(oh.NOT_A_HANDLE_MARKER, {})
 
 
 def test_object_handle_wrapper_customizes_presentation():

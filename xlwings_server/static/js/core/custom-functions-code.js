@@ -183,11 +183,12 @@ async function base() {
 
       const lastIndex = path[path.length - 1];
       // An Entity without our hidden key isn't an xlwings object handle (e.g. a Stocks or
-      // Geography entity passed by mistake): send a marker so the backend can raise a
-      // clear error instead of trying to deserialize an arbitrary Entity payload.
+      // Geography entity passed by mistake): send a marker string so the backend can raise
+      // a clear error instead of trying to deserialize an arbitrary Entity payload. It must
+      // be a string (not an object) so it passes through xlwings' value cleaning unchanged.
       target[lastIndex] = cacheKey
         ? [cacheKey]
-        : [{ __xlwingsNotAHandle: true }];
+        : ["__xlwings_not_an_object_handle__"];
     }
   });
 

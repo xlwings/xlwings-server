@@ -31,9 +31,12 @@ cache = {}
 # write_value). User-supplied properties must never overwrite it.
 RESERVED_PROPERTY = "object_handle_cache_key"
 
-# Marker the frontend substitutes for an Entity argument that isn't one of our object
-# handles (e.g., a Stocks/Geography entity passed by mistake).
-NOT_A_HANDLE_MARKER = "__xlwingsNotAHandle"
+# Marker string the frontend substitutes for an Entity argument that isn't one of our
+# object handles (e.g., a Stocks/Geography entity passed by mistake). It's a plain string
+# (like the cache key) so it passes through xlwings' value cleaning unchanged - a dict
+# without a "type" key would raise a KeyError there. A real cache key is a UUID, so it can
+# never collide with this sentinel.
+NOT_A_HANDLE_MARKER = "__xlwings_not_an_object_handle__"
 
 
 def _cache_key(cache_id):
@@ -166,7 +169,7 @@ class ObjectCacheConverter(Converter):
     def read_value(value, options):
         # For custom function args of type Entity, the frontend sends the object handle's
         # cache key (a UUID) instead of the cell value.
-        if isinstance(value, dict) and value.get(NOT_A_HANDLE_MARKER):
+        if value == NOT_A_HANDLE_MARKER:
             raise XlwingsError("Argument is not an xlwings object handle")
         key = _cache_key(value)
         payload = _get(key)
