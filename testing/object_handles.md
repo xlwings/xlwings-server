@@ -54,14 +54,16 @@ specific mechanism, noted in _italics_, so a failure points at the code to look 
 - [ ] Return `ObjectHandle(df, text=f"{len(df)} rows", icon=...)` from a function → the
       **per-call** text/icon appears, overriding any function-level default.
 
-## 5. Stale card (expiry / eviction)
+## 5. Expired-object card (expiry / eviction)
 
-- [ ] Make a handle, then `=XLWINGS_DEV.CLEAR_OBJECT_CACHE()` to evict it (simulates
-      expiry).
-- [ ] Re-trigger a consumer of the evicted handle (recalc a `VIEW(A1)` pointing at it) → it
-      shows an **"Expired object" card**, not a `#VALUE!` error or a Python traceback.
-      _(Central `ObjectCacheMissError` catch.)_
-- [ ] ★ Open the stale card → text reads **"…press Ctrl+Alt+F9 to refresh"** on desktop.
+- [ ] Evict the cache. **Don't** leave `=XLWINGS_DEV.CLEAR_OBJECT_CACHE()` in a cell — as a
+      custom function it re-fires on every recalc and wipes the cache continuously. Instead
+      restart the dev server (the in-memory cache is per-process), or trigger the clear once
+      from a button/script.
+- [ ] Re-trigger a consumer of the evicted handle (recalc a `VIEW(A1)` pointing at it) → the
+      cell shows a card with the **warning icon** and the text **"Expired object"**, not a
+      `#VALUE!` error or a Python traceback. _(Central `ObjectCacheMissError` catch.)_
+- [ ] ★ Open the card → its `Status` reads **"…press Ctrl+Alt+F9 to refresh"** on desktop.
       On **Excel web** it reads **"…recalculate the source cell"** (no Ctrl+Alt+F9 there).
 - [ ] **Recover**: recalc the producing formula (re-enter `=GET_DF()`, or Ctrl+Alt+F9) → a
       fresh handle appears and consumers resolve again.
@@ -80,8 +82,8 @@ specific mechanism, noted in _italics_, so a failure points at the code to look 
       the same server while the object is still cached → `VIEW(A1)` **resolves**.
       _(Portable-while-cached.)_
 - [ ] **Partitioning (opt-in)**: only if `XLWINGS_OBJECT_CACHE_PARTITION_BY_USER=true` and
-      two authenticated users — user B's `VIEW(A1)` gets a **stale card** instead of user
-      A's object. _(Opt-in isolation.)_
+      two authenticated users — user B's `VIEW(A1)` gets an **"Expired object" card** instead
+      of user A's object. _(Opt-in isolation.)_
 
 ## Notes / gotchas
 
