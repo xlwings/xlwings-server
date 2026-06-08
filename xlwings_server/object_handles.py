@@ -140,7 +140,7 @@ def stale_object_handle(client=None):
         hint = "recalculate the source cell"
     else:
         hint = "press Ctrl+Alt+F9 to refresh"
-    icon = ObjectHandleIcons.alert
+    icon = ObjectHandleIcons.warning
     if isinstance(icon, ObjectHandleIcons):
         icon = icon.value
     entity = {
