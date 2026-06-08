@@ -31,6 +31,15 @@ This adds the `config.py` file in the root of your repository, where you can add
 
 Please refer to the `.env` file, which is thoroughly commented. The `.env` file is created by running `uv run xlwings-server init`.
 
+### Object handle settings
+
+The caching of [object handles](custom_functions.md#object-handles) is configured via the following settings (all documented in the `.env` file):
+
+- `XLWINGS_OBJECT_CACHE_URL`: the Redis/ValKey URL for the object cache. Required for production.
+- `XLWINGS_OBJECT_CACHE_EXPIRE_AT`: a cron expression that determines when cached objects are purged (default: every Saturday at 12:00 PM UTC).
+- `XLWINGS_OBJECT_CACHE_ENABLE_COMPRESSION`: whether to compress cached objects in Redis.
+- `XLWINGS_OBJECT_CACHE_PARTITION_BY_USER`: by default, object handles are not tied to a specific user and can be shared (e.g., by sending a workbook to a colleague who can resolve the object while it's cached). Set this to `true` on a shared backend with mutually untrusted users to scope object handles to the user who created them, which prevents one user from resolving another user's cached objects.
+
 ## Edit the `.env` file
 
 Most of the setting in the `.env` file are commented out (line starts with a `#` sign). This means that they use their default value, which is shown in the comment. To change a value, remove the the `#` and change the value accordingly. E.g., to disable the examples you edit the `.env` file from:
