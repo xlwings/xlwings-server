@@ -629,21 +629,29 @@ async def get_mymodel() -> ObjectHandle:
 
 `ObjectHandle` accepts the wrapped object as the first argument, followed by the optional `text`, `icon`, and `properties` keyword arguments. The `properties` follow the [Excel entity property](https://learn.microsoft.com/office/dev/add-ins/excel/excel-data-types-entity-card) format and, when provided, are the _complete_ set shown on the object handle's card—they replace the automatically derived ones (such as the type and shape) rather than adding to them. If you omit `properties`, the derived ones are shown. Values set via `ObjectHandle` take precedence over those set via `ret` or the annotated type hint.
 
-To be able to use an object handle as argument in another function, annotate the argument with `ObjectHandle[...]`, where `...` is the type of the wrapped object. A simple `view` function to translate an object handle to Excel values would look like this:
+To be able to use an object handle as argument in another function, annotate the argument with `CachedObject[...]`, where `...` is the type of the wrapped object:
 
 ```python
 import pandas as pd
-from xlwings import func, ObjectHandle
+from xlwings import func, CachedObject
 
 @func
-async def view(obj: ObjectHandle[pd.DataFrame]):
-    return obj  # obj is a DataFrame as far as your editor is concerned
+async def df_query(df: CachedObject[pd.DataFrame], query: str):
+    return df.query(query)  # df is a DataFrame as far as your editor is concerned
 ```
 
-The subscript keeps the static type information inside the function, so editors and type checkers know that `obj` is, for example, a `pd.DataFrame`. If the function should accept any object handle, use `ObjectHandle[object]`.
+The subscript keeps the static type information inside the function, so editors and type checkers know that `df` is, for example, a `pd.DataFrame` (and offer autocomplete for `df.query`). If the function should accept any object handle, use a bare `CachedObject`:
+
+```python
+from xlwings import func, CachedObject
+
+@func
+async def view(obj: CachedObject):
+    return obj
+```
 
 ```{note}
-You can also annotate the argument with `object` instead of `ObjectHandle[...]`. This works identically but loses the static type information inside the function.
+You can also annotate the argument with `object` instead of `CachedObject[...]`. This works identically but loses the static type information inside the function.
 ```
 
 In the [custom functions examples](https://github.com/xlwings/xlwings-server/blob/main/xlwings_server/custom_functions/examples.py), you will find a slightly more sophisticated `view` function that optionally allows you to return just the first couple of rows.

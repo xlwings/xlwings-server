@@ -11,7 +11,7 @@ from typing import Annotated
 
 import numpy as np
 import pandas as pd
-from xlwings import ObjectHandle
+from xlwings import CachedObject, ObjectHandle
 from xlwings.server import arg, func, ret
 
 from . import settings
@@ -109,17 +109,18 @@ if not settings.enable_wasm:
 
     # 8) Object handles: use a pandas DataFrame query by providing a DataFrame via object
     # handle and the query as string: [NAMESPACE].DF_QUERY(A1, "A > B"). The
-    # `ObjectHandle[pd.DataFrame]` type hint resolves the object handle to the cached
-    # DataFrame while keeping `df` typed as a DataFrame inside the function (`object` also
-    # works, but then you lose the type information).
+    # `CachedObject[pd.DataFrame]` type hint resolves the object handle to the cached
+    # DataFrame while keeping `df` typed as a DataFrame inside the function (so editors and
+    # type checkers know `df.query` exists). `object` works too, but loses the type info.
     @func
-    async def df_query(df: ObjectHandle[pd.DataFrame], query: str) -> Df:
+    async def df_query(df: CachedObject[pd.DataFrame], query: str) -> Df:
         return df.query(query)
 
     # 9) Object handles: Generic function that turns an object handle into Excel values.
-    # `ObjectHandle[object]` accepts any object handle (DataFrame, list, array, ...).
+    # Bare `CachedObject` accepts any object handle (DataFrame, list, array, ...); use the
+    # subscripted form `CachedObject[SomeType]` only when you want the resolved type.
     @func
-    async def view(obj: ObjectHandle[object], head=None):
+    async def view(obj: CachedObject, head=None):
         """Converts an object handle to cell values. `head` can be TRUE or an integer, which
         represents the number of rows from the top that you want to see. TRUE returns the
         first 5 rows.
