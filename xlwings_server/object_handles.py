@@ -103,7 +103,8 @@ def _set(key, value):
 
 def _derived_properties(obj):
     """Returns the automatically derived Entity properties (type, shape, columns, index)
-    for the given object. User-supplied properties from ObjectHandle are merged on top."""
+    for the given object. Used as the card's properties only when ObjectHandle doesn't
+    supply its own; the caller (write_value) decides which set to use."""
     properties = {
         "Type": {"type": "String", "basicValue": type(obj).__name__},
     }
@@ -122,11 +123,10 @@ def _derived_properties(obj):
     if pd and isinstance(obj, pd.DataFrame):
         index_type = type(obj.index).__name__
         index_length = len(obj.index)
-        index_start = obj.index[0]
-        index_end = obj.index[-1]
-        index_info = (
-            f"{index_type}: {index_length} entries, {index_start} to {index_end}"
-        )
+        index_info = f"{index_type}: {index_length} entries"
+        if index_length:
+            # Only show the range for a non-empty index (obj.index[0] would raise on empty).
+            index_info += f", {obj.index[0]} to {obj.index[-1]}"
         properties["Index"] = {"type": "String", "basicValue": index_info}
 
     return properties

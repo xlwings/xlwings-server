@@ -73,7 +73,7 @@ specific mechanism, noted in _italics_, so a failure points at the code to look 
 
 - [ ] Pass a non-xlwings entity into a handle argument — e.g. a **Stocks** data type:
       `=XLWINGS_DEV.VIEW(<a stock cell>)` → clear **"not an xlwings object handle"** error,
-      not a crash. _(`__xlwingsNotAHandle` marker path.)_
+      not a crash. _(`__xlwings_not_an_object_handle__` marker path.)_
 
 ## 7. Sharing / persistence
 

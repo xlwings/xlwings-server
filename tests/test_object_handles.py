@@ -57,6 +57,14 @@ def test_roundtrip_resolves_same_object():
     assert Converter.read_value(key, {}).equals(df)
 
 
+def test_empty_dataframe_does_not_break_handle_creation():
+    # An empty DataFrame is a valid result; deriving the Index property must not read
+    # obj.index[0] (which would raise IndexError on an empty index).
+    entity, key = _write(pd.DataFrame({"a": []}))
+    assert entity["properties"]["Index"]["basicValue"] == "RangeIndex: 0 entries"
+    assert Converter.read_value(key, {}).empty
+
+
 def test_read_value_raises_on_cache_miss():
     with pytest.raises(xw.ObjectCacheMissError) as excinfo:
         Converter.read_value(str(uuid.uuid4()), {})
