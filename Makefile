@@ -10,7 +10,7 @@ serve-dev:
 	uv run --no-sync run.py
 
 .PHONY: tests
-test:
+tests:
 	uv sync --group all
 	uv run pytest
 
