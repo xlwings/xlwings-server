@@ -131,9 +131,14 @@ class Settings(BaseSettings):
     object_cache_url: str | None = None
     object_cache_expire_at: str | None = "0 12 * * sat"
     object_cache_enable_compression: bool = True
+    # Scope object handles to the user who created them. Off by default, so that object
+    # handles are portable (e.g., a shared workbook resolves against the still-cached
+    # object). Enable on multi-tenant backends serving mutually-untrusted users to
+    # prevent one user from resolving another user's cached object.
+    object_cache_partition_by_user: bool = False
     cors_allow_origins: list[str] = []
     custom_functions_max_retries: int = 3
-    custom_functions_retry_codes: list[int] = [500, 502, 504]
+    custom_functions_retry_codes: list[int] = [500, 502, 503, 504]
     custom_headers: dict[str, str] = {}
     date_format: str | None = None
     taskpane_html: str = "taskpane.html"

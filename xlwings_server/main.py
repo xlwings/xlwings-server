@@ -20,7 +20,7 @@ if project_dir := os.getenv("XLWINGS_PROJECT_DIR"):
         sys.path.insert(0, str(project_dir))
 
 from xlwings_server.config import PACKAGE_DIR, PROJECT_DIR, settings
-from xlwings_server.object_handles import ObjectCacheConverter
+from xlwings_server.object_handles import ObjectCacheConverter, XlwingsOperationalError
 from xlwings_server.routers import socketio as socketio_router
 from xlwings_server.routers.manifest import router as manifest_router
 from xlwings_server.routers.root import router as root_router
@@ -225,11 +225,25 @@ if settings.environment == "dev":
 
 
 # Exception handlers
+@app.exception_handler(XlwingsOperationalError)
+async def xlwings_operational_exception_handler(request, exception):
+    # 503, not 400: a transient/operational failure (e.g. the cache backend is
+    # unreachable). A 5xx status lets custom functions retry it (see
+    # custom_functions_retry_codes), unlike the deterministic errors handled below.
+    logger.error(exception)
+    return PlainTextResponse(
+        str(exception), status_code=status.HTTP_503_SERVICE_UNAVAILABLE
+    )
+
+
 @app.exception_handler(XlwingsError)
 async def xlwings_exception_handler(request, exception):
     logger.error(exception)
     msg = str(exception)
-    return PlainTextResponse(msg, status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    # 400, not 500: an XlwingsError is a deliberate, deterministic error (bad argument,
+    # missing role, not an object handle, ...), not a transient server fault. Returning a
+    # non-5xx status keeps custom functions from retrying it (see custom_functions_retry_codes).
+    return PlainTextResponse(msg, status_code=status.HTTP_400_BAD_REQUEST)
 
 
 @app.exception_handler(Exception)

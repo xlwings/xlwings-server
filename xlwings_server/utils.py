@@ -29,4 +29,4 @@ async def clear_object_cache():
             redis_client.delete(key)
         logger.info("Cleared all keys starting with 'object:' from the Redis cache")
     else:
-        object_handles.cache = {}
+        object_handles.cache.clear()

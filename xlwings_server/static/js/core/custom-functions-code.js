@@ -160,26 +160,46 @@ async function base() {
   const workbookName = await getWorkbookName();
   const officeApiClient = localStorage.getItem("Office API client");
 
-  // For arguments that are Entities, replace the arg with their address (cache key).
-  // The issues is that invocation.parameterAddresses returns a flat list while args
-  // contains a nested array for varargs (in Office.js called 'repeating').
+  // For arguments that are object handles, replace the Entity arg with its cache key so
+  // that the backend can resolve the cached object. The key is stored in the Entity's
+  // hidden "object_handle_cache_key" property, which travels with the Entity itself - so
+  // the object handle keeps working through =A1, copy/paste, and temporaries (e.g.
+  // USE(MAKE())). The issue is that args contains a nested array for varargs (in Office.js
+  // called 'repeating'), so we flatten first and write back via each item's path.
   const { result: flatArgs, indices } = flattenVarargsArray(args);
 
   // Process each flattened item with respect to its path
   flatArgs.forEach((item, index) => {
-    if (item && item[0][0]?.type === "Entity") {
-      const address = `${officeApiClient}[${workbookName}]${invocation.parameterAddresses[index]}`;
-
-      let target = args;
-      const path = indices[index];
-
-      for (let i = 0; i < path.length - 1; i++) {
-        target = target[path[i]];
-      }
-
-      const lastIndex = path[path.length - 1];
-      target[lastIndex] = [address];
+    const cellValue = item?.[0]?.[0];
+    // Only entity-like cell values are object-handle candidates: our own object handles
+    // are "Entity", and Stocks/Geography are "LinkedEntity". Everything else (plain values,
+    // errors, arrays, web images, ...) is left untouched so the backend reads it normally -
+    // notably, error cells are "Error" and must NOT be treated as handles.
+    const type = cellValue?.type;
+    if (type !== "Entity" && type !== "LinkedEntity") {
+      return;
     }
+
+    // Our object handles are Entities carrying the hidden cache key.
+    const cacheKey =
+      type === "Entity"
+        ? cellValue.properties?.object_handle_cache_key?.basicValue
+        : undefined;
+
+    let target = args;
+    const path = indices[index];
+    for (let i = 0; i < path.length - 1; i++) {
+      target = target[path[i]];
+    }
+    const lastIndex = path[path.length - 1];
+
+    // An entity-like value without our hidden key isn't an xlwings object handle (e.g. a
+    // Stocks or Geography entity passed by mistake): send a marker string so the backend
+    // can raise a clear error instead of choking on an arbitrary payload. It must be a
+    // string (not an object) so it passes through xlwings' value cleaning unchanged.
+    target[lastIndex] = cacheKey
+      ? [cacheKey]
+      : ["__xlwings_not_an_object_handle__"];
   });
 
   // Body
