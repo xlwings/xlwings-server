@@ -167,6 +167,29 @@ def test_object_handle_without_properties_keeps_derived_ones():
     assert set(entity["properties"]) >= {"Type", "Shape", "Columns", "Index"}
 
 
+def test_function_level_properties_via_options():
+    # text/icon/properties can also be set at the function level (via @ret or an annotated
+    # type hint), which arrive in `options`. Properties there behave like the wrapper's:
+    # they're the complete set, replacing the derived ones.
+    entity = Converter.write_value(
+        pd.DataFrame({"a": [1]}),
+        {"properties": {"Region": {"type": "String", "basicValue": "EU"}}},
+    )
+    assert set(entity["properties"]) == {"Region", oh.RESERVED_PROPERTY}
+
+
+def test_object_handle_properties_override_function_level():
+    # The wrapper's per-object properties take precedence over the function-level ones.
+    handle = xw.ObjectHandle(
+        pd.DataFrame({"a": [1]}),
+        properties={"FromWrapper": {"type": "String", "basicValue": "w"}},
+    )
+    entity = Converter.write_value(
+        handle, {"properties": {"FromRet": {"type": "String", "basicValue": "r"}}}
+    )
+    assert set(entity["properties"]) == {"FromWrapper", oh.RESERVED_PROPERTY}
+
+
 def test_object_handle_properties_cannot_shadow_reserved_key():
     handle = xw.ObjectHandle(
         pd.DataFrame({"a": [1]}),

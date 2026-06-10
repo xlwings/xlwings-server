@@ -582,21 +582,25 @@ async def get_mymodel() -> ObjectHandle:
 ```
 
 ```{note}
-You can also use `-> object` instead of `-> ObjectHandle`. Both behave identically, but `-> ObjectHandle` makes the intent clearer.
+You can also use `-> object` instead of `-> ObjectHandle`. Both behave identically, but `ObjectHandle` can additionally wrap the returned object to customize the icon, text, and properties _per returned object_, see below.
 ```
 
-By default, this will display an icon in the cell together with the data type of the object (cell `A1` in the screenshot). By clicking on the icon, you will get some info about that object. You can, however, add valuable information by specifying a different text and/or icon (cell `A3` in the screenshot). You can use an annotated type hint for this or provide the additional arguments via the `ret` decorator:
+By default, this will display an icon in the cell together with the data type of the object (cell `A1` in the screenshot). By clicking on the icon, you will get some info about that object. You can, however, add valuable information by specifying a different `text`, `icon`, and `properties` (the fields shown on the object handle's card, cell `A3` in the screenshot). You can use an annotated type hint for this or provide the additional arguments via the `ret` decorator:
 
 ```python
 @func
-@ret(icon=ObjectHandleIcons.table, text="My Model")
+@ret(
+    icon=ObjectHandleIcons.table,
+    text="My Model",
+    properties={"Source": {"type": "String", "basicValue": "Model A"}},
+)
 async def get_mymodel() -> ObjectHandle:
     return pd.DataFrame(
         {"A": [1, 2, 3, 4, 5], "B": [10, 8, 6, 4, 2], "C": [10, 9, 8, 7, 6]}
     )
 ```
 
-To do the same via annotated type hint, you would do:
+The `properties` follow the [Excel entity property](https://learn.microsoft.com/office/dev/add-ins/excel/excel-data-types-entity-card) format and, when provided, replace the automatically derived ones (such as the type and shape). To do the same via annotated type hint, you would do:
 
 ```python
 @func
@@ -608,7 +612,7 @@ async def get_mymodel() -> Annotated[
     )
 ```
 
-The `ret` decorator and the annotated type hint set the icon and text for _every_ object returned by that function. If you instead want to customize them _per object_—for example, to show a text that depends on the value—wrap the return value in an `ObjectHandle`:
+There's a third possibility offering maximum flexibility, since the `ret` decorator and the annotated type hint set the icon, text, and properties for _every_ object returned by that function. If you instead want to customize them _per object_---for example, to show a text that depends on the value---wrap the return value in an `ObjectHandle`:
 
 ```python
 from xlwings import func, ObjectHandle
@@ -627,7 +631,7 @@ async def get_mymodel() -> ObjectHandle:
     )
 ```
 
-`ObjectHandle` accepts the wrapped object as the first argument, followed by the optional `text`, `icon`, and `properties` keyword arguments. The `properties` follow the [Excel entity property](https://learn.microsoft.com/office/dev/add-ins/excel/excel-data-types-entity-card) format and, when provided, are the _complete_ set shown on the object handle's card—they replace the automatically derived ones (such as the type and shape) rather than adding to them. If you omit `properties`, the derived ones are shown. Values set via `ObjectHandle` take precedence over those set via `ret` or the annotated type hint.
+`ObjectHandle` accepts the wrapped object as the first argument, followed by the same optional `text`, `icon`, and `properties` keyword arguments. Values set via `ObjectHandle` take precedence over those set via `ret` or the annotated type hint.
 
 To be able to use an object handle as argument in another function, annotate the argument with `CachedObject[...]`, where `...` is the type of the wrapped object:
 

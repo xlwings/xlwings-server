@@ -196,14 +196,15 @@ class ObjectCacheConverter(Converter):
 
     @staticmethod
     def write_value(obj, options):
-        # Allow customizing text/icon/properties per object via xw.ObjectHandle.
+        # text/icon/properties can be set at the function level via the @ret decorator or an
+        # annotated type hint; xw.ObjectHandle can additionally override them per object.
         text = options.get("text")
         icon = options.get("icon")
-        user_properties = {}
+        user_properties = options.get("properties") or {}
         if isinstance(obj, ObjectHandle):
             text = obj.text or text
             icon = obj.icon or icon
-            user_properties = obj.properties
+            user_properties = obj.properties or user_properties
             obj = obj.obj
 
         if RESERVED_PROPERTY in user_properties:
@@ -219,9 +220,10 @@ class ObjectCacheConverter(Converter):
         if isinstance(icon, ObjectHandleIcons):
             icon = icon.value
 
-        # If the user supplies properties via ObjectHandle, they're the complete set shown
-        # on the card; otherwise fall back to the automatically derived ones (type, shape,
-        # ...). The reserved cache key is always added below, regardless.
+        # If the user supplies properties (via @ret/annotated type hint or ObjectHandle),
+        # they're the complete set shown on the card; otherwise fall back to the
+        # automatically derived ones (type, shape, ...). The reserved cache key is always
+        # added below, regardless.
         properties = (
             dict(user_properties) if user_properties else _derived_properties(obj)
         )
