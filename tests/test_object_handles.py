@@ -5,9 +5,17 @@ import pytest
 import xlwings as xw
 
 from xlwings_server import object_handles as oh
+from xlwings_server.config import settings
 from xlwings_server.routers import xlwings as xlwings_router
 
 Converter = oh.ObjectCacheConverter
+
+# The object-handle example functions (get_df, view, ...) are only registered when Wasm is
+# disabled, so route-level tests that call them must be skipped under Wasm.
+requires_examples = pytest.mark.skipif(
+    settings.enable_wasm,
+    reason="object-handle example functions are not registered when Wasm is enabled",
+)
 
 
 @pytest.fixture(autouse=True)
@@ -78,6 +86,7 @@ def test_read_value_rejects_foreign_entity():
         Converter.read_value(oh.NOT_A_HANDLE_MARKER, {})
 
 
+@requires_examples
 def test_not_a_handle_error_is_not_retryable():
     # End-to-end through the route: a foreign-entity marker must surface as a deliberate
     # client error whose status code is NOT in the retry codes, so custom functions don't
@@ -103,6 +112,7 @@ def test_not_a_handle_error_is_not_retryable():
     assert "not an xlwings object handle" in response.text
 
 
+@requires_examples
 def test_cache_backend_unreachable_is_retryable(mocker):
     # A transient operational failure (cache backend down) must return a retryable status,
     # unlike the deterministic client errors above.
