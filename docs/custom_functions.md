@@ -585,7 +585,13 @@ async def get_mymodel() -> ObjectHandle:
 You can also use `-> object` instead of `-> ObjectHandle`. Both behave identically, but `ObjectHandle` can additionally wrap the returned object to customize the icon, text, and properties _per returned object_, see below.
 ```
 
-By default, this will display an icon in the cell together with the data type of the object (cell `A1` in the screenshot). By clicking on the icon, you will get some info about that object. You can, however, add valuable information by specifying a different `text`, `icon`, and `properties` (the fields shown on the object handle's card, cell `A3` in the screenshot). You can use an annotated type hint for this or provide the additional arguments via the `ret` decorator:
+By default, this will display an icon in the cell together with the data type of the object (cell `A1` in the screenshot). By clicking on the icon, you will get some info about that object. You can, however, add valuable information by specifying a different `text`, `icon`, and `properties` (the fields shown on the object handle's card, cell `A3` in the screenshot). There are three ways to do this:
+
+- via the `ret` decorator
+- via an annotated type hint
+- by wrapping the return value in an `ObjectHandle`, which additionally lets you customize them per object
+
+Using the `ret` decorator:
 
 ```python
 @func
@@ -603,16 +609,23 @@ async def get_mymodel() -> ObjectHandle:
 The `properties` follow the [Excel entity property](https://learn.microsoft.com/office/dev/add-ins/excel/excel-data-types-entity-card) format and, when provided, replace the automatically derived ones (such as the type and shape). To do the same via annotated type hint, you would do:
 
 ```python
+MyModel = Annotated[
+    ObjectHandle,
+    {
+        "icon": ObjectHandleIcons.table,
+        "text": "My Model",
+        "properties": {"Source": {"type": "String", "basicValue": "Model A"}},
+    },
+]
+
 @func
-async def get_mymodel() -> Annotated[
-    ObjectHandle, {"icon": ObjectHandleIcons.table, "text": "My Model"}
-]:
+async def get_mymodel() -> MyModel:
     return pd.DataFrame(
         {"A": [1, 2, 3, 4, 5], "B": [10, 8, 6, 4, 2], "C": [10, 9, 8, 7, 6]}
     )
 ```
 
-There's a third possibility offering maximum flexibility, since the `ret` decorator and the annotated type hint set the icon, text, and properties for _every_ object returned by that function. If you instead want to customize them _per object_---for example, to show a text that depends on the value---wrap the return value in an `ObjectHandle`:
+If you instead want to customize them _per object_---for example, to show a text that depends on the value---wrap the return value in an `ObjectHandle`:
 
 ```python
 from xlwings import func, ObjectHandle
@@ -620,15 +633,15 @@ from xlwings.constants import ObjectHandleIcons
 
 @func
 async def get_mymodel() -> ObjectHandle:
-    df = pd.DataFrame(
-        {"A": [1, 2, 3, 4, 5], "B": [10, 8, 6, 4, 2], "C": [10, 9, 8, 7, 6]}
-    )
-    return ObjectHandle(
-        df,
-        text=f"{len(df)} rows",
-        icon=ObjectHandleIcons.table,
-        properties={"Source": {"type": "String", "basicValue": "Model A"}},
-    )
+    df = load_model_data()
+    if df.empty:
+        return ObjectHandle(df, text="No data", icon=ObjectHandleIcons.warning)
+    else:
+        return ObjectHandle(
+            df,
+            text=f"{len(df)} rows",
+            icon=ObjectHandleIcons.table,
+        )
 ```
 
 `ObjectHandle` accepts the wrapped object as the first argument, followed by the same optional `text`, `icon`, and `properties` keyword arguments. Values set via `ObjectHandle` take precedence over those set via `ret` or the annotated type hint.
@@ -671,13 +684,13 @@ async def to_df(df: pd.DataFrame) -> ObjectHandle:
 This turns an existing Excel range into a DataFrame. Using an Excel table as your source range is a good idea as it makes your object handle dynamically update whenever you resize the Excel table.
 
 ```{note}
-- This feature requires xlwings Server v0.5.0+ as well as a Redis/ValKey database for production via `XLWINGS_OBJECT_CACHE_URL`. The object cache is purged once a week, but this can be configured via `XLWINGS_OBJECT_CACHE_EXPIRE_AT`. Alternatively, you'll find a function called `clear_object_cache` in the examples.
+- This feature requires xlwings Server v1.8.0 as well as a Redis/ValKey database for production via `XLWINGS_OBJECT_CACHE_URL`. The object cache is purged once a week, but this can be configured via `XLWINGS_OBJECT_CACHE_EXPIRE_AT`. Alternatively, there is `xlwings_server.utils.clear_object_cache`.
 - For development purposes, you don't need Redis, but the cache is in-memory and thus only works with a single worker/process for as long as the app runs. More importantly, there won't be any automatic cache purging happening.
 ```
 
 You can return the majority of Python data types such as simple lists, dictionaries, and tuples. NumPy arrays and pandas DataFrames/Series are also supported. For unsupported data types, a custom serializer can be written and registered (see [`pandas_serializer.py`](https://github.com/xlwings/xlwings-server/blob/main/xlwings_server/serializers/pandas_serializer.py) for an example).
 
-Each object handle is stored in the cache under a unique, randomly generated key that travels inside the object handle itself. As a result, an object handle keeps working when you copy it to another cell or reference it via a formula such as `=A1`, and it can be resolved from any workbook or Excel installation for as long as the object is cached. If you run a shared backend for mutually untrusted users and want to prevent one user from resolving another user's cached objects, set `XLWINGS_OBJECT_CACHE_PARTITION_BY_USER=true`. This scopes object handles to the user who created them, at the cost of no longer being able to share them across users.
+Each object handle is stored in the cache under a unique, randomly key. As a result, an object handle keeps working when you copy it to another cell or reference it via a formula such as `=A1`, and it can be resolved from any workbook or Excel installation for as long as the object is cached. If you run a shared backend for mutually untrusted users and want to prevent one user from resolving another user's cached objects, set `XLWINGS_OBJECT_CACHE_PARTITION_BY_USER=true`. This scopes object handles to the user who created them.
 
 ## Custom functions vs. classic UDFs
 
