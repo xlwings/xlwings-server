@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.8.0 (Jun 10, 2026)
+
+- Made object handles more robust and flexible, see [](custom_functions.md#object-handles). The changes are backward compatible.
+
 ## 1.7.0 (Jun 3, 2026)
 
 - Support for arbitrary arguments with `@script`, see [](custom_scripts.md#script-arguments).
