@@ -131,6 +131,10 @@ class Settings(BaseSettings):
     object_cache_url: str | None = None
     object_cache_expire_at: str | None = "0 12 * * sat"
     object_cache_enable_compression: bool = True
+    # Capacity of the in-memory LRU object cache (used when object_cache_url isn't
+    # configured). It implicitly limits how many live object handles a workbook can hold
+    # at once. Ignored with Redis, where expiry is handled via object_cache_expire_at.
+    object_cache_maxsize: int = 100
     # Scope object handles to the user who created them. Off by default, so that object
     # handles are portable (e.g., a shared workbook resolves against the still-cached
     # object). Enable on multi-tenant backends serving mutually-untrusted users to

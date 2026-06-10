@@ -1,20 +1,27 @@
+"""Redis backend for xlwings object handles.
+
+The converter, the default in-process LRU store, and the stale-handle card live in
+xlwings core (xlwings.pro.object_handles); this module plugs in the Redis-backed store
+when XLWINGS_OBJECT_CACHE_URL is configured. Serialization, compression, expiry, and
+per-user key partitioning are backend concerns and therefore live here, inside the store.
+"""
+
 import logging
-import uuid
 import zlib
 
-try:
-    import numpy as np
-except ImportError:
-    np = None
-try:
-    import pandas as pd
-except ImportError:
-    pd = None
 import redis
 from croniter import croniter
-from xlwings import ObjectCacheMissError, ObjectHandle, XlwingsError
-from xlwings.constants import ObjectHandleIcons
-from xlwings.conversion import Converter
+from xlwings import XlwingsError
+from xlwings.pro import object_handles as core_object_handles
+
+# Re-exports for the rest of the app (main.py, routers, tests).
+from xlwings.pro.object_handles import (  # noqa: F401
+    NOT_A_HANDLE_MARKER,
+    RESERVED_PROPERTY,
+    LRUObjectCache,
+    ObjectCacheConverter,
+    stale_object_handle,
+)
 
 from .config import settings
 from .routers import xlwings as xlwings_router
@@ -29,228 +36,81 @@ class XlwingsOperationalError(XlwingsError):
     functions retry it (see custom_functions_retry_codes), unlike a plain XlwingsError."""
 
 
-# Used if XLWINGS_OBJECT_CACHE_URL, i.e., Redis isn't configured.
-# Only useful with a single worker e.g., during development.
-cache = {}
+class RedisObjectCache:
+    """Redis-backed object store. Objects are serialized (and optionally compressed),
+    keys carry the configured expiry, and with XLWINGS_OBJECT_CACHE_PARTITION_BY_USER
+    they're scoped to the user."""
 
-# Reserved Entity property that carries the cache key (a UUID). It travels with the Entity
-# (so it survives copy/paste and `=A1`) but is hidden from the user via excludeFrom (see
-# write_value). User-supplied properties must never overwrite it.
-RESERVED_PROPERTY = "object_handle_cache_key"
+    @staticmethod
+    def _key(cache_id):
+        """Builds the Redis key for an object handle's UUID. The key is global by default
+        so that object handles are portable; with XLWINGS_OBJECT_CACHE_PARTITION_BY_USER
+        it's scoped to the user so that one user can't resolve another user's cached
+        object."""
+        if settings.object_cache_partition_by_user:
+            user_id = xlwings_router.user_id_context.get()
+            if not user_id:
+                # Partitioning is an isolation control: without a user to scope to, we'd
+                # silently bucket everyone together and give a false sense of isolation.
+                # Fail loudly instead so the misconfiguration (e.g. partitioning on
+                # without auth) is surfaced rather than papered over.
+                raise XlwingsError(
+                    "XLWINGS_OBJECT_CACHE_PARTITION_BY_USER requires an authenticated "
+                    "user"
+                )
+            return f"object:{user_id}:{cache_id}"
+        return f"object:{cache_id}"
 
-# Marker string the frontend substitutes for an Entity argument that isn't one of our
-# object handles (e.g., a Stocks/Geography entity passed by mistake). It's a plain string
-# (like the cache key) so it passes through xlwings' value cleaning unchanged - a dict
-# without a "type" key would raise a KeyError there. A real cache key is a UUID, so it can
-# never collide with this sentinel.
-NOT_A_HANDLE_MARKER = "__xlwings_not_an_object_handle__"
+    @staticmethod
+    def _client():
+        redis_client: redis.Redis = xlwings_router.redis_client_context.get()
+        if not redis_client:
+            raise XlwingsOperationalError("Failed to connect to Redis")
+        return redis_client
 
-
-def _cache_key(cache_id):
-    """Builds the cache key for an object handle's UUID. The key is global by default so
-    that object handles are portable; with XLWINGS_OBJECT_CACHE_PARTITION_BY_USER it's
-    scoped to the user so that one user can't resolve another user's cached object."""
-    if settings.object_cache_partition_by_user:
-        user_id = xlwings_router.user_id_context.get()
-        if not user_id:
-            # Partitioning is an isolation control: without a user to scope to, we'd
-            # silently bucket everyone together and give a false sense of isolation. Fail
-            # loudly instead so the misconfiguration (e.g. partitioning on without auth) is
-            # surfaced rather than papered over.
-            raise XlwingsError(
-                "XLWINGS_OBJECT_CACHE_PARTITION_BY_USER requires an authenticated user"
-            )
-        return f"object:{user_id}:{cache_id}"
-    return f"object:{cache_id}"
-
-
-def _redis_client():
-    redis_client: redis.Redis = xlwings_router.redis_client_context.get()
-    if settings.object_cache_url and not redis_client:
-        raise XlwingsOperationalError("Failed to connect to Redis")
-    return redis_client
-
-
-def _get(key):
-    """Reads a serialized object from the cache. Returns None if the key is absent."""
-    if settings.object_cache_url:
-        value = _redis_client().get(key)
+    def get(self, cache_id):
+        value = self._client().get(self._key(cache_id))
         if value is None:
             return None
         if settings.object_cache_enable_compression:
             value = zlib.decompress(value)
-        return value.decode()
-    return cache.get(key)
+        return deserialize(value.decode())
 
-
-def _set(key, value):
-    """Writes a serialized object to the cache, applying the configured expiry."""
-    if settings.object_cache_url:
+    def set(self, cache_id, obj):
+        value = serialize(obj)
         expire_at = None
         if settings.object_cache_expire_at:
             cron = croniter(settings.object_cache_expire_at)
             expire_at = int(cron.get_next())
         if settings.object_cache_enable_compression:
             value = zlib.compress(value.encode())
-        _redis_client().set(key, value, exat=expire_at)
-    else:
+        self._client().set(self._key(cache_id), value, exat=expire_at)
+
+    def clear(self):
+        redis_client = self._client()
+        for key in redis_client.scan_iter(match="object:*"):
+            redis_client.delete(key)
+
+
+class _WarningLRUObjectCache(LRUObjectCache):
+    """Core's default in-memory store, but warning on every write: in-memory objects are
+    lost on restart and not shared across workers, so production should use Redis."""
+
+    def set(self, cache_id, obj):
+        # Write first so the logged utilization includes this entry. A count pinned at
+        # maxsize/maxsize means evictions are happening: raise
+        # XLWINGS_OBJECT_CACHE_MAXSIZE or configure Redis.
+        super().set(cache_id, obj)
         logger.warning(
-            "Storing objects in memory. Configure XLWINGS_OBJECT_CACHE_URL "
-            "for production use!"
+            f"Storing objects in memory ({len(self)}/{self.maxsize}). "
+            "Configure XLWINGS_OBJECT_CACHE_URL for production use!"
         )
-        cache[key] = value
 
 
-def _derived_properties(obj):
-    """Returns the automatically derived Entity properties (type, shape, columns, index)
-    for the given object. Used as the card's properties only when ObjectHandle doesn't
-    supply its own; the caller (write_value) decides which set to use."""
-    properties = {
-        "Type": {"type": "String", "basicValue": type(obj).__name__},
-    }
-
-    # Shape
-    shape_value = _get_shape(obj)
-    if shape_value:
-        properties["Shape"] = {"type": "String", "basicValue": shape_value}
-
-    # Columns
-    if pd and isinstance(obj, pd.DataFrame):
-        cols_info = ", ".join(f"{col} [{obj[col].dtype}]" for col in obj.columns)
-        properties["Columns"] = {"type": "String", "basicValue": cols_info}
-
-    # Index
-    if pd and isinstance(obj, pd.DataFrame):
-        index_type = type(obj.index).__name__
-        index_length = len(obj.index)
-        index_info = f"{index_type}: {index_length} entries"
-        if index_length:
-            # Only show the range for a non-empty index (obj.index[0] would raise on empty).
-            index_info += f", {obj.index[0]} to {obj.index[-1]}"
-        properties["Index"] = {"type": "String", "basicValue": index_info}
-
-    return properties
-
-
-def _get_shape(obj):
-    if pd and isinstance(obj, pd.DataFrame):
-        return f"{obj.shape}"
-    if np and isinstance(obj, np.ndarray):
-        return f"{obj.shape}"
-    elif isinstance(obj, (list, tuple)):
-        if obj and isinstance(obj[0], (list, tuple)):
-            return f"({len(obj)}, {len(obj[0])})"
-        return f"({len(obj)},)"
-    else:
-        try:
-            return f"{len(obj)} (length)"
-        except Exception:
-            return None
-
-
-def stale_object_handle():
-    """Builds the Entity shown when a consumed object handle is no longer cached. It stays
-    an Entity (rather than an error) so downstream cards still render and the user sees an
-    actionable message. There's no refresh button (Excel entity cards can't host one), so
-    the user recalculates to regenerate the object."""
-    # Recovery is a full recalculation, which regenerates the object handles. We point at
-    # Excel's built-in recalc rather than a custom button: a button could only do a full
-    # recalc too (Excel can't enumerate which cells hold stale handles), so it would add
-    # nothing over Calculate Now / Ctrl+Alt+F9, which every platform already provides.
-    hint = "recalculate (Formulas > Calculate Now, or press Ctrl+Alt+F9 on the desktop)"
-    icon = ObjectHandleIcons.warning
-    if isinstance(icon, ObjectHandleIcons):
-        icon = icon.value
-    entity = {
-        "type": "Entity",
-        "text": "Expired object",
-        "properties": {
-            "Status": {
-                "type": "String",
-                "basicValue": f"This object is no longer cached. Please {hint}.",
-            },
-        },
-        "layouts": {"compact": {"icon": icon}},
-    }
-    # Custom function results must be a 2D array. The normal return path goes through
-    # conversion.write(), which wraps the entity in [[...]]; the stale path bypasses that
-    # (it's returned directly by the router), so wrap it here. Without this, Excel receives
-    # a scalar where it expects a grid and renders the cell as a #VALUE! error.
-    return [[entity]]
-
-
-class ObjectCacheConverter(Converter):
-    @staticmethod
-    def read_value(value, options):
-        # For custom function args of type Entity, the frontend sends the object handle's
-        # cache key (a UUID) instead of the cell value.
-        if value == NOT_A_HANDLE_MARKER:
-            raise XlwingsError("Argument is not an xlwings object handle")
-        key = _cache_key(value)
-        payload = _get(key)
-        if payload is None:
-            # Object expired or evicted. Raised so it can be turned into a stale object
-            # handle centrally (see routers.xlwings) instead of poisoning the function.
-            raise ObjectCacheMissError(key)
-        return deserialize(payload)
-
-    @staticmethod
-    def write_value(obj, options):
-        # text/icon/properties can be set at the function level via the @ret decorator or an
-        # annotated type hint; xw.ObjectHandle can additionally override them per object.
-        text = options.get("text")
-        icon = options.get("icon")
-        user_properties = options.get("properties") or {}
-        if isinstance(obj, ObjectHandle):
-            text = obj.text or text
-            icon = obj.icon or icon
-            user_properties = obj.properties or user_properties
-            obj = obj.obj
-
-        if RESERVED_PROPERTY in user_properties:
-            raise XlwingsError(
-                f"'{RESERVED_PROPERTY}' is a reserved object handle property name"
-            )
-
-        cache_id = str(uuid.uuid4())
-        _set(_cache_key(cache_id), serialize(obj))
-
-        obj_type = type(obj).__name__
-        icon = icon or ObjectHandleIcons.generic
-        if isinstance(icon, ObjectHandleIcons):
-            icon = icon.value
-
-        # If the user supplies properties (via @ret/annotated type hint or ObjectHandle),
-        # they're the complete set shown on the card; otherwise fall back to the
-        # automatically derived ones (type, shape, ...). The reserved cache key is always
-        # added below, regardless.
-        properties = (
-            dict(user_properties) if user_properties else _derived_properties(obj)
-        )
-        # The reserved cache key is written last so it can never be shadowed. `excludeFrom`
-        # hides it from the user (cardView: not on the card, autoComplete: not in formula
-        # suggestions, dotNotation: not readable via FIELDVALUE()) while it still persists
-        # on the Entity, so it survives copy/paste and `=A1`.
-        #
-        # Note: `calcCompare` is intentionally NOT excluded. The UUID is the only property
-        # that changes when a handle is regenerated, so it must take part in recalc
-        # change-detection - otherwise Excel considers the entity unchanged and skips
-        # recalculating functions that consume it (e.g. =VIEW(A1) wouldn't update).
-        properties[RESERVED_PROPERTY] = {
-            "type": "String",
-            "basicValue": cache_id,
-            "propertyMetadata": {
-                "excludeFrom": {
-                    "cardView": True,
-                    "autoComplete": True,
-                    "dotNotation": True,
-                },
-            },
-        }
-
-        return {
-            "type": "Entity",
-            "text": text or obj_type,
-            "properties": properties,
-            "layouts": {"compact": {"icon": icon}},
-        }
+# Install the store matching the configuration. The converter (in xlwings core) looks up
+# this attribute at call time.
+core_object_handles.cache = (
+    RedisObjectCache()
+    if settings.object_cache_url
+    else _WarningLRUObjectCache(maxsize=settings.object_cache_maxsize)
+)

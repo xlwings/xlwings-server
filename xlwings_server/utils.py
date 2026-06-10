@@ -1,9 +1,8 @@
 import logging
 
-import redis
+from xlwings.pro import object_handles as core_object_handles
 
-from . import object_handles
-from .config import settings
+from . import object_handles  # noqa: F401  Ensures the configured store is installed
 from .routers import socketio as socketio_router, xlwings as xlwings_router
 
 logger = logging.getLogger(__name__)
@@ -22,11 +21,7 @@ async def trigger_script(script, **options):
 
 
 async def clear_object_cache():
-    if settings.object_cache_url:
-        redis_client: redis.Redis = xlwings_router.redis_client_context.get()
-        keys = redis_client.scan_iter(match="object:*")
-        for key in keys:
-            redis_client.delete(key)
-        logger.info("Cleared all keys starting with 'object:' from the Redis cache")
-    else:
-        object_handles.cache.clear()
+    # Clears whichever store is active (Redis or the in-memory LRU). The store lives on
+    # the core module, where xlwings_server.object_handles installed the configured one.
+    core_object_handles.cache.clear()
+    logger.info("Cleared the object cache")
