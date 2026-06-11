@@ -11,7 +11,7 @@ from typing import Annotated
 
 import numpy as np
 import pandas as pd
-from xlwings import CachedObject, ObjectHandle
+from xlwings import CachedObject
 from xlwings.server import arg, func, ret
 
 from . import settings
@@ -77,11 +77,11 @@ def correl2(df: Df):
 
 if not settings.enable_wasm:
     # 5) Object handles: This returns an object handle to a DataFrame that is generated on
-    # the backend. The `-> ObjectHandle` return type hint stores the returned object in the
-    # object cache (`-> object` also works). You can change the `text` and `icon` via
-    # annotated type hint or via ret decorator.
+    # the backend. The `-> object` return type hint stores the returned object in the object
+    # cache. You can change the `text` and `icon` via annotated type hint or via ret
+    # decorator.
     @func
-    async def get_df() -> ObjectHandle:
+    async def get_df() -> object:
         """Returns an object handle to the Excel cell (for production, this requires
         XLWINGS_OBJECT_CACHE_URL)."""
         return pd.DataFrame(
@@ -95,7 +95,7 @@ if not settings.enable_wasm:
     @ret(icon=ObjectHandleIcons.table, text="healthexp")
     async def get_healthexp(
         csv_url="https://raw.githubusercontent.com/mwaskom/seaborn-data/master/healthexp.csv",
-    ) -> ObjectHandle:
+    ) -> object:
         """Returns an object handle to the Excel cell (for production, this requires
         XLWINGS_OBJECT_CACHE_URL)."""
         return pd.read_csv(csv_url)
@@ -104,7 +104,7 @@ if not settings.enable_wasm:
     # table as source makes it easy to work with dynamic source ranges. This sample reuses
     # the Df type hint from above to set index=False.
     @func
-    async def to_df(df: Df) -> ObjectHandle:
+    async def to_df(df: Df) -> object:
         return df
 
     # 8) Object handles: use a pandas DataFrame query by providing a DataFrame via object

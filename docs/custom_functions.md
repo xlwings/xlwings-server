@@ -567,22 +567,23 @@ Object handles allow you to return Python objects such as a pandas DataFrame to 
 
 ```
 
-To make a custom function return an object handle, specify the `ObjectHandle` type hint for the return value:
+To make a custom function return an object handle, annotate the return value with `object`:
 
 ```python
 from typing import Annotated
+import pandas as pd
 from xlwings import func, ret, ObjectHandle
 from xlwings.constants import ObjectHandleIcons
 
 @func
-async def get_mymodel() -> ObjectHandle:
+async def get_mymodel() -> object:
     return pd.DataFrame(
         {"A": [1, 2, 3, 4, 5], "B": [10, 8, 6, 4, 2], "C": [10, 9, 8, 7, 6]}
     )
 ```
 
 ```{note}
-You can also use `-> object` instead of `-> ObjectHandle`. Both behave identically, but `ObjectHandle` can additionally wrap the returned object to customize the icon, text, and properties _per returned object_, see below.
+To customize the icon, text, and properties _per returned object_, wrap the return value in an `ObjectHandle` inside the function body, see below.
 ```
 
 By default, this will display an icon in the cell together with the data type of the object (cell `A1` in the screenshot). By clicking on the icon, you will get some info about that object. You can, however, add valuable information by specifying a different `text`, `icon`, and `properties` (the fields shown on the object handle's card, cell `A3` in the screenshot). There are three ways to do this:
@@ -600,7 +601,7 @@ Using the `ret` decorator:
     text="My Model",
     properties={"Source": {"type": "String", "basicValue": "Model A"}},
 )
-async def get_mymodel() -> ObjectHandle:
+async def get_mymodel() -> object:
     return pd.DataFrame(
         {"A": [1, 2, 3, 4, 5], "B": [10, 8, 6, 4, 2], "C": [10, 9, 8, 7, 6]}
     )
@@ -610,7 +611,7 @@ The `properties` follow the [Excel entity property](https://learn.microsoft.com/
 
 ```python
 MyModel = Annotated[
-    ObjectHandle,
+    object,
     {
         "icon": ObjectHandleIcons.table,
         "text": "My Model",
@@ -632,7 +633,7 @@ from xlwings import func, ObjectHandle
 from xlwings.constants import ObjectHandleIcons
 
 @func
-async def get_mymodel() -> ObjectHandle:
+async def get_mymodel() -> object:
     df = load_model_data()
     if df.empty:
         return ObjectHandle(df, text="No data", icon=ObjectHandleIcons.warning)
@@ -677,7 +678,7 @@ If you are looking for functionality similar to how the `xl()` function works in
 
 ```python
 @func
-async def to_df(df: pd.DataFrame) -> ObjectHandle:
+async def to_df(df: pd.DataFrame) -> object:
     return df
 ```
 
