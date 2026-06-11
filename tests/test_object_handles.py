@@ -56,7 +56,7 @@ def _cache_context():
     # Redis-backed store with a fake client in the contextvar, clean contextvars per
     # test. Register the converter as main.py does, so resolution via conversion.read()
     # works.
-    Converter.register(object, "object", "obj")
+    Converter.register(*core_oh.CONVERTER_KEYS)
     original_cache = core_oh.cache
     core_oh.cache = oh.RedisObjectCache()
     xlwings_router.redis_client_context.set(FakeRedis())
@@ -148,6 +148,79 @@ def test_clear_deletes_only_object_keys():
     core_oh.cache.clear()
     assert f"object:{key}" not in fake_redis.store
     assert "unrelated" in fake_redis.store
+    with pytest.raises(xw.ObjectCacheMissError):
+        Converter.read_value(key, {})
+
+
+def test_delete_removes_single_entry():
+    # Superseded-generation cleanup (core's evict_superseded) deletes one key without
+    # touching other live handles.
+    _, key1 = _write(pd.DataFrame({"a": [1]}))
+    _, key2 = _write(pd.DataFrame({"b": [2]}))
+    core_oh.cache.delete(key1)
+    with pytest.raises(xw.ObjectCacheMissError):
+        Converter.read_value(key1, {})
+    assert Converter.read_value(key2, {}) is not None
+
+
+def test_producer_map_lives_in_redis():
+    # The superseded-generation map is stored in Redis (not in-process), so the
+    # recalculation can be handled by a different worker than the one that wrote the
+    # previous generation. Core's evict_superseded delegates to the store.
+    addr = "Excel[Book1.xlsx]Sheet1!A1"
+    entity1, key1 = _write(pd.DataFrame({"a": [1]}))
+    core_oh.evict_superseded(addr, [[entity1]], user_id="user_a")
+
+    fake_redis = xlwings_router.redis_client_context.get()
+    map_key = f"object:producer:user_a:{addr}"
+    assert fake_redis.store[map_key].decode() == key1
+    # Core's in-process map stays unused.
+    assert not core_oh._producer_cache_ids
+
+    entity2, key2 = _write(pd.DataFrame({"a": [2]}))
+    core_oh.evict_superseded(addr, [[entity2]], user_id="user_a")
+    with pytest.raises(xw.ObjectCacheMissError):
+        Converter.read_value(key1, {})
+    assert Converter.read_value(key2, {}) is not None
+
+
+def test_anonymous_sessions_do_not_evict_each_other():
+    # Auth disabled: every user is "n/a", and two users can each have their own
+    # "workbook1.xlsx" with a handle in A1. The frontend's per-runtime session id keeps
+    # their producer map entries apart, so neither recalculation deletes the other's
+    # live object.
+    addr = "Excel[workbook1.xlsx]Sheet1!A1"
+    df_a = pd.DataFrame({"a": [1]})
+    entity_a, key_a = _write(df_a)
+    core_oh.evict_superseded(addr, [[entity_a]], user_id="n/a", session_id="sess_a")
+    df_b = pd.DataFrame({"b": [2]})
+    entity_b, key_b = _write(df_b)
+    core_oh.evict_superseded(addr, [[entity_b]], user_id="n/a", session_id="sess_b")
+
+    assert Converter.read_value(key_a, {}).equals(df_a)
+    assert Converter.read_value(key_b, {}).equals(df_b)
+
+
+def test_producer_map_is_cleared_with_the_objects():
+    # clear() wipes everything under "object:*", which includes the producer map keys -
+    # no dangling pointers to deleted objects.
+    addr = "Excel[Book1.xlsx]Sheet1!A1"
+    entity, _ = _write(pd.DataFrame({"a": [1]}))
+    core_oh.evict_superseded(addr, [[entity]], user_id="user_a")
+    core_oh.cache.clear()
+    fake_redis = xlwings_router.redis_client_context.get()
+    assert not [k for k in fake_redis.store if k.startswith("object:")]
+
+
+def test_non_handle_result_removes_producer_map_entry():
+    # A cell that no longer returns a handle deletes its old entry and its map key.
+    addr = "Excel[Book1.xlsx]Sheet1!A1"
+    entity, key = _write(pd.DataFrame({"a": [1]}))
+    core_oh.evict_superseded(addr, [[entity]], user_id="user_a")
+    core_oh.evict_superseded(addr, [["plain value"]], user_id="user_a")
+
+    fake_redis = xlwings_router.redis_client_context.get()
+    assert f"object:producer:user_a:{addr}" not in fake_redis.store
     with pytest.raises(xw.ObjectCacheMissError):
         Converter.read_value(key, {})
 

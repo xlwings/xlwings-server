@@ -1,4 +1,30 @@
 const debug = false;
+
+// Identifies this client. Sent with every call so the backend can scope its
+// superseded-handle tracking: caller addresses alone are not unique across
+// users/sessions (with auth disabled, two users each working on their own
+// "workbook1.xlsx" would otherwise evict each other's cached objects on every
+// recalculation). Persisted in localStorage so the id survives custom-functions
+// runtime restarts (a fresh id would orphan each cell's previous generation until
+// LRU eviction/expiry); where localStorage is unavailable (e.g. private browsing),
+// a per-instance id degrades to exactly that.
+function getSessionId() {
+  const newId = () =>
+    globalThis.crypto?.randomUUID?.() ??
+    `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  try {
+    let id = localStorage.getItem("xlwings session id");
+    if (!id) {
+      id = newId();
+      localStorage.setItem("xlwings session id", id);
+    }
+    return id;
+  } catch {
+    return newId();
+  }
+}
+const sessionId = getSessionId();
+
 let invocations = new Set();
 let bodies = new Set();
 let streamingSubscriptions = new Map();
@@ -207,7 +233,14 @@ async function base() {
     client: "Office.js",
     func_name: funcName,
     args: args,
-    caller_address: `${officeApiClient}[${workbookName}]${invocation.address}`, // not available for streaming functions
+    // invocation.address is not available for streaming functions and can be missing
+    // in some evaluation contexts: send null then, never a shared "...undefined"
+    // string - the backend uses caller_address as the scope for superseded-handle
+    // tracking, and calls sharing one scope would evict each other's cached objects.
+    caller_address: invocation.address
+      ? `${officeApiClient}[${workbookName}]${invocation.address}`
+      : null,
+    session_id: sessionId,
     culture_info_name: await xlwings.getCultureInfoName(),
     date_format: await xlwings.getDateFormat(),
     version: "placeholder_xlwings_version",

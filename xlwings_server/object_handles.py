@@ -16,6 +16,7 @@ from xlwings.pro import object_handles as core_object_handles
 
 # Re-exports for the rest of the app (main.py, routers, tests).
 from xlwings.pro.object_handles import (  # noqa: F401
+    CONVERTER_KEYS,
     NOT_A_HANDLE_MARKER,
     RESERVED_PROPERTY,
     LRUObjectCache,
@@ -86,6 +87,34 @@ class RedisObjectCache:
             value = zlib.compress(value.encode())
         self._client().set(self._key(cache_id), value, exat=expire_at)
 
+    def delete(self, cache_id):
+        """Removes the entry if present (superseded-generation cleanup, see core's
+        ``evict_superseded``)."""
+        self._client().delete(self._key(cache_id))
+
+    def evict_superseded(self, scope, new_ids):
+        """Takes over core's producer tracking with the map stored in Redis, so the
+        recalculation can be handled by a different worker than the one that wrote the
+        previous generation. The map keys live under the "object:" prefix on purpose:
+        ``clear`` wipes them along with the objects they point to. Concurrent
+        recalculations of the same cell can race (get/set isn't atomic) - worst case a
+        generation leaks until expiry or a handle goes stale, both self-healing.
+        """
+        client = self._client()
+        map_key = f"object:producer:{scope}"
+        old_value = client.get(map_key)
+        old_ids = set(old_value.decode().split()) if old_value else set()
+        for cache_id in old_ids - new_ids:
+            self.delete(cache_id)
+        if new_ids:
+            expire_at = None
+            if settings.object_cache_expire_at:
+                cron = croniter(settings.object_cache_expire_at)
+                expire_at = int(cron.get_next())
+            client.set(map_key, " ".join(sorted(new_ids)), exat=expire_at)
+        else:
+            client.delete(map_key)
+
     def clear(self):
         redis_client = self._client()
         for key in redis_client.scan_iter(match="object:*"):
@@ -105,6 +134,17 @@ class _WarningLRUObjectCache(LRUObjectCache):
             f"Storing objects in memory ({len(self)}/{self.maxsize}). "
             "Configure XLWINGS_OBJECT_CACHE_URL for production use!"
         )
+
+    def delete(self, cache_id):
+        # Log deletions too: writes alone would show the transient n+1 peak during a
+        # recalculation (new generation written before the old one is dropped) but
+        # never the count settling back down.
+        existed = cache_id in self._store
+        super().delete(cache_id)
+        if existed:
+            logger.info(
+                f"Deleted superseded object ({len(self)}/{self.maxsize} in memory)"
+            )
 
 
 # Install the store matching the configuration. The converter (in xlwings core) looks up
