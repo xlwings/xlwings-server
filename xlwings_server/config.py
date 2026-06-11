@@ -6,7 +6,7 @@ from importlib.metadata import version as get_package_version
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import UUID4, computed_field
+from pydantic import UUID4, Field, computed_field
 from pydantic_settings import (
     BaseSettings,
     PydanticBaseSettingsSource,
@@ -134,7 +134,7 @@ class Settings(BaseSettings):
     # Capacity of the in-memory LRU object cache (used when object_cache_url isn't
     # configured). It implicitly limits how many live object handles a workbook can hold
     # at once. Ignored with Redis, where expiry is handled via object_cache_expire_at.
-    object_cache_maxsize: int = 100
+    object_cache_maxsize: int = Field(default=100, ge=1)
     # Scope object handles to the user who created them. Off by default, so that object
     # handles are portable (e.g., a shared workbook resolves against the still-cached
     # object). Enable on multi-tenant backends serving mutually-untrusted users to
