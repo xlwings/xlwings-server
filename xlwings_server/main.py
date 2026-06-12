@@ -20,7 +20,11 @@ if project_dir := os.getenv("XLWINGS_PROJECT_DIR"):
         sys.path.insert(0, str(project_dir))
 
 from xlwings_server.config import PACKAGE_DIR, PROJECT_DIR, settings
-from xlwings_server.object_handles import ObjectCacheConverter, XlwingsOperationalError
+from xlwings_server.object_handles import (
+    CONVERTER_KEYS as OBJECT_CONVERTER_KEYS,
+    ObjectCacheConverter,
+    XlwingsOperationalError,
+)
 from xlwings_server.routers import socketio as socketio_router
 from xlwings_server.routers.manifest import router as manifest_router
 from xlwings_server.routers.root import router as root_router
@@ -50,8 +54,9 @@ def url_for(name: str, **path_params):
 
 templates.env.globals["url_for"] = url_for
 
-# Register Converter
-ObjectCacheConverter.register(object, "object", "obj")
+# Register Converter under the keys that custom_functions_call also uses to identify
+# handle-producing functions
+ObjectCacheConverter.register(*OBJECT_CONVERTER_KEYS)
 
 
 # Custom StaticFiles with file-level override support

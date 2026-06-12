@@ -1,4 +1,37 @@
 const debug = false;
+
+// Identifies this client. Sent with every call so the backend can scope its
+// superseded-handle tracking: caller addresses alone are not unique across
+// users/sessions (with auth disabled, two users each working on their own
+// "workbook1.xlsx" would otherwise evict each other's cached objects on every
+// recalculation). Persisted in localStorage so the id survives custom-functions
+// runtime restarts (a fresh id would orphan each cell's previous generation until
+// LRU eviction/expiry); where localStorage is unavailable (e.g. private browsing),
+// a per-instance id degrades to exactly that.
+function getSessionId() {
+  // The id is not a secret (it's client-supplied and only namespaces the cleanup
+  // tracking); it just needs to be unique. crypto.getRandomValues covers engines
+  // where crypto.randomUUID is unavailable (it requires a secure context).
+  const newId = () => {
+    if (globalThis.crypto?.randomUUID) {
+      return crypto.randomUUID();
+    }
+    const bytes = crypto.getRandomValues(new Uint8Array(16));
+    return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+  };
+  try {
+    let id = localStorage.getItem("xlwingsSessionId");
+    if (!id) {
+      id = newId();
+      localStorage.setItem("xlwingsSessionId", id);
+    }
+    return id;
+  } catch {
+    return newId();
+  }
+}
+const sessionId = getSessionId();
+
 let invocations = new Set();
 let bodies = new Set();
 let streamingSubscriptions = new Map();
@@ -158,7 +191,6 @@ async function base() {
   let invocation = argsArr[argsArr.length - 1];
 
   const workbookName = await getWorkbookName();
-  const officeApiClient = localStorage.getItem("Office API client");
 
   // For arguments that are object handles, replace the Entity arg with its cache key so
   // that the backend can resolve the cached object. The key is stored in the Entity's
@@ -207,7 +239,14 @@ async function base() {
     client: "Office.js",
     func_name: funcName,
     args: args,
-    caller_address: `${officeApiClient}[${workbookName}]${invocation.address}`, // not available for streaming functions
+    // invocation.address is not available for streaming functions and can be missing
+    // in some evaluation contexts: send null then, never a shared "...undefined"
+    // string - the backend uses caller_address as the scope for superseded-handle
+    // tracking, and calls sharing one scope would evict each other's cached objects.
+    caller_address: invocation.address
+      ? `[${workbookName}]${invocation.address}`
+      : null,
+    session_id: sessionId,
     culture_info_name: await xlwings.getCultureInfoName(),
     date_format: await xlwings.getDateFormat(),
     version: "placeholder_xlwings_version",
