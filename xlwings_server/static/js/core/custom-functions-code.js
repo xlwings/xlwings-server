@@ -9,9 +9,16 @@ const debug = false;
 // LRU eviction/expiry); where localStorage is unavailable (e.g. private browsing),
 // a per-instance id degrades to exactly that.
 function getSessionId() {
-  const newId = () =>
-    globalThis.crypto?.randomUUID?.() ??
-    `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  // The id is not a secret (it's client-supplied and only namespaces the cleanup
+  // tracking); it just needs to be unique. crypto.getRandomValues covers engines
+  // where crypto.randomUUID is unavailable (it requires a secure context).
+  const newId = () => {
+    if (globalThis.crypto?.randomUUID) {
+      return crypto.randomUUID();
+    }
+    const bytes = crypto.getRandomValues(new Uint8Array(16));
+    return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+  };
   try {
     let id = localStorage.getItem("xlwings session id");
     if (!id) {

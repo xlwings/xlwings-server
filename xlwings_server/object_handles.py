@@ -138,10 +138,11 @@ class _WarningLRUObjectCache(LRUObjectCache):
     def delete(self, cache_id):
         # Log deletions too: writes alone would show the transient n+1 peak during a
         # recalculation (new generation written before the old one is dropped) but
-        # never the count settling back down.
-        existed = cache_id in self._store
+        # never the count settling back down. Size comparison instead of probing
+        # internals, relying only on core's public interface.
+        n_before = len(self)
         super().delete(cache_id)
-        if existed:
+        if len(self) != n_before:
             logger.info(
                 f"Deleted superseded object ({len(self)}/{self.maxsize} in memory)"
             )

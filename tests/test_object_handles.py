@@ -59,9 +59,13 @@ def _cache_context():
     Converter.register(*core_oh.CONVERTER_KEYS)
     original_cache = core_oh.cache
     core_oh.cache = oh.RedisObjectCache()
-    xlwings_router.redis_client_context.set(FakeRedis())
-    xlwings_router.user_id_context.set(None)
+    # Reset the ContextVars in teardown: redis_client_context has no default, so a
+    # leaked FakeRedis would mask missing-context bugs (LookupError) in later modules.
+    redis_token = xlwings_router.redis_client_context.set(FakeRedis())
+    user_token = xlwings_router.user_id_context.set(None)
     yield
+    xlwings_router.redis_client_context.reset(redis_token)
+    xlwings_router.user_id_context.reset(user_token)
     core_oh.cache = original_cache
 
 
