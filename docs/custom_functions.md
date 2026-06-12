@@ -582,10 +582,6 @@ async def get_mymodel() -> object:
     )
 ```
 
-```{note}
-To customize the icon, text, and properties _per returned object_, wrap the return value in an `ObjectHandle` inside the function body, see below.
-```
-
 By default, this will display an icon in the cell together with the data type of the object (cell `A1` in the screenshot). By clicking on the icon, you will get some info about that object. You can, however, add valuable information by specifying a different `text`, `icon`, and `properties` (the fields shown on the object handle's card, cell `A3` in the screenshot). There are three ways to do this:
 
 - via the `ret` decorator
@@ -685,7 +681,7 @@ async def to_df(df: pd.DataFrame) -> object:
 This turns an existing Excel range into a DataFrame. Using an Excel table as your source range is a good idea as it makes your object handle dynamically update whenever you resize the Excel table.
 
 ```{note}
-- This feature requires xlwings Server v1.8.0 as well as a Redis/ValKey database for production via `XLWINGS_OBJECT_CACHE_URL`. The object cache is purged once a week, but this can be configured via `XLWINGS_OBJECT_CACHE_EXPIRE_AT`. Alternatively, there is `xlwings_server.utils.clear_object_cache`.
+- This feature requires xlwings Server v1.8.1 as well as a Redis/ValKey database for production via `XLWINGS_OBJECT_CACHE_URL`. The object cache is purged once a week, but this can be configured via `XLWINGS_OBJECT_CACHE_EXPIRE_AT`. Alternatively, there is `xlwings_server.utils.clear_object_cache`.
 - For development purposes, you don't need Redis, but the cache is in-memory and thus only works with a single worker/process for as long as the app runs. More importantly, there won't be any automatic cache purging happening.
 ```
 
