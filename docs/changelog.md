@@ -1,8 +1,12 @@
 # Changelog
 
+## 1.8.1 (Jun 12, 2026)
+
+- Object handles: Fix memory leak with object handles during recalculation. Also updated docs to use `-> object` to make type linters happy.
+
 ## 1.8.0 (Jun 10, 2026)
 
-- Made object handles more robust and flexible, see [](custom_functions.md#object-handles). The changes are backward compatible.
+- Object handles: Made object handles more robust and flexible, see [](custom_functions.md#object-handles). The changes are backward compatible.
 
 ## 1.7.0 (Jun 3, 2026)
 
