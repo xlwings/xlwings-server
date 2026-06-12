@@ -231,13 +231,33 @@ def test_non_handle_result_removes_producer_map_entry():
 
 def test_in_memory_fallback_is_lru(mocker):
     # Without XLWINGS_OBJECT_CACHE_URL, the active store is core's LRU cache (with the
-    # production warning) - bounded, holding raw objects.
+    # production warning) - bounded, holding serialized copies.
     core_oh.cache = oh._WarningLRUObjectCache(maxsize=1)
     _, key1 = _write(pd.DataFrame({"a": [1]}))
     _, key2 = _write(pd.DataFrame({"a": [2]}))
     with pytest.raises(xw.ObjectCacheMissError):
         Converter.read_value(key1, {})
     assert Converter.read_value(key2, {})["a"].tolist() == [2]
+
+
+def test_in_memory_fallback_serializes_like_redis():
+    # The in-memory store round-trips through the same serializers as Redis, so
+    # development behaves like production: unsupported types fail at the producing
+    # cell right away (instead of only after switching to Redis), and consumers get
+    # a copy, not a shared mutable reference.
+    core_oh.cache = oh._WarningLRUObjectCache(maxsize=10)
+
+    df = pd.DataFrame({"a": [1, 2]})
+    _, key = _write(df)
+    resolved = Converter.read_value(key, {})
+    assert resolved is not df
+    assert resolved.equals(df)
+
+    class Unsupported:
+        pass
+
+    with pytest.raises(TypeError, match="not JSON serializable"):
+        _write(Unsupported())
 
 
 @requires_examples

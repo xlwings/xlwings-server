@@ -20,10 +20,10 @@ function getSessionId() {
     return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
   };
   try {
-    let id = localStorage.getItem("xlwings session id");
+    let id = localStorage.getItem("xlwingsSessionId");
     if (!id) {
       id = newId();
-      localStorage.setItem("xlwings session id", id);
+      localStorage.setItem("xlwingsSessionId", id);
     }
     return id;
   } catch {
@@ -191,7 +191,6 @@ async function base() {
   let invocation = argsArr[argsArr.length - 1];
 
   const workbookName = await getWorkbookName();
-  const officeApiClient = localStorage.getItem("Office API client");
 
   // For arguments that are object handles, replace the Entity arg with its cache key so
   // that the backend can resolve the cached object. The key is stored in the Entity's
@@ -245,7 +244,7 @@ async function base() {
     // string - the backend uses caller_address as the scope for superseded-handle
     // tracking, and calls sharing one scope would evict each other's cached objects.
     caller_address: invocation.address
-      ? `${officeApiClient}[${workbookName}]${invocation.address}`
+      ? `[${workbookName}]${invocation.address}`
       : null,
     session_id: sessionId,
     culture_info_name: await xlwings.getCultureInfoName(),

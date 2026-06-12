@@ -123,17 +123,29 @@ class RedisObjectCache:
 
 class _WarningLRUObjectCache(LRUObjectCache):
     """Core's default in-memory store, but warning on every write: in-memory objects are
-    lost on restart and not shared across workers, so production should use Redis."""
+    lost on restart and not shared across workers, so production should use Redis.
+
+    Values are round-tripped through the same serializers as the Redis store - even
+    though in-memory wouldn't need it - so development behaves like production:
+    unsupported types fail at the producing cell during development instead of after
+    the switch to Redis, and consumers get a copy rather than a shared mutable
+    reference in both setups."""
 
     def set(self, cache_id, obj):
         # Write first so the logged utilization includes this entry. A count pinned at
         # maxsize/maxsize means evictions are happening: raise
         # XLWINGS_OBJECT_CACHE_MAXSIZE or configure Redis.
-        super().set(cache_id, obj)
+        super().set(cache_id, serialize(obj))
         logger.warning(
             f"Storing objects in memory ({len(self)}/{self.maxsize}). "
             "Configure XLWINGS_OBJECT_CACHE_URL for production use!"
         )
+
+    def get(self, cache_id):
+        value = super().get(cache_id)
+        if value is None:
+            return None
+        return deserialize(value)
 
     def delete(self, cache_id):
         # Log deletions too: writes alone would show the transient n+1 peak during a
