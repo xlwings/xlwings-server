@@ -1,3 +1,4 @@
+import importlib.util
 import json
 import logging
 import os
@@ -108,16 +109,23 @@ app.include_router(manifest_router)
 
 
 # User routers (optional custom router)
-try:
-    from routers import custom
+# Probe for the submodule first so we only enter the import when the file
+# actually exists. Otherwise `from routers import custom` raises a plain
+# ImportError ("cannot import name 'custom' from 'routers'") rather than
+# ModuleNotFoundError, which the import-error handling below would log as an
+# error even though a missing custom.py is the normal case. Probing also keeps
+# the except blocks scoped to *real* failures inside an existing custom.py.
+if importlib.util.find_spec("routers.custom") is not None:
+    try:
+        from routers import custom
 
-    if hasattr(custom, "router"):
-        app.include_router(custom.router)
-        logger.info("Registered custom user router")
-except ModuleNotFoundError:
+        if hasattr(custom, "router"):
+            app.include_router(custom.router)
+            logger.info("Registered custom user router")
+    except Exception:
+        logger.exception("Failed to load custom router from routers/custom.py")
+else:
     logger.debug("No custom router found (routers/custom.py)")
-except Exception:
-    logger.exception("Failed to load custom router from routers/custom.py")
 
 
 # Security headers
