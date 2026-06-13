@@ -41,7 +41,9 @@
           <script type="module" src="{{ url_for('static', path='/js/integrations/socketio.js') }}"></script>
         {% endif %}
       {% endblock socketio2 %}
-      {# Alpine.js CSP boilerplate (must come before custom JS, which must come before alpinejs library) #}
+      {# Alpine.js CSP registry: defines globalThis.registerAlpineComponent. Loaded early (classic) #}
+      {# so the global exists before any custom JS (main.js/examples.js) runs. The starter module #}
+      {# near the end of <head> flushes the registry and calls Alpine.start(). #}
       {% if settings.enable_alpinejs_csp %}
         <script src="{{ url_for('static', path='/js/integrations/alpinejs-csp.js') }}"></script>
       {% endif %}
@@ -88,9 +90,12 @@
       {% block extra_head %}
         {# This allows to selectively load Alpine.js components #}
       {% endblock extra_head %}
-      {# Alpine.js CSP build (must come after integrations/alpinejs-csp.js and custom code such as main.js) #}
+      {# Alpine.js CSP starter (external module, last in <head>): imports the ESM build, which -- #}
+      {# unlike the cdn build -- does NOT auto-start. It flushes the component registry on #}
+      {# alpine:init then calls Alpine.start(), after main.js/examples.js have registered, so every #}
+      {# component exists before Alpine processes the DOM. No race, no "Undefined variable" warnings. #}
       {% if settings.enable_alpinejs_csp %}
-        <script src="{{ url_for('static', path='/vendor/@alpinejs/csp/3.15.12/dist/cdn.min.js') }}" defer></script>
+        <script type="module" src="{{ url_for('static', path='/js/integrations/alpinejs-start.js') }}"></script>
       {% endif %}
     {% endblock head %}
   </head>
