@@ -27,7 +27,7 @@
         <script src="{{ url_for('static', path='/vendor/@microsoft/office-js/1.1.110/dist/office.js') }}"></script>
       {% endif %}
       <script src="{{ url_for('static', path='/js/officejs/history-fix-part2.js') }}"></script>
-      {# Socket.io (must come before xlwings.js) #}
+      {# Socket.io (must come before custom-scripts) #}
       {% block socketio %}
         {% if settings.enable_socketio %}
           <script src="{{ url_for('static', path='/vendor/socket.io/4.8.3/client-dist/socket.io.min.js') }}"></script>
