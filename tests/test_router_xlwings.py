@@ -27,7 +27,7 @@ def test_get_alert():
     soup = BeautifulSoup(response.text, "html.parser")
     script_tags = soup.find_all("script")
     script_tag = next(
-        (tag for tag in script_tags if "xlwings-alert.js" in tag.get("src", "")), None
+        (tag for tag in script_tags if "alerts/dialog.js" in tag.get("src", "")), None
     )
     assert script_tag is not None
     script_response = client.get(script_tag["src"])

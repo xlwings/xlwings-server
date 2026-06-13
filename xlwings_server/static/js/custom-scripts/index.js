@@ -1,5 +1,6 @@
-import { xlAlert } from "./alert.js";
-import { getAccessToken } from "./auth.js";
+import { config } from "../config.js";
+import { xlAlert } from "../alerts/parent.js";
+import { getAccessToken } from "../entraid.js";
 export { getAccessToken };
 import {
   getActiveBookName,
@@ -10,9 +11,9 @@ import {
   showGlobalStatus,
   hideGlobalError,
   hideGlobalStatus,
-} from "./utils.js";
+} from "../utils.js";
 export { getActiveBookName, getCultureInfoName, getDateFormat };
-import { pyodideReadyPromise, startPyodide } from "./wasm.js";
+import { pyodideReadyPromise, startPyodide } from "../wasm.js";
 import { registerSheetButtons } from "./sheet-buttons.js";
 
 // Prints the supported API versions into the Console

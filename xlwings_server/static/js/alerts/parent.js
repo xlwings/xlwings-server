@@ -1,5 +1,7 @@
 ﻿// https://learn.microsoft.com/en-us/office/dev/add-ins/develop/dialog-api-in-office-add-ins
 
+import { config } from "../config.js";
+
 let dialog;
 
 function dialogCallback(asyncResult) {

@@ -1,3 +1,5 @@
+import { config } from "./config.js";
+
 async function initPyodide() {
   if (config.onWasm === false) {
     return;

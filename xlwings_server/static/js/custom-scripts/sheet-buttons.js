@@ -1,4 +1,4 @@
-import { showGlobalStatus, hideGlobalStatus } from "./utils.js";
+import { showGlobalStatus, hideGlobalStatus } from "../utils.js";
 
 const registeredHandlers = {};
 

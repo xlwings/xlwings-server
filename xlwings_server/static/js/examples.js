@@ -1,3 +1,5 @@
+import { registerCallback, getActiveBookName } from "./custom-scripts/index.js";
+
 function alertCallback(arg) {
   let outputContainer = document.getElementById("output-container");
   if (!outputContainer) {
@@ -7,7 +9,7 @@ function alertCallback(arg) {
   }
   outputContainer.textContent = `User clicked: ${arg}`;
 }
-xlwings.registerCallback(alertCallback);
+registerCallback(alertCallback);
 
 const visibility = {
   isOpen: false,
@@ -45,7 +47,7 @@ registerAlpineComponent("nameForm", nameForm);
 const appLoader = {
   url: "",
   async init() {
-    let bookName = await xlwings.getActiveBookName();
+    let bookName = await getActiveBookName();
     // Works with both an unsaved book ("Book1") as well as a saved one "Book1.xlsx"
     if (bookName.includes("Book1")) {
       // TODO: fix if app_path is provided
