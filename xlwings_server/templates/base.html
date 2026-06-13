@@ -71,8 +71,6 @@
         <script src="{{ url_for('static', path='/vendor/bootstrap/5.3.8/dist/js/bootstrap.bundle.min.js') }}"></script>
         <script type="module" src="{{ url_for('static', path='/js/integrations/bootstrap.js') }}"></script>
       {% endif %}
-      {# Axios #}
-      <script src="{{ url_for('static', path='/vendor/axios/1.16.1/dist/axios.min.js') }}" defer></script>
       {# Examples #}
       {% if settings.enable_examples %}
         <script type="module" src="{{ url_for('static', path='/js/examples.js') }}"></script>

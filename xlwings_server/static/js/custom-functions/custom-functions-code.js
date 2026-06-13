@@ -1,11 +1,13 @@
 // NOTE: this file is not served statically. The custom_functions_code route reads
 // it from disk, substitutes the placeholder_* strings, and appends generated
-// CustomFunctions.associate stubs. It also runs alone in non-shared custom
-// functions runtimes. It must therefore stay a classic, self-contained script
+// CustomFunctions.associate stubs. Excel loads it via the custom functions
+// <Script> source location as a classic script, so it must stay self-contained
 // (no imports) and communicate via these globalThis bridges:
-// config, getAuth, socket, xlwings, wasmCustomFunctionsCall,
-// wasmStreamingCall/wasmStreamingCancel (set by the official lite add-in),
-// plus the axios/Office/Excel/CustomFunctions libraries.
+// config, getAuth, socket, xlwings, xwRequest (the XHR HTTP helper, set by
+// utils.js), wasmCustomFunctionsCall, wasmStreamingCall/wasmStreamingCancel
+// (set by the official lite add-in), plus the Office/Excel/CustomFunctions
+// libraries. Custom functions share the task pane's runtime (SharedRuntime in
+// the manifest), so these globals are the same objects the task pane sets up.
 
 const debug = false;
 
@@ -369,25 +371,20 @@ async function makeServerCall(body) {
 
     await semaphore.acquire();
     try {
-      const response = await axios.post(
+      const response = await globalThis.xwRequest.post(
         window.location.origin + "placeholder_custom_functions_call_path",
         body,
-        {
-          headers: headers,
-          timeout: config.requestTimeout * 1000,
-        },
+        { headers: headers, timeout: config.requestTimeout * 1000 },
       );
-
       return response.data.result;
     } catch (error) {
-      console.error(`Attempt ${attempt}: ${error.toString()}`);
       if (error.response) {
+        // HTTP error status: the body is usually JSON ({detail}/{error}).
+        const data = error.response.data;
         const errMsg =
-          (error.response.data && error.response.data.detail) ||
-          (error.response.data && error.response.data.error) ||
-          (typeof error.response.data === "object"
-            ? JSON.stringify(error.response.data)
-            : error.response.data) ||
+          (data && data.detail) ||
+          (data && data.error) ||
+          (data && typeof data === "object" ? JSON.stringify(data) : data) ||
           error.response.statusText ||
           "Unknown server error";
         console.error(`Attempt ${attempt}: ${errMsg}`);
@@ -397,8 +394,12 @@ async function makeServerCall(body) {
         if (attempt === MAX_RETRIES || !shouldRetry) {
           return showError(errMsg);
         }
-      } else if (attempt === MAX_RETRIES) {
-        return showError(error.toString());
+      } else {
+        // Network failure or timeout (no HTTP response).
+        console.error(`Attempt ${attempt}: ${error.toString()}`);
+        if (attempt === MAX_RETRIES) {
+          return showError(error.toString());
+        }
       }
     } finally {
       semaphore.release();
