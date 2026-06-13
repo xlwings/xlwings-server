@@ -110,12 +110,19 @@ app.include_router(manifest_router)
 
 # User routers (optional custom router)
 # Probe for the submodule first so we only enter the import when the file
-# actually exists. Otherwise `from routers import custom` raises a plain
-# ImportError ("cannot import name 'custom' from 'routers'") rather than
-# ModuleNotFoundError, which the import-error handling below would log as an
-# error even though a missing custom.py is the normal case. Probing also keeps
-# the except blocks scoped to *real* failures inside an existing custom.py.
-if importlib.util.find_spec("routers.custom") is not None:
+# actually exists. find_spec raises ModuleNotFoundError when EITHER the parent
+# `routers` package is absent (the normal case -- e.g. tests, or a project with
+# no routers/ dir) or the `custom` submodule is missing; both mean "no custom
+# router", so we swallow it. (A bare `from routers import custom` would instead
+# raise a plain ImportError -- "cannot import name 'custom'" -- when routers
+# exists but custom.py doesn't, which is easy to mis-handle.) The inner except
+# stays scoped to *real* failures inside an existing custom.py.
+try:
+    custom_spec = importlib.util.find_spec("routers.custom")
+except ModuleNotFoundError:
+    custom_spec = None
+
+if custom_spec is not None:
     try:
         from routers import custom
 
