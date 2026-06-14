@@ -5,8 +5,8 @@
 // button so the user has an escape if the auto-retries also hang.
 (function () {
   const TIMEOUT_MS = 5000;
-  const STORAGE_KEY = "xlwings.taskpaneReloadCount";
-  const REASON_KEY = "xlwings.taskpaneReloadReason";
+  const STORAGE_KEY = "xlwingsTaskpaneReloadCount";
+  const REASON_KEY = "xlwingsTaskpaneReloadReason";
 
   let reloadAttempts = 0;
   try {
