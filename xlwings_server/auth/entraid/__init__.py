@@ -17,10 +17,15 @@ from ... import models
 from ...config import settings
 
 # Try to import jwks from project directory first (user override)
-# Fall back to package location (default implementation)
+# Fall back to package location (default implementation).
+# Catch ImportError (not just ModuleNotFoundError) because when the package
+# directory is itself on sys.path (e.g. running in-repo via uvicorn --reload),
+# `auth.entraid` resolves to this very subpackage *as a top-level module*, whose
+# own relative imports above then raise a plain ImportError ("attempted relative
+# import beyond top-level package") rather than ModuleNotFoundError.
 try:
     from auth.entraid import jwks
-except ModuleNotFoundError:
+except ImportError:
     from . import jwks
 
 logger = logging.getLogger(__name__)

@@ -39,7 +39,7 @@ sio = socketio.AsyncServer(
 @sio.on("connect")
 async def connect(sid, environ, auth):
     if settings.environment == "dev" and settings.enable_hotreload:
-        from .. import hotreload
+        from xlwings_server import hotreload
 
         logging.getLogger("watchfiles").setLevel(logging.ERROR)
         await hotreload.start_browser_reload_watcher(sio=sio, directory=PROJECT_DIR)
