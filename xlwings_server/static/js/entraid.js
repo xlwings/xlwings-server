@@ -1,10 +1,30 @@
 // Office.auth.getAccessToken claims that it does everything that this module does,
 // only it doesn't: https://github.com/OfficeDev/office-js/issues/3298
 
+import { config } from "./config.js";
+
+// In dev, the taskpane is reloaded on every hot reload, which fetches a new
+// token each time and quickly hits Entra ID's rate limit. Persist the token in
+// sessionStorage so reloads reuse it until it expires. Never do this in prod.
+const persistToken = config?.environment === "dev";
+const STORAGE_KEY = "xlwingsEntraidToken";
+
 let accessToken = null;
 let isRenewingToken = false;
 let tokenLock = false;
 let tokenExpiry = null;
+
+if (persistToken) {
+  try {
+    const cached = JSON.parse(sessionStorage.getItem(STORAGE_KEY));
+    if (cached) {
+      accessToken = cached.accessToken;
+      tokenExpiry = cached.tokenExpiry;
+    }
+  } catch {
+    // Ignore malformed cache
+  }
+}
 
 function hasKeyExpired() {
   if (!tokenExpiry) {
@@ -34,6 +54,18 @@ async function renewAccessToken() {
     tokenExpiry = decodedPayload.exp;
 
     accessToken = "Bearer " + accessToken;
+
+    if (persistToken) {
+      try {
+        sessionStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({ accessToken, tokenExpiry }),
+        );
+      } catch {
+        // Caching is best-effort; a storage failure (blocked, quota) must not
+        // overwrite the valid token via the outer catch.
+      }
+    }
   } catch (error) {
     let token_error = `Error ${error.code}: ${error.message}`;
     console.log(token_error);
