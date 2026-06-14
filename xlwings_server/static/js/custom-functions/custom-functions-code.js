@@ -1,13 +1,18 @@
 // NOTE: this file is not served statically. The custom_functions_code route reads
 // it from disk, substitutes the placeholder_* strings, and appends generated
-// CustomFunctions.associate stubs. Excel loads it via the custom functions
-// <Script> source location as a classic script, so it must stay self-contained
-// (no imports) and communicate via these globalThis bridges:
+// CustomFunctions.associate stubs. Because it is assembled and served from a
+// dynamic route (no stable static URL, not content-hashed, and the appended
+// associate() calls must run at top level), it stays a classic, self-contained
+// script (no imports) and communicates via globalThis bridges.
+//
+// The manifest declares SharedRuntime, so custom functions run in the same JS
+// context as the task pane. The bridges below are therefore populated by the
+// task-pane modules (or, on the official lite add-in, by app.js) and are simply
+// read here from the shared globalThis:
 // config, getAuth, socket, xlwings, xwRequest (the XHR HTTP helper, set by
 // utils.js), wasmCustomFunctionsCall, wasmStreamingCall/wasmStreamingCancel
 // (set by the official lite add-in), plus the Office/Excel/CustomFunctions
-// libraries. Custom functions share the task pane's runtime (SharedRuntime in
-// the manifest), so these globals are the same objects the task pane sets up.
+// libraries.
 
 const debug = false;
 
