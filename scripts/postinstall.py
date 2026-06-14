@@ -15,8 +15,32 @@ vendor_dir = root_dir / "xlwings_server" / "static" / "vendor"
 # registry deps and git deps (e.g. bootstrap-xlwings) work uniformly.
 # Pyodide is intentionally excluded: it has its own version system handled by
 # add_pyodide_version.py / settings.pyodide_base_url.
+#
+# Global UMD builds vs. ESM: with the exception of @alpinejs/csp (see below),
+# these are vendored as global UMD scripts on purpose, NOT as ESM imports.
+# Reasons it's not worth switching the others to ESM:
+#   - axios and the socket.io client `io` are also read as globals from
+#     custom-functions/custom-functions-code.js, which runs in a separate
+#     custom-functions runtime and must stay a classic, import-free script. An
+#     ESM import in the task pane wouldn't remove the need for the global there,
+#     so we'd end up maintaining two load paths for one library.
+#   - htmx and bootstrap are auto-initializing, global-script libraries (htmx
+#     attaches to window and scans the DOM via its own lifecycle; bootstrap is
+#     driven purely by data-bs-* attributes + CSS with zero JS usage in our
+#     code). ESM-importing them gains nothing and breaks their auto-init.
+# office.js has no ESM build at all. So global UMD is the simpler fit for our
+# two-runtime architecture (task pane + custom-functions runtime).
+#
+# @alpinejs/csp is the deliberate exception: its single self-contained ESM build
+# (no bare imports, so no bundler needed -- unlike monaco-editor) does NOT
+# auto-start, unlike the cdn build which does `window.Alpine = X;
+# queueMicrotask(() => X.start())` with no opt-out. The ESM build lets the
+# starter in base.html call Alpine.start() itself, AFTER custom JS modules have
+# registered their components -- eliminating the start-time race that the cdn
+# build forced. It is also only consumed in the task pane (not the CF runtime).
+# See integrations/alpinejs-csp.js and integrations/alpinejs-start.js.
 packages = {
-    "@alpinejs/csp": ["dist/cdn.min.js"],
+    "@alpinejs/csp": ["dist/module.esm.min.js"],
     "@microsoft/office-js": ["dist", "LICENSE.md"],
     "axios": ["dist/axios.min.js"],
     "bootstrap": ["dist/js/bootstrap.bundle.min.js", "LICENSE"],
@@ -110,15 +134,23 @@ for prefix in prefixes:
 # Update version references in source files so the version-bump workflow is
 # just `npm install <pkg>@latest`. The regex matches the version segment in
 # /vendor/<pkg>/<version>/... — any non-slash chars, to accommodate
-# non-semver versions like bootstrap-xlwings's "5.3.3-2".
-base_html = root_dir / "xlwings_server" / "templates" / "base.html"
-for package_name in packages:
-    version = versions[package_name]
-    pkg_re = re.escape(package_name)
-    pattern = rf"/vendor/{pkg_re}/[^/]+/"
-    replacement = f"/vendor/{package_name}/{version}/"
-    content = base_html.read_text()
-    new_content = re.sub(pattern, replacement, content)
+# non-semver versions like bootstrap-xlwings's "5.3.3-2". base.html references
+# vendored files via url_for(); alpinejs-start.js imports the Alpine ESM build
+# via a relative /vendor/ path, so it carries a version too.
+static_dir = root_dir / "xlwings_server" / "static"
+version_ref_files = [
+    root_dir / "xlwings_server" / "templates" / "base.html",
+    static_dir / "js" / "integrations" / "alpinejs-start.js",
+]
+for source_file in version_ref_files:
+    content = source_file.read_text()
+    new_content = content
+    for package_name in packages:
+        version = versions[package_name]
+        pkg_re = re.escape(package_name)
+        pattern = rf"/vendor/{pkg_re}/[^/]+/"
+        replacement = f"/vendor/{package_name}/{version}/"
+        new_content = re.sub(pattern, replacement, new_content)
     if content != new_content:
-        base_html.write_text(new_content)
-        print(f"✓ Updated {package_name} version in {base_html.name}")
+        source_file.write_text(new_content)
+        print(f"✓ Updated vendored versions in {source_file.name}")

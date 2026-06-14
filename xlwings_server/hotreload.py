@@ -44,7 +44,7 @@ async def watch_frontend_files(sio, directory):
         directory,
         watch_filter=WebFilter(),
     ):
-        await sio.emit("reload")
+        await sio.emit("xlwings:taskpane-reload")
 
 
 async def start_browser_reload_watcher(sio, directory):
@@ -52,7 +52,7 @@ async def start_browser_reload_watcher(sio, directory):
     global browser_reload_triggered_by_backend
     global watching_frontend_files
     if not browser_reload_triggered_by_backend and not settings.enable_wasm:
-        await sio.emit("reload")
+        await sio.emit("xlwings:taskpane-reload")
         browser_reload_triggered_by_backend = True
     if not watching_frontend_files:
         sio.start_background_task(watch_frontend_files, sio=sio, directory=directory)

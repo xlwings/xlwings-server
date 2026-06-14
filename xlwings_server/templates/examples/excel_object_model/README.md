@@ -45,5 +45,5 @@ async def name(request: Request, book: dep.Book, name: str = Form(None)):
 
 This sample also depends on:
 
-- `static/js/core/htmx-handlers.js`
+- `static/js/integrations/htmx.js`
 - `templates/_book.html`

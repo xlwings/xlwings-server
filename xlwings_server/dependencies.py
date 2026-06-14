@@ -85,8 +85,14 @@ async def authenticate(
         # Try to import from project directory first (user override)
         try:
             module = importlib.import_module(f"auth.{provider}")
-        except ModuleNotFoundError:
-            # Fall back to package location (default implementation)
+        except ImportError:
+            # Fall back to package location (default implementation).
+            # We catch ImportError (not just ModuleNotFoundError) because when the
+            # package directory is itself on sys.path (e.g. running in-repo via
+            # uvicorn --reload), `auth.{provider}` resolves to the package's own
+            # auth subpackage *as a top-level module*, whose internal relative
+            # imports then raise a plain ImportError ("attempted relative import
+            # beyond top-level package") rather than ModuleNotFoundError.
             module = importlib.import_module(f"xlwings_server.auth.{provider}")
         current_user = await module.validate_token(token_string)
     except (AttributeError, ModuleNotFoundError):

@@ -1,5 +1,10 @@
 # Implementation Plan: Optional Versioning for Office.js Add-in
 
+> **Note**: The `static/js` paths referenced in this document predate the
+> functional restructuring of the JS folder (e.g., `js/core/xlwingsjs/xlwings.js`
+> is now `js/custom-scripts/index.js` and `js/core/reload-custom-functions.js`
+> is now `js/custom-functions/custom-functions-reload.js`).
+
 ## Overview
 
 Add optional versioning support to xlwings Server, allowing users to select versions (v1, v2, etc.) via the xlwings.conf sheet. The backend will serve different versions of custom functions/scripts from subdirectories (e.g., `custom_functions/v1/functions.py`).

@@ -1,3 +1,5 @@
+import { config } from "../config.js";
+
 async function reloadCustomFunctions(meta = null, code = null) {
   // Unofficial API: https://github.com/OfficeDev/office-js/issues/3486
   // This causes issues when opening a workbook in a running instance of Excel. If
@@ -58,6 +60,9 @@ async function reloadCustomFunctions(meta = null, code = null) {
     }
   }
 }
+
+// Bridge: the official lite add-in calls this global (customFunctions.js)
+globalThis.reloadCustomFunctions = reloadCustomFunctions;
 
 async function retryReloadCustomFunctions(retries, delay) {
   for (let i = 0; i < retries; i++) {

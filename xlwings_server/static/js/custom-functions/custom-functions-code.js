@@ -1,3 +1,12 @@
+// NOTE: this file is not served statically. The custom_functions_code route reads
+// it from disk, substitutes the placeholder_* strings, and appends generated
+// CustomFunctions.associate stubs. It also runs alone in non-shared custom
+// functions runtimes. It must therefore stay a classic, self-contained script
+// (no imports) and communicate via these globalThis bridges:
+// config, getAuth, socket, xlwings, wasmCustomFunctionsCall,
+// wasmStreamingCall/wasmStreamingCancel (set by the official lite add-in),
+// plus the axios/Office/Excel/CustomFunctions libraries.
+
 const debug = false;
 
 // Identifies this client. Sent with every call so the backend can scope its

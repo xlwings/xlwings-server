@@ -43,7 +43,7 @@ registerAlpineComponent("visibility", visibility);
 
 ## Where to write the Alpine.js JavaScript code
 
-The JavaScript sample code lives in [`xlwings_server/static/js/core/examples.js`](https://github.com/xlwings/xlwings-server/blob/main/xlwings_server/static/js/core/examples.js).
+The JavaScript sample code lives in [`xlwings_server/static/js/examples.js`](https://github.com/xlwings/xlwings-server/blob/main/xlwings_server/static/js/examples.js).
 
 If you only have a few Alpine components, you can place the JavaScript code into [`xlwings_server/static/js/main.js`](https://github.com/xlwings/xlwings-server/blob/main/xlwings_server/static/js/main.js).
 
@@ -71,7 +71,7 @@ You could load these JS files on-demand in your templates via
 {% endblock extra_head %}
 ```
 
-If you want to load the code in `base.html`, make sure to load `alpinejs-csp-boilerplate.js` first before your own code and finally `vendor/@alpinejs/csp/dist/cdn.min.js`.
+If you want to load the code in `base.html`, make sure to load `integrations/alpinejs-csp.js` first before your own code and finally `vendor/@alpinejs/csp/dist/cdn.min.js`.
 
 ## Directives
 

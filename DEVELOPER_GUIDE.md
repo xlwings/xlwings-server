@@ -24,10 +24,10 @@ XLWINGS_ADD_SECURITY_HEADERS=false
 XLWINGS_SOCKETIO_MESSAGE_QUEUE_URL=redis://localhost:6379/0
 ```
 
-in `socketio-handlers.js`:
+in `integrations/socketio.js`:
 
 ```js
-globalThis.socket = io("https://127.0.0.1:8001", {
+socket = io("https://127.0.0.1:8001", {
   auth: async (callback) => {
     let token = await globalThis.getAuth();
     callback({

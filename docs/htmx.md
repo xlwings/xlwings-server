@@ -71,7 +71,7 @@ To see how you can interact with the Excel object model from an htmx task pane, 
 ## Security
 
 - Always return your HTML response via `TemplateResponse` to make sure that user inputs are properly escaped.
-- Other security-related htmx configs are set under [`xlwings_server/static/js/core/htmx-handlers.js`](https://github.com/xlwings/xlwings-server/blob/main/xlwings_server/static/js/core/htmx-handlers.js).
+- Other security-related htmx configs are set under [`xlwings_server/static/js/integrations/htmx.js`](https://github.com/xlwings/xlwings-server/blob/main/xlwings_server/static/js/integrations/htmx.js).
 - Read about htmx security in the official docs: https://htmx.org/docs/#security
 
 ## Examples

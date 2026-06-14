@@ -173,12 +173,14 @@ The CLI sets `XLWINGS_PROJECT_DIR` before importing the package. Static files an
 
 ### Frontend Integration
 
-- **xlwings_server/static/js/core/**: Core JavaScript functionality
+- **xlwings_server/static/js/**: Frontend JavaScript (mostly ES modules), organized functionally
 
-  - `xlwingsjs/`: Auth, utils, sheet-buttons
-  - `socketio-handlers.js`: Socket.io client connection
-  - `hotreload.js`: Auto-refresh in dev mode
-  - Office.js integration and Alpine.js CSP boilerplate
+  - `custom-scripts/index.js`: runPython/runActions/getBookData and the Office.js action handlers; sets `globalThis.xlwings`
+  - `custom-functions/`: custom functions runtime (classic script, served via dynamic route) and dev reload
+  - `alerts/`: alert dialog pair (`parent.js` opens the dialog, `dialog.js` runs inside it)
+  - `integrations/`: htmx, socketio, alpinejs-csp, bootstrap glue
+  - `officejs/`: Office.js history fix and taskpane-reload watchdog (classic sync scripts)
+  - Root: user-overridable `main.js`/`auth.js`/`ribbon.js`, plus `config.js`, `entraid.js`, `utils.js`, `wasm.js`, `hotreload.js`
 
 - **xlwings_server/templates/**: Jinja2 templates for task panes and UI
   - Task pane examples in subdirectories

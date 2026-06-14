@@ -11,39 +11,41 @@
         <script src="{{ settings.pyodide_base_url.rstrip('/') }}/v0.27.5/full/pyodide.js"></script>
       {% endif %}
       {# Config #}
-      <script src="{{ url_for('static', path='/js/config.js') }}" defer></script>
+      <script type="module" src="{{ url_for('static', path='/js/config.js') }}"></script>
       {# htmx #}
       {% if settings.enable_htmx %}
         <script src="{{ url_for('static', path='/vendor/htmx.org/2.0.10/dist/htmx.min.js') }}"></script>
         <script src="{{ url_for('static', path='/vendor/htmx-ext-head-support/2.0.5/head-support.js') }}"></script>
         <script src="{{ url_for('static', path='/vendor/htmx-ext-loading-states/2.0.2/loading-states.js') }}"></script>
-        <script src="{{ url_for('static', path='/js/core/htmx-handlers.js') }}" defer></script>
+        <script type="module" src="{{ url_for('static', path='/js/integrations/htmx.js') }}"></script>
       {% endif %}
-      <script src="{{ url_for('static', path='/js/core/officejs-history-fix-part1.js') }}"></script>
+      <script src="{{ url_for('static', path='/js/officejs/history-fix-part1.js') }}"></script>
       {# Office.js #}
       {% if settings.cdn_officejs %}
         <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
       {% else %}
         <script src="{{ url_for('static', path='/vendor/@microsoft/office-js/1.1.110/dist/office.js') }}"></script>
       {% endif %}
-      <script src="{{ url_for('static', path='/js/core/officejs-history-fix-part2.js') }}"></script>
-      {# Socket.io (must come before xlwings.js) #}
+      <script src="{{ url_for('static', path='/js/officejs/history-fix-part2.js') }}"></script>
+      {# Socket.io (must come before custom-scripts) #}
       {% block socketio %}
         {% if settings.enable_socketio %}
           <script src="{{ url_for('static', path='/vendor/socket.io/4.8.3/client-dist/socket.io.min.js') }}"></script>
         {% endif %}
       {% endblock socketio %}
       {# xlwings.js (must come before custom-function-code) #}
-      <script type="module" src="{{ url_for('static', path='/js/core/xlwingsjs/xlwings.js') }}" defer></script>
+      <script type="module" src="{{ url_for('static', path='/js/custom-scripts/index.js') }}"></script>
       {% block socketio2 %}
         {% if settings.enable_socketio %}
           {# Must come after xlwings.js #}
-          <script src="{{ url_for('static', path='/js/core/socketio-handlers.js') }}" defer></script>
+          <script type="module" src="{{ url_for('static', path='/js/integrations/socketio.js') }}"></script>
         {% endif %}
       {% endblock socketio2 %}
-      {# Alpine.js CSP boilerplate (must come before custom JS, which must come before alpinejs library) #}
+      {# Alpine.js CSP registry: defines globalThis.registerAlpineComponent. Loaded early (classic) #}
+      {# so the global exists before any custom JS (main.js/examples.js) runs. The starter module #}
+      {# near the end of <head> flushes the registry and calls Alpine.start(). #}
       {% if settings.enable_alpinejs_csp %}
-        <script src="{{ url_for('static', path='/js/core/alpinejs-csp-boilerplate.js') }}"></script>
+        <script src="{{ url_for('static', path='/js/integrations/alpinejs-csp.js') }}"></script>
       {% endif %}
       {# JS Config #}
       {# prettier-ignore-start #}
@@ -51,12 +53,14 @@
         {{ settings.jsconfig|tojson }}
       </script>
       {# prettier-ignore-end #}
-      <script src="{{ url_for('static', path='/js/core/taskpane-reload.js') }}"></script>
+      <script src="{{ url_for('static', path='/js/officejs/taskpane-reload.js') }}"></script>
       <script src="{{ url_for('static', path='/js/auth.js') }}"></script>
       {% block custom_functions_code %}
         <script src="{{ url_for('custom_functions_code') }}" defer></script>
         {% if settings.environment == "dev" or settings.enable_wasm %}
-          <script src="{{ url_for('static', path='/js/core/reload-custom-functions.js') }}" defer></script>
+          <script
+            type="module"
+            src="{{ url_for('static', path='/js/custom-functions/custom-functions-reload.js') }}"></script>
         {% endif %}
       {% endblock custom_functions_code %}
       {# Bootstrap with the xlwings theme #}
@@ -65,30 +69,28 @@
           rel="stylesheet"
           href="{{ url_for('static', path='/vendor/bootstrap-xlwings/5.3.3-2/dist/bootstrap-xlwings.min.css') }}" />
         <script src="{{ url_for('static', path='/vendor/bootstrap/5.3.8/dist/js/bootstrap.bundle.min.js') }}"></script>
-        <script src="{{ url_for('static', path='/js/core/bootstrap-customizations.js') }}" defer></script>
+        <script type="module" src="{{ url_for('static', path='/js/integrations/bootstrap.js') }}"></script>
       {% endif %}
       {# Axios #}
       <script src="{{ url_for('static', path='/vendor/axios/1.16.1/dist/axios.min.js') }}" defer></script>
       {# Examples #}
       {% if settings.enable_examples %}
-        <script src="{{ url_for('static', path='/js/core/examples.js') }}" defer></script>
+        <script type="module" src="{{ url_for('static', path='/js/examples.js') }}"></script>
       {% endif %}
       {# Own #}
       <link rel="stylesheet" href="{{ url_for('static', path='/css/core.css') }}" />
       <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}" />
-      <script type="module" src="{{ url_for('static', path='/js/main.js') }}" defer></script>
+      <script type="module" src="{{ url_for('static', path='/js/main.js') }}"></script>
       <script src="{{ url_for('static', path='/js/ribbon.js') }}" defer></script>
-      {% block hotreload %}
-        {% if settings.environment == "dev" and settings.enable_socketio %}
-          <script src="{{ url_for('static', path='/js/core/hotreload.js') }}" defer></script>
-        {% endif %}
-      {% endblock hotreload %}
       {% block extra_head %}
         {# This allows to selectively load Alpine.js components #}
       {% endblock extra_head %}
-      {# Alpine.js CSP build (must come after alpinejs-csp-boilerplate.js and custom code such as main.js) #}
+      {# Alpine.js CSP starter (external module, last in <head>): imports the ESM build, which -- #}
+      {# unlike the cdn build -- does NOT auto-start. It flushes the component registry on #}
+      {# alpine:init then calls Alpine.start(), after main.js/examples.js have registered, so every #}
+      {# component exists before Alpine processes the DOM. No race, no "Undefined variable" warnings. #}
       {% if settings.enable_alpinejs_csp %}
-        <script src="{{ url_for('static', path='/vendor/@alpinejs/csp/3.15.12/dist/cdn.min.js') }}" defer></script>
+        <script type="module" src="{{ url_for('static', path='/js/integrations/alpinejs-start.js') }}"></script>
       {% endif %}
     {% endblock head %}
   </head>

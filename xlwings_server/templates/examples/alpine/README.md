@@ -23,4 +23,4 @@ async def taskpane(request: Request):
 
 This sample also depends on:
 
-- `app/static/js/core/examples.js`
+- `static/js/examples.js`

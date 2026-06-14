@@ -1,3 +1,5 @@
+import { config } from "./config.js";
+
 async function initPyodide() {
   if (config.onWasm === false) {
     return;
@@ -7,15 +9,27 @@ async function initPyodide() {
   const globalErrorAlert = document.querySelector("#global-error-alert");
 
   try {
-    // Show loading status
+    // Show loading status. Build the spinner with DOM nodes rather than
+    // innerHTML so this stays clear of HTML-injection sinks (the markup is
+    // static, but avoiding innerHTML keeps it that way).
     if (globalStatusAlert && !config.isOfficialLiteAddin) {
       globalStatusAlert.classList.remove("d-none");
-      globalStatusAlert.querySelector("span").innerHTML = `
-        <div class="spinner-border spinner-border-sm text-alert me-1" role="status">
-          <span class="visually-hidden">Loading...</span>
-        </div>
-        Loading...
-      `;
+      const span = globalStatusAlert.querySelector("span");
+      span.replaceChildren();
+
+      // Use a <span> (not <div>): this spinner lives inside the alert's <span>
+      // placeholder, and a block-level <div> inside a <span> is invalid HTML
+      // that browsers may reparent. Bootstrap's spinner works on a <span> too.
+      const spinner = document.createElement("span");
+      spinner.className = "spinner-border spinner-border-sm text-alert me-1";
+      spinner.setAttribute("role", "status");
+      const spinnerLabel = document.createElement("span");
+      spinnerLabel.className = "visually-hidden";
+      spinnerLabel.textContent = "Loading...";
+      spinner.appendChild(spinnerLabel);
+
+      span.appendChild(spinner);
+      span.appendChild(document.createTextNode(" Loading..."));
     }
 
     // Hide any previous error
@@ -115,12 +129,14 @@ async function initPyodide() {
       globalStatusAlert.classList.add("d-none");
     }
 
-    // Show error alert
+    // Show error alert. Use textContent on the alert's <span> (not innerHTML on
+    // the container) so the error message is escaped rather than parsed as HTML,
+    // and the dismiss button / structure are preserved. Matches how htmx.js and
+    // custom-scripts/index.js set this alert.
     if (globalErrorAlert) {
       globalErrorAlert.classList.remove("d-none");
-      globalErrorAlert.innerHTML = `
-          Error initializing Pyodide: ${err.message}
-      `;
+      globalErrorAlert.querySelector("span").textContent =
+        `Error initializing Pyodide: ${err.message}`;
     }
 
     throw err;
@@ -144,6 +160,14 @@ export let pyodideReadyPromise = config.isOfficialLiteAddin
 // integrity: optional SRI hash string for CDN loads, e.g. "sha384-..."
 export async function startPyodide(version, integrity) {
   try {
+    // Validate `version` before it flows into the preload href / dynamic
+    // import(): it's a caller-supplied parameter, so restrict it to a bare
+    // Pyodide version (digits, dots, optional pre-release suffix like 0.27.0a1)
+    // to prevent it from injecting path traversal or a different host into the
+    // URL.
+    if (!/^\d+\.\d+(\.\d+)?[a-z0-9.]*$/.test(version)) {
+      throw new Error(`Invalid Pyodide version: ${version}`);
+    }
     const url = `${config.pyodideBaseUrl.replace(/\/$/, "")}/v${version}/full/pyodide.mjs`;
 
     // Enforce SRI via modulepreload link, which primes the browser

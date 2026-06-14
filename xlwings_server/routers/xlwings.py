@@ -69,7 +69,7 @@ async def custom_functions_meta():
 async def custom_functions_code():
     custom_functions_call_path = f"{settings.app_path}/xlwings/custom-functions-call"
     js = (
-        PACKAGE_DIR / "static" / "js" / "core" / "custom-functions-code.js"
+        PACKAGE_DIR / "static" / "js" / "custom-functions" / "custom-functions-code.js"
     ).read_text()
     # format string would require to double all curly braces
     js = js.replace("placeholder_xlwings_version", xw.__version__).replace(

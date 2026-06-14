@@ -56,5 +56,5 @@ async def validate_name_input(request: Request, name: str):
 
 This sample also depends on:
 
-- `static/js/core/htmx-handlers.js`
+- `static/js/integrations/htmx.js`
 - `templates/_book.html`
