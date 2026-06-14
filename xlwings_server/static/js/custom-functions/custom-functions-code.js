@@ -1,8 +1,14 @@
 // NOTE: this file is not served statically. The custom_functions_code route reads
 // it from disk, substitutes the placeholder_* strings, and appends generated
-// CustomFunctions.associate stubs. It also runs alone in non-shared custom
-// functions runtimes. It must therefore stay a classic, self-contained script
-// (no imports) and communicate via these globalThis bridges:
+// CustomFunctions.associate stubs. Because it is assembled and served from a
+// dynamic route (no stable static URL, not content-hashed, and the appended
+// associate() calls must run at top level), it stays a classic, self-contained
+// script (no imports) and communicates via globalThis bridges.
+//
+// The manifest declares SharedRuntime, so custom functions run in the same JS
+// context as the task pane. The bridges below are therefore populated by the
+// task-pane modules (or, on the official lite add-in, by app.js) and are simply
+// read here from the shared globalThis:
 // config, getAuth, socket, xlwings, wasmCustomFunctionsCall,
 // wasmStreamingCall/wasmStreamingCancel (set by the official lite add-in),
 // plus the axios/Office/Excel/CustomFunctions libraries.
