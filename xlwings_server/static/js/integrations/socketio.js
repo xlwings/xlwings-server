@@ -39,4 +39,12 @@ if (socket) {
       scriptName: data.script_name,
     });
   });
+
+  // Dev hot reload: the server only emits "xlwings:taskpane-reload" when it
+  // watches files (environment == "dev" and enable_hotreload, see
+  // routers/socketio.py), so this listener is inert in production -- no need to
+  // gate it client-side.
+  socket.on("xlwings:taskpane-reload", () => {
+    location.reload();
+  });
 }

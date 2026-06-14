@@ -82,11 +82,6 @@
       <link rel="stylesheet" href="{{ url_for('static', path='/css/style.css') }}" />
       <script type="module" src="{{ url_for('static', path='/js/main.js') }}"></script>
       <script src="{{ url_for('static', path='/js/ribbon.js') }}" defer></script>
-      {% block hotreload %}
-        {% if settings.environment == "dev" and settings.enable_socketio %}
-          <script type="module" src="{{ url_for('static', path='/js/hotreload.js') }}"></script>
-        {% endif %}
-      {% endblock hotreload %}
       {% block extra_head %}
         {# This allows to selectively load Alpine.js components #}
       {% endblock extra_head %}
