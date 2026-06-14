@@ -11,6 +11,7 @@ import {
   showGlobalStatus,
   hideGlobalError,
   hideGlobalStatus,
+  request,
 } from "../utils.js";
 export { getActiveBookName, getCultureInfoName, getDateFormat };
 import { pyodideReadyPromise, startPyodide } from "../wasm.js";
@@ -70,7 +71,7 @@ export async function init() {
       config.appPath +
       "/xlwings/custom-scripts-meta.json";
     try {
-      const response = await axios.get(metaUrl);
+      const response = await request.get(metaUrl);
       scriptsMeta = response.data;
     } catch (error) {
       console.error("Error fetching script metadata:", error);
@@ -205,7 +206,7 @@ export async function runPython({
           config.appPath +
           `/xlwings/custom-scripts-call/${scriptName}`;
         try {
-          const response = await axios.post(url, payload, {
+          const response = await request.post(url, payload, {
             headers: headers,
             timeout: config.requestTimeout * 1000,
           });
@@ -213,12 +214,11 @@ export async function runPython({
         } catch (error) {
           // TODO: align error handling with xlwings Wasm
           if (error.response) {
+            const data = error.response.data;
             throw (
-              (error.response.data && error.response.data.detail) ||
-              (error.response.data && error.response.data.error) ||
-              (typeof error.response.data === "object"
-                ? JSON.stringify(error.response.data)
-                : error.response.data) ||
+              (data && data.detail) ||
+              (data && data.error) ||
+              (typeof data === "object" ? JSON.stringify(data) : data) ||
               error.response.statusText ||
               "Unknown server error"
             );
