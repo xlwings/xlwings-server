@@ -205,6 +205,50 @@ def test_anonymous_sessions_do_not_evict_each_other():
     assert Converter.read_value(key_b, {}).equals(df_b)
 
 
+def test_sibling_producers_in_one_cell_do_not_evict_each_other():
+    # Regression: =CONSUME(MAKE("a"), MAKE("b")) - both MAKE calls are invoked from (and
+    # report) the consuming cell, so they share one caller address. Without a per-call
+    # discriminator, the second MAKE would treat the first's object as a superseded
+    # previous generation and evict it before CONSUME runs, so the consumer always saw an
+    # expired handle. The discriminator (derived from func name + args) keeps the two
+    # siblings in distinct superseded-generation scopes.
+    addr = "Excel[Book1.xlsx]Sheet1!A1"
+    entity_a, key_a = _write("a")
+    core_oh.evict_superseded(
+        addr,
+        [[entity_a]],
+        user_id="user_a",
+        discriminator=core_oh.producer_discriminator("make", [[["a"]]]),
+    )
+    entity_b, key_b = _write("b")
+    core_oh.evict_superseded(
+        addr,
+        [[entity_b]],
+        user_id="user_a",
+        discriminator=core_oh.producer_discriminator("make", [[["b"]]]),
+    )
+
+    # Both handles must still resolve so CONSUME(key_a, key_b) can read them.
+    assert Converter.read_value(key_a, {}) == "a"
+    assert Converter.read_value(key_b, {}) == "b"
+
+
+def test_recalculation_of_same_producer_still_evicts_previous_generation():
+    # The discriminator must not break the cleanup it sits next to: a single producer cell
+    # recalculating with the same func name + args reuses one scope, so the prior
+    # generation is still evicted (the cache stays at ~one live object per producer).
+    addr = "Excel[Book1.xlsx]Sheet1!A2"
+    disc = core_oh.producer_discriminator("make", [[["x"]]])
+    entity1, key1 = _write("gen1")
+    core_oh.evict_superseded(addr, [[entity1]], user_id="user_a", discriminator=disc)
+    entity2, key2 = _write("gen2")
+    core_oh.evict_superseded(addr, [[entity2]], user_id="user_a", discriminator=disc)
+
+    with pytest.raises(xw.ObjectCacheMissError):
+        Converter.read_value(key1, {})
+    assert Converter.read_value(key2, {}) == "gen2"
+
+
 def test_producer_map_is_cleared_with_the_objects():
     # clear() wipes everything under "object:*", which includes the producer map keys -
     # no dangling pointers to deleted objects.
