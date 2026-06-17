@@ -950,3 +950,14 @@ def varargs_with_object_handles(x, *args: object):
 def required_roles():
     # Has to return an error cell
     return True
+
+
+# Object Handles
+@func
+def write_cache(foo: str) -> object:
+    return xw.ObjectHandle(foo)
+
+
+@func
+def read_cache(foo: xw.CachedObject[str], bar: xw.CachedObject[str]) -> str:
+    return "SUCCESS"
