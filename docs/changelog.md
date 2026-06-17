@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.1 (Jun 17, 2026)
+
+- Bug fix: resume streaming functions after a full spreadsheet recalc.
+- Bug fix: Fix custom functions with multiple object handle calls as arguments.
+
 ## 1.9.0 (Jun 15, 2026)
 
 - In `XLWINGS_ENVIRONMENT="dev"` (only), the Entra ID token is now persisted in session storage so that hotreload won't trigger an API limit error. No changes to the other environments, where reloading the add-in will fetch a new token from Entra ID.
