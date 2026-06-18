@@ -117,3 +117,80 @@ export function hideGlobalStatus() {
   const alertEl = document.getElementById("global-status-alert");
   alertEl.classList.add("d-none");
 }
+
+// Minimal HTTP helper backed by XMLHttpRequest.
+//
+// We can't use fetch() for our requests: on macOS Excel desktop (WKWebView),
+// fetch is backed by NSURLSession, whose request timeout defaults to 60s and
+// cannot be raised from JS (AbortController can only abort *earlier*). Any call
+// running longer than 60s is therefore killed by the platform regardless of our
+// configured requestTimeout. XHR's `timeout` property has no such ceiling, so
+// long-running runPython/custom-function calls keep working. Also published on
+// globalThis (below) so custom-functions/custom-functions-code.js can reuse it:
+// that file is a classic, self-contained script that can't import this module.
+//
+// API: request.get/post(url, [body], opts) resolves to {data, status,
+// statusText} on a 2xx response, and otherwise rejects with error.response set
+// on HTTP errors or error.request set on network/timeout failures.
+function xhrRequest(method, url, { headers = {}, body, timeout } = {}) {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, url, true);
+    for (const [key, value] of Object.entries(headers)) {
+      // Skip null/undefined headers (fetch would coerce them to "null").
+      if (value != null) xhr.setRequestHeader(key, value);
+    }
+    if (timeout) xhr.timeout = timeout;
+
+    xhr.onload = () => {
+      let data = xhr.responseText;
+      const contentType = xhr.getResponseHeader("Content-Type") || "";
+      if (contentType.includes("application/json") && data) {
+        try {
+          data = JSON.parse(data);
+        } catch {
+          // leave as raw text
+        }
+      }
+      const response = {
+        data,
+        status: xhr.status,
+        statusText: xhr.statusText,
+      };
+      // Resolve only on 2xx; everything else rejects with .response set.
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(response);
+      } else {
+        const error = new Error(`Request failed with status ${xhr.status}`);
+        error.response = response;
+        reject(error);
+      }
+    };
+    // Network failure, timeout, or abort: no HTTP response available.
+    xhr.onerror = () => {
+      const error = new Error("Network error");
+      error.request = xhr;
+      reject(error);
+    };
+    xhr.ontimeout = () => {
+      const error = new Error("Request timed out");
+      error.request = xhr;
+      reject(error);
+    };
+    xhr.onabort = () => {
+      const error = new Error("Request aborted");
+      error.request = xhr;
+      reject(error);
+    };
+
+    xhr.send(body != null ? JSON.stringify(body) : null);
+  });
+}
+
+export const request = {
+  get: (url, opts) => xhrRequest("GET", url, opts),
+  post: (url, body, opts) => xhrRequest("POST", url, { ...opts, body }),
+};
+
+// Bridge for the custom-functions classic script (see comment above).
+globalThis.xwRequest = request;
