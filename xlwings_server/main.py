@@ -1,9 +1,7 @@
 import importlib.util
-import json
 import logging
 import os
 import sys
-from functools import cache
 from pathlib import Path
 
 import socketio
@@ -31,6 +29,7 @@ from xlwings_server.routers.manifest import router as manifest_router
 from xlwings_server.routers.root import router as root_router
 from xlwings_server.routers.taskpane import router as taskpane_router
 from xlwings_server.routers.xlwings import router as xlwings_router
+from xlwings_server.security_headers import SECURITY_HEADERS
 from xlwings_server.templates import templates
 
 # Logging
@@ -136,40 +135,23 @@ else:
 
 
 # Security headers
-@cache
-def read_security_headers():
-    with open(settings.base_dir / "security_headers.json", "r") as f:
-        data = json.load(f)
-    return data
-
-
 @app.middleware("http")
 async def add_security_headers(request, call_next):
-    # https://owasp.org/www-project-secure-headers/index.html#configuration-proposal
-    # https://owasp.org/www-project-secure-headers/ci/headers_add.json
+    # See xlwings_server/security_headers.py for the header values and sources.
     response = await call_next(request)
     if not settings.add_security_headers and settings.environment == "dev":
         # Prevent caching in dev even if security headers are switched off
         response.headers["Cache-Control"] = "no-store, max-age=0"
     if settings.add_security_headers:
-        data = read_security_headers()
-
         # Extract file extension from request URL
         file_ext = request.url.path.split(".")[-1].lower()
         image_ext = ("jpg", "jpeg", "png", "gif", "bmp", "webp", "svg")
 
-        for header in data["headers"]:
+        for name, value in SECURITY_HEADERS.items():
             # Excel on Windows doesn't display the icons in the ribbon otherwise
-            if header["name"] == "Cache-Control" and file_ext in image_ext:
+            if name == "Cache-Control" and file_ext in image_ext:
                 continue
-            if header["name"] not in (
-                "Permissions-Policy",  # experimental
-                "Clear-Site-Data",  # too aggressive
-                "Content-Security-Policy",  # provide via XLWINGS_CUSTOM_HEADERS
-            ):
-                # Permissions-Policy headers are experimental
-                # Clear-Site-Data is too aggressive
-                response.headers[header["name"]] = header["value"]
+            response.headers[name] = value
 
         if settings.enable_excel_online:
             response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
