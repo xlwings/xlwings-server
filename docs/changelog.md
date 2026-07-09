@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.2 (Jul 9, 2026)
+
+- Bug fix: fix pyodide.mjs loading for same origin (xlwings Wasm).
+
 ## 1.9.1 (Jun 17, 2026)
 
 - Bug fix: resume streaming functions after a full spreadsheet recalc.
