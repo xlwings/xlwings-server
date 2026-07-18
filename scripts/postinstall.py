@@ -19,7 +19,7 @@ vendor_dir = root_dir / "xlwings_server" / "static" / "vendor"
 # Global UMD builds vs. ESM: with the exception of @alpinejs/csp (see below),
 # these are vendored as global UMD scripts on purpose, NOT as ESM imports.
 # Reasons it's not worth switching the others to ESM:
-#   - axios and the socket.io client `io` are also read as globals from
+#   - The socket.io client `io` is also read as a global from
 #     custom-functions/custom-functions-code.js, which runs in a separate
 #     custom-functions runtime and must stay a classic, import-free script. An
 #     ESM import in the task pane wouldn't remove the need for the global there,
@@ -41,9 +41,7 @@ packages = {
     "@alpinejs/csp": ["dist/module.esm.min.js"],
     # office.js is NOT vendored via npm: Microsoft froze the @microsoft/office-js
     # package (1.1.110, April 2025) and serves it only from the CDN. It's mirrored
-    # from the CDN instead -- see scripts/mirror_officejs.py (uv run run.py
-    # mirror-officejs).
-    "axios": ["dist/axios.min.js"],
+    # from the CDN instead -- see scripts/mirror_officejs.py (make officejs).
     "bootstrap": ["dist/js/bootstrap.bundle.min.js", "LICENSE"],
     "bootstrap-xlwings": [
         "dist/bootstrap-xlwings.min.css",
