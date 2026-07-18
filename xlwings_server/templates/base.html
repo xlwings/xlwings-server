@@ -24,7 +24,7 @@
       {% if settings.cdn_officejs %}
         <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
       {% else %}
-        <script src="{{ url_for('static', path='/vendor/@microsoft/office-js/1.1.110/dist/office.js') }}"></script>
+        <script src="{{ url_for('static', path='/vendor/office-js/16.0.20308.15050/dist/office.js') }}"></script>
       {% endif %}
       <script src="{{ url_for('static', path='/js/officejs/history-fix-part2.js') }}"></script>
       {# Socket.io (must come before custom-scripts) #}

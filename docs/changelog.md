@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.9.2 (Jul 9, 2026)
+
+- Bug fix: fix pyodide.mjs loading for same origin (xlwings Wasm).
+
+## 1.9.1 (Jun 17, 2026)
+
+- Bug fix: resume streaming functions after a full spreadsheet recalc.
+- Bug fix: Fix custom functions with multiple object handle calls as arguments.
+
+## 1.9.0 (Jun 15, 2026)
+
+- In `XLWINGS_ENVIRONMENT="dev"` (only), the Entra ID token is now persisted in session storage so that hotreload won't trigger an API limit error. No changes to the other environments, where reloading the add-in will fetch a new token from Entra ID.
+- Internal reorganization of JavaScript files (no breaking changes in the public API).
+
 ## 1.8.1 (Jun 12, 2026)
 
 - Object handles: Fix memory leak with object handles during recalculation. Also updated docs to use `-> object` to make type linters happy.

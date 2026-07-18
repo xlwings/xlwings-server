@@ -28,8 +28,6 @@ vendor_dir = root_dir / "xlwings_server" / "static" / "vendor"
 #     attaches to window and scans the DOM via its own lifecycle; bootstrap is
 #     driven purely by data-bs-* attributes + CSS with zero JS usage in our
 #     code). ESM-importing them gains nothing and breaks their auto-init.
-# office.js has no ESM build at all. So global UMD is the simpler fit for our
-# two-runtime architecture (task pane + custom-functions runtime).
 #
 # @alpinejs/csp is the deliberate exception: its single self-contained ESM build
 # (no bare imports, so no bundler needed -- unlike monaco-editor) does NOT
@@ -41,7 +39,11 @@ vendor_dir = root_dir / "xlwings_server" / "static" / "vendor"
 # See integrations/alpinejs-csp.js and integrations/alpinejs-start.js.
 packages = {
     "@alpinejs/csp": ["dist/module.esm.min.js"],
-    "@microsoft/office-js": ["dist", "LICENSE.md"],
+    # office.js is NOT vendored via npm: Microsoft froze the @microsoft/office-js
+    # package (1.1.110, April 2025) and serves it only from the CDN. It's mirrored
+    # from the CDN instead -- see scripts/mirror_officejs.py (uv run run.py
+    # mirror-officejs).
+    "axios": ["dist/axios.min.js"],
     "bootstrap": ["dist/js/bootstrap.bundle.min.js", "LICENSE"],
     "bootstrap-xlwings": [
         "dist/bootstrap-xlwings.min.css",
@@ -120,15 +122,6 @@ SOFTWARE.
 (vendor_dir / "@alpinejs" / "csp" / versions["@alpinejs/csp"] / "LICENSE").write_text(
     alpinejs_license
 )
-
-# Remove non-Excel-related office-js files
-officejs_dir = (
-    vendor_dir / "@microsoft" / "office-js" / versions["@microsoft/office-js"] / "dist"
-)
-prefixes = ["access*", "onenote*", "outlook*", "word*", "project*", "powerpoint*"]
-for prefix in prefixes:
-    for filename in officejs_dir.rglob(prefix):
-        filename.unlink()
 
 # Update version references in source files so the version-bump workflow is
 # just `npm install <pkg>@latest`. The regex matches the version segment in

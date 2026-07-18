@@ -51,6 +51,7 @@ const sessionId = getSessionId();
 let invocations = new Set();
 let bodies = new Set();
 let streamingSubscriptions = new Map();
+let wasmStreamingGen = Object.create(null);
 let runtime;
 let socket = null;
 
@@ -273,6 +274,10 @@ async function base() {
   if (isStreaming && config.onWasm) {
     let taskKey = `${funcName}_${args}`;
     body.task_key = taskKey;
+    // Bump generation so a late-firing onCanceled from the previous invocation
+    // does not kill this new task (onCanceled can fire AFTER the re-invocation).
+    wasmStreamingGen[taskKey] = (wasmStreamingGen[taskKey] || 0) + 1;
+    let myGen = wasmStreamingGen[taskKey];
     invocation.setResult([["Waiting for stream..."]]);
 
     const setResult = (result) => {
@@ -286,7 +291,9 @@ async function base() {
     });
 
     invocation.onCanceled = () => {
-      globalThis.wasmStreamingCancel(taskKey);
+      if (wasmStreamingGen[taskKey] === myGen) {
+        globalThis.wasmStreamingCancel(taskKey);
+      }
     };
     return;
   }

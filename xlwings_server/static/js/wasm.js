@@ -177,7 +177,17 @@ export async function startPyodide(version, integrity) {
       link.rel = "modulepreload";
       link.href = url;
       link.integrity = integrity;
-      link.crossOrigin = "anonymous";
+      // Only opt into CORS mode for genuinely cross-origin loads (e.g. a CDN,
+      // which sends the required CORS/CORP headers). For a same-origin base URL
+      // (self-hosted), forcing crossorigin makes the preload a CORS-mode fetch
+      // while the bare import() below is same-origin mode — WebKit won't reuse a
+      // mode-mismatched preload, and under COEP: require-corp the CORS-mode
+      // fetch also demands CORP headers, so the import fails with "Importing a
+      // module script failed". SRI is still enforced on a same-origin
+      // modulepreload without the crossorigin attribute.
+      if (new URL(url, document.baseURI).origin !== self.location.origin) {
+        link.crossOrigin = "anonymous";
+      }
       document.head.appendChild(link);
       // Give the browser a tick to register the preload before importing
       await new Promise((resolve) => setTimeout(resolve, 0));
