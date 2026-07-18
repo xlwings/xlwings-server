@@ -41,9 +41,7 @@ packages = {
     "@alpinejs/csp": ["dist/module.esm.min.js"],
     # office.js is NOT vendored via npm: Microsoft froze the @microsoft/office-js
     # package (1.1.110, April 2025) and serves it only from the CDN. It's mirrored
-    # from the CDN instead -- see scripts/mirror_officejs.py (uv run run.py
-    # mirror-officejs).
-    "axios": ["dist/axios.min.js"],
+    # from the CDN instead -- see scripts/mirror_officejs.py (make officejs).
     "bootstrap": ["dist/js/bootstrap.bundle.min.js", "LICENSE"],
     "bootstrap-xlwings": [
         "dist/bootstrap-xlwings.min.css",
