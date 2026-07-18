@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.9.3 (Jul 18, 2026)
+
+- Bug fix: allow Excel online to open custom dialogs even with `XLWINGS_ADD_SECURITY_HEADERS=true`.
+- Removed axios dependency.
+
 ## 1.9.2 (Jul 9, 2026)
 
 - Bug fix: fix pyodide.mjs loading for same origin (xlwings Wasm).
