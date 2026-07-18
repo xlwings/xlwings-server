@@ -69,6 +69,25 @@ Or use the VS Code extension `Version Lens`, which allows you to update the pack
 
 After updating a package in `packages.json`, run `sudo npm install` — the `postinstall` hook (defined in `package.json`) automatically copies the relevant files into the static folder by running `scripts/postinstall.py`.
 
+## Office.js
+
+Unlike the other frontend dependencies, Office.js is **not** managed via npm. Microsoft froze the `@microsoft/office-js` package at `1.1.110` (April 2025) and now serves the library only from the CDN (`https://appsforoffice.microsoft.com/lib/1/hosted/`). Internet-connected add-ins load it from there (`XLWINGS_CDN_OFFICEJS=true`), but airgapped/self-hosted deployments need it vendored locally — that's what the `settings.cdn_officejs = false` branch in `templates/base.html` serves.
+
+The vendored copy lives in `xlwings_server/static/vendor/office-js/<build>/` and is committed to the repo, so `npm install` does **not** touch it and a fresh checkout works offline out of the box. To refresh it to the current CDN build:
+
+```
+make officejs
+```
+
+This runs `scripts/mirror_officejs.py`, which downloads the curated (Excel-only, non-debug) set of files listed in `scripts/officejs_inventory.py`, fetches `LICENSE.md` from the [OfficeDev/office-js](https://github.com/OfficeDev/office-js) repo, versions the folder by the detected build (e.g. `16.0.20308.15050`), removes the previous build, and updates the Office.js `<script>` path in `base.html`. Add `--dry-run` (`uv run scripts/mirror_officejs.py --dry-run`) to preview without downloading.
+
+Because the inventory is a fixed list, the mirror can't _see_ files it doesn't already ask for. The two drift cases:
+
+- **A file is removed** from the CDN → the mirror fails with a 404 pointing at the offending path. Drop it from `scripts/officejs_inventory.py`.
+- **New Excel bundles are added** (a new minor like `excel-web-16.01.js`, or a future major like `excel-17`) → these would be silently missed. Run `make officejs-check` (`uv run scripts/mirror_officejs.py --check`) to probe the CDN for Excel bundles beyond the inventory; it exits non-zero and lists any it finds. Add them to `scripts/officejs_inventory.py`, then re-mirror. Worth running periodically (e.g. in CI) so new bundles don't go unnoticed.
+
+To otherwise rebuild the inventory after a big CDN change, run a mirror, then list the resulting tree (excluding `*.debug.js`, `office.d.ts`, `office-vsdoc.js`).
+
 ## CSP header
 
 To use the most restrictive CSP header, set `XLWINGS_ENABLE_EXCEL_ONLINE=false` for local development.

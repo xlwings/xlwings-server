@@ -25,6 +25,16 @@ lint:
 	uv sync --group all
 	uv run pre-commit run --all-files
 
+.PHONY: officejs
+officejs:
+	uv sync --group all
+	uv run scripts/mirror_officejs.py
+
+.PHONY: officejs-check
+officejs-check:
+	uv sync --group all
+	uv run scripts/mirror_officejs.py --check
+
 .PHONY: docs
 docs:
 	uv sync --group all
