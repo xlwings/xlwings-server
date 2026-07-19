@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.10.0 (Jul 19, 2026)
+
+- Added support for FastAPI lifespan events via `uv run xlwings-server add lifespan`.
+
 ## 1.9.3 (Jul 18, 2026)
 
 - Bug fix: allow Excel online to open custom dialogs even with `XLWINGS_ADD_SECURITY_HEADERS=true`.
