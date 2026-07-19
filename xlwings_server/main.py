@@ -38,8 +38,62 @@ logger = logging.getLogger(__name__)
 
 logger.info(f"Running in '{'Wasm' if settings.enable_wasm else 'Server'}' mode.")
 
+# User lifespan hook (optional). Load PROJECT_DIR/lifespan.py by its exact path
+# rather than `import lifespan` / find_spec("lifespan"): a bare import searches
+# all of sys.path and could bind to an unrelated installed module that happens
+# to be named `lifespan`. If the file is absent, this is a silent no-op. If it
+# is present but fails to import or exposes no `lifespan`, we re-raise/raise so
+# the server fails fast -- silently starting without the user's startup code
+# (e.g. a database pool or cache warm-up) would be worse than not starting.
+user_lifespan = None
+_lifespan_file = PROJECT_DIR / "lifespan.py"
+if _lifespan_file.is_file():
+    # Canonical registration is under a private name so we never shadow a real
+    # third-party package named `lifespan`, and so __module__ resolution,
+    # decorators, and dataclasses in the user's file all see one stable module.
+    _lifespan_mod_name = "_xlwings_server_user_lifespan"
+    _lifespan_spec = importlib.util.spec_from_file_location(
+        _lifespan_mod_name, _lifespan_file
+    )
+    _user_lifespan_module = importlib.util.module_from_spec(_lifespan_spec)
+    sys.modules[_lifespan_mod_name] = _user_lifespan_module
+    # Additionally alias the bare `lifespan` name while executing the file so
+    # an import-time self-referential `import lifespan` resolves to this same
+    # instance. Only add the alias when that name is free, and always remove it
+    # afterward so a third-party `lifespan` package imported later is not
+    # shadowed by the user hook.
+    _alias_lifespan = "lifespan" not in sys.modules
+    if _alias_lifespan:
+        sys.modules["lifespan"] = _user_lifespan_module
+
+    def _cleanup_lifespan_alias():
+        if _alias_lifespan and sys.modules.get("lifespan") is _user_lifespan_module:
+            sys.modules.pop("lifespan", None)
+
+    def _cleanup_lifespan_module():
+        if sys.modules.get(_lifespan_mod_name) is _user_lifespan_module:
+            sys.modules.pop(_lifespan_mod_name, None)
+
+    try:
+        _lifespan_spec.loader.exec_module(_user_lifespan_module)
+    except Exception:
+        _cleanup_lifespan_alias()
+        _cleanup_lifespan_module()
+        logger.exception("Failed to load lifespan hook from lifespan.py")
+        raise
+    _cleanup_lifespan_alias()
+    if not hasattr(_user_lifespan_module, "lifespan"):
+        _cleanup_lifespan_module()
+        raise RuntimeError(
+            f"{_lifespan_file} exists but exposes no `lifespan` context manager"
+        )
+    user_lifespan = _user_lifespan_module.lifespan
+    logger.info("Registered custom lifespan hook")
+else:
+    logger.debug("No custom lifespan found (lifespan.py)")
+
 # App
-app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
+app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None, lifespan=user_lifespan)
 
 
 # Starlette's url_for returns fully qualified URLs causing issues if the reverse proxy
