@@ -25,6 +25,10 @@ You can add your custom functions to the `functions.py` module. You can, however
    from .myfunctions import *
    ```
 
+```{important}
+Every `@func`-decorated function must be re-exported at the package level in `custom_functions/__init__.py`. Only functions that are importable directly from the `custom_functions` package are registered with Excel---defining them in a sub-module is not enough. Add a wildcard import (`from .myfunctions import *`) for each additional module.
+```
+
 ```{note}
 During development, changes to the functions will be automatically reloaded in Excel. However, in production, if your changes include adding/deleting functions or editing the function arguments, you will need to restart Excel. A restart is not required if you're just editing the body of an existing function.
 ```

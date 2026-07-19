@@ -71,6 +71,7 @@ Stop the server again and go through the following list to migrate the additiona
 
 ## Additional Migration Steps
 
+- If your old project had application-specific dependencies in `requirements.in`, add them to your new project's `pyproject.toml` by running `uv add <package>` for each one (or by editing the `dependencies` list in `pyproject.toml` directly). Dependencies are no longer managed via `requirements.in`/`requirements.txt`.
 - If you have custom static files other than `css/style.css`, `js/main.js`, and `images/`, copy them over from `app/static` to `static`.
 - If you use Azure functions for deployment, run: `uv run xlwings-server add azure functions`, then copy over `local.settings.json` from your old to your new project. Note that Azure functions require a traditional `requirements.txt` file in the root of your project. If you use `uv`, run the following command before deploying (ideally, this is done automatically as part of your CI/CD pipeline): `uv export --format requirements.txt -o requirements.txt`.
 - If you are using a custom `User` model: Run `uv run xlwings-server add model user`, then add back the logic from `app/models/user.py` to `models/user.py`. Note, there's no need to inherit from `BaseUser` anymore and the model has been simplified (no more properties).
