@@ -78,6 +78,7 @@ Stop the server again and go through the following list to migrate the additiona
 - If you were using custom configuration in `app/config.py`, run `uv run xlwings-server add config` and edit `config.py` accordingly.
 - If you are using custom authentication, copy `app/auth/custom/__init__.py` to `/auth/custom/__init__.py` and `app/static/js/auth.js` to `static/js/auth.js`.
 - If you have custom FastAPI endpoints (e.g., added to `app/routers/taskpane.py`), run `uv run xlwings-server add router` and add them to `routers/custom.py`.
+- If you relied on FastAPI lifespan event logic, run `uv run xlwings-server add lifespan` and move it into the generated `lifespan.py`.
 - If you have customized `app/auth/entraid/jwks.py`, run `uv run xlwings-server add auth entraid` and replace the function in `auth/entraid/jwks.py` with that from `app/auth/entraid/jwks.py`.
 - If you use custom `User` models, authentication, or custom endpoints, make sure to change the imports into these:
   - `from xlwings_server.models import CurrentUser`

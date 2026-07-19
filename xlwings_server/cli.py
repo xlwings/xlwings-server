@@ -643,6 +643,43 @@ def add_config_command():
     tracker.print_summary("Config setup")
 
 
+def add_lifespan_command():
+    """Add lifespan.py to project for startup/shutdown hooks"""
+    project_path = validate_project_directory()
+    tracker = FileTracker()
+
+    # Check if lifespan.py already exists
+    lifespan_file = project_path / "lifespan.py"
+    if lifespan_file.exists():
+        tracker.mark_skipped("lifespan.py (already exists)")
+    else:
+        # Create lifespan.py template
+        template = dedent('''\
+            """Startup/shutdown hooks, picked up automatically by xlwings-server.
+
+            Code before `yield` runs on startup, code after it runs on shutdown.
+            This replaces the FastAPI `@app.on_event("startup")` pattern.
+            """
+
+            from contextlib import asynccontextmanager
+
+            from fastapi import FastAPI
+
+
+            @asynccontextmanager
+            async def lifespan(app: FastAPI):
+                # startup
+                yield
+                # shutdown
+
+        ''')
+
+        lifespan_file.write_text(template)
+        tracker.mark_created("lifespan.py")
+
+    tracker.print_summary("Lifespan setup")
+
+
 def add_auth_entraid_command():
     """Add Entra ID auth provider jwks.py to project for customization"""
     import json
@@ -1735,6 +1772,11 @@ def main():
     # config subcommand (standalone)
     add_subparsers.add_parser("config", help="Add config.py for extending settings")
 
+    # lifespan subcommand (standalone)
+    add_subparsers.add_parser(
+        "lifespan", help="Add lifespan.py for startup/shutdown hooks"
+    )
+
     # iis subcommand (standalone)
     add_subparsers.add_parser("iis", help="Add IIS deployment files (web.config)")
 
@@ -1839,13 +1881,15 @@ def main():
             add_js_command()
         elif args.add_category == "config":
             add_config_command()
+        elif args.add_category == "lifespan":
+            add_lifespan_command()
         elif args.add_category == "iis":
             add_iis_command()
         else:
             print("Error: Please specify what to add")
             print(
                 "Available: azure, docker, devcontainer, model, auth, router, "
-                "css, js, config, iis"
+                "css, js, config, lifespan, iis"
             )
             sys.exit(1)
     elif args.command == "build":
