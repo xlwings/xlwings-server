@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Custom functions can now appear under a different name in Excel than the Python function name via `@func(name="myName")` (requires xlwings >= 0.36.12), see [](custom_functions.md#custom-function-name).
+
 ## 1.10.0 (Jul 19, 2026)
 
 - Added support for FastAPI lifespan events via `uv run xlwings-server add lifespan`.

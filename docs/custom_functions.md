@@ -282,6 +282,24 @@ For the accepted `date_format` string, consult the [official Excel documentation
 Some older builds of Excel don't support date formatting and will display the date as date serial instead, requiring you format it manually. See also [](#limitations).
 ```
 
+## Custom function name
+
+By default, a custom function appears in Excel under the upper-cased Python function name. Use the `name` argument if the function should appear under a different name (analogous to how it works with scripts):
+
+```python
+from xlwings import func
+
+@func(name="helloName")
+def hello_custom_name(name):
+    return f"Hello {name}!"
+```
+
+This function will be shown as `helloName` in Excel — unlike the default behavior, the name's case is preserved. The name must start with a letter and may only contain letters, numbers, periods, and underscores (max. 128 characters).
+
+```{note}
+The `name` argument requires xlwings 0.36.12+ and is only supported by xlwings Lite and xlwings Server. The classic xlwings add-in on Windows ignores it and registers the function under its Python name.
+```
+
 ## Namespace
 
 A namespace groups related custom functions together by prepending the namespace to the function name, separated with a dot. For example, to have NumPy-related functions show up under the numpy namespace, you could do:
