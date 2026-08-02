@@ -1,9 +1,13 @@
+import inspect
+
+import pytest
 import xlwings as xw
 from bs4 import BeautifulSoup
 from fastapi.testclient import TestClient
 
 from xlwings_server import settings
 from xlwings_server.main import main_app
+from xlwings_server.routers import xlwings as xlwings_router
 
 client = TestClient(main_app)
 
@@ -60,6 +64,29 @@ def test_custom_functions_code():
         in response.text
     )
     assert '["hello_custom_name", false]' in response.text
+
+
+@pytest.mark.skipif(
+    not hasattr(xw.server, "get_custom_function_namespace"),
+    reason="Module namespaces require xlwings 0.36.13",
+)
+def test_custom_functions_meta_module_namespace(mocker):
+    defining_module = inspect.getmodule(xlwings_router.custom_functions.hello)
+    mocker.patch.object(
+        defining_module,
+        "__xlwings_func_namespace__",
+        "finance",
+        create=True,
+    )
+
+    response = client.get(f"{settings.app_path}/xlwings/custom-functions-meta")
+    hello = next(
+        function
+        for function in response.json()["functions"]
+        if function["id"] == "HELLO"
+    )
+
+    assert hello["name"] == "FINANCE.HELLO"
 
 
 def test_custom_functions_call():
