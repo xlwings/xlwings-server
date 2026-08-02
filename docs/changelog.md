@@ -1,8 +1,9 @@
 # Changelog
 
-## Unreleased
+## 1.11.0 (Aug 2, 2026)
 
-- Custom functions can now appear under a different name in Excel than the Python function name via `@func(name="myName")` (requires xlwings >= 0.36.12), see [](custom_functions.md#custom-function-name).
+- Custom-function namespaces can now be set for an entire Python module via `__xlwings_func_namespace__`.
+- Custom functions can now appear under a different name in Excel than the Python function name via `@func(name="myName")`, see [](custom_functions.md#custom-function-name).
 
 ## 1.10.0 (Jul 19, 2026)
 

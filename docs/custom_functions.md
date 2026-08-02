@@ -316,6 +316,31 @@ def standard_normal(rows, columns):
 
 This function will be shown as `NUMPY.STANDARD_NORMAL` in Excel.
 
+To use the same namespace for all custom functions defined in a Python module,
+set `__xlwings_func_namespace__` at module level:
+
+```python
+from xlwings import func
+
+__xlwings_func_namespace__ = "numpy"
+
+@func
+def standard_normal(rows, columns):
+    ...
+
+@func
+def mean(values):
+    ...
+```
+
+These functions will be shown as `NUMPY.STANDARD_NORMAL` and `NUMPY.MEAN`. A
+`namespace` passed directly to `@func` takes precedence over the module-level
+namespace.
+
+To exclude an individual function from the module-level namespace, use
+`@func(namespace="")`. The global namespace configured in the add-in manifest
+still applies.
+
 ### Sub-namespace
 
 You can create sub-namespaces by including a dot like so:
