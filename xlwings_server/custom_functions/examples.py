@@ -37,6 +37,14 @@ def hello(name):
     return f"Hello {name}!"
 
 
+# 1b) Use the name argument if the function should appear under a different name in
+# Excel than in Python (case is preserved)
+@func(name="helloName")
+def hello_custom_name(name):
+    """Custom name: appears in Excel as helloName"""
+    return f"Hello {name}!"
+
+
 # 2) Returning a pandas DataFrame and function documentation
 # The function's doc string will turn up in the Function Wizard together with the
 # doc strings from the arg decorators. The sample also shows how to suppress the index
