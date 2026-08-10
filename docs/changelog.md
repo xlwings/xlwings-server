@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.11.1 (Aug 10, 2026)
+
+- Functions now accept the framework-provided type-hinted arguments (`CurrentUser`, `xw.Book`, and `xw.BookAsync`) in any position.
+- xlwings Wasm: removed the python-dotenv dependency.
+
 ## 1.11.0 (Aug 2, 2026)
 
 - Custom-function namespaces can now be set for an entire Python module via `__xlwings_func_namespace__`.
