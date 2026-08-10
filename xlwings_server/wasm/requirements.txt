@@ -1,5 +1,4 @@
 xlwings
-python-dotenv
 pyodide-http
 pandas
 matplotlib
