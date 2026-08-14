@@ -3,4 +3,5 @@ sphinx
 sphinx-copybutton
 sphinx-design
 sphinx-autobuild
+sphinx-llm
 myst-parser[Linkify]
