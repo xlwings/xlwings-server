@@ -17,6 +17,7 @@ extensions = [
     "myst_parser",
     "sphinx_copybutton",
     "sphinx_design",
+    "sphinx_llm.txt",
 ]
 
 templates_path = ["_templates"]
@@ -70,7 +71,37 @@ html_theme_options = {
     ],
 }
 
+# -- LLM-friendly output -----------------------------------------------------
+# Generates llms.txt, llms-full.txt, and a rendered Markdown version of each
+# page alongside the regular HTML documentation.
+llms_txt_description = (
+    "Documentation for xlwings Server, a framework to build Office.js add-ins "
+    "with Python on your own server."
+)
+llms_txt_suffix_mode = "replace"
+
 copybutton_prompt_text = r">>> |\.\.\. |\$ |In \[\d*\]: | {2,5}\.\.\.: | {5,8}: "
 copybutton_prompt_is_regexp = True
 
 suppress_warnings = ["misc.highlighting_failure"]
+
+
+def _prepare_markdown_doctree(app, doctree, docname):
+    """Fix internal references and asset URLs in generated Markdown."""
+    if app.builder.name != "markdown":
+        return
+
+    from docutils import nodes
+
+    for node in doctree.findall(nodes.reference):
+        if node.get("refid") and not node.get("refuri"):
+            node["internal"] = True
+
+    for node in doctree.findall(nodes.image):
+        image = app.env.images.get(node["uri"])
+        if image:
+            node["uri"] = f"/_images/{image[1]}"
+
+
+def setup(app):
+    app.connect("doctree-resolved", _prepare_markdown_doctree)
