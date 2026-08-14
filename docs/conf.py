@@ -46,6 +46,9 @@ html_theme_options = {
     "light_css_variables": {
         "color-brand-primary": "black",
         "color-brand-content": "#28a745",
+        # Match visited links to unvisited ones; Furo's default is a purple
+        # (#872ee0) that clashes with the green brand color.
+        "color-brand-visited": "#28a745",
         "color-sidebar-caption-text": "#28a745",
         "sidebar-caption-font-size": "1em",
         "color-announcement-background": "#28a745",
@@ -55,6 +58,7 @@ html_theme_options = {
         # Lighter green than light mode (#28a745) for contrast on the dark
         # sidebar; drives the active sidebar item's accent bar/text/tint.
         "color-brand-content": "#3fbf5f",
+        "color-brand-visited": "#3fbf5f",
         "color-announcement-background": "#28a745",
     },
     "footer_icons": [
