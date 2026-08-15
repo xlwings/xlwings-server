@@ -11,7 +11,7 @@ from typing import Annotated
 
 import numpy as np
 import pandas as pd
-from xlwings import CachedObject
+from xlwings import CachedObject, WithScript
 from xlwings.server import arg, func, ret
 
 from . import settings
@@ -178,12 +178,11 @@ if not settings.enable_wasm:
         see: https://docs.xlwings.org/en/latest/extensions.html#in-excel-sql"""
         return _sql(query, *tables)
 
-    # 14) Custom functions with side effects (experimental)
+    # 14) Custom functions with side effects
     @func
-    async def hello_with_script(name):
-        """This function triggers a custom script, requires XLWINGS_ENABLE_SOCKETIO=true"""
-        await utils.trigger_script(custom_scripts.hello_world, exclude="MySheet")
-        return f"Hello {name}!"
+    def hello_with_script(name):
+        """This function requests a custom script after the custom function returns"""
+        return WithScript(f"Hello {name}!", custom_scripts.hello_args, args=[name, 42])
 
 
 # Unit tests

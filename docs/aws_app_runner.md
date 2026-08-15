@@ -21,4 +21,4 @@ This page hasn't been updated to xlwings Server v1.0 yet.
 
 ## Limitations
 
-- AWS App Runner functions don't support WebSockets, i.e., streaming functions and `trigger_script` won't work.
+- AWS App Runner functions don't support WebSockets, i.e., streaming functions won't work.

@@ -363,6 +363,108 @@ async function base() {
   }
 }
 
+// Follow-up scripts (xw.WithScript)
+//
+// A custom function may not write to the grid during its own invocation, so a requested
+// script is queued and dispatched at the next calculation boundary instead. Excel's
+// onCalculated event is that boundary; where it isn't available we fall back to a timer,
+// which only defers past the current JS task and carries no commit guarantee.
+const pendingScripts = [];
+let calculatedHandlerPromise = null;
+let useTimerFallback = false;
+let flushPromise = Promise.resolve();
+
+function scheduleFlush() {
+  // A single chain shared by the event handler and the timer fallback. Draining one
+  // batch isn't enough: a dispatched script can itself trigger a calculation, firing
+  // onCalculated again while this flush is still running. Chaining plus a while loop
+  // that re-checks the queue keeps dispatches strictly serial and absorbs requests
+  // appended mid-flush.
+  flushPromise = flushPromise.then(async () => {
+    while (pendingScripts.length) {
+      const script = pendingScripts.shift();
+      try {
+        await dispatchFollowUpScript(script);
+      } catch (error) {
+        // Per item: one failure (e.g. getAuth rejecting) must not strand the rest.
+        console.error(error);
+      }
+    }
+  });
+  return flushPromise;
+}
+
+function ensureCalculatedHandler() {
+  // Idempotent: only picks the dispatch strategy, and never rejects. makeServerCall
+  // awaits this before returning the cell value, so a registration failure must not
+  // turn into a #VALUE! for a problem that only affects the follow-up.
+  if (calculatedHandlerPromise) {
+    return calculatedHandlerPromise;
+  }
+  calculatedHandlerPromise = (async () => {
+    if (!Office.context.requirements.isSetSupported("ExcelApi", "1.8")) {
+      console.log(
+        "Follow-up scripts: ExcelApi 1.8 is unavailable, falling back to best-effort scheduling.",
+      );
+      useTimerFallback = true;
+      return;
+    }
+    try {
+      await Excel.run(async (context) => {
+        // Workbook-wide collection event: a per-sheet handler would miss calculations
+        // on sheets added later.
+        context.workbook.worksheets.onCalculated.add(async () => {
+          scheduleFlush();
+        });
+        await context.sync();
+      });
+    } catch (error) {
+      console.error(error);
+      useTimerFallback = true;
+    }
+  })();
+  return calculatedHandlerPromise;
+}
+
+function enqueueFollowUpScript(script) {
+  // Append before scheduling: the other order can fire an empty timer flush and leave
+  // the request sitting in the queue.
+  pendingScripts.push(script);
+  if (useTimerFallback) {
+    setTimeout(scheduleFlush, 0);
+  }
+  // No safety net needed on the onCalculated path, including in manual calculation
+  // mode (tested): an async custom function keeps its calculation open until the
+  // returned promise settles, so the boundary always comes after this response.
+}
+
+async function dispatchFollowUpScript(script) {
+  if (!script || !script.script_name) {
+    return;
+  }
+  if (!globalThis.xlwings || !globalThis.xlwings.runPython) {
+    console.error(
+      "Follow-up scripts require the shared runtime (globalThis.xlwings is unavailable).",
+    );
+    return;
+  }
+  let authResult =
+    typeof globalThis.getAuth === "function"
+      ? await globalThis.getAuth()
+      : { token: "", provider: "" };
+  return globalThis.xlwings.runPython({
+    scriptName: script.script_name,
+    args: script.args || [],
+    include: script.include || "",
+    exclude: script.exclude || "",
+    // Resolved server-side from the script's own @script metadata, not chosen by the
+    // custom function - same as for a task pane button
+    lazy: script.lazy || false,
+    auth: authResult.token,
+    headers: { "Auth-Provider": authResult.provider },
+  });
+}
+
 async function makeServerCall(body) {
   const MAX_RETRIES = config.customFunctionsMaxRetries;
   const RETRY_CODES = config.customFunctionsRetryCodes;
@@ -376,7 +478,6 @@ async function makeServerCall(body) {
         : { token: "", provider: "" };
     let headers = {
       "Content-Type": "application/json",
-      sid: socket && socket.id ? socket.id.toString() : null,
       Authorization: authResult.token,
       "Auth-Provider": authResult.provider,
     };
@@ -388,7 +489,15 @@ async function makeServerCall(body) {
         body,
         { headers: headers, timeout: config.requestTimeout * 1000 },
       );
-      return response.data.result;
+      const { result, script } = response.data;
+      if (script) {
+        // Register before returning the value: the custom function stays pending until
+        // we return, so its calculation boundary can't precede registration. Doing this
+        // lazily afterwards would race the very event we're waiting for.
+        await ensureCalculatedHandler();
+        enqueueFollowUpScript(script);
+      }
+      return result;
     } catch (error) {
       if (error.response) {
         // HTTP error status: the body is usually JSON ({detail}/{error}).

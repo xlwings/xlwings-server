@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.12.0 (Aug 16, 2026)
+
+- Added `xw.WithScript` to run a custom script after a custom function returns, see [](custom_functions.md#running-a-script-after-a-custom-function).
+- The experimental `utils.trigger_script()` has been removed; use `xw.WithScript` instead.
+
 ## 1.11.1 (Aug 10, 2026)
 
 - Functions now accept the framework-provided type-hinted arguments (`CurrentUser`, `xw.Book`, and `xw.BookAsync`) in any position.

@@ -28,6 +28,12 @@ def hello_world(book: xw.Book):
 
 
 @script
+def hello_args(book: xw.Book, name: str, number: int):
+    """Takes args, e.g. from a custom function returning xw.WithScript()"""
+    book.sheets.active["A1"].value = f"Hello {name}, your number is {number}!"
+
+
+@script
 def show_alert(book: xw.Book):
     # callback is optional and only required if you want a JS function to be called
     # when clicking a button. alertCallback is defined in static/js/examples.js

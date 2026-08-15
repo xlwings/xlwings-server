@@ -6,7 +6,7 @@ from textwrap import dedent
 
 import xlwings as xw
 import xlwings.server
-from fastapi import APIRouter, Body, Header, HTTPException, Request, Response
+from fastapi import APIRouter, Body, HTTPException, Request, Response
 
 # Try to import custom modules from project directory first (CLI/Azure mode)
 # Fall back to package location (tests/package mode)
@@ -97,7 +97,6 @@ async def custom_functions_code():
 
 
 # ContextVars
-socketio_id_context = contextvars.ContextVar("socketio_id_context")
 redis_client_context = contextvars.ContextVar("redis_client_context")
 # Only used when XLWINGS_OBJECT_CACHE_PARTITION_BY_USER is enabled (see object_handles).
 user_id_context = contextvars.ContextVar("user_id_context", default=None)
@@ -108,13 +107,11 @@ async def custom_functions_call(
     current_user: dep.User,
     redis_client: dep.RedisClient,
     data: dict = Body,
-    sid: str | None = Header(default=None),
 ):
     # Replace newline and carriage return characters to prevent log injection
     safe_func_name = sanitize_log_input(data["func_name"])
     safe_user_name = sanitize_log_input(current_user.name)
     logger.info(f"""Function "{safe_func_name}" called by {safe_user_name}""")
-    socketio_id_context.set(sid)  # For utils.trigger_script()
     redis_client_context.set(redis_client)  # For ObjectCache converter
     user_id_context.set(
         current_user.id
@@ -134,6 +131,41 @@ async def custom_functions_call(
         from xlwings_server import object_handles
 
         rv = object_handles.stale_object_handle()
+
+    if isinstance(rv, xw.CustomFunctionResult):
+        # The function requested a follow-up script via xw.WithScript. Validate the name
+        # here (core doesn't know the project's custom_scripts) so an unknown script is a
+        # clear error on the producing cell rather than a silent client-side no-op.
+        script_name = rv.script["script_name"]
+        # Check for the @script marker, not just the attribute: modules re-export plenty
+        # of names (settings, np, Path, ...) that would pass a bare hasattr() and only
+        # fail later, when the client dispatches the follow-up.
+        meta = getattr(getattr(custom_scripts, script_name, None), "__xlscript__", None)
+        if meta is None:
+            safe_script_name = sanitize_log_input(script_name)
+            raise HTTPException(
+                status_code=400,
+                detail=f"Custom script '{safe_script_name}' doesn't exist.",
+            )
+
+        # How much of the workbook to send, and whether to load it lazily, are properties
+        # of the script (@script(include=...)/(exclude=...) and an xw.BookAsync book
+        # parameter), not of the caller. Resolve them here from the same metadata that a
+        # task pane button reads from custom-scripts-meta.json.
+        def as_sheet_str(value):
+            # @script accepts a list or a comma-separated string; the client splits on
+            # "," so normalize lists here.
+            if not value:
+                return ""
+            return ",".join(value) if isinstance(value, (list, tuple)) else value
+
+        script = {
+            **rv.script,
+            "include": as_sheet_str(meta.get("include")),
+            "exclude": as_sheet_str(meta.get("exclude")),
+            "lazy": bool(meta.get("lazy")),
+        }
+        return {"result": rv.value, "script": script}
     return {"result": rv}
 
 

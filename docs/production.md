@@ -118,7 +118,7 @@ You can install Redis, make it part of your Docker compose stack, or use a hoste
 
 ## Socket.io
 
-In production, Socket.io is only required for [Streaming functions](custom_functions.md#streaming-functions-rtd-functions) and the experimental `utils.trigger_script()`. You may also decide to use Socket.io for realtime functionality in your task pane.
+In production, Socket.io is only required for [Streaming functions](custom_functions.md#streaming-functions-rtd-functions). You may also decide to use Socket.io for realtime functionality in your task pane.
 
 Since Socket.io is a stateful protocol, you must run it with exactly 1 worker. This means that you have to run it as a separate process, which connects to the [app workers](#workers) via [](#redis). Even if you are running it with only 1 worker, it can scale to thousands of concurrent connections.
 

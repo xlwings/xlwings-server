@@ -26,20 +26,6 @@ export { socket };
 globalThis.socket = socket;
 
 if (socket) {
-  socket.on("xlwings:trigger-script", async (data) => {
-    let authResult =
-      typeof globalThis.getAuth === "function"
-        ? await globalThis.getAuth()
-        : { token: "", provider: "" };
-    xlwings.runPython({
-      include: data?.include || "",
-      exclude: data?.exclude || "",
-      auth: authResult.token,
-      headers: { "Auth-Provider": authResult.provider },
-      scriptName: data.script_name,
-    });
-  });
-
   // Dev hot reload: the server only emits "xlwings:taskpane-reload" when it
   // watches files (environment == "dev" and enable_hotreload, see
   // routers/socketio.py), so this listener is inert in production -- no need to

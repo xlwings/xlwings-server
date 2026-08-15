@@ -53,9 +53,27 @@ jobs:
           ENV_FILE: ".env.testwasm"
         run: uv run pytest -v
 
+  test-js:
+    if: github.repository == 'xlwings/xlwings-server'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # --ignore-scripts skips the postinstall hook, which vendors the npm packages into
+      # the static folder via uv/Python - not needed to run the JS tests
+      - name: Install dependencies
+        run: npm install --ignore-scripts
+
+      - name: Run JS tests
+        run: npm test
+
   build:
     if: github.repository == 'xlwings/xlwings-server'
-    needs: [lint, test]
+    needs: [lint, test, test-js]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
