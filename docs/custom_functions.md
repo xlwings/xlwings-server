@@ -606,6 +606,34 @@ async def btc_price(base_currency="USD"):
 
 Key to remember is that you're moving in the async world with streaming functions, so you shouldn't use long-running blocking operations. For example, instead of using `requests` to fetch the data, you should use one of the async libraries such as `httpx` or `aiohttp`.
 
+## Running a script after a custom function
+
+Custom functions can only write their return value---either into the calling cell or, for [dynamic arrays](#dynamic-arrays), spilled into the surrounding cells. They can't write anywhere else in the workbook. If you need such a side effect, return `WithScript()` to have a [custom script](custom_scripts.md) run after the function returns:
+
+```python
+import custom_scripts
+
+from xlwings import WithScript, func
+
+
+@func
+def hello_with_script(name):
+    return WithScript(
+        f"Hello {name}!",
+        custom_scripts.hello_args,
+        args=[name, 42],
+    )
+```
+
+The first argument is the value written to the cell. The second argument is the custom script, either as the function itself or as its name. `args` are handed to the script and must be JSON-serializable.
+
+Limitations:
+
+- The script runs once per successful call of the custom function. If you fill the formula down 500 rows, the script runs 500 times, each involving a full round trip. Also make sure that the script doesn't write to cells that the custom function depends on, as this would cause an endless loop.
+- Streaming functions are not supported
+- Currently not supported by xlwings Wasm.
+- The script is run at the next calculation boundary. This requires ExcelApi 1.8; on older versions, it is run on a best-effort basis right after the custom function returns.
+
 ## Object handles
 
 Object handles allow you to return Python objects such as a pandas DataFrame to a single cell. Other custom functions can then use the cell with the object handle as a function argument for further manipulation. This functionality is especially helpful if you have huge amounts of data or if the object can't be "translated" into Excel cells.

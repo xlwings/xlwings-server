@@ -13,9 +13,11 @@
     "@types/office-js": "1.0.591",
     "office-addin-lint": "3.0.9",
     "prettier": "3.8.3",
-    "prettier-plugin-jinja-template": "2.2.0"
+    "prettier-plugin-jinja-template": "2.2.0",
+    "vitest": "4.1.10"
   },
   "scripts": {
-    "postinstall": "uv run scripts/postinstall.py"
+    "postinstall": "uv run scripts/postinstall.py",
+    "test": "vitest run"
   }
 }

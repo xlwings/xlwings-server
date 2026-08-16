@@ -13,8 +13,8 @@ jobs:
     if: github.repository == 'xlwings/xlwings-server'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
-      - uses: j178/prek-action@0bb87d7f00b0c99306c8bcb8b8beba1eb581c037  # v1.1.1
+      - uses: actions/checkout@v7
+      - uses: j178/prek-action@4e14d07f9231acabce116ccfca13b13dd9755ece # v3.0.0
 
   test:
     if: github.repository == 'xlwings/xlwings-server'
@@ -25,15 +25,15 @@ jobs:
     env:
       XLWINGS_LICENSE_KEY: ${{ secrets.XLWINGS_LICENSE_KEY }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
 
       - name: Install dependencies
         run: |
@@ -53,20 +53,38 @@ jobs:
           ENV_FILE: ".env.testwasm"
         run: uv run pytest -v
 
-  build:
+  test-js:
     if: github.repository == 'xlwings/xlwings-server'
-    needs: [lint, test]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+
+      # --ignore-scripts skips the postinstall hook, which vendors the npm packages into
+      # the static folder via uv/Python - not needed to run the JS tests
+      - name: Install dependencies
+        run: npm install --ignore-scripts
+
+      - name: Run JS tests
+        run: npm test
+
+  build:
+    if: github.repository == 'xlwings/xlwings-server'
+    needs: [lint, test, test-js]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0  # Required for hatch-vcs to determine version from git tags
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
@@ -92,18 +110,18 @@ jobs:
       id-token: write  # Required for trusted publishing
       contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0  # Required for hatch-vcs to determine version from git tags
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
         with:
           # Install a specific version of uv.
           version: "0.9.25"
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: "3.12"
 
