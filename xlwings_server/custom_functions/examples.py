@@ -11,7 +11,7 @@ from typing import Annotated
 
 import numpy as np
 import pandas as pd
-from xlwings import CachedObject, WithScript
+from xlwings import CachedObject, Caller, WithScript
 from xlwings.server import arg, func, ret
 
 from . import settings
@@ -28,7 +28,7 @@ if not settings.enable_wasm:
     from xlwings.ext.sql import _sql
 
     from xlwings_server import utils
-    from xlwings_server.models import Caller, CurrentUser
+    from xlwings_server.models import CurrentUser
 
 
 # 1) This is the most basic custom function -- it only requires the @func decorator.
@@ -58,7 +58,7 @@ def standard_normal(rows, cols):
     matrix = rng.standard_normal(size=(rows, cols))
     date_rng = pd.date_range(start=dt.datetime(2025, 6, 15), periods=rows, freq="D")
     df = pd.DataFrame(
-        matrix, columns=[f"col{i+1}" for i in range(matrix.shape[1])], index=date_rng
+        matrix, columns=[f"col{i + 1}" for i in range(matrix.shape[1])], index=date_rng
     )
     return df
 
@@ -159,7 +159,7 @@ if not settings.enable_wasm:
         while True:
             matrix = rng.standard_normal(size=(rows, cols))
             df = pd.DataFrame(
-                matrix, columns=[f"col{i+1}" for i in range(matrix.shape[1])]
+                matrix, columns=[f"col{i + 1}" for i in range(matrix.shape[1])]
             )
             yield df
             await asyncio.sleep(1)
@@ -184,16 +184,17 @@ if not settings.enable_wasm:
         """This function requests a custom script after the custom function returns"""
         return WithScript(f"Hello {name}!", custom_scripts.hello_args, args=[name, 42])
 
-    # 15) To access the calling cell, add an argument with the Caller type hint. It carries
-    # the address, row/column, shape and sheet/book name of the cell that called the
-    # function. A custom function never receives the workbook itself, so there are no cell
-    # values here; to read or change the workbook, return WithScript() to run a custom
-    # script. Excel can't always supply an address (e.g. streaming functions), so it can be
-    # None.
-    @func
-    def get_caller(caller: Caller | None):
-        """Returns the address of the cell that called this function"""
-        return caller.address if caller else "Caller unavailable"
+
+# 15) To access the calling cell, add an argument with the Caller type hint. It carries
+# the address, row/column and sheet/book name of the cell that called the function.
+# A custom function never receives the workbook itself, so there are no cell values here;
+# to read or change the workbook, return WithScript() to run a custom script. Caller is
+# always provided - streaming functions can't use it at all and are rejected when they're
+# registered - so there's no None case to handle here.
+@func
+def get_caller(caller: Caller):
+    """Returns the address of the cell that called this function"""
+    return caller.address
 
 
 # Unit tests

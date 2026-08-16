@@ -11,6 +11,7 @@ import js  # type: ignore
 import xlwings as xw
 import xlwings.server
 from pyodide.ffi import to_js  # type: ignore
+from xlwings.server import Caller, caller_from_address
 
 try:
     import matplotlib as mpl
@@ -38,10 +39,18 @@ def create_module_from_string(module_string, module_name):
 
 async def custom_functions_call(data):
     data = data.to_py()
+    # Don't fail the call here: functions that don't use the Caller hint must be unaffected
+    # by a malformed address. Passing None on means core raises a clear error for a bare
+    # `caller: Caller`, while `Caller | None` still opts into handling it.
+    try:
+        caller = caller_from_address(data.get("caller_address"))
+    except xw.XlwingsError:
+        caller = None
     try:
         result = await xlwings.server.custom_functions_call(
             data,
             module=custom_functions,
+            typehint_to_value={Caller: caller},
         )
     except Exception as e:
         result = {"error": str(e), "details": traceback.format_exc()}

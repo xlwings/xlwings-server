@@ -13,7 +13,7 @@ except ModuleNotFoundError:
 
 from xlwings_server.config import PROJECT_DIR, settings
 from xlwings_server.dependencies import authenticate
-from xlwings_server.models import Caller, CurrentUser, caller_from_address
+from xlwings_server.models import CurrentUser
 
 logger = logging.getLogger(__name__)
 
@@ -75,21 +75,15 @@ async def sio_function_call(sid, data):
     logger.info(
         f"""Streaming function "{data['func_name']}" called by {current_user.name}"""
     )
-    # Office.js doesn't provide an invocation address for streaming functions, so this is
-    # None today. Wired up anyway so that declaring the hint doesn't fail with a missing
-    # argument, and so it starts working if Excel ever supplies one.
-    try:
-        caller = caller_from_address(data.get("caller_address"))
-    except xw.XlwingsError:
-        caller = None
-
+    # No Caller here: Office.js doesn't report the calling cell for streaming functions,
+    # so declaring the hint on one is rejected when it's registered.
     await xw.server.sio_custom_function_call(
         sid,
         data,
         custom_functions,
         current_user,
         sio,
-        {CurrentUser: current_user, Caller: caller},
+        {CurrentUser: current_user},
     )
     active_count = sum(
         1 for t in asyncio.all_tasks() if t.get_name().startswith("xlwings-")

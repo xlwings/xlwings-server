@@ -608,38 +608,37 @@ Key to remember is that you're moving in the async world with streaming function
 
 ## Accessing the calling cell
 
-If your custom function needs to know which cell it was called from, add an argument with the `Caller` type hint. Like `CurrentUser`, it's provided by the framework rather than by Excel, so it's hidden from the function's Excel-facing signature and can be placed in any position:
+If your custom function needs to know which cell it was called from, add an argument with the `xw.Caller` type hint:
 
 ```python
-from xlwings.server import func
-
-from xlwings_server.models import Caller
+import xlwings as xw
+from xlwings import func
 
 
 @func
-def get_caller(caller: Caller | None):
-    return caller.address if caller else "Caller unavailable"
+def get_caller(caller: xw.Caller):
+    return caller.address
 ```
 
 `Caller` provides the following attributes:
 
-| Attribute    | Example      | Description                                              |
-| ------------ | ------------ | -------------------------------------------------------- |
-| `address`    | `$B$21`      | Absolute A1 notation of the calling range                |
-| `row`        | `21`         | 1-based row of the top-left cell                         |
-| `column`     | `2`          | 1-based column of the top-left cell                      |
-| `shape`      | `(1, 1)`     | `(rows, columns)` of the calling range                   |
-| `sheet_name` | `Sheet1`     | Name of the sheet                                        |
-| `book_name`  | `Book1.xlsx` | Name of the workbook, or `""` if Excel didn't provide it |
+| Attribute    | Example      | Description                        |
+| ------------ | ------------ | ---------------------------------- |
+| `address`    | `B21`        | A1 notation of the calling cell    |
+| `row`        | `21`         | 1-based row of the calling cell    |
+| `column`     | `2`          | 1-based column of the calling cell |
+| `sheet_name` | `Sheet1`     | Name of the sheet                  |
+| `book_name`  | `Book1.xlsx` | Name of the workbook               |
 
-`Caller` describes _where_ the function was called from---it isn't an `xlwings.Range` and carries no cell values. A custom function only ever receives its arguments, never the workbook itself, so to read other cells, pass them in as arguments. To write anywhere other than the calling cell, use [`WithScript`](#running-a-script-after-a-custom-function).
+`Caller` describes _where_ the function was called from: it isn't an `xlwings.Range`
+and doesn't give you access to the cell's values etc. A custom function only ever sees its
+own arguments---it can't read a cell that isn't passed in as an argument, and it can't
+write anywhere other than its own result range. To interact with the Excel object model
+after a custom function returns, use [`WithScript`](#running-a-script-after-a-custom-function).
 
-Excel doesn't always supply an address, in which case you get `None`---annotate the argument as `Caller | None` and handle that case. This happens with streaming functions and in some other evaluation contexts.
-
-Limitations:
-
-- Streaming functions always get `None`, as Office.js doesn't provide an address for them.
-- Currently not supported by xlwings Wasm.
+```{note}
+[Streaming functions](#streaming-functions-rtd-functions) don't report the calling cell, so using the `xw.Caller` type hint raises an error.
+```
 
 ## Running a script after a custom function
 

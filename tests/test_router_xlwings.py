@@ -19,13 +19,6 @@ requires_script_example = pytest.mark.skipif(
     reason="hello_with_script is not registered when Wasm is enabled",
 )
 
-# get_caller lives in the same non-Wasm block: the Caller type hint is served by
-# xlwings_server, which isn't shipped to Pyodide. See docs/custom_functions.md.
-requires_caller_example = pytest.mark.skipif(
-    settings.enable_wasm,
-    reason="get_caller is not registered when Wasm is enabled",
-)
-
 
 def test_get_alert():
     # String to the right of $_hostInfo added by Excel
@@ -59,7 +52,7 @@ def test_custom_functions_meta():
     # run via: pytest -s tests/test_router_xlwings.py::test_custom_functions_meta
     # print(repr(response.text))
     if settings.enable_wasm:
-        expected = '{"allowCustomDataForDataTypeAny":true,"allowErrorForDataTypeAny":true,"functions":[{"description":"Like CORREL, but it works on whole matrices instead of just 2 arrays.","id":"CORREL","name":"CORREL","options":{"requiresAddress":true,"requiresParameterAddresses":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[{"description":"Positional argument 1","name":"df","dimensionality":"matrix","type":"any"}]},{"description":"Like CORREL, but it works on whole matrices instead of just 2 arrays.","id":"CORREL2","name":"CORREL2","options":{"requiresAddress":true,"requiresParameterAddresses":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[{"description":"Positional argument 1","name":"df","dimensionality":"matrix","type":"any"}]},{"description":"Python function \'hello\'","id":"HELLO","name":"HELLO","options":{"requiresAddress":true,"requiresParameterAddresses":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[{"description":"Positional argument 1","name":"name","dimensionality":"matrix","type":"any"}]},{"description":"Custom name: appears in Excel as helloName","id":"HELLO_CUSTOM_NAME","name":"helloName","options":{"requiresAddress":true,"requiresParameterAddresses":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[{"description":"Positional argument 1","name":"name","dimensionality":"matrix","type":"any"}]},{"description":"Returns an array of standard normally distributed pseudo random numbers","id":"STANDARD_NORMAL","name":"STANDARD_NORMAL","options":{"requiresAddress":true,"requiresParameterAddresses":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[{"description":"The number of rows in the returned array.","name":"rows","dimensionality":"matrix","type":"any"},{"description":"The number of columns in the returned array.","name":"cols","dimensionality":"matrix","type":"any"}]}]}'
+        expected = '{"allowCustomDataForDataTypeAny":true,"allowErrorForDataTypeAny":true,"functions":[{"description":"Like CORREL, but it works on whole matrices instead of just 2 arrays.","id":"CORREL","name":"CORREL","options":{"requiresAddress":true,"requiresParameterAddresses":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[{"description":"Positional argument 1","name":"df","dimensionality":"matrix","type":"any"}]},{"description":"Like CORREL, but it works on whole matrices instead of just 2 arrays.","id":"CORREL2","name":"CORREL2","options":{"requiresAddress":true,"requiresParameterAddresses":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[{"description":"Positional argument 1","name":"df","dimensionality":"matrix","type":"any"}]},{"description":"Returns the address of the cell that called this function","id":"GET_CALLER","name":"GET_CALLER","options":{"requiresAddress":true,"requiresParameterAddresses":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[]},{"description":"Python function \'hello\'","id":"HELLO","name":"HELLO","options":{"requiresAddress":true,"requiresParameterAddresses":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[{"description":"Positional argument 1","name":"name","dimensionality":"matrix","type":"any"}]},{"description":"Custom name: appears in Excel as helloName","id":"HELLO_CUSTOM_NAME","name":"helloName","options":{"requiresAddress":true,"requiresParameterAddresses":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[{"description":"Positional argument 1","name":"name","dimensionality":"matrix","type":"any"}]},{"description":"Returns an array of standard normally distributed pseudo random numbers","id":"STANDARD_NORMAL","name":"STANDARD_NORMAL","options":{"requiresAddress":true,"requiresParameterAddresses":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[{"description":"The number of rows in the returned array.","name":"rows","dimensionality":"matrix","type":"any"},{"description":"The number of columns in the returned array.","name":"cols","dimensionality":"matrix","type":"any"}]}]}'
     else:
         expected = '{"allowCustomDataForDataTypeAny":true,"allowErrorForDataTypeAny":true,"functions":[{"description":"Object handle: Clear the object cache manually","id":"CLEAR_OBJECT_CACHE","name":"CLEAR_OBJECT_CACHE","options":{"requiresAddress":true,"requiresParameterAddresses":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[]},{"description":"Like CORREL, but it works on whole matrices instead of just 2 arrays.","id":"CORREL","name":"CORREL","options":{"requiresAddress":true,"requiresParameterAddresses":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[{"description":"Positional argument 1","name":"df","dimensionality":"matrix","type":"any"}]},{"description":"Like CORREL, but it works on whole matrices instead of just 2 arrays.","id":"CORREL2","name":"CORREL2","options":{"requiresAddress":true,"requiresParameterAddresses":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[{"description":"Positional argument 1","name":"df","dimensionality":"matrix","type":"any"}]},{"description":"Python function \'df_query\'","id":"DF_QUERY","name":"DF_QUERY","options":{"requiresAddress":true,"requiresParameterAddresses":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[{"description":"Positional argument 1","name":"df","dimensionality":"matrix","type":"any"},{"description":"Positional argument 2","name":"query","dimensionality":"matrix","type":"any"}]},{"description":"Returns the address of the cell that called this function","id":"GET_CALLER","name":"GET_CALLER","options":{"requiresAddress":true,"requiresParameterAddresses":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[]},{"description":"Python function \'get_current_user\'","id":"GET_CURRENT_USER","name":"GET_CURRENT_USER","options":{"requiresAddress":true,"requiresParameterAddresses":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[]},{"description":"Returns an object handle to the Excel cell (for production, this requires\\n    XLWINGS_OBJECT_CACHE_URL).","id":"GET_DF","name":"GET_DF","options":{"requiresAddress":true,"requiresParameterAddresses":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[]},{"description":"Returns an object handle to the Excel cell (for production, this requires\\n    XLWINGS_OBJECT_CACHE_URL).","id":"GET_HEALTHEXP","name":"GET_HEALTHEXP","options":{"requiresAddress":true,"requiresParameterAddresses":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[{"description":"Positional argument 1","name":"csv_url","dimensionality":"matrix","type":"any","optional":true}]},{"description":"Python function \'hello\'","id":"HELLO","name":"HELLO","options":{"requiresAddress":true,"requiresParameterAddresses":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[{"description":"Positional argument 1","name":"name","dimensionality":"matrix","type":"any"}]},{"description":"Custom name: appears in Excel as helloName","id":"HELLO_CUSTOM_NAME","name":"helloName","options":{"requiresAddress":true,"requiresParameterAddresses":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[{"description":"Positional argument 1","name":"name","dimensionality":"matrix","type":"any"}]},{"description":"This function requests a custom script after the custom function returns","id":"HELLO_WITH_SCRIPT","name":"HELLO_WITH_SCRIPT","options":{"requiresAddress":true,"requiresParameterAddresses":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[{"description":"Positional argument 1","name":"name","dimensionality":"matrix","type":"any"}]},{"description":"In-Excel SQL\\n    see: https://docs.xlwings.org/en/latest/extensions.html#in-excel-sql","id":"SQL","name":"SQL","options":{"requiresAddress":true,"requiresParameterAddresses":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[{"description":"Positional argument 1","name":"query","dimensionality":"matrix","type":"any"},{"description":"Positional argument 2","name":"tables","dimensionality":"matrix","type":"any","repeating":true}]},{"description":"Returns an array of standard normally distributed pseudo random numbers","id":"STANDARD_NORMAL","name":"STANDARD_NORMAL","options":{"requiresAddress":true,"requiresParameterAddresses":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[{"description":"The number of rows in the returned array.","name":"rows","dimensionality":"matrix","type":"any"},{"description":"The number of columns in the returned array.","name":"cols","dimensionality":"matrix","type":"any"}]},{"description":"Streaming function: must be provided as async generator,\\n    requires XLWINGS_ENABLE_SOCKETIO=true\\n    ","id":"STREAMING_RANDOM","name":"STREAMING_RANDOM","options":{"stream":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[{"description":"Positional argument 1","name":"rows","dimensionality":"matrix","type":"any"},{"description":"Positional argument 2","name":"cols","dimensionality":"matrix","type":"any"}]},{"description":"Python function \'to_df\'","id":"TO_DF","name":"TO_DF","options":{"requiresAddress":true,"requiresParameterAddresses":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[{"description":"Positional argument 1","name":"df","dimensionality":"matrix","type":"any"}]},{"description":"Converts an object handle to cell values. `head` can be TRUE or an integer, which\\n    represents the number of rows from the top that you want to see. TRUE returns the\\n    first 5 rows.\\n    ","id":"VIEW","name":"VIEW","options":{"requiresAddress":true,"requiresParameterAddresses":true},"result":{"dimensionality":"matrix","type":"any"},"parameters":[{"description":"Positional argument 1","name":"obj","dimensionality":"matrix","type":"any"},{"description":"Positional argument 2","name":"head","dimensionality":"matrix","type":"any","optional":true}]}]}'
     assert (
@@ -135,33 +128,36 @@ def _call_get_caller(caller_address):
     )
 
 
-@requires_caller_example
 def test_custom_functions_call_with_caller():
     response = _call_get_caller("[Book1.xlsx]Sheet1!B21")
-    assert response.json() == {"result": [["$B$21"]]}
+    assert response.json() == {"result": [["B21"]]}
 
 
-@requires_caller_example
 def test_custom_functions_call_with_caller_without_workbook_prefix():
     """Older clients send a bare Sheet1!B21."""
     response = _call_get_caller("Sheet1!B21")
-    assert response.json() == {"result": [["$B$21"]]}
+    assert response.json() == {"result": [["B21"]]}
 
 
-@requires_caller_example
 def test_custom_functions_call_without_caller_address():
-    """Excel doesn't always supply an address, e.g. for streaming functions."""
+    """get_caller declares a bare `Caller`, which promises a value.
+
+    Excel always sends an address for regular custom functions, so a missing one is an
+    anomaly: it surfaces as an error in the cell rather than as an AttributeError from
+    inside the function body.
+    """
     response = _call_get_caller(None)
-    assert response.json() == {"result": [["Caller unavailable"]]}
+    assert response.status_code == 400
+    assert "Could not determine the calling cell" in response.text
 
 
-@requires_caller_example
 def test_custom_functions_call_with_invalid_caller_address():
     # XFE1 is past column XFD, which makes xlwings' col_name() raise IndexError. The
-    # router must degrade to caller=None rather than turning that into a 500.
+    # router must degrade to caller=None rather than turning that into a 500, and the
+    # bare `Caller` hint then turns that None into a clear error.
     response = _call_get_caller("Sheet1!XFE1")
-    assert response.status_code == 200
-    assert response.json() == {"result": [["Caller unavailable"]]}
+    assert response.status_code == 400
+    assert "Could not determine the calling cell" in response.text
 
 
 def test_custom_functions_call_invalid_caller_address_ignored():
@@ -181,7 +177,6 @@ def test_custom_functions_call_invalid_caller_address_ignored():
     assert response.json() == {"result": [["Hello xlwings!"]]}
 
 
-@requires_caller_example
 def test_caller_param_hidden_from_meta():
     """The Caller param is framework-provided, so Excel must not see it."""
     response = client.get(f"{settings.app_path}/xlwings/custom-functions-meta")

@@ -7,6 +7,7 @@ from textwrap import dedent
 import xlwings as xw
 import xlwings.server
 from fastapi import APIRouter, Body, HTTPException, Request, Response
+from xlwings.server import Caller, caller_from_address
 
 # Try to import custom modules from project directory first (CLI/Azure mode)
 # Fall back to package location (tests/package mode)
@@ -22,7 +23,7 @@ except ModuleNotFoundError:
 
 from xlwings_server import dependencies as dep
 from xlwings_server.config import PACKAGE_DIR, settings
-from xlwings_server.models import Caller, CurrentUser, caller_from_address
+from xlwings_server.models import CurrentUser
 from xlwings_server.templates import TemplateResponse
 
 logger = logging.getLogger(__name__)
@@ -117,8 +118,9 @@ async def custom_functions_call(
         current_user.id
     )  # For ObjectCache converter (when partitioning)
 
-    # A malformed address must never fail the call itself: functions that don't use the
-    # Caller hint are unaffected, and those that do receive None (see the Caller docstring).
+    # Don't fail the request here: functions that don't use the Caller hint must be
+    # unaffected by a malformed address. Passing None on means core raises a clear error
+    # for a bare `caller: Caller`, while `Caller | None` still opts into handling it.
     try:
         caller = caller_from_address(data.get("caller_address"))
     except xw.XlwingsError:
