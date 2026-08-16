@@ -606,6 +606,41 @@ async def btc_price(base_currency="USD"):
 
 Key to remember is that you're moving in the async world with streaming functions, so you shouldn't use long-running blocking operations. For example, instead of using `requests` to fetch the data, you should use one of the async libraries such as `httpx` or `aiohttp`.
 
+## Accessing the calling cell
+
+If your custom function needs to know which cell it was called from, add an argument with the `Caller` type hint. Like `CurrentUser`, it's provided by the framework rather than by Excel, so it's hidden from the function's Excel-facing signature and can be placed in any position:
+
+```python
+from xlwings.server import func
+
+from xlwings_server.models import Caller
+
+
+@func
+def get_caller(caller: Caller | None):
+    return caller.address if caller else "Caller unavailable"
+```
+
+`Caller` provides the following attributes:
+
+| Attribute    | Example      | Description                                              |
+| ------------ | ------------ | -------------------------------------------------------- |
+| `address`    | `$B$21`      | Absolute A1 notation of the calling range                |
+| `row`        | `21`         | 1-based row of the top-left cell                         |
+| `column`     | `2`          | 1-based column of the top-left cell                      |
+| `shape`      | `(1, 1)`     | `(rows, columns)` of the calling range                   |
+| `sheet_name` | `Sheet1`     | Name of the sheet                                        |
+| `book_name`  | `Book1.xlsx` | Name of the workbook, or `""` if Excel didn't provide it |
+
+`Caller` describes _where_ the function was called from---it isn't an `xlwings.Range` and carries no cell values. A custom function only ever receives its arguments, never the workbook itself, so to read other cells, pass them in as arguments. To write anywhere other than the calling cell, use [`WithScript`](#running-a-script-after-a-custom-function).
+
+Excel doesn't always supply an address, in which case you get `None`---annotate the argument as `Caller | None` and handle that case. This happens with streaming functions and in some other evaluation contexts.
+
+Limitations:
+
+- Streaming functions always get `None`, as Office.js doesn't provide an address for them.
+- Currently not supported by xlwings Wasm.
+
 ## Running a script after a custom function
 
 Custom functions can only write their return value---either into the calling cell or, for [dynamic arrays](#dynamic-arrays), spilled into the surrounding cells. They can't write anywhere else in the workbook. If you need such a side effect, return `WithScript()` to have a [custom script](custom_scripts.md) run after the function returns:

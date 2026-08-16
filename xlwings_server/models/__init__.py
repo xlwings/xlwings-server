@@ -1,5 +1,7 @@
 from xlwings.server import register_injectable_typehint
 
+from .caller import Caller, caller_from_address, parse_caller_address  # noqa: F401
+
 # Try to import User model from project directory first (user override)
 # Fall back to package location (default implementation)
 try:

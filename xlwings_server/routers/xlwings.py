@@ -22,7 +22,7 @@ except ModuleNotFoundError:
 
 from xlwings_server import dependencies as dep
 from xlwings_server.config import PACKAGE_DIR, settings
-from xlwings_server.models import CurrentUser
+from xlwings_server.models import Caller, CurrentUser, caller_from_address
 from xlwings_server.templates import TemplateResponse
 
 logger = logging.getLogger(__name__)
@@ -117,12 +117,21 @@ async def custom_functions_call(
         current_user.id
     )  # For ObjectCache converter (when partitioning)
 
+    # A malformed address must never fail the call itself: functions that don't use the
+    # Caller hint are unaffected, and those that do receive None (see the Caller docstring).
+    try:
+        caller = caller_from_address(data.get("caller_address"))
+    except xw.XlwingsError:
+        safe_caller_address = sanitize_log_input(data.get("caller_address"))
+        logger.warning(f"""Could not parse caller address "{safe_caller_address}\"""")
+        caller = None
+
     try:
         rv = await xlwings.server.custom_functions_call(
             data,
             custom_functions,
             current_user,
-            typehint_to_value={CurrentUser: current_user},
+            typehint_to_value={CurrentUser: current_user, Caller: caller},
         )
     except xw.ObjectCacheMissError:
         # A consumed object handle is no longer cached. Return a "stale" object handle

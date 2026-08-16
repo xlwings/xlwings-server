@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.13.0 (TBD)
+
+- Custom functions can now access the calling cell by adding an argument with the `Caller` type hint, see [](custom_functions.md#accessing-the-calling-cell). It provides the address, row/column, shape and sheet/book name of the cell that called the function.
+
 ## 1.12.0 (Aug 16, 2026)
 
 - Added `xw.WithScript` to run a custom script after a custom function returns, see [](custom_functions.md#running-a-script-after-a-custom-function).

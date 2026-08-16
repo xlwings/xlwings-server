@@ -28,7 +28,7 @@ if not settings.enable_wasm:
     from xlwings.ext.sql import _sql
 
     from xlwings_server import utils
-    from xlwings_server.models import CurrentUser
+    from xlwings_server.models import Caller, CurrentUser
 
 
 # 1) This is the most basic custom function -- it only requires the @func decorator.
@@ -183,6 +183,17 @@ if not settings.enable_wasm:
     def hello_with_script(name):
         """This function requests a custom script after the custom function returns"""
         return WithScript(f"Hello {name}!", custom_scripts.hello_args, args=[name, 42])
+
+    # 15) To access the calling cell, add an argument with the Caller type hint. It carries
+    # the address, row/column, shape and sheet/book name of the cell that called the
+    # function. A custom function never receives the workbook itself, so there are no cell
+    # values here; to read or change the workbook, return WithScript() to run a custom
+    # script. Excel can't always supply an address (e.g. streaming functions), so it can be
+    # None.
+    @func
+    def get_caller(caller: Caller | None):
+        """Returns the address of the cell that called this function"""
+        return caller.address if caller else "Caller unavailable"
 
 
 # Unit tests
