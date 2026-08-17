@@ -116,6 +116,9 @@ export function loadCustomFunctionsCode({
     },
     xwRequest: { post: async () => ({ data: { result: [["ok"]] } }) },
     socket: null,
+    // The Wasm (xlwings Lite) transport, read off globalThis by makeWasmCall. Tests
+    // that exercise that path replace it on globalThisStub.
+    wasmCustomFunctionsCall: async () => [["ok"]],
   };
 
   let source = readFileSync(SOURCE, "utf8");
@@ -128,6 +131,7 @@ export function loadCustomFunctionsCode({
     enqueueFollowUpScript,
     dispatchFollowUpScript,
     makeServerCall,
+    makeWasmCall,
     getPending: () => pendingScripts,
     usesTimerFallback: () => useTimerFallback,
   };`;

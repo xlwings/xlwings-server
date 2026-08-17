@@ -462,6 +462,10 @@ async function dispatchFollowUpScript(script) {
     lazy: script.lazy || false,
     auth: authResult.token,
     headers: { "Auth-Provider": authResult.provider },
+    // Same as a task pane button: the default "alert" mode uses window.alert, which
+    // Office.js doesn't support. There's no click to tie an error to here either, so
+    // the task pane is the only place a failing follow-up can surface.
+    errorDisplayMode: "taskpane",
   });
 }
 
@@ -534,6 +538,18 @@ async function makeWasmCall(body) {
     if (result.error) {
       console.error(result.details);
       showError(result.error);
+    }
+    // A follow-up script requested via xw.WithScript arrives as {result, script};
+    // anything else is the bare cell value. Checked via `script` rather than the
+    // presence of `result`, since a plain cell value can itself be an object with a
+    // `result` key (e.g. an object handle's Entity payload).
+    if (result && result.script) {
+      // Register before returning the value: the custom function stays pending until we
+      // return, so its calculation boundary can't precede registration. Doing this
+      // lazily afterwards would race the very event we're waiting for.
+      await ensureCalculatedHandler();
+      enqueueFollowUpScript(result.script);
+      return result.result;
     }
     return result;
   } catch (error) {

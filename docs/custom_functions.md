@@ -665,7 +665,6 @@ Limitations:
 
 - The script runs once per successful call of the custom function. If you fill the formula down 500 rows, the script runs 500 times, each involving a full round trip. Also make sure that the script doesn't write to cells that the custom function depends on, as this would cause an endless loop.
 - Streaming functions are not supported
-- Currently not supported by xlwings Wasm.
 - The script is run at the next calculation boundary. This requires ExcelApi 1.8; on older versions, it is run on a best-effort basis right after the custom function returns.
 
 ## Object handles

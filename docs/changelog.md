@@ -3,6 +3,7 @@
 ## 1.13.0 (Aug 17, 2026)
 
 - Custom functions can now access the calling cell by adding an argument with the `xw.Caller` type hint, see [](custom_functions.md#accessing-the-calling-cell). It provides the address, row/column and sheet/book name of the cell that called the function.
+- `xw.WithScript` is now also supported on xlwings Wasm path [](custom_functions.md#running-a-script-after-a-custom-function).
 
 ## 1.12.0 (Aug 16, 2026)
 
