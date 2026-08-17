@@ -38,6 +38,9 @@ describe("dispatchFollowUpScript", () => {
       lazy: true,
       auth: "tok",
       headers: { "Auth-Provider": "prov" },
+      // window.alert (the "alert" default) doesn't exist in Office.js, and there's no
+      // click to attach an error to, so a failing follow-up has to reach the task pane.
+      errorDisplayMode: "taskpane",
     });
   });
 
@@ -265,5 +268,82 @@ describe("makeServerCall", () => {
     expect(result).toEqual([["Hello!"]]);
     expect(api.getPending()).toHaveLength(0);
     expect(runPython).not.toHaveBeenCalled();
+  });
+});
+
+describe("makeWasmCall", () => {
+  // The Wasm path (xlwings Lite) gets the same {result, script} envelope as the server
+  // path, just from Pyodide instead of HTTP.
+  it("unwraps the envelope and queues the script", async () => {
+    const runPython = vi.fn(async () => {});
+    const api = loadCustomFunctionsCode({ excelApi18: false, runPython });
+    api.globalThisStub.wasmCustomFunctionsCall = async () => ({
+      result: [["Hello!"]],
+      script: SCRIPT,
+    });
+
+    const result = await api.makeWasmCall({ func_name: "f" });
+
+    // The cell gets the inner value, never the envelope.
+    expect(result).toEqual([["Hello!"]]);
+    expect(api.usesTimerFallback()).toBe(true);
+    // The value comes back first; the script is only dispatched afterwards.
+    expect(runPython).not.toHaveBeenCalled();
+
+    await settle();
+    expect(runPython).toHaveBeenCalledWith(
+      expect.objectContaining({
+        scriptName: SCRIPT.script_name,
+        args: SCRIPT.args,
+      }),
+    );
+    expect(api.getPending()).toHaveLength(0);
+  });
+
+  it("returns a plain result untouched", async () => {
+    const runPython = vi.fn(async () => {});
+    const api = loadCustomFunctionsCode({ excelApi18: false, runPython });
+    api.globalThisStub.wasmCustomFunctionsCall = async () => [["Hello!"]];
+
+    const result = await api.makeWasmCall({ func_name: "f" });
+    await settle();
+
+    expect(result).toEqual([["Hello!"]]);
+    expect(runPython).not.toHaveBeenCalled();
+  });
+
+  it("passes through a cell value that happens to have a result key", async () => {
+    // Object handles hand back an Entity whose payload is a plain object. Branching on
+    // `result` rather than `script` would mistake one for the envelope and write the
+    // wrong thing to the cell.
+    const runPython = vi.fn(async () => {});
+    const api = loadCustomFunctionsCode({ excelApi18: false, runPython });
+    const entity = { type: "Entity", result: "not an envelope" };
+    api.globalThisStub.wasmCustomFunctionsCall = async () => entity;
+
+    const result = await api.makeWasmCall({ func_name: "f" });
+    await settle();
+
+    expect(result).toBe(entity);
+    expect(runPython).not.toHaveBeenCalled();
+  });
+
+  it("surfaces a Python-side error instead of queueing anything", async () => {
+    // Resolution failures (unknown/ambiguous script) come back through the existing
+    // {error, details} envelope, so they must land on the cell as an error.
+    const runPython = vi.fn(async () => {});
+    const api = loadCustomFunctionsCode({ excelApi18: false, runPython });
+    api.globalThisStub.wasmCustomFunctionsCall = async () => ({
+      error: "Custom script 'nope' doesn't exist.",
+      details: "Traceback...",
+    });
+
+    // showError throws a CustomFunctions.Error, which propagates so Excel shows the
+    // message on the producing cell rather than the follow-up failing silently.
+    await expect(api.makeWasmCall({ func_name: "f" })).rejects.toBeDefined();
+    await settle();
+
+    expect(runPython).not.toHaveBeenCalled();
+    expect(api.getPending()).toHaveLength(0);
   });
 });

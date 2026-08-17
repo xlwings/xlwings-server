@@ -176,6 +176,11 @@ async def custom_functions_call(
             "exclude": as_sheet_str(meta.get("exclude")),
             "lazy": bool(meta.get("lazy")),
         }
+        # All scripts live in the one custom_scripts module here, so the defining module
+        # recorded by WithScript is redundant - it only disambiguates for runtimes that
+        # spread scripts over several modules (xlwings Lite). Drop it rather than ship a
+        # field the client would ignore.
+        script.pop("script_module", None)
         return {"result": rv.value, "script": script}
     return {"result": rv}
 

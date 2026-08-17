@@ -12,8 +12,9 @@ from xlwings_server.routers import xlwings as xlwings_router
 client = TestClient(main_app)
 
 # hello_with_script (like the other side-effect examples) is only registered when Wasm is
-# disabled, so tests that patch or call it must be skipped under Wasm. WithScript itself
-# is currently server-only, see docs/custom_functions.md.
+# disabled, so tests that patch or call it must be skipped under Wasm. That's about this
+# example module, not about WithScript, which works on the Wasm path too (see
+# makeWasmCall in custom-functions-code.js).
 requires_script_example = pytest.mark.skipif(
     settings.enable_wasm,
     reason="hello_with_script is not registered when Wasm is enabled",
