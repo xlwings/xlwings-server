@@ -75,8 +75,15 @@ async def sio_function_call(sid, data):
     logger.info(
         f"""Streaming function "{data['func_name']}" called by {current_user.name}"""
     )
+    # No Caller here: Office.js doesn't report the calling cell for streaming functions,
+    # so declaring the hint on one is rejected when it's registered.
     await xw.server.sio_custom_function_call(
-        sid, data, custom_functions, current_user, sio, {CurrentUser: current_user}
+        sid,
+        data,
+        custom_functions,
+        current_user,
+        sio,
+        {CurrentUser: current_user},
     )
     active_count = sum(
         1 for t in asyncio.all_tasks() if t.get_name().startswith("xlwings-")

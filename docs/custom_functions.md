@@ -606,6 +606,40 @@ async def btc_price(base_currency="USD"):
 
 Key to remember is that you're moving in the async world with streaming functions, so you shouldn't use long-running blocking operations. For example, instead of using `requests` to fetch the data, you should use one of the async libraries such as `httpx` or `aiohttp`.
 
+## Accessing the calling cell
+
+If your custom function needs to know which cell it was called from, add an argument with the `xw.Caller` type hint:
+
+```python
+import xlwings as xw
+from xlwings import func
+
+
+@func
+def get_caller(caller: xw.Caller):
+    return caller.address
+```
+
+`Caller` provides the following attributes:
+
+| Attribute    | Example      | Description                        |
+| ------------ | ------------ | ---------------------------------- |
+| `address`    | `B21`        | A1 notation of the calling cell    |
+| `row`        | `21`         | 1-based row of the calling cell    |
+| `column`     | `2`          | 1-based column of the calling cell |
+| `sheet_name` | `Sheet1`     | Name of the sheet                  |
+| `book_name`  | `Book1.xlsx` | Name of the workbook               |
+
+`Caller` describes _where_ the function was called from: it isn't an `xlwings.Range`
+and doesn't give you access to the cell's values etc. A custom function only ever sees its
+own arguments---it can't read a cell that isn't passed in as an argument, and it can't
+write anywhere other than its own result range. To interact with the Excel object model
+after a custom function returns, use [`WithScript`](#running-a-script-after-a-custom-function).
+
+```{note}
+[Streaming functions](#streaming-functions-rtd-functions) don't report the calling cell, so using the `xw.Caller` type hint raises an error.
+```
+
 ## Running a script after a custom function
 
 Custom functions can only write their return value---either into the calling cell or, for [dynamic arrays](#dynamic-arrays), spilled into the surrounding cells. They can't write anywhere else in the workbook. If you need such a side effect, return `WithScript()` to have a [custom script](custom_scripts.md) run after the function returns:
@@ -631,7 +665,6 @@ Limitations:
 
 - The script runs once per successful call of the custom function. If you fill the formula down 500 rows, the script runs 500 times, each involving a full round trip. Also make sure that the script doesn't write to cells that the custom function depends on, as this would cause an endless loop.
 - Streaming functions are not supported
-- Currently not supported by xlwings Wasm.
 - The script is run at the next calculation boundary. This requires ExcelApi 1.8; on older versions, it is run on a best-effort basis right after the custom function returns.
 
 ## Object handles

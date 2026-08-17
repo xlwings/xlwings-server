@@ -7,6 +7,7 @@ from textwrap import dedent
 import xlwings as xw
 import xlwings.server
 from fastapi import APIRouter, Body, HTTPException, Request, Response
+from xlwings.server import Caller, caller_from_address
 
 # Try to import custom modules from project directory first (CLI/Azure mode)
 # Fall back to package location (tests/package mode)
@@ -117,12 +118,22 @@ async def custom_functions_call(
         current_user.id
     )  # For ObjectCache converter (when partitioning)
 
+    # Don't fail the request here: functions that don't use the Caller hint must be
+    # unaffected by a malformed address. Passing None on means core raises a clear error
+    # for a bare `caller: Caller`, while `Caller | None` still opts into handling it.
+    try:
+        caller = caller_from_address(data.get("caller_address"))
+    except xw.XlwingsError:
+        safe_caller_address = sanitize_log_input(data.get("caller_address"))
+        logger.warning(f"""Could not parse caller address "{safe_caller_address}\"""")
+        caller = None
+
     try:
         rv = await xlwings.server.custom_functions_call(
             data,
             custom_functions,
             current_user,
-            typehint_to_value={CurrentUser: current_user},
+            typehint_to_value={CurrentUser: current_user, Caller: caller},
         )
     except xw.ObjectCacheMissError:
         # A consumed object handle is no longer cached. Return a "stale" object handle
@@ -165,6 +176,11 @@ async def custom_functions_call(
             "exclude": as_sheet_str(meta.get("exclude")),
             "lazy": bool(meta.get("lazy")),
         }
+        # All scripts live in the one custom_scripts module here, so the defining module
+        # recorded by WithScript is redundant - it only disambiguates for runtimes that
+        # spread scripts over several modules (xlwings Lite). Drop it rather than ship a
+        # field the client would ignore.
+        script.pop("script_module", None)
         return {"result": rv.value, "script": script}
     return {"result": rv}
 
