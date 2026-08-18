@@ -661,6 +661,55 @@ def hello_with_script(name):
 
 The first argument is the value written to the cell. The second argument is the custom script, either as the function itself or as its name. `args` are handed to the script and must be JSON-serializable.
 
+Combined with [`Caller`](#caller), this lets you format the result range after a custom function returns:
+
+```python
+import pandas as pd
+import xlwings as xw
+from xlwings import Caller, WithScript, func, script
+
+
+@script
+def format_table(
+    book: xw.Book,
+    sheet_name: str,
+    address: str,
+    nrows: int,
+    ncols: int,
+):
+    """Formats the range that the custom function spilled into."""
+    sheet = book.sheets[sheet_name]
+    table = sheet[address].resize(nrows, ncols)
+
+    # Header row
+    header = table[0, :]
+    header.color = "#15a3a3"
+    header.font.color = "#ffffff"
+    header.font.bold = True
+
+    # Body: number format on the numeric columns
+    table[1:, 1:].number_format = "#,##0.00"
+
+
+@func
+def sales_report(caller: Caller):
+    df = pd.DataFrame({
+        "Product": ["Apples", "Bananas", "Cherries"],
+        "Q1": [1000.5, 2300.75, 1750.25],
+        "Q2": [1200.0, 2100.5, 1980.0],
+    })
+    df = df.set_index("Product")
+
+    # +1 row/col for the header row and the index column
+    nrows, ncols = df.shape[0] + 1, df.shape[1] + 1
+
+    return WithScript(
+        df,
+        format_table,
+        args=[caller.sheet_name, caller.address, nrows, ncols],
+    )
+```
+
 Limitations:
 
 - The script runs once per successful call of the custom function. If you fill the formula down 500 rows, the script runs 500 times, each involving a full round trip. Also make sure that the script doesn't write to cells that the custom function depends on, as this would cause an endless loop.
