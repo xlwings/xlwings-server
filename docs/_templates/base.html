@@ -2,5 +2,18 @@
 
 {% block extrahead %}
   {{ super() }}
+  {# Point LLMs/agents at the machine-readable docs index and at this page's
+     Markdown source. Without these, llms.txt is only findable by guessing the
+     conventional path. #}
+  <link rel="alternate" type="text/plain" href="{{ pathto('llms.txt', 1) }}" title="llms.txt" />
+  {# Only source documents get a rendered .md twin; generated pages like
+     genindex/search don't, so linking one there would 404. #}
+  {% if has_markdown_twin %}
+    <link
+      rel="alternate"
+      type="text/markdown"
+      href="{{ pathto(pagename ~ '.md', 1) }}"
+      title="Markdown version of this page" />
+  {% endif %}
   <script defer data-domain="server.xlwings.org" src="https://plausible.io/js/script.js"></script>
 {% endblock %}
