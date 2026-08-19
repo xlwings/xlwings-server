@@ -33,3 +33,10 @@ body:not([data-theme="light"]) .highlight .err {
 .highlight .nn {
   text-decoration: none !important;
 }
+
+/* Keep the permalink icon subordinate to and optically centered on headings. */
+.headerlink-icon {
+  width: 0.72em;
+  height: 0.72em;
+  vertical-align: -0.06em;
+}
