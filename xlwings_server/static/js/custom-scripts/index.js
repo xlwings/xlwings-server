@@ -843,6 +843,7 @@ let funcs = {
   setFormula: setFormula,
   setColumnWidth: setColumnWidth,
   setRowHeight: setRowHeight,
+  setWrapText: setWrapText,
   addSheet: addSheet,
   setSheetName: setSheetName,
   setAutofit: setAutofit,
@@ -928,6 +929,12 @@ async function setColumnWidth(context, action) {
 async function setRowHeight(context, action) {
   let range = await getRange(context, action);
   range.format.rowHeight = parseFloat(action.args[0].toString());
+  await context.sync();
+}
+
+async function setWrapText(context, action) {
+  let range = await getRange(context, action);
+  range.format.wrapText = Boolean(action.args[0]);
   await context.sync();
 }
 
