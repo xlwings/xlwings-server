@@ -868,6 +868,7 @@ let funcs = {
   rangeClearContents: rangeClearContents,
   rangeClearFormats: rangeClearFormats,
   rangeMerge: rangeMerge,
+  rangeUnmerge: rangeUnmerge,
   rangeGroup: rangeGroup,
   rangeUngroup: rangeUngroup,
   rangeClear: rangeClear,
@@ -1288,6 +1289,12 @@ async function sheetClearContents(context, action) {
 async function rangeMerge(context, action) {
   let range = await getRange(context, action);
   range.merge(Boolean(action.args[0]));
+  await context.sync();
+}
+
+async function rangeUnmerge(context, action) {
+  let range = await getRange(context, action);
+  range.unmerge();
   await context.sync();
 }
 
