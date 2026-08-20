@@ -840,6 +840,7 @@ export function registerCallback(callback) {
 // functions when optimizing
 let funcs = {
   setValues: setValues,
+  setFormula: setFormula,
   addSheet: addSheet,
   setSheetName: setSheetName,
   setAutofit: setAutofit,
@@ -900,6 +901,12 @@ async function setFontProperty(context, action) {
 async function setValues(context, action) {
   let range = await getRange(context, action);
   range.values = action.values;
+  await context.sync();
+}
+
+async function setFormula(context, action) {
+  let range = await getRange(context, action);
+  range.formulas = action.values;
   await context.sync();
 }
 
