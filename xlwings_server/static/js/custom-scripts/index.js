@@ -842,6 +842,7 @@ let funcs = {
   setValues: setValues,
   setFormula: setFormula,
   setColumnWidth: setColumnWidth,
+  setRowHeight: setRowHeight,
   addSheet: addSheet,
   setSheetName: setSheetName,
   setAutofit: setAutofit,
@@ -921,6 +922,12 @@ async function setColumnWidth(context, action) {
   const characters = parseFloat(action.args[0].toString());
   range.format.columnWidth =
     characters * POINTS_PER_CHARACTER + COLUMN_PADDING_POINTS;
+  await context.sync();
+}
+
+async function setRowHeight(context, action) {
+  let range = await getRange(context, action);
+  range.format.rowHeight = parseFloat(action.args[0].toString());
   await context.sync();
 }
 
