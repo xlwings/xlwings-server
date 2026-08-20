@@ -906,6 +906,7 @@ let funcs = {
   rangeSelect: rangeSelect,
   rangeClearContents: rangeClearContents,
   rangeClearFormats: rangeClearFormats,
+  rangeMerge: rangeMerge,
   rangeGroup: rangeGroup,
   rangeUngroup: rangeUngroup,
   rangeClear: rangeClear,
@@ -1283,6 +1284,12 @@ async function sheetClearFormats(context, action) {
 async function sheetClearContents(context, action) {
   const sheet = await getSheet(context, action);
   sheet.getRanges().clear(Excel.ClearApplyTo.contents);
+}
+
+async function rangeMerge(context, action) {
+  let range = await getRange(context, action);
+  range.merge(Boolean(action.args[0]));
+  await context.sync();
 }
 
 async function rangeGroup(context, action) {
