@@ -880,6 +880,7 @@ const addTable = createAddTable(getSheet);
 let funcs = {
   setValues: setValues,
   setFormula: setFormula,
+  setColumnWidth: setColumnWidth,
   addSheet: addSheet,
   setSheetName: setSheetName,
   setAutofit: setAutofit,
@@ -943,6 +944,18 @@ async function setValues(context, action) {
   await context.sync();
 }
 
+// xlwings expresses column widths in characters, Office.js in points. Excel's
+// default character width is 7 points (Calibri 11) plus 5 points of padding.
+const POINTS_PER_CHARACTER = 7;
+const COLUMN_PADDING_POINTS = 5;
+
+async function setColumnWidth(context, action) {
+  let range = await getRange(context, action);
+  const characters = parseFloat(action.args[0].toString());
+  range.format.columnWidth =
+    characters * POINTS_PER_CHARACTER + COLUMN_PADDING_POINTS;
+  await context.sync();
+}
 async function rangeClearContents(context, action) {
   let range = await getRange(context, action);
   range.clear(Excel.ClearApplyTo.contents);
