@@ -908,6 +908,7 @@ let funcs = {
   rangeClearFormats: rangeClearFormats,
   rangeMerge: rangeMerge,
   rangeUnmerge: rangeUnmerge,
+  rangeAutofill: rangeAutofill,
   rangeGroup: rangeGroup,
   rangeUngroup: rangeUngroup,
   rangeClear: rangeClear,
@@ -1290,6 +1291,14 @@ async function sheetClearContents(context, action) {
 async function rangeMerge(context, action) {
   let range = await getRange(context, action);
   range.merge(Boolean(action.args[0]));
+  await context.sync();
+}
+
+async function rangeAutofill(context, action) {
+  let range = await getRange(context, action);
+  const sheet = await getSheet(context, action);
+  const destination = sheet.getRange(action.args[0].toString());
+  range.autoFill(destination, action.args[1].toString());
   await context.sync();
 }
 
