@@ -840,6 +840,10 @@ export function registerCallback(callback) {
 // functions when optimizing
 let funcs = {
   setValues: setValues,
+  setFormula: setFormula,
+  setColumnWidth: setColumnWidth,
+  setRowHeight: setRowHeight,
+  setWrapText: setWrapText,
   addSheet: addSheet,
   setSheetName: setSheetName,
   setAutofit: setAutofit,
@@ -863,6 +867,9 @@ let funcs = {
   rangeSelect: rangeSelect,
   rangeClearContents: rangeClearContents,
   rangeClearFormats: rangeClearFormats,
+  rangeMerge: rangeMerge,
+  rangeUnmerge: rangeUnmerge,
+  rangeAutofill: rangeAutofill,
   rangeGroup: rangeGroup,
   rangeUngroup: rangeUngroup,
   rangeClear: rangeClear,
@@ -900,6 +907,37 @@ async function setFontProperty(context, action) {
 async function setValues(context, action) {
   let range = await getRange(context, action);
   range.values = action.values;
+  await context.sync();
+}
+
+async function setFormula(context, action) {
+  let range = await getRange(context, action);
+  range.formulas = action.values;
+  await context.sync();
+}
+
+// xlwings expresses column widths in characters, Office.js in points. Excel's
+// default character width is 7 points (Calibri 11) plus 5 points of padding.
+const POINTS_PER_CHARACTER = 7;
+const COLUMN_PADDING_POINTS = 5;
+
+async function setColumnWidth(context, action) {
+  let range = await getRange(context, action);
+  const characters = parseFloat(action.args[0].toString());
+  range.format.columnWidth =
+    characters * POINTS_PER_CHARACTER + COLUMN_PADDING_POINTS;
+  await context.sync();
+}
+
+async function setRowHeight(context, action) {
+  let range = await getRange(context, action);
+  range.format.rowHeight = parseFloat(action.args[0].toString());
+  await context.sync();
+}
+
+async function setWrapText(context, action) {
+  let range = await getRange(context, action);
+  range.format.wrapText = Boolean(action.args[0]);
   await context.sync();
 }
 
@@ -1247,6 +1285,26 @@ async function sheetClearContents(context, action) {
   worksheets.items[action.sheet_position]
     .getRanges()
     .clear(Excel.ClearApplyTo.contents);
+}
+
+async function rangeMerge(context, action) {
+  let range = await getRange(context, action);
+  range.merge(Boolean(action.args[0]));
+  await context.sync();
+}
+
+async function rangeAutofill(context, action) {
+  let range = await getRange(context, action);
+  const sheet = await getSheet(context, action);
+  const destination = sheet.getRange(action.args[0].toString());
+  range.autoFill(destination, action.args[1].toString());
+  await context.sync();
+}
+
+async function rangeUnmerge(context, action) {
+  let range = await getRange(context, action);
+  range.unmerge();
+  await context.sync();
 }
 
 async function rangeGroup(context, action) {
