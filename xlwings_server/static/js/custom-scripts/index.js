@@ -16,6 +16,7 @@ import {
 export { getActiveBookName, getCultureInfoName, getDateFormat };
 import { pyodideReadyPromise, startPyodide } from "../wasm.js";
 import { registerSheetButtons } from "./sheet-buttons.js";
+import { rangeMetadata, unqualifiedAddress } from "./workbook-metadata.js";
 
 // Prints the supported API versions into the Console
 printSupportedApiVersions();
@@ -257,7 +258,7 @@ async function getSelectedRangeAddress(context) {
   try {
     let selection = context.workbook.getSelectedRange().load("address");
     await context.sync();
-    selectionAddress = selection.address.split("!").pop();
+    selectionAddress = unqualifiedAddress(selection);
   } catch (error) {
     // No range is selected (e.g., a shape is selected)
   }
@@ -434,9 +435,7 @@ async function getBookData(
     names2.push({
       name: namedItem.name,
       sheet_index: namedItem.sheet ? namedItem.sheet.position : null,
-      address: namedItem.range
-        ? namedItem.range.address.split("!").pop()
-        : null,
+      address: unqualifiedAddress(namedItem.range),
       scope_sheet_name: null,
       scope_sheet_index: null,
       book_scope: namedItem.book_scope,
@@ -449,8 +448,9 @@ async function getBookData(
   payload["sheets"] = [];
   let sheetsLoader = [];
   sheets.forEach((sheet) => {
-    sheet.load("name names");
+    sheet.load("name,visibility,names");
     let lastCell;
+    let usedRange;
     if (lazy || excludeArray.includes(sheet.name)) {
       lastCell = null;
     } else if (sheet.getUsedRange() !== undefined) {
@@ -458,9 +458,17 @@ async function getBookData(
     } else {
       lastCell = sheet.getRange("A1").load("address");
     }
+    if (!excludeArray.includes(sheet.name)) {
+      // Lazy loading omits cell values, but intentionally retains bounded
+      // structural metadata for Book.load(values=False) and Wingman.
+      usedRange = sheet
+        .getUsedRangeOrNullObject(true)
+        .load("address, rowCount, columnCount");
+    }
     sheetsLoader.push({
       sheet: sheet,
       lastCell: lastCell,
+      usedRange: usedRange,
     });
   });
 
@@ -510,9 +518,7 @@ async function getBookData(
     namesSheetsScope2.push({
       name: namedItem.name,
       sheet_index: namedItem.sheet ? namedItem.sheet.position : null,
-      address: namedItem.range
-        ? namedItem.range.address.split("!").pop()
-        : null,
+      address: unqualifiedAddress(namedItem.range),
       scope_sheet_name: namedItem.scope_sheet.name,
       scope_sheet_index: namedItem.scope_sheet.position,
       book_scope: namedItem.book_scope,
@@ -557,7 +563,7 @@ async function getBookData(
           showTotals: table.showTotals,
           style: table.style,
           showFilterButton: table.showFilterButton,
-          range: table.getRange().load("address"),
+          range: table.getRange().load("address, rowCount, columnCount"),
           dataBodyRange: table.getDataBodyRange().load("address"),
           headerRowRange: table.showHeaders
             ? table.getHeaderRowRange().load("address")
@@ -569,15 +575,18 @@ async function getBookData(
       }
       await context.sync();
       for (let table of tablesLoader) {
+        const tableRange = rangeMetadata(table.range);
         tablesArray.push({
           name: table.name,
-          range_address: table.range.address.split("!").pop(),
+          range_address: tableRange.address,
+          row_count: tableRange.row_count,
+          column_count: tableRange.column_count,
           header_row_range_address: table.showHeaders
-            ? table.headerRowRange.address.split("!").pop()
+            ? unqualifiedAddress(table.headerRowRange)
             : null,
-          data_body_range_address: table.dataBodyRange.address.split("!").pop(),
+          data_body_range_address: unqualifiedAddress(table.dataBodyRange),
           total_row_range_address: table.showTotals
-            ? table.totalRowRange.address.split("!").pop()
+            ? unqualifiedAddress(table.totalRowRange)
             : null,
           show_headers: table.showHeaders,
           show_totals: table.showTotals,
@@ -603,8 +612,13 @@ async function getBookData(
       }
     }
 
+    const usedRange = rangeMetadata(item["usedRange"]);
     payload["sheets"].push({
       name: item["sheet"].name,
+      visibility: item["sheet"].visibility,
+      used_range_address: usedRange.address,
+      used_range_row_count: usedRange.row_count,
+      used_range_column_count: usedRange.column_count,
       values: values,
       pictures: picturesArray,
       tables: tablesArray,
