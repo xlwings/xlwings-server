@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   rangeMetadata,
+  rangeReadProperties,
   unqualifiedAddress,
 } from "../../xlwings_server/static/js/custom-scripts/workbook-metadata.js";
 
@@ -41,5 +42,43 @@ describe("rangeMetadata", () => {
       row_count: 0,
       column_count: 0,
     });
+  });
+});
+
+describe("rangeReadProperties", () => {
+  it("loads only the requested cell representation", () => {
+    expect(rangeReadProperties("values", false)).toEqual([
+      "address",
+      "rowCount",
+      "columnCount",
+      "values",
+    ]);
+    expect(rangeReadProperties("formulas", true)).toEqual([
+      "address",
+      "rowCount",
+      "columnCount",
+      "formulas",
+    ]);
+    expect(rangeReadProperties("both", true)).toEqual([
+      "address",
+      "rowCount",
+      "columnCount",
+      "values",
+      "numberFormatCategories",
+      "formulas",
+    ]);
+    expect(rangeReadProperties("both", false)).toEqual([
+      "address",
+      "rowCount",
+      "columnCount",
+      "values",
+      "formulas",
+    ]);
+  });
+
+  it("rejects unsupported modes", () => {
+    expect(() => rangeReadProperties("everything", false)).toThrow(
+      "Unsupported range read mode: everything",
+    );
   });
 });

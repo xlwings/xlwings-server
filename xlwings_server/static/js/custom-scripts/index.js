@@ -16,7 +16,11 @@ import {
 export { getActiveBookName, getCultureInfoName, getDateFormat };
 import { pyodideReadyPromise, startPyodide } from "../wasm.js";
 import { registerSheetButtons } from "./sheet-buttons.js";
-import { rangeMetadata, unqualifiedAddress } from "./workbook-metadata.js";
+import {
+  rangeMetadata,
+  rangeReadProperties,
+  unqualifiedAddress,
+} from "./workbook-metadata.js";
 
 // Prints the supported API versions into the Console
 printSupportedApiVersions();
@@ -39,6 +43,7 @@ const xlwings = {
   showGlobalStatus,
   hideGlobalStatus,
   registerCallback,
+  getRangeData,
   getRangeValues,
   getExpandedAddress,
   getActiveSheetIndex,
@@ -628,22 +633,44 @@ async function getBookData(
 }
 
 // On-demand data fetching for lazy loading
-async function getRangeValues(sheetName, address) {
+async function getRangeData(sheetName, address, mode = "values") {
+  const readsValues = mode === "values" || mode === "both";
+  const hasDateCategories =
+    readsValues &&
+    Office.context.requirements.isSetSupported("ExcelApi", "1.12");
+  // Validate the public boundary before entering Excel.run() or creating
+  // Office proxies so unsupported modes reject as a plain promise error.
+  const properties = rangeReadProperties(mode, hasDateCategories);
   return await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItem(sheetName);
     const range = sheet.getRange(address);
-    const hasDateCategories = Office.context.requirements.isSetSupported(
-      "ExcelApi",
-      "1.12",
-    );
-    range.load(hasDateCategories ? "values, numberFormatCategories" : "values");
+    range.load(properties);
     await context.sync();
-    let values = range.values;
-    if (hasDateCategories) {
-      convertDateValues(values, range.numberFormatCategories);
+    const metadata = rangeMetadata(range);
+    const result = {
+      address: metadata.address,
+      row_count: metadata.row_count,
+      column_count: metadata.column_count,
+    };
+    if (readsValues) {
+      const values = range.values;
+      if (hasDateCategories) {
+        convertDateValues(values, range.numberFormatCategories);
+      }
+      result.values = values;
     }
-    return values;
+    if (mode === "formulas" || mode === "both") {
+      // Office returns an A1 formula or the underlying raw value for cells
+      // without formulas. Keep that representation intact; date conversion
+      // applies only to the calculated values matrix above.
+      result.formulas = range.formulas;
+    }
+    return result;
   });
+}
+
+async function getRangeValues(sheetName, address) {
+  return (await getRangeData(sheetName, address, "values")).values;
 }
 
 async function getExpandedAddress(sheetName, address, direction) {
