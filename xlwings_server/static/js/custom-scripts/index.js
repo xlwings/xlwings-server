@@ -25,6 +25,7 @@ import { dispatchActions } from "./action-dispatch.js";
 import { getActionSheet } from "./action-targets.js";
 import { createSetFormula } from "./range-action-callbacks.js";
 import { unsupportedRangeExpansion } from "./range-expansion.js";
+import { createAddTable } from "./table-action-callbacks.js";
 
 // Prints the supported API versions into the Console
 printSupportedApiVersions();
@@ -880,6 +881,7 @@ export function registerCallback(callback) {
 // Didn't find a way to use registerCallback so that webpack won't strip out these
 // functions when optimizing
 const setFormula = createSetFormula(getRange);
+const addTable = createAddTable(getSheet);
 let funcs = {
   setValues: setValues,
   setFormula: setFormula,
@@ -1192,21 +1194,6 @@ async function rangeInsert(context, action) {
 async function rangeSelect(context, action) {
   let range = await getRange(context, action);
   range.select();
-}
-
-async function addTable(context, action) {
-  let worksheets = context.workbook.worksheets.load("items");
-  await context.sync();
-  let mytable = worksheets.items[action.sheet_position].tables.add(
-    action.args[0].toString(),
-    Boolean(action.args[1]),
-  );
-  if (action.args[2] != null) {
-    mytable.style = action.args[2].toString();
-  }
-  if (action.args[3] != null) {
-    mytable.name = action.args[3].toString();
-  }
 }
 
 async function setTableName(context, action) {

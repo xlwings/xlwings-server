@@ -20,6 +20,25 @@ describe("dispatchActions", () => {
     expect(seen).toEqual(["values", "sheet", "sync"]);
   });
 
+  it("syncs a new sheet before later writes and table creation", async () => {
+    const seen = [];
+    const context = { sync: vi.fn(async () => seen.push("sync")) };
+    const callbacks = {
+      addSheet: vi.fn(async () => seen.push("add sheet")),
+      setValues: vi.fn(async () => seen.push("write values")),
+      addTable: vi.fn(async () => seen.push("add table")),
+    };
+
+    await dispatchActions(
+      [{ func: "addSheet" }, { func: "setValues" }, { func: "addTable" }],
+      context,
+      callbacks,
+    );
+
+    expect(seen).toEqual(["add sheet", "sync", "write values", "add table"]);
+    expect(context.sync).toHaveBeenCalledOnce();
+  });
+
   it("reports an unknown action with its batch position", async () => {
     await expect(
       dispatchActions([{ func: "missing" }], { sync: vi.fn() }, {}),
