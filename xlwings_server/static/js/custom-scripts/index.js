@@ -21,6 +21,9 @@ import {
   rangeReadProperties,
   unqualifiedAddress,
 } from "./workbook-metadata.js";
+import { dispatchActions } from "./action-dispatch.js";
+import { getActionSheet } from "./action-targets.js";
+import { createSetFormula } from "./range-action-callbacks.js";
 
 // Prints the supported API versions into the Console
 printSupportedApiVersions();
@@ -828,19 +831,12 @@ async function runActions(rawData, context = null) {
     });
   }
 
-  const forceSync = ["sheet"];
-  for (let action of rawData["actions"]) {
-    await globalThis.callbacks[action.func](context, action);
-    if (forceSync.some((el) => action.func.toLowerCase().includes(el))) {
-      await context.sync();
-    }
-  }
+  await dispatchActions(rawData?.actions, context, globalThis.callbacks);
 }
 
 async function getRange(context, action) {
-  let sheets = context.workbook.worksheets.load("items");
-  await context.sync();
-  return sheets.items[action["sheet_position"]].getRangeByIndexes(
+  const sheet = await getActionSheet(context, action);
+  return sheet.getRangeByIndexes(
     action.start_row,
     action.start_column,
     action.row_count,
@@ -849,9 +845,7 @@ async function getRange(context, action) {
 }
 
 async function getSheet(context, action) {
-  let sheets = context.workbook.worksheets.load("items");
-  await context.sync();
-  return sheets.items[action.sheet_position];
+  return await getActionSheet(context, action);
 }
 
 async function getTable(context, action) {
@@ -879,8 +873,10 @@ export function registerCallback(callback) {
 // Functions map
 // Didn't find a way to use registerCallback so that webpack won't strip out these
 // functions when optimizing
+const setFormula = createSetFormula(getRange);
 let funcs = {
   setValues: setValues,
+  setFormula: setFormula,
   addSheet: addSheet,
   setSheetName: setSheetName,
   setAutofit: setAutofit,
@@ -973,9 +969,8 @@ async function addSheet(context, action) {
 }
 
 async function setSheetName(context, action) {
-  let sheets = context.workbook.worksheets.load("items");
-  await context.sync();
-  sheets.items[action.sheet_position].name = action.args[0].toString();
+  const sheet = await getSheet(context, action);
+  sheet.name = action.args[0].toString();
 }
 
 async function setAutofit(context, action) {
