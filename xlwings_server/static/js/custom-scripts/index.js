@@ -16,6 +16,15 @@ import {
 export { getActiveBookName, getCultureInfoName, getDateFormat };
 import { pyodideReadyPromise, startPyodide } from "../wasm.js";
 import { registerSheetButtons } from "./sheet-buttons.js";
+import {
+  rangeMetadata,
+  rangeReadProperties,
+  unqualifiedAddress,
+} from "./workbook-metadata.js";
+import { dispatchActions } from "./action-dispatch.js";
+import { getActionSheet } from "./action-targets.js";
+import { createSetFormula } from "./range-action-callbacks.js";
+import { unsupportedRangeExpansion } from "./range-expansion.js";
 
 // Prints the supported API versions into the Console
 printSupportedApiVersions();
@@ -38,6 +47,7 @@ const xlwings = {
   showGlobalStatus,
   hideGlobalStatus,
   registerCallback,
+  getRangeData,
   getRangeValues,
   getExpandedAddress,
   getActiveSheetIndex,
@@ -257,7 +267,7 @@ async function getSelectedRangeAddress(context) {
   try {
     let selection = context.workbook.getSelectedRange().load("address");
     await context.sync();
-    selectionAddress = selection.address.split("!").pop();
+    selectionAddress = unqualifiedAddress(selection);
   } catch (error) {
     // No range is selected (e.g., a shape is selected)
   }
@@ -434,9 +444,7 @@ async function getBookData(
     names2.push({
       name: namedItem.name,
       sheet_index: namedItem.sheet ? namedItem.sheet.position : null,
-      address: namedItem.range
-        ? namedItem.range.address.split("!").pop()
-        : null,
+      address: unqualifiedAddress(namedItem.range),
       scope_sheet_name: null,
       scope_sheet_index: null,
       book_scope: namedItem.book_scope,
@@ -449,8 +457,9 @@ async function getBookData(
   payload["sheets"] = [];
   let sheetsLoader = [];
   sheets.forEach((sheet) => {
-    sheet.load("name names");
+    sheet.load("name,visibility,names");
     let lastCell;
+    let usedRange;
     if (lazy || excludeArray.includes(sheet.name)) {
       lastCell = null;
     } else if (sheet.getUsedRange() !== undefined) {
@@ -458,9 +467,17 @@ async function getBookData(
     } else {
       lastCell = sheet.getRange("A1").load("address");
     }
+    if (!excludeArray.includes(sheet.name)) {
+      // Lazy loading omits cell values, but intentionally retains bounded
+      // structural metadata for Book.load(values=False) and Wingman.
+      usedRange = sheet
+        .getUsedRangeOrNullObject(true)
+        .load("address, rowCount, columnCount");
+    }
     sheetsLoader.push({
       sheet: sheet,
       lastCell: lastCell,
+      usedRange: usedRange,
     });
   });
 
@@ -510,9 +527,7 @@ async function getBookData(
     namesSheetsScope2.push({
       name: namedItem.name,
       sheet_index: namedItem.sheet ? namedItem.sheet.position : null,
-      address: namedItem.range
-        ? namedItem.range.address.split("!").pop()
-        : null,
+      address: unqualifiedAddress(namedItem.range),
       scope_sheet_name: namedItem.scope_sheet.name,
       scope_sheet_index: namedItem.scope_sheet.position,
       book_scope: namedItem.book_scope,
@@ -557,7 +572,7 @@ async function getBookData(
           showTotals: table.showTotals,
           style: table.style,
           showFilterButton: table.showFilterButton,
-          range: table.getRange().load("address"),
+          range: table.getRange().load("address, rowCount, columnCount"),
           dataBodyRange: table.getDataBodyRange().load("address"),
           headerRowRange: table.showHeaders
             ? table.getHeaderRowRange().load("address")
@@ -569,15 +584,18 @@ async function getBookData(
       }
       await context.sync();
       for (let table of tablesLoader) {
+        const tableRange = rangeMetadata(table.range);
         tablesArray.push({
           name: table.name,
-          range_address: table.range.address.split("!").pop(),
+          range_address: tableRange.address,
+          row_count: tableRange.row_count,
+          column_count: tableRange.column_count,
           header_row_range_address: table.showHeaders
-            ? table.headerRowRange.address.split("!").pop()
+            ? unqualifiedAddress(table.headerRowRange)
             : null,
-          data_body_range_address: table.dataBodyRange.address.split("!").pop(),
+          data_body_range_address: unqualifiedAddress(table.dataBodyRange),
           total_row_range_address: table.showTotals
-            ? table.totalRowRange.address.split("!").pop()
+            ? unqualifiedAddress(table.totalRowRange)
             : null,
           show_headers: table.showHeaders,
           show_totals: table.showTotals,
@@ -603,8 +621,13 @@ async function getBookData(
       }
     }
 
+    const usedRange = rangeMetadata(item["usedRange"]);
     payload["sheets"].push({
       name: item["sheet"].name,
+      visibility: item["sheet"].visibility,
+      used_range_address: usedRange.address,
+      used_range_row_count: usedRange.row_count,
+      used_range_column_count: usedRange.column_count,
       values: values,
       pictures: picturesArray,
       tables: tablesArray,
@@ -614,28 +637,55 @@ async function getBookData(
 }
 
 // On-demand data fetching for lazy loading
-async function getRangeValues(sheetName, address) {
+async function getRangeData(sheetName, address, mode = "values") {
+  const readsValues = mode === "values" || mode === "both";
+  const hasDateCategories =
+    readsValues &&
+    Office.context.requirements.isSetSupported("ExcelApi", "1.12");
+  // Validate the public boundary before entering Excel.run() or creating
+  // Office proxies so unsupported modes reject as a plain promise error.
+  const properties = rangeReadProperties(mode, hasDateCategories);
   return await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItem(sheetName);
     const range = sheet.getRange(address);
-    const hasDateCategories = Office.context.requirements.isSetSupported(
-      "ExcelApi",
-      "1.12",
-    );
-    range.load(hasDateCategories ? "values, numberFormatCategories" : "values");
+    range.load(properties);
     await context.sync();
-    let values = range.values;
-    if (hasDateCategories) {
-      convertDateValues(values, range.numberFormatCategories);
+    const metadata = rangeMetadata(range);
+    const result = {
+      address: metadata.address,
+      row_count: metadata.row_count,
+      column_count: metadata.column_count,
+    };
+    if (readsValues) {
+      const values = range.values;
+      if (hasDateCategories) {
+        convertDateValues(values, range.numberFormatCategories);
+      }
+      result.values = values;
     }
-    return values;
+    if (mode === "formulas" || mode === "both") {
+      // Office returns an A1 formula or the underlying raw value for cells
+      // without formulas. Keep that representation intact; date conversion
+      // applies only to the calculated values matrix above.
+      result.formulas = range.formulas;
+    }
+    return result;
   });
 }
 
-async function getExpandedAddress(sheetName, address, direction) {
+async function getRangeValues(sheetName, address) {
+  return (await getRangeData(sheetName, address, "values")).values;
+}
+
+async function getExpandedAddress(
+  sheetName,
+  address,
+  direction,
+  requireSupport = false,
+) {
   // getRangeEdge requires ExcelApi 1.13 — fall back to no expansion if unavailable
   if (!Office.context.requirements.isSetSupported("ExcelApi", "1.13")) {
-    return address;
+    return unsupportedRangeExpansion(address, requireSupport);
   }
 
   return await Excel.run(async (context) => {
@@ -787,19 +837,12 @@ async function runActions(rawData, context = null) {
     });
   }
 
-  const forceSync = ["sheet"];
-  for (let action of rawData["actions"]) {
-    await globalThis.callbacks[action.func](context, action);
-    if (forceSync.some((el) => action.func.toLowerCase().includes(el))) {
-      await context.sync();
-    }
-  }
+  await dispatchActions(rawData?.actions, context, globalThis.callbacks);
 }
 
 async function getRange(context, action) {
-  let sheets = context.workbook.worksheets.load("items");
-  await context.sync();
-  return sheets.items[action["sheet_position"]].getRangeByIndexes(
+  const sheet = await getActionSheet(context, action);
+  return sheet.getRangeByIndexes(
     action.start_row,
     action.start_column,
     action.row_count,
@@ -808,9 +851,7 @@ async function getRange(context, action) {
 }
 
 async function getSheet(context, action) {
-  let sheets = context.workbook.worksheets.load("items");
-  await context.sync();
-  return sheets.items[action.sheet_position];
+  return await getActionSheet(context, action);
 }
 
 async function getTable(context, action) {
@@ -838,8 +879,10 @@ export function registerCallback(callback) {
 // Functions map
 // Didn't find a way to use registerCallback so that webpack won't strip out these
 // functions when optimizing
+const setFormula = createSetFormula(getRange);
 let funcs = {
   setValues: setValues,
+  setFormula: setFormula,
   addSheet: addSheet,
   setSheetName: setSheetName,
   setAutofit: setAutofit,
@@ -932,9 +975,8 @@ async function addSheet(context, action) {
 }
 
 async function setSheetName(context, action) {
-  let sheets = context.workbook.worksheets.load("items");
-  await context.sync();
-  sheets.items[action.sheet_position].name = action.args[0].toString();
+  const sheet = await getSheet(context, action);
+  sheet.name = action.args[0].toString();
 }
 
 async function setAutofit(context, action) {
