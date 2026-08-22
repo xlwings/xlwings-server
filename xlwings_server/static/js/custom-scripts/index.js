@@ -24,6 +24,7 @@ import {
 import { dispatchActions } from "./action-dispatch.js";
 import { getActionSheet } from "./action-targets.js";
 import { createSetFormula } from "./range-action-callbacks.js";
+import { unsupportedRangeExpansion } from "./range-expansion.js";
 
 // Prints the supported API versions into the Console
 printSupportedApiVersions();
@@ -676,10 +677,15 @@ async function getRangeValues(sheetName, address) {
   return (await getRangeData(sheetName, address, "values")).values;
 }
 
-async function getExpandedAddress(sheetName, address, direction) {
+async function getExpandedAddress(
+  sheetName,
+  address,
+  direction,
+  requireSupport = false,
+) {
   // getRangeEdge requires ExcelApi 1.13 — fall back to no expansion if unavailable
   if (!Office.context.requirements.isSetSupported("ExcelApi", "1.13")) {
-    return address;
+    return unsupportedRangeExpansion(address, requireSupport);
   }
 
   return await Excel.run(async (context) => {
