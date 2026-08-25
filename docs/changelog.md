@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.12.1 (Aug 25, 2026)
+
+- A sheet's used range is now determined by cells with values rather than by cells with formatting. Sheets with trailing empty but formatted cells therefore report a smaller used range, which also reduces the amount of data sent to the server.
+
 ## 1.12.0 (Aug 17, 2026)
 
 - Custom functions can now access the calling cell by adding an argument with the `xw.Caller` type hint, see [](custom_functions.md#accessing-the-calling-cell). It provides the address, row/column and sheet/book name of the cell that called the function.
