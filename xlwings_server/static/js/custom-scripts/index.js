@@ -459,25 +459,17 @@ async function getBookData(
   let sheetsLoader = [];
   sheets.forEach((sheet) => {
     sheet.load("name,visibility,names");
-    let lastCell;
     let usedRange;
-    if (lazy || excludeArray.includes(sheet.name)) {
-      lastCell = null;
-    } else if (sheet.getUsedRange() !== undefined) {
-      lastCell = sheet.getUsedRange().getLastCell().load("address");
-    } else {
-      lastCell = sheet.getRange("A1").load("address");
-    }
     if (!excludeArray.includes(sheet.name)) {
-      // Lazy loading omits cell values, but intentionally retains bounded
-      // structural metadata for Book.load(values=False) and Wingman.
+      // A single used-range read serves both the values window below and the
+      // structural metadata. Lazy loading omits cell values, but intentionally
+      // retains bounded metadata for Book.load(values=False) and Wingman.
       usedRange = sheet
         .getUsedRangeOrNullObject(true)
         .load("address, rowCount, columnCount");
     }
     sheetsLoader.push({
       sheet: sheet,
-      lastCell: lastCell,
       usedRange: usedRange,
     });
   });
@@ -486,11 +478,14 @@ async function getBookData(
 
   sheetsLoader.forEach((item, ix) => {
     if (!lazy && !excludeArray.includes(item["sheet"].name)) {
-      let range;
-      range = item["sheet"]
-        .getRange(`A1:${item["lastCell"].address}`)
+      // An empty sheet has no used range; fall back to A1 so the values
+      // window stays a 1x1 matrix rather than disappearing.
+      const lastCellAddress = item["usedRange"].isNullObject
+        ? "A1"
+        : unqualifiedAddress(item["usedRange"]).split(":").pop();
+      sheetsLoader[ix]["range"] = item["sheet"]
+        .getRange(`A1:${lastCellAddress}`)
         .load("values, numberFormatCategories");
-      sheetsLoader[ix]["range"] = range;
     }
     // Names (sheet scope) — always load, even in lazy mode
     if (!excludeArray.includes(item["sheet"].name)) {
@@ -1145,9 +1140,8 @@ async function namesAdd(context, action) {
   if (action.sheet_position == null) {
     context.workbook.names.add(name, refersTo);
   } else {
-    let sheets = context.workbook.worksheets.load("items");
-    await context.sync();
-    sheets.items[action.sheet_position].names.add(name, refersTo);
+    const sheet = await getSheet(context, action);
+    sheet.names.add(name, refersTo);
   }
 }
 
@@ -1245,37 +1239,23 @@ async function copyFromRange(context, action) {
 }
 
 async function sheetDelete(context, action) {
-  // TODO: use getSheet
-  let worksheets = context.workbook.worksheets.load("items");
-  await context.sync();
-  worksheets.items[action.sheet_position].delete();
+  const sheet = await getSheet(context, action);
+  sheet.delete();
 }
 
 async function sheetClear(context, action) {
-  // TODO: use getSheet
-  let worksheets = context.workbook.worksheets.load("items");
-  await context.sync();
-  worksheets.items[action.sheet_position]
-    .getRanges()
-    .clear(Excel.ClearApplyTo.all);
+  const sheet = await getSheet(context, action);
+  sheet.getRanges().clear(Excel.ClearApplyTo.all);
 }
 
 async function sheetClearFormats(context, action) {
-  // TODO: use getSheet
-  let worksheets = context.workbook.worksheets.load("items");
-  await context.sync();
-  worksheets.items[action.sheet_position]
-    .getRanges()
-    .clear(Excel.ClearApplyTo.formats);
+  const sheet = await getSheet(context, action);
+  sheet.getRanges().clear(Excel.ClearApplyTo.formats);
 }
 
 async function sheetClearContents(context, action) {
-  // TODO: use getSheet
-  let worksheets = context.workbook.worksheets.load("items");
-  await context.sync();
-  worksheets.items[action.sheet_position]
-    .getRanges()
-    .clear(Excel.ClearApplyTo.contents);
+  const sheet = await getSheet(context, action);
+  sheet.getRanges().clear(Excel.ClearApplyTo.contents);
 }
 
 async function rangeGroup(context, action) {
