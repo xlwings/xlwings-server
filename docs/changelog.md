@@ -2,7 +2,7 @@
 
 ## 1.12.1 (Aug 25, 2026)
 
-- A sheet's used range is now determined by cells with values rather than by cells with formatting. Sheets with trailing empty but formatted cells therefore report a smaller used range, which also reduces the amount of data sent to the server.
+- Internal changes for xlwings Lite.
 
 ## 1.12.0 (Aug 17, 2026)
 
