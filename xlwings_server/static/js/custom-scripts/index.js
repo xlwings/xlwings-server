@@ -23,7 +23,11 @@ import {
 } from "./workbook-metadata.js";
 import { dispatchActions } from "./action-dispatch.js";
 import { getActionSheet } from "./action-targets.js";
-import { createSetFormula } from "./range-action-callbacks.js";
+import {
+  createSetColumnWidth,
+  createSetFormula,
+  createSetFormulaArray,
+} from "./range-action-callbacks.js";
 import { unsupportedRangeExpansion } from "./range-expansion.js";
 import { createAddTable } from "./table-action-callbacks.js";
 
@@ -461,11 +465,11 @@ async function getBookData(
     sheet.load("name,visibility,names");
     let usedRange;
     if (!excludeArray.includes(sheet.name)) {
-      // A single used-range read serves both the values window below and the
-      // structural metadata. Lazy loading omits cell values, but intentionally
-      // retains bounded metadata for Book.load(values=False) and Wingman.
+      // Include cells with values or formatting so Sheet.used_range matches
+      // Excel's UsedRange semantics. Lazy loading omits cell values, but keeps
+      // this structural metadata for Book.load(values=False) and Wingman.
       usedRange = sheet
-        .getUsedRangeOrNullObject(true)
+        .getUsedRangeOrNullObject(false)
         .load("address, rowCount, columnCount");
     }
     sheetsLoader.push({
@@ -876,10 +880,16 @@ export function registerCallback(callback) {
 // Didn't find a way to use registerCallback so that webpack won't strip out these
 // functions when optimizing
 const setFormula = createSetFormula(getRange);
+const setFormulaArray = createSetFormulaArray(
+  getRange,
+  Office.context.requirements.isSetSupported.bind(Office.context.requirements),
+);
+const setColumnWidth = createSetColumnWidth(getRange);
 const addTable = createAddTable(getSheet);
 let funcs = {
   setValues: setValues,
   setFormula: setFormula,
+  setFormulaArray: setFormulaArray,
   setColumnWidth: setColumnWidth,
   setRowHeight: setRowHeight,
   setWrapText: setWrapText,
@@ -949,18 +959,6 @@ async function setValues(context, action) {
   await context.sync();
 }
 
-// xlwings expresses column widths in characters, Office.js in points. Excel's
-// default character width is 7 points (Calibri 11) plus 5 points of padding.
-const POINTS_PER_CHARACTER = 7;
-const COLUMN_PADDING_POINTS = 5;
-
-async function setColumnWidth(context, action) {
-  let range = await getRange(context, action);
-  const characters = parseFloat(action.args[0].toString());
-  range.format.columnWidth =
-    characters * POINTS_PER_CHARACTER + COLUMN_PADDING_POINTS;
-  await context.sync();
-}
 async function setRowHeight(context, action) {
   let range = await getRange(context, action);
   range.format.rowHeight = parseFloat(action.args[0].toString());
