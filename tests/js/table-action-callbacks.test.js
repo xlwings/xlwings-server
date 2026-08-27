@@ -14,7 +14,6 @@ describe("addTable action callback", () => {
     const addTable = createAddTable(getSheet);
     const context = {};
     const action = {
-      sheet_name: "Results",
       sheet_position: 7,
       args: ["A1:E5", true, "TableStyleMedium2", "RandomData"],
     };
