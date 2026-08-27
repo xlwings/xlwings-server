@@ -1,10 +1,7 @@
 export async function getActionSheet(context, action) {
-  const worksheets = context.workbook.worksheets;
-  if (typeof action?.sheet_name === "string" && action.sheet_name) {
-    return worksheets.getItem(action.sheet_name);
-  }
-
-  const sheets = worksheets.load("items");
+  // Python action payloads address sheets by position only: `append_json_action`
+  // in xlwings/pro/_xlremote.py emits `sheet_position` and never a sheet name.
+  const sheets = context.workbook.worksheets.load("items");
   await context.sync();
   return sheets.items[action.sheet_position];
 }
