@@ -716,9 +716,19 @@ function printAreaAddress(printArea) {
 // Keys a shape read can request. Like the range read keys, this keeps the
 // payload sent with every request small: shape text is unbounded, so it's
 // fetched on demand rather than shipped for every shape in the workbook.
-const SHAPE_READ_KEYS = ["text"];
+const SHAPE_READ_KEYS = ["text", "characters_text", "font"];
 
-async function getShapeData(sheetName, shapeIndex, keys = ["text"]) {
+// A shape's text range, optionally narrowed to a character slice. start/length
+// are what Characters carries; null means the whole range.
+function shapeTextRange(shape, start, length) {
+  const textRange = shape.textFrame.textRange;
+  if (start == null) return textRange;
+  return length == null
+    ? textRange.getSubstring(start)
+    : textRange.getSubstring(start, length);
+}
+
+async function getShapeData(sheetName, shapeIndex, keys = ["text"], options) {
   if (!Array.isArray(keys) || keys.length === 0) {
     throw new Error(`Unsupported shape read mode: ${JSON.stringify(keys)}`);
   }
@@ -735,18 +745,47 @@ async function getShapeData(sheetName, shapeIndex, keys = ["text"]) {
     if (!shape) {
       throw new Error(`No shape at index ${shapeIndex} on sheet ${sheetName}`);
     }
+    const start = options ? options.start : null;
+    const length = options ? options.length : null;
     const result = {};
+    // hasText first: reading textRange.text on a shape without text throws,
+    // and the desktop engines report None in that case.
+    shape.textFrame.load("hasText");
+    await context.sync();
+    const hasText = shape.textFrame.hasText;
     if (keys.includes("text")) {
-      // hasText first: reading textRange.text on a shape without text throws,
-      // and the desktop engines report None in that case.
-      shape.textFrame.load("hasText");
-      await context.sync();
-      if (shape.textFrame.hasText) {
+      if (hasText) {
         shape.textFrame.textRange.load("text");
         await context.sync();
         result.text = shape.textFrame.textRange.text;
       } else {
         result.text = null;
+      }
+    }
+    if (keys.includes("characters_text")) {
+      if (hasText) {
+        const textRange = shapeTextRange(shape, start, length);
+        textRange.load("text");
+        await context.sync();
+        result.characters_text = textRange.text;
+      } else {
+        result.characters_text = null;
+      }
+    }
+    if (keys.includes("font")) {
+      if (hasText) {
+        const font = shapeTextRange(shape, start, length).font;
+        font.load(["bold", "italic", "size", "color", "name"]);
+        await context.sync();
+        result.font = {
+          bold: font.bold,
+          italic: font.italic,
+          size: font.size,
+          color: normalizeFillColor(font.color),
+          name: font.name,
+        };
+      } else {
+        result.font = null;
       }
     }
     return result;
@@ -1173,6 +1212,7 @@ let funcs = {
   setShapeWidth: setShapeWidth,
   setShapeHeight: setShapeHeight,
   setShapeText: setShapeText,
+  setShapeFontProperty: setShapeFontProperty,
   deleteShape: deleteShape,
   scaleShape: scaleShape,
   setPictureLeft: setPictureLeft,
@@ -1472,6 +1512,22 @@ async function setShapeHeight(context, action) {
     Number(action.args[0]),
   );
   shape.height = Number(action.args[1]);
+}
+
+async function setShapeFontProperty(context, action) {
+  const shape = await getShapeByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  const start = action.args[1];
+  const length = action.args[2];
+  const font = shapeTextRange(
+    shape,
+    start == null ? null : Number(start),
+    length == null ? null : Number(length),
+  ).font;
+  font[action.args[3].toString()] = action.args[4];
 }
 
 async function setShapeText(context, action) {
