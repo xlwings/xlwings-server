@@ -654,15 +654,15 @@ async function getBookData(
 }
 
 // On-demand data fetching for lazy loading
-async function getRangeData(sheetName, address, mode = "values") {
+async function getRangeData(sheetName, address, keys = ["values"]) {
   // Validate the public boundary before entering Excel.run() or creating
   // Office proxies so unsupported modes reject as a plain promise error.
-  const keys = rangeReadKeys(mode);
-  const readsValues = keys.includes("values");
+  const readKeys = rangeReadKeys(keys);
+  const readsValues = readKeys.includes("values");
   const hasDateCategories =
     readsValues &&
     Office.context.requirements.isSetSupported("ExcelApi", "1.12");
-  const properties = rangeReadProperties(mode, hasDateCategories);
+  const properties = rangeReadProperties(readKeys, hasDateCategories);
   return await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItem(sheetName);
     const range = sheet.getRange(address);
@@ -674,7 +674,7 @@ async function getRangeData(sheetName, address, mode = "values") {
       row_count: metadata.row_count,
       column_count: metadata.column_count,
     };
-    for (const key of keys) {
+    for (const key of readKeys) {
       switch (key) {
         case "values": {
           const values = range.values;
@@ -732,7 +732,7 @@ async function getRangeData(sheetName, address, mode = "values") {
 }
 
 async function getRangeValues(sheetName, address) {
-  return (await getRangeData(sheetName, address, "values")).values;
+  return (await getRangeData(sheetName, address, ["values"])).values;
 }
 
 async function getExpandedAddress(

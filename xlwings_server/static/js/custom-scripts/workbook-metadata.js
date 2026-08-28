@@ -32,37 +32,22 @@ const RANGE_READ_KEYS = {
   height: ["height"],
 };
 
-// Legacy single-string modes, kept so existing callers (and the Wingman
-// workbook tool's public contract) keep working alongside the list form.
-const LEGACY_MODES = {
-  values: ["values"],
-  formulas: ["formulas"],
-  both: ["values", "formulas"],
-};
-
-export function rangeReadKeys(mode) {
-  if (typeof mode === "string") {
-    const keys = LEGACY_MODES[mode];
-    if (!keys) {
-      throw new Error(`Unsupported range read mode: ${mode}`);
-    }
-    return keys;
+export function rangeReadKeys(keys) {
+  if (!Array.isArray(keys) || keys.length === 0) {
+    throw new Error(`Unsupported range read mode: ${JSON.stringify(keys)}`);
   }
-  if (!Array.isArray(mode) || mode.length === 0) {
-    throw new Error(`Unsupported range read mode: ${JSON.stringify(mode)}`);
-  }
-  for (const key of mode) {
+  for (const key of keys) {
     if (!Object.prototype.hasOwnProperty.call(RANGE_READ_KEYS, key)) {
       throw new Error(`Unsupported range read key: ${key}`);
     }
   }
-  return mode;
+  return keys;
 }
 
-export function rangeReadProperties(mode, includeNumberFormatCategories) {
-  const keys = rangeReadKeys(mode);
+export function rangeReadProperties(keys, includeNumberFormatCategories) {
+  const readKeys = rangeReadKeys(keys);
   const properties = ["address", "rowCount", "columnCount"];
-  for (const key of keys) {
+  for (const key of readKeys) {
     for (const property of RANGE_READ_KEYS[key]) {
       if (!properties.includes(property)) {
         properties.push(property);

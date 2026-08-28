@@ -48,19 +48,19 @@ describe("rangeMetadata", () => {
 
 describe("rangeReadProperties", () => {
   it("loads only the requested cell representation", () => {
-    expect(rangeReadProperties("values", false)).toEqual([
+    expect(rangeReadProperties(["values"], false)).toEqual([
       "address",
       "rowCount",
       "columnCount",
       "values",
     ]);
-    expect(rangeReadProperties("formulas", true)).toEqual([
+    expect(rangeReadProperties(["formulas"], true)).toEqual([
       "address",
       "rowCount",
       "columnCount",
       "formulas",
     ]);
-    expect(rangeReadProperties("both", true)).toEqual([
+    expect(rangeReadProperties(["values", "formulas"], true)).toEqual([
       "address",
       "rowCount",
       "columnCount",
@@ -68,7 +68,7 @@ describe("rangeReadProperties", () => {
       "numberFormatCategories",
       "formulas",
     ]);
-    expect(rangeReadProperties("both", false)).toEqual([
+    expect(rangeReadProperties(["values", "formulas"], false)).toEqual([
       "address",
       "rowCount",
       "columnCount",
@@ -77,9 +77,10 @@ describe("rangeReadProperties", () => {
     ]);
   });
 
-  it("rejects unsupported modes", () => {
-    expect(() => rangeReadProperties("everything", false)).toThrow(
-      "Unsupported range read mode: everything",
+  it("rejects a bare string mode", () => {
+    // Callers translate their own vocabulary into read keys.
+    expect(() => rangeReadProperties("both", false)).toThrow(
+      "Unsupported range read mode",
     );
   });
 
@@ -136,13 +137,15 @@ describe("rangeReadProperties", () => {
 });
 
 describe("rangeReadKeys", () => {
-  it("expands the legacy string modes", () => {
-    expect(rangeReadKeys("values")).toEqual(["values"]);
-    expect(rangeReadKeys("formulas")).toEqual(["formulas"]);
-    expect(rangeReadKeys("both")).toEqual(["values", "formulas"]);
-  });
-
   it("passes a list of keys through", () => {
     expect(rangeReadKeys(["color", "top"])).toEqual(["color", "top"]);
+  });
+
+  it("rejects strings, empty lists and unknown keys", () => {
+    expect(() => rangeReadKeys("both")).toThrow("Unsupported range read mode");
+    expect(() => rangeReadKeys([])).toThrow("Unsupported range read mode");
+    expect(() => rangeReadKeys(["nope"])).toThrow(
+      "Unsupported range read key: nope",
+    );
   });
 });
