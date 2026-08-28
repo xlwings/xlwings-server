@@ -409,6 +409,8 @@ async function getBookData(
   payload["client"] = "Office.js";
   payload["version"] = version;
   let activeSheet = worksheets.getActiveWorksheet().load("position");
+  // App-level, so it rides along in the book object rather than per sheet.
+  const application = context.workbook.application.load("calculationMode");
   await context.sync();
 
   // Cell selection address
@@ -418,6 +420,7 @@ async function getBookData(
     name: workbook.name,
     active_sheet_index: activeSheet.position,
     selection: selectionAddress,
+    calculation: application.calculationMode,
   };
 
   // Names (book scope)
@@ -912,6 +915,8 @@ let funcs = {
   setRangeColor: setRangeColor,
   activateSheet: activateSheet,
   calculate: calculate,
+  setCalculation: setCalculation,
+  setScreenUpdating: setScreenUpdating,
   addHyperlink: addHyperlink,
   setNumberFormat: setNumberFormat,
   setPictureName: setPictureName,
@@ -1045,6 +1050,19 @@ async function setRangeColor(context, action) {
 
 async function calculate(context, action) {
   context.workbook.application.calculate(Excel.CalculationType.full);
+}
+
+async function setCalculation(context, action) {
+  context.workbook.application.calculationMode = action.args[0].toString();
+}
+
+async function setScreenUpdating(context, action) {
+  // Office.js has no screen updating flag, only a suspend-until-next-sync
+  // call, so there's nothing to do when re-enabling: the next sync ends the
+  // suspension by itself. Calling it repeatedly makes the window flicker.
+  if (!action.args[0]) {
+    context.workbook.application.suspendScreenUpdatingUntilNextSync();
+  }
 }
 
 async function activateSheet(context, action) {
