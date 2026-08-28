@@ -1427,7 +1427,13 @@ async function setSheetAutofit(context, action) {
 
 async function setRangeColor(context, action) {
   let range = await getRange(context, action);
-  range.format.fill.color = action.args[0].toString();
+  if (action.args[0] == null) {
+    // color = None removes the background, which is a documented xlwings
+    // feature; assigning null here would throw instead.
+    range.format.fill.clear();
+  } else {
+    range.format.fill.color = action.args[0].toString();
+  }
   await context.sync();
 }
 
