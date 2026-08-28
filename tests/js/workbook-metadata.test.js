@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  normalizeFillColor,
   rangeMetadata,
   rangeReadKeys,
   rangeReadProperties,
@@ -158,5 +159,26 @@ describe("rangeReadKeys", () => {
     expect(() => rangeReadKeys(["nope"])).toThrow(
       "Unsupported range read key: nope",
     );
+  });
+});
+
+describe("normalizeFillColor", () => {
+  // Office.js documents both #RRGGBB and named HTML colours for a fill; the
+  // Python side's hex_to_rgb() only understands the former.
+  const named = (color) => (color === "orange" ? "#ffa500" : "");
+
+  it("passes hex colours through, adding the missing hash", () => {
+    expect(normalizeFillColor("#FFA500", named)).toBe("#FFA500");
+    expect(normalizeFillColor("FFA500", named)).toBe("#FFA500");
+  });
+
+  it("resolves a named colour", () => {
+    expect(normalizeFillColor("orange", named)).toBe("#ffa500");
+  });
+
+  it("treats an absent or unresolvable colour as no fill", () => {
+    expect(normalizeFillColor(null, named)).toBeNull();
+    expect(normalizeFillColor("", named)).toBeNull();
+    expect(normalizeFillColor("notacolour", named)).toBeNull();
   });
 });

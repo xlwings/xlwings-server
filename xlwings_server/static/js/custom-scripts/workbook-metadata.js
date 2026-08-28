@@ -70,3 +70,24 @@ export function rangeReadProperties(keys, includeNumberFormatCategories) {
   }
   return properties;
 }
+
+// Office.js allows named HTML colours for a fill ("orange"); xlwings expects
+// #RRGGBB. Resolving a name needs a DOM round-trip, which only happens when a
+// colour is actually read and isn't already hex.
+export function normalizeFillColor(color, resolveNamedColor = canvasColor) {
+  if (!color) return null;
+  if (/^#[0-9a-f]{6}$/i.test(color)) return color;
+  if (/^[0-9a-f]{6}$/i.test(color)) return `#${color}`;
+  const resolved = resolveNamedColor(color);
+  return /^#[0-9a-f]{6}$/i.test(resolved) ? resolved : null;
+}
+
+// Named-colour resolution is the one part that needs a DOM, so it's injected
+// above rather than reached for directly -- that keeps normalizeFillColor
+// testable without pulling jsdom into this package.
+function canvasColor(color) {
+  const context = document.createElement("canvas").getContext("2d");
+  context.fillStyle = "#000000";
+  context.fillStyle = color;
+  return context.fillStyle;
+}

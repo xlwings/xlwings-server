@@ -17,6 +17,7 @@ export { getActiveBookName, getCultureInfoName, getDateFormat };
 import { pyodideReadyPromise, startPyodide } from "../wasm.js";
 import { registerSheetButtons } from "./sheet-buttons.js";
 import {
+  normalizeFillColor,
   rangeMetadata,
   rangeReadKeys,
   rangeReadProperties,
@@ -711,11 +712,20 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
         case "formula_array":
           result.formula_array = range.formulaArray;
           break;
-        case "number_format":
-          result.number_format = range.numberFormat;
+        case "number_format": {
+          // Office.js reports a per-cell matrix, but xlwings' number_format is
+          // a single string (null when the cells don't agree), like COM.
+          const formats = (range.numberFormat || []).flat();
+          const first = formats.length > 0 ? formats[0] : null;
+          result.number_format = formats.every((f) => f === first)
+            ? first
+            : null;
           break;
+        }
         case "color":
-          result.color = range.format.fill.color;
+          // Office.js may report a named HTML colour ("orange") rather than
+          // #RRGGBB; normalize so the Python side only ever sees hex.
+          result.color = normalizeFillColor(range.format.fill.color);
           break;
         case "wrap_text":
           result.wrap_text = range.format.wrapText;
