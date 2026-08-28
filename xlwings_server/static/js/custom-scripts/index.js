@@ -484,11 +484,28 @@ async function getBookData(
     const printArea = sheet.pageLayout
       .getPrintAreaOrNullObject()
       .load("areas/address");
+    // Notes: Range.note is a sync property that has to know whether a note
+    // exists, so they ride along in the payload. Their text is short, unlike a
+    // shape's, so it comes with them rather than needing a second fetch.
+    const notes = excludeArray.includes(sheet.name)
+      ? null
+      : sheet.notes.load("items/content");
     sheetsLoader.push({
       sheet: sheet,
       usedRange: usedRange,
       printArea: printArea,
+      notes: notes,
     });
+  });
+
+  await context.sync();
+
+  sheetsLoader.forEach((item) => {
+    if (item["notes"]) {
+      item["noteLocations"] = item["notes"].items.map((note) =>
+        note.getLocation().load("address"),
+      );
+    }
   });
 
   await context.sync();
@@ -672,6 +689,7 @@ async function getBookData(
       name: item["sheet"].name,
       visibility: item["sheet"].visibility,
       print_area: printAreaAddress(item["printArea"]),
+      notes: notesArray(item),
       used_range_address: usedRange.address,
       used_range_row_count: usedRange.row_count,
       used_range_column_count: usedRange.column_count,
@@ -733,6 +751,16 @@ async function getShapeData(sheetName, shapeIndex, keys = ["text"]) {
     }
     return result;
   });
+}
+
+// Notes are keyed by the address of the cell they're attached to, which is
+// how Range.note looks them up.
+function notesArray(item) {
+  if (!item["notes"] || !item["noteLocations"]) return [];
+  return item["notes"].items.map((note, ix) => ({
+    address: unqualifiedAddress(item["noteLocations"][ix]),
+    text: note.content,
+  }));
 }
 
 // On-demand data fetching for lazy loading
@@ -1137,6 +1165,8 @@ let funcs = {
   setNumberFormat: setNumberFormat,
   setPictureName: setPictureName,
   setPictureWidth: setPictureWidth,
+  setNoteText: setNoteText,
+  deleteNote: deleteNote,
   setShapeName: setShapeName,
   setShapeLeft: setShapeLeft,
   setShapeTop: setShapeTop,
@@ -1375,6 +1405,28 @@ async function setPictureHeight(context, action) {
     Excel.ShapeType.image,
   );
   myshape.height = Number(action.args[1]);
+}
+
+async function setNoteText(context, action) {
+  const sheet = await getSheet(context, action);
+  const address = action.args[0].toString();
+  const note = sheet.notes.getItemOrNullObject(address);
+  await context.sync();
+  if (note.isNullObject) {
+    // The public API says the note must already exist, and the desktop
+    // engines fail here too rather than creating one.
+    throw new Error(`There's no note on ${address} to set the text of.`);
+  }
+  note.content = action.args[1].toString();
+}
+
+async function deleteNote(context, action) {
+  const sheet = await getSheet(context, action);
+  const note = sheet.notes.getItemOrNullObject(action.args[0].toString());
+  await context.sync();
+  if (!note.isNullObject) {
+    note.delete();
+  }
 }
 
 async function setShapeName(context, action) {
