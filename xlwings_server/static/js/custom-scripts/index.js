@@ -915,6 +915,7 @@ let funcs = {
   setRangeColor: setRangeColor,
   activateSheet: activateSheet,
   calculate: calculate,
+  save: save,
   setCalculation: setCalculation,
   setScreenUpdating: setScreenUpdating,
   addHyperlink: addHyperlink,
@@ -1050,6 +1051,12 @@ async function setRangeColor(context, action) {
 
 async function calculate(context, action) {
   context.workbook.application.calculate(Excel.CalculationType.full);
+}
+
+async function save(context, action) {
+  // Saves in place. Office.js has no SaveAs, so Book.save() rejects a path
+  // on the Python side rather than silently saving somewhere else.
+  context.workbook.save(Excel.SaveBehavior.save);
 }
 
 async function setCalculation(context, action) {
