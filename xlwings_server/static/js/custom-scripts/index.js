@@ -58,6 +58,7 @@ const xlwings = {
   getRangeData,
   getRangeValues,
   getShapeData,
+  getChartImage,
   getExpandedAddress,
   getActiveSheetIndex,
   getSelection,
@@ -647,6 +648,30 @@ async function getBookData(
       }
     }
 
+    // Charts
+    let chartsArray = [];
+    if (!excludeArray.includes(item["sheet"].name)) {
+      const charts = sheet.charts.load([
+        "name",
+        "chartType",
+        "left",
+        "top",
+        "width",
+        "height",
+      ]);
+      await context.sync();
+      for (let chart of charts.items) {
+        chartsArray.push({
+          name: chart.name,
+          chart_type: chart.chartType,
+          left: chart.left,
+          top: chart.top,
+          width: chart.width,
+          height: chart.height,
+        });
+      }
+    }
+
     // Pictures and shapes: one load covers both, since a picture is a shape
     // whose type is Image.
     let picturesArray = [];
@@ -696,6 +721,7 @@ async function getBookData(
       values: values,
       pictures: picturesArray,
       shapes: shapesArray,
+      charts: chartsArray,
       tables: tablesArray,
     });
   }
@@ -800,6 +826,23 @@ function notesArray(item) {
     address: unqualifiedAddress(item["noteLocations"][ix]),
     text: note.content,
   }));
+}
+
+// Chart.getImage() returns a base64 PNG, which is data rather than an action,
+// so it's fetched on demand like the shape reads.
+async function getChartImage(sheetName, chartIndex) {
+  return await Excel.run(async (context) => {
+    const sheet = context.workbook.worksheets.getItem(sheetName);
+    const charts = sheet.charts.load("items");
+    await context.sync();
+    const chart = charts.items[chartIndex];
+    if (!chart) {
+      throw new Error(`No chart at index ${chartIndex} on sheet ${sheetName}`);
+    }
+    const image = chart.getImage();
+    await context.sync();
+    return image.value;
+  });
 }
 
 // On-demand data fetching for lazy loading
@@ -1204,6 +1247,12 @@ let funcs = {
   setNumberFormat: setNumberFormat,
   setPictureName: setPictureName,
   setPictureWidth: setPictureWidth,
+  addChart: addChart,
+  setChartName: setChartName,
+  setChartType: setChartType,
+  setChartSourceData: setChartSourceData,
+  setChartPosition: setChartPosition,
+  deleteChart: deleteChart,
   setNoteText: setNoteText,
   deleteNote: deleteNote,
   setShapeName: setShapeName,
@@ -1445,6 +1494,77 @@ async function setPictureHeight(context, action) {
     Excel.ShapeType.image,
   );
   myshape.height = Number(action.args[1]);
+}
+
+async function getChartByIndex(context, sheetPosition, chartIndex) {
+  const sheets = context.workbook.worksheets.load("items");
+  await context.sync();
+  const charts = sheets.items[sheetPosition].charts.load("items");
+  await context.sync();
+  return charts.items[chartIndex];
+}
+
+async function addChart(context, action) {
+  const sheet = await getSheet(context, action);
+  const sourceSheet = context.workbook.worksheets.getItem(
+    action.args[2].toString(),
+  );
+  const chart = sheet.charts.add(
+    action.args[1].toString(),
+    sourceSheet.getRange(action.args[3].toString()),
+  );
+  chart.setPosition(action.args[4], action.args[5]);
+  if (action.args[6] != null) chart.width = Number(action.args[6]);
+  if (action.args[7] != null) chart.height = Number(action.args[7]);
+  chart.name = action.args[0].toString();
+}
+
+async function setChartName(context, action) {
+  const chart = await getChartByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  chart.name = action.args[1].toString();
+}
+
+async function setChartType(context, action) {
+  const chart = await getChartByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  chart.chartType = action.args[1].toString();
+}
+
+async function setChartSourceData(context, action) {
+  const chart = await getChartByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  const sourceSheet = context.workbook.worksheets.getItem(
+    action.args[1].toString(),
+  );
+  chart.setData(sourceSheet.getRange(action.args[2].toString()));
+}
+
+async function setChartPosition(context, action) {
+  const chart = await getChartByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  chart[action.args[1].toString()] = Number(action.args[2]);
+}
+
+async function deleteChart(context, action) {
+  const chart = await getChartByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  chart.delete();
 }
 
 async function setNoteText(context, action) {
