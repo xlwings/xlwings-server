@@ -912,6 +912,8 @@ let funcs = {
   setSheetName: setSheetName,
   setSheetVisibility: setSheetVisibility,
   setAutofit: setAutofit,
+  setSheetAutofit: setSheetAutofit,
+  copySheet: copySheet,
   setRangeColor: setRangeColor,
   activateSheet: activateSheet,
   calculate: calculate,
@@ -1040,6 +1042,30 @@ async function setAutofit(context, action) {
   } else {
     let range = await getRange(context, action);
     range.format.autofitRows();
+  }
+}
+
+async function copySheet(context, action) {
+  const sheet = await getSheet(context, action);
+  const sheets = context.workbook.worksheets;
+  sheets.load("items/name");
+  await context.sync();
+  const relativeTo = sheets.items[parseInt(action.args[1].toString())];
+  const copy = sheet.copy(action.args[0].toString(), relativeTo);
+  // Excel names the copy itself. Python has already inserted the sheet into
+  // its local list under the name it predicted, so rename to match or the two
+  // sides disagree about what the sheet is called.
+  copy.name = action.args[2].toString();
+}
+
+async function setSheetAutofit(context, action) {
+  // Sheet-level, so there are no range coordinates on the action to feed
+  // getRange(): getRange() with no address is the whole sheet.
+  const sheet = await getSheet(context, action);
+  if (action.args[0] === "columns") {
+    sheet.getRange().format.autofitColumns();
+  } else {
+    sheet.getRange().format.autofitRows();
   }
 }
 
