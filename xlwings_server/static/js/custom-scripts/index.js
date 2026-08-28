@@ -57,6 +57,7 @@ const xlwings = {
   registerCallback,
   getRangeData,
   getRangeValues,
+  getShapeData,
   getExpandedAddress,
   getActiveSheetIndex,
   getSelection,
@@ -692,6 +693,46 @@ function printAreaAddress(printArea) {
     unqualifiedAddress(area),
   );
   return addresses.length > 0 ? addresses.join(",") : null;
+}
+
+// Keys a shape read can request. Like the range read keys, this keeps the
+// payload sent with every request small: shape text is unbounded, so it's
+// fetched on demand rather than shipped for every shape in the workbook.
+const SHAPE_READ_KEYS = ["text"];
+
+async function getShapeData(sheetName, shapeIndex, keys = ["text"]) {
+  if (!Array.isArray(keys) || keys.length === 0) {
+    throw new Error(`Unsupported shape read mode: ${JSON.stringify(keys)}`);
+  }
+  for (const key of keys) {
+    if (!SHAPE_READ_KEYS.includes(key)) {
+      throw new Error(`Unsupported shape read key: ${key}`);
+    }
+  }
+  return await Excel.run(async (context) => {
+    const sheet = context.workbook.worksheets.getItem(sheetName);
+    const shapes = sheet.shapes.load("items");
+    await context.sync();
+    const shape = shapes.items[shapeIndex];
+    if (!shape) {
+      throw new Error(`No shape at index ${shapeIndex} on sheet ${sheetName}`);
+    }
+    const result = {};
+    if (keys.includes("text")) {
+      // hasText first: reading textRange.text on a shape without text throws,
+      // and the desktop engines report None in that case.
+      shape.textFrame.load("hasText");
+      await context.sync();
+      if (shape.textFrame.hasText) {
+        shape.textFrame.textRange.load("text");
+        await context.sync();
+        result.text = shape.textFrame.textRange.text;
+      } else {
+        result.text = null;
+      }
+    }
+    return result;
+  });
 }
 
 // On-demand data fetching for lazy loading
