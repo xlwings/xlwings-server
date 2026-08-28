@@ -562,6 +562,10 @@ async function getBookData(
         "showTotals",
         "style",
         "showFilterButton",
+        "highlightFirstColumn",
+        "highlightLastColumn",
+        "showBandedRows",
+        "showBandedColumns",
       ]);
       await context.sync();
       let tablesLoader = [];
@@ -572,6 +576,10 @@ async function getBookData(
           showTotals: table.showTotals,
           style: table.style,
           showFilterButton: table.showFilterButton,
+          highlightFirstColumn: table.highlightFirstColumn,
+          highlightLastColumn: table.highlightLastColumn,
+          showBandedRows: table.showBandedRows,
+          showBandedColumns: table.showBandedColumns,
           range: table.getRange().load("address, rowCount, columnCount"),
           dataBodyRange: table.getDataBodyRange().load("address"),
           headerRowRange: table.showHeaders
@@ -601,6 +609,10 @@ async function getBookData(
           show_totals: table.showTotals,
           table_style: table.style,
           show_autofilter: table.showFilterButton,
+          show_table_style_first_column: table.highlightFirstColumn,
+          show_table_style_last_column: table.highlightLastColumn,
+          show_table_style_row_stripes: table.showBandedRows,
+          show_table_style_column_stripes: table.showBandedColumns,
         });
       }
     }
@@ -930,6 +942,10 @@ let funcs = {
   showAutofilterTable: showAutofilterTable,
   showHeadersTable: showHeadersTable,
   showTotalsTable: showTotalsTable,
+  showTableStyleFirstColumn: showTableStyleFirstColumn,
+  showTableStyleLastColumn: showTableStyleLastColumn,
+  showTableStyleRowStripes: showTableStyleRowStripes,
+  showTableStyleColumnStripes: showTableStyleColumnStripes,
   setTableStyle: setTableStyle,
   copyRange: copyRange,
   copyFromRange: copyFromRange,
@@ -1252,6 +1268,26 @@ async function showTotalsTable(context, action) {
 async function setTableStyle(context, action) {
   const mytable = await getTable(context, action);
   mytable.style = action.args[1].toString();
+}
+
+async function showTableStyleFirstColumn(context, action) {
+  const mytable = await getTable(context, action);
+  mytable.highlightFirstColumn = Boolean(action.args[1]);
+}
+
+async function showTableStyleLastColumn(context, action) {
+  const mytable = await getTable(context, action);
+  mytable.highlightLastColumn = Boolean(action.args[1]);
+}
+
+async function showTableStyleRowStripes(context, action) {
+  const mytable = await getTable(context, action);
+  mytable.showBandedRows = Boolean(action.args[1]);
+}
+
+async function showTableStyleColumnStripes(context, action) {
+  const mytable = await getTable(context, action);
+  mytable.showBandedColumns = Boolean(action.args[1]);
 }
 
 async function copyRange(context, action) {
