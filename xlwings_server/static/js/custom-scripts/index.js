@@ -478,9 +478,15 @@ async function getBookData(
         .getUsedRangeOrNullObject(false)
         .load("address, rowCount, columnCount");
     }
+    // Metadata like used_range: sent in lazy mode too, so page_setup works on
+    // an async book without loading values.
+    const printArea = sheet.pageLayout
+      .getPrintAreaOrNullObject()
+      .load("areas/address");
     sheetsLoader.push({
       sheet: sheet,
       usedRange: usedRange,
+      printArea: printArea,
     });
   });
 
@@ -654,6 +660,7 @@ async function getBookData(
     payload["sheets"].push({
       name: item["sheet"].name,
       visibility: item["sheet"].visibility,
+      print_area: printAreaAddress(item["printArea"]),
       used_range_address: usedRange.address,
       used_range_row_count: usedRange.row_count,
       used_range_column_count: usedRange.column_count,
@@ -663,6 +670,17 @@ async function getBookData(
     });
   }
   return payload;
+}
+
+// The print area is a RangeAreas: one or more rectangles, or a null object
+// when the sheet has none. xlwings' print_area is a single address string,
+// with the areas comma-separated as Excel writes them.
+function printAreaAddress(printArea) {
+  if (!printArea || printArea.isNullObject) return null;
+  const addresses = printArea.areas.items.map((area) =>
+    unqualifiedAddress(area),
+  );
+  return addresses.length > 0 ? addresses.join(",") : null;
 }
 
 // On-demand data fetching for lazy loading
@@ -1045,6 +1063,7 @@ let funcs = {
   setSheetVisibility: setSheetVisibility,
   setAutofit: setAutofit,
   setSheetAutofit: setSheetAutofit,
+  setPrintArea: setPrintArea,
   copySheet: copySheet,
   setRangeColor: setRangeColor,
   activateSheet: activateSheet,
@@ -1192,6 +1211,17 @@ async function copySheet(context, action) {
   // its local list under the name it predicted, so rename to match or the two
   // sides disagree about what the sheet is called.
   copy.name = action.args[2].toString();
+}
+
+async function setPrintArea(context, action) {
+  const sheet = await getSheet(context, action);
+  const printArea = action.args[0];
+  if (printArea == null) {
+    // Office.js has no clearPrintArea; an empty string is what resets it.
+    sheet.pageLayout.setPrintArea("");
+  } else {
+    sheet.pageLayout.setPrintArea(printArea.toString());
+  }
 }
 
 async function setSheetAutofit(context, action) {
