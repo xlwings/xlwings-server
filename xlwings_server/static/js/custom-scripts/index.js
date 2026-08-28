@@ -753,6 +753,16 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
         case "height":
           result.height = range.height;
           break;
+        case "hyperlink": {
+          // RangeHyperlink carries the target plus display/tip metadata;
+          // xlwings' hyperlink is just the address. documentReference is the
+          // in-workbook form (e.g. a named range), which has no address.
+          const link = range.hyperlink;
+          result.hyperlink = link
+            ? link.address || link.documentReference || null
+            : null;
+          break;
+        }
         case "current_region":
           result.current_region = unqualifiedAddress(surroundingRegion);
           break;

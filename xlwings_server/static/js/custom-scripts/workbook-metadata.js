@@ -32,6 +32,7 @@ const RANGE_READ_KEYS = {
   height: ["height"],
   // Resolved through method calls in getRangeData rather than range.load(),
   // so they contribute no properties here.
+  hyperlink: ["hyperlink"],
   current_region: [],
   merge_area: [],
   merge_cells: [],
