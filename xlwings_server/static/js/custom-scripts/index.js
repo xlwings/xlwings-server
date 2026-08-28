@@ -895,6 +895,7 @@ let funcs = {
   setWrapText: setWrapText,
   addSheet: addSheet,
   setSheetName: setSheetName,
+  setSheetVisibility: setSheetVisibility,
   setAutofit: setAutofit,
   setRangeColor: setRangeColor,
   activateSheet: activateSheet,
@@ -1002,6 +1003,11 @@ async function addSheet(context, action) {
 async function setSheetName(context, action) {
   const sheet = await getSheet(context, action);
   sheet.name = action.args[0].toString();
+}
+
+async function setSheetVisibility(context, action) {
+  const sheet = await getSheet(context, action);
+  sheet.visibility = action.args[0].toString();
 }
 
 async function setAutofit(context, action) {
