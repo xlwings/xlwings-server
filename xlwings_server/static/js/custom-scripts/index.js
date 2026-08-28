@@ -1248,7 +1248,7 @@ let funcs = {
   setNumberFormat: setNumberFormat,
   setPictureName: setPictureName,
   setPictureWidth: setPictureWidth,
-  addChart: createAddChart(getSheet),
+  addChart: createAddChart(getSheet, getSelectedRangeAddress),
   setChartName: setChartName,
   setChartType: setChartType,
   setChartSourceData: setChartSourceData,

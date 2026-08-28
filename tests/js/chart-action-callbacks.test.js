@@ -7,11 +7,32 @@ function harness() {
   const sourceRange = { address: "$A$1:$B$6" };
   const sourceSheet = { getRange: vi.fn(() => sourceRange) };
   const sheet = { charts: { add: vi.fn(() => chart) } };
+  const select = vi.fn();
+  const activeSheet = { getRange: vi.fn(() => ({ select })) };
   const context = {
-    workbook: { worksheets: { getItem: vi.fn(() => sourceSheet) } },
+    workbook: {
+      worksheets: {
+        getItem: vi.fn(() => sourceSheet),
+        getActiveWorksheet: vi.fn(() => activeSheet),
+      },
+    },
+    sync: vi.fn(async () => {}),
   };
-  return { chart, sheet, sourceSheet, sourceRange, context };
+  return {
+    chart,
+    sheet,
+    sourceSheet,
+    sourceRange,
+    context,
+    activeSheet,
+    select,
+  };
 }
+
+const ACTION = {
+  sheet_position: 0,
+  args: ["MyChart", "Line", "Sheet1", "$A$1:$B$6", 300, 20, 450, 280],
+};
 
 describe("addChart action callback", () => {
   it("creates the chart from its type and source range", async () => {
@@ -59,5 +80,41 @@ describe("addChart action callback", () => {
     });
 
     expect(chart).toEqual({ name: "MyChart" });
+  });
+});
+
+describe("addChart selection handling", () => {
+  it("restores the selection that adding a chart would have stolen", async () => {
+    const { sheet, context, activeSheet, select } = harness();
+    const getSelectedRangeAddress = vi.fn(async () => "$D$4");
+    const addChart = createAddChart(
+      vi.fn(async () => sheet),
+      getSelectedRangeAddress,
+    );
+
+    await addChart(context, ACTION);
+
+    // captured before the chart is added, restored after
+    expect(getSelectedRangeAddress).toHaveBeenCalledWith(context);
+    expect(activeSheet.getRange).toHaveBeenCalledWith("$D$4");
+    expect(select).toHaveBeenCalled();
+    expect(context.sync).toHaveBeenCalled();
+  });
+
+  it("leaves the selection alone when there was no range selected", async () => {
+    // getSelectedRangeAddress reports null when a shape is selected rather
+    // than a range, and there's nothing to restore.
+    const { sheet, context, select } = harness();
+    const addChart = createAddChart(
+      vi.fn(async () => sheet),
+      vi.fn(async () => null),
+    );
+
+    await addChart(context, ACTION);
+
+    expect(select).not.toHaveBeenCalled();
+    expect(
+      context.workbook.worksheets.getActiveWorksheet,
+    ).not.toHaveBeenCalled();
   });
 });
