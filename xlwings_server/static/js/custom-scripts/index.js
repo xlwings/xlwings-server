@@ -629,8 +629,10 @@ async function getBookData(
       }
     }
 
-    // Pictures
+    // Pictures and shapes: one load covers both, since a picture is a shape
+    // whose type is Image.
     let picturesArray = [];
+    let shapesArray = [];
     if (!excludeArray.includes(item["sheet"].name)) {
       const shapes = sheet.shapes.load([
         "name",
@@ -653,6 +655,14 @@ async function getBookData(
             lock_aspect_ratio: shape.lockAspectRatio,
           });
         }
+        shapesArray.push({
+          name: shape.name,
+          type: shape.type,
+          height: shape.height,
+          width: shape.width,
+          left: shape.left,
+          top: shape.top,
+        });
       }
     }
 
@@ -666,6 +676,7 @@ async function getBookData(
       used_range_column_count: usedRange.column_count,
       values: values,
       pictures: picturesArray,
+      shapes: shapesArray,
       tables: tablesArray,
     });
   }
@@ -1037,6 +1048,16 @@ async function getShapeByType(context, sheetPosition, shapeIndex, shapeType) {
   return myshapes[shapeIndex];
 }
 
+async function getShapeByIndex(context, sheetPosition, shapeIndex) {
+  // Unlike getShapeByType, this indexes the sheet's shapes as-is, matching
+  // the order the payload's shapes array is built in.
+  const sheets = context.workbook.worksheets.load("items");
+  await context.sync();
+  const shapes = sheets.items[sheetPosition].shapes.load("items");
+  await context.sync();
+  return shapes.items[shapeIndex];
+}
+
 export function registerCallback(callback) {
   globalThis.callbacks[callback.name] = callback;
 }
@@ -1075,6 +1096,14 @@ let funcs = {
   setNumberFormat: setNumberFormat,
   setPictureName: setPictureName,
   setPictureWidth: setPictureWidth,
+  setShapeName: setShapeName,
+  setShapeLeft: setShapeLeft,
+  setShapeTop: setShapeTop,
+  setShapeWidth: setShapeWidth,
+  setShapeHeight: setShapeHeight,
+  setShapeText: setShapeText,
+  deleteShape: deleteShape,
+  scaleShape: scaleShape,
   setPictureLeft: setPictureLeft,
   setPictureTop: setPictureTop,
   setPictureLockAspectRatio: setPictureLockAspectRatio,
@@ -1305,6 +1334,85 @@ async function setPictureHeight(context, action) {
     Excel.ShapeType.image,
   );
   myshape.height = Number(action.args[1]);
+}
+
+async function setShapeName(context, action) {
+  const shape = await getShapeByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  shape.name = action.args[1].toString();
+}
+
+async function setShapeLeft(context, action) {
+  const shape = await getShapeByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  shape.left = Number(action.args[1]);
+}
+
+async function setShapeTop(context, action) {
+  const shape = await getShapeByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  shape.top = Number(action.args[1]);
+}
+
+async function setShapeWidth(context, action) {
+  const shape = await getShapeByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  shape.width = Number(action.args[1]);
+}
+
+async function setShapeHeight(context, action) {
+  const shape = await getShapeByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  shape.height = Number(action.args[1]);
+}
+
+async function setShapeText(context, action) {
+  const shape = await getShapeByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  shape.textFrame.textRange.text = action.args[1].toString();
+}
+
+async function deleteShape(context, action) {
+  const shape = await getShapeByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  shape.delete();
+}
+
+async function scaleShape(context, action) {
+  const shape = await getShapeByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  const factor = Number(action.args[1]);
+  const scaleType = action.args[2].toString();
+  const scaleFrom = action.args[3].toString();
+  if (action.args[4] === "height") {
+    shape.scaleHeight(factor, scaleType, scaleFrom);
+  } else {
+    shape.scaleWidth(factor, scaleType, scaleFrom);
+  }
 }
 
 async function setPictureLeft(context, action) {
