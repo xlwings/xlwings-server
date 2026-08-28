@@ -931,6 +931,7 @@ let funcs = {
   alert: alert,
   setRangeName: setRangeName,
   namesAdd: namesAdd,
+  setNameRefersTo: setNameRefersTo,
   nameDelete: nameDelete,
   runMacro: runMacro,
   rangeDelete: rangeDelete,
@@ -1261,6 +1262,22 @@ async function nameDelete(context, action) {
     let sheets = context.workbook.worksheets.load("items");
     await context.sync();
     sheets.items[scope_sheet_index].names.getItem(name).delete();
+  }
+}
+
+async function setNameRefersTo(context, action) {
+  const name = action.args[0].toString();
+  const bookScope = Boolean(action.args[1]);
+  const scopeSheetIndex = Number(action.args[2]);
+  const refersTo = action.args[3].toString();
+  // NamedItem.formula is the writable side of refers_to; NamedItem.name is
+  // read-only, which is why Name.name raises on the Python side.
+  if (bookScope === true) {
+    context.workbook.names.getItem(name).formula = refersTo;
+  } else {
+    const sheets = context.workbook.worksheets.load("items");
+    await context.sync();
+    sheets.items[scopeSheetIndex].names.getItem(name).formula = refersTo;
   }
 }
 
