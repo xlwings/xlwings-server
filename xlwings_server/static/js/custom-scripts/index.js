@@ -626,7 +626,15 @@ async function getBookData(
     // Pictures
     let picturesArray = [];
     if (!excludeArray.includes(item["sheet"].name)) {
-      const shapes = sheet.shapes.load(["name", "width", "height", "type"]);
+      const shapes = sheet.shapes.load([
+        "name",
+        "width",
+        "height",
+        "type",
+        "left",
+        "top",
+        "lockAspectRatio",
+      ]);
       await context.sync();
       for (let shape of sheet.shapes.items) {
         if (shape.type == Excel.ShapeType.image) {
@@ -634,6 +642,9 @@ async function getBookData(
             name: shape.name,
             height: shape.height,
             width: shape.width,
+            left: shape.left,
+            top: shape.top,
+            lock_aspect_ratio: shape.lockAspectRatio,
           });
         }
       }
@@ -1033,6 +1044,9 @@ let funcs = {
   setNumberFormat: setNumberFormat,
   setPictureName: setPictureName,
   setPictureWidth: setPictureWidth,
+  setPictureLeft: setPictureLeft,
+  setPictureTop: setPictureTop,
+  setPictureLockAspectRatio: setPictureLockAspectRatio,
   setPictureHeight: setPictureHeight,
   deletePicture: deletePicture,
   addPicture: addPicture,
@@ -1249,6 +1263,36 @@ async function setPictureHeight(context, action) {
     Excel.ShapeType.image,
   );
   myshape.height = Number(action.args[1]);
+}
+
+async function setPictureLeft(context, action) {
+  const myshape = await getShapeByType(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+    Excel.ShapeType.image,
+  );
+  myshape.left = Number(action.args[1]);
+}
+
+async function setPictureTop(context, action) {
+  const myshape = await getShapeByType(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+    Excel.ShapeType.image,
+  );
+  myshape.top = Number(action.args[1]);
+}
+
+async function setPictureLockAspectRatio(context, action) {
+  const myshape = await getShapeByType(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+    Excel.ShapeType.image,
+  );
+  myshape.lockAspectRatio = Boolean(action.args[1]);
 }
 
 async function setPictureWidth(context, action) {
