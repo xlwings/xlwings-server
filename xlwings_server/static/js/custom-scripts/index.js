@@ -911,6 +911,7 @@ let funcs = {
   setAutofit: setAutofit,
   setRangeColor: setRangeColor,
   activateSheet: activateSheet,
+  calculate: calculate,
   addHyperlink: addHyperlink,
   setNumberFormat: setNumberFormat,
   setPictureName: setPictureName,
@@ -1040,6 +1041,10 @@ async function setRangeColor(context, action) {
   let range = await getRange(context, action);
   range.format.fill.color = action.args[0].toString();
   await context.sync();
+}
+
+async function calculate(context, action) {
+  context.workbook.application.calculate(Excel.CalculationType.full);
 }
 
 async function activateSheet(context, action) {
