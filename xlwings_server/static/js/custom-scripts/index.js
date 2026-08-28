@@ -667,6 +667,18 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
     const sheet = context.workbook.worksheets.getItem(sheetName);
     const range = sheet.getRange(address);
     range.load(properties);
+    // These come from method calls rather than loadable properties, so they
+    // need their own proxies queued before the sync.
+    const surroundingRegion = readKeys.includes("current_region")
+      ? range.getSurroundingRegion().load("address")
+      : null;
+    const mergedAreas =
+      readKeys.includes("merge_area") || readKeys.includes("merge_cells")
+        ? range.getMergedAreasOrNullObject().load("areas/address")
+        : null;
+    const tables = readKeys.includes("table")
+      ? range.getTables(false).load("items/name")
+      : null;
     await context.sync();
     const metadata = rangeMetadata(range);
     const result = {
@@ -724,6 +736,26 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
           break;
         case "height":
           result.height = range.height;
+          break;
+        case "current_region":
+          result.current_region = unqualifiedAddress(surroundingRegion);
+          break;
+        case "merge_area": {
+          // Office.js returns every merged area overlapping the range; xlwings
+          // wants the one containing the cell, and the cell itself when it
+          // isn't merged.
+          const areas = mergedAreas.isNullObject ? [] : mergedAreas.areas.items;
+          result.merge_area =
+            areas.length > 0 ? unqualifiedAddress(areas[0]) : null;
+          break;
+        }
+        case "merge_cells":
+          result.merge_cells =
+            !mergedAreas.isNullObject && mergedAreas.areas.items.length > 0;
+          break;
+        case "table":
+          // A range overlaps at most one table in practice; null means none.
+          result.table = tables.items.length > 0 ? tables.items[0].name : null;
           break;
       }
     }

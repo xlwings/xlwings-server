@@ -126,6 +126,17 @@ describe("rangeReadProperties", () => {
     ]);
   });
 
+  it("adds no load properties for the method-resolved keys", () => {
+    // current_region, merge_area, merge_cells and table come from method
+    // calls in getRangeData, not from range.load().
+    expect(
+      rangeReadProperties(
+        ["current_region", "merge_area", "merge_cells", "table"],
+        false,
+      ),
+    ).toEqual(["address", "rowCount", "columnCount"]);
+  });
+
   it("rejects unknown keys and empty lists", () => {
     expect(() => rangeReadProperties(["nonsense"], false)).toThrow(
       "Unsupported range read key: nonsense",

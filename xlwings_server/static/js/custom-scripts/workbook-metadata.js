@@ -30,6 +30,12 @@ const RANGE_READ_KEYS = {
   top: ["top"],
   width: ["width"],
   height: ["height"],
+  // Resolved through method calls in getRangeData rather than range.load(),
+  // so they contribute no properties here.
+  current_region: [],
+  merge_area: [],
+  merge_cells: [],
+  table: [],
 };
 
 export function rangeReadKeys(keys) {
