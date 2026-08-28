@@ -764,6 +764,18 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
         case "height":
           result.height = range.height;
           break;
+        case "font": {
+          const font = range.format.font;
+          result.font = {
+            bold: font.bold,
+            italic: font.italic,
+            size: font.size,
+            // Office.js may report a named HTML colour here too.
+            color: normalizeFillColor(font.color),
+            name: font.name,
+          };
+          break;
+        }
         case "hyperlink": {
           // RangeHyperlink carries the target plus display/tip metadata;
           // xlwings' hyperlink is just the address. documentReference is the

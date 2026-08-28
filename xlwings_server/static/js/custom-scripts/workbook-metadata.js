@@ -32,6 +32,15 @@ const RANGE_READ_KEYS = {
   height: ["height"],
   // Resolved through method calls in getRangeData rather than range.load(),
   // so they contribute no properties here.
+  // One key for the whole font: the five attributes come from a single
+  // Office.js object, so fetching them together costs no more than one.
+  font: [
+    "format/font/bold",
+    "format/font/italic",
+    "format/font/size",
+    "format/font/color",
+    "format/font/name",
+  ],
   hyperlink: ["hyperlink"],
   current_region: [],
   merge_area: [],
