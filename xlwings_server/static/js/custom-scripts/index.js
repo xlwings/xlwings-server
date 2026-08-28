@@ -33,6 +33,7 @@ import {
 } from "./range-action-callbacks.js";
 import { unsupportedRangeExpansion } from "./range-expansion.js";
 import { createAddTable } from "./table-action-callbacks.js";
+import { createAddChart } from "./chart-action-callbacks.js";
 
 // Prints the supported API versions into the Console
 printSupportedApiVersions();
@@ -1247,7 +1248,7 @@ let funcs = {
   setNumberFormat: setNumberFormat,
   setPictureName: setPictureName,
   setPictureWidth: setPictureWidth,
-  addChart: addChart,
+  addChart: createAddChart(getSheet),
   setChartName: setChartName,
   setChartType: setChartType,
   setChartSourceData: setChartSourceData,
@@ -1502,21 +1503,6 @@ async function getChartByIndex(context, sheetPosition, chartIndex) {
   const charts = sheets.items[sheetPosition].charts.load("items");
   await context.sync();
   return charts.items[chartIndex];
-}
-
-async function addChart(context, action) {
-  const sheet = await getSheet(context, action);
-  const sourceSheet = context.workbook.worksheets.getItem(
-    action.args[2].toString(),
-  );
-  const chart = sheet.charts.add(
-    action.args[1].toString(),
-    sourceSheet.getRange(action.args[3].toString()),
-  );
-  chart.setPosition(action.args[4], action.args[5]);
-  if (action.args[6] != null) chart.width = Number(action.args[6]);
-  if (action.args[7] != null) chart.height = Number(action.args[7]);
-  chart.name = action.args[0].toString();
 }
 
 async function setChartName(context, action) {
