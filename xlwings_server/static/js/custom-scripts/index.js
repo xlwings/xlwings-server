@@ -663,6 +663,10 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
     readsValues &&
     Office.context.requirements.isSetSupported("ExcelApi", "1.12");
   const properties = rangeReadProperties(readKeys, hasDateCategories);
+  if (readKeys.includes("merge_cells")) {
+    // Needed to tell a fully merged range from a partly merged one.
+    properties.push("cellCount");
+  }
   return await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItem(sheetName);
     const range = sheet.getRange(address);
@@ -674,7 +678,9 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
       : null;
     const mergedAreas =
       readKeys.includes("merge_area") || readKeys.includes("merge_cells")
-        ? range.getMergedAreasOrNullObject().load("areas/address")
+        ? range
+            .getMergedAreasOrNullObject()
+            .load("areas/address,areas/cellCount")
         : null;
     const tables = readKeys.includes("table")
       ? range.getTables(false).load("items/name")
@@ -749,10 +755,18 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
             areas.length > 0 ? unqualifiedAddress(areas[0]) : null;
           break;
         }
-        case "merge_cells":
-          result.merge_cells =
-            !mergedAreas.isNullObject && mergedAreas.areas.items.length > 0;
+        case "merge_cells": {
+          // Tri-state, like COM's Range.MergeCells: true when the whole range
+          // is merged, false when none of it is, and null for a mixed range.
+          const areas = mergedAreas.isNullObject ? [] : mergedAreas.areas.items;
+          if (areas.length === 0) {
+            result.merge_cells = false;
+          } else {
+            const merged = areas.reduce((sum, area) => sum + area.cellCount, 0);
+            result.merge_cells = merged >= range.cellCount ? true : null;
+          }
           break;
+        }
         case "table":
           // A range overlaps at most one table in practice; null means none.
           result.table = tables.items.length > 0 ? tables.items[0].name : null;
