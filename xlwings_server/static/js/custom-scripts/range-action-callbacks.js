@@ -48,6 +48,22 @@ export function columnWidthCharactersToPoints(
   return pixels * pointsPerPixel;
 }
 
+export function columnWidthPointsToCharacters(points, digitWidth = 7) {
+  // Inverse of columnWidthCharactersToPoints. The setter can measure the
+  // workbook's real digit width because it resets the target column first; a
+  // getter must not mutate the sheet, so it assumes 7px (Calibri 11) unless
+  // the caller knows better. Workbooks whose Normal style uses a different
+  // font are off by a couple of percent -- the same assumption the forward
+  // conversion falls back to when inference fails.
+  if (!Number.isFinite(points) || points <= 0) return 0;
+  const pointsPerPixel = 72 / 96;
+  const pixels = points / pointsPerPixel;
+  // Mirrors the sub-1-character branch of the forward conversion.
+  return pixels < digitWidth + 5
+    ? pixels / (digitWidth + 5)
+    : (pixels - 5) / digitWidth;
+}
+
 export function createSetColumnWidth(getRange) {
   return async function setColumnWidth(context, action) {
     const characters = action.args[0];

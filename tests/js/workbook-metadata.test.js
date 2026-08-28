@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   rangeMetadata,
+  rangeReadKeys,
   rangeReadProperties,
   unqualifiedAddress,
 } from "../../xlwings_server/static/js/custom-scripts/workbook-metadata.js";
@@ -80,5 +81,68 @@ describe("rangeReadProperties", () => {
     expect(() => rangeReadProperties("everything", false)).toThrow(
       "Unsupported range read mode: everything",
     );
+  });
+
+  it("accepts a list of keys and dedupes shared properties", () => {
+    expect(rangeReadProperties(["formula_array"], false)).toEqual([
+      "address",
+      "rowCount",
+      "columnCount",
+      "formulaArray",
+    ]);
+    expect(rangeReadProperties(["number_format", "color"], false)).toEqual([
+      "address",
+      "rowCount",
+      "columnCount",
+      "numberFormat",
+      "format/fill/color",
+    ]);
+    // requesting the same key twice doesn't duplicate the property
+    expect(rangeReadProperties(["left", "left", "top"], false)).toEqual([
+      "address",
+      "rowCount",
+      "columnCount",
+      "left",
+      "top",
+    ]);
+  });
+
+  it("adds date categories for values in the list form too", () => {
+    expect(rangeReadProperties(["values", "wrap_text"], true)).toEqual([
+      "address",
+      "rowCount",
+      "columnCount",
+      "values",
+      "numberFormatCategories",
+      "format/wrapText",
+    ]);
+    // ...but not when values isn't requested
+    expect(rangeReadProperties(["wrap_text"], true)).toEqual([
+      "address",
+      "rowCount",
+      "columnCount",
+      "format/wrapText",
+    ]);
+  });
+
+  it("rejects unknown keys and empty lists", () => {
+    expect(() => rangeReadProperties(["nonsense"], false)).toThrow(
+      "Unsupported range read key: nonsense",
+    );
+    expect(() => rangeReadProperties([], false)).toThrow(
+      "Unsupported range read mode",
+    );
+  });
+});
+
+describe("rangeReadKeys", () => {
+  it("expands the legacy string modes", () => {
+    expect(rangeReadKeys("values")).toEqual(["values"]);
+    expect(rangeReadKeys("formulas")).toEqual(["formulas"]);
+    expect(rangeReadKeys("both")).toEqual(["values", "formulas"]);
+  });
+
+  it("passes a list of keys through", () => {
+    expect(rangeReadKeys(["color", "top"])).toEqual(["color", "top"]);
   });
 });

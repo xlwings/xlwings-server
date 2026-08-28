@@ -18,12 +18,14 @@ import { pyodideReadyPromise, startPyodide } from "../wasm.js";
 import { registerSheetButtons } from "./sheet-buttons.js";
 import {
   rangeMetadata,
+  rangeReadKeys,
   rangeReadProperties,
   unqualifiedAddress,
 } from "./workbook-metadata.js";
 import { dispatchActions } from "./action-dispatch.js";
 import { getActionSheet } from "./action-targets.js";
 import {
+  columnWidthPointsToCharacters,
   createSetColumnWidth,
   createSetFormula,
   createSetFormulaArray,
@@ -653,12 +655,13 @@ async function getBookData(
 
 // On-demand data fetching for lazy loading
 async function getRangeData(sheetName, address, mode = "values") {
-  const readsValues = mode === "values" || mode === "both";
+  // Validate the public boundary before entering Excel.run() or creating
+  // Office proxies so unsupported modes reject as a plain promise error.
+  const keys = rangeReadKeys(mode);
+  const readsValues = keys.includes("values");
   const hasDateCategories =
     readsValues &&
     Office.context.requirements.isSetSupported("ExcelApi", "1.12");
-  // Validate the public boundary before entering Excel.run() or creating
-  // Office proxies so unsupported modes reject as a plain promise error.
   const properties = rangeReadProperties(mode, hasDateCategories);
   return await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItem(sheetName);
@@ -671,18 +674,58 @@ async function getRangeData(sheetName, address, mode = "values") {
       row_count: metadata.row_count,
       column_count: metadata.column_count,
     };
-    if (readsValues) {
-      const values = range.values;
-      if (hasDateCategories) {
-        convertDateValues(values, range.numberFormatCategories);
+    for (const key of keys) {
+      switch (key) {
+        case "values": {
+          const values = range.values;
+          if (hasDateCategories) {
+            convertDateValues(values, range.numberFormatCategories);
+          }
+          result.values = values;
+          break;
+        }
+        case "formulas":
+          // Office returns an A1 formula or the underlying raw value for cells
+          // without formulas. Keep that representation intact; date conversion
+          // applies only to the calculated values matrix above.
+          result.formulas = range.formulas;
+          break;
+        case "formula_array":
+          result.formula_array = range.formulaArray;
+          break;
+        case "number_format":
+          result.number_format = range.numberFormat;
+          break;
+        case "color":
+          result.color = range.format.fill.color;
+          break;
+        case "wrap_text":
+          result.wrap_text = range.format.wrapText;
+          break;
+        case "column_width":
+          // Office.js returns null when the range's columns aren't uniform;
+          // pass that through rather than converting it to 0.
+          result.column_width =
+            range.format.columnWidth === null
+              ? null
+              : columnWidthPointsToCharacters(range.format.columnWidth);
+          break;
+        case "row_height":
+          result.row_height = range.format.rowHeight;
+          break;
+        case "left":
+          result.left = range.left;
+          break;
+        case "top":
+          result.top = range.top;
+          break;
+        case "width":
+          result.width = range.width;
+          break;
+        case "height":
+          result.height = range.height;
+          break;
       }
-      result.values = values;
-    }
-    if (mode === "formulas" || mode === "both") {
-      // Office returns an A1 formula or the underlying raw value for cells
-      // without formulas. Keep that representation intact; date conversion
-      // applies only to the calculated values matrix above.
-      result.formulas = range.formulas;
     }
     return result;
   });

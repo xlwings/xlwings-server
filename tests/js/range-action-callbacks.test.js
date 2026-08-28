@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   columnWidthCharactersToPoints,
+  columnWidthPointsToCharacters,
   createSetColumnWidth,
   createSetFormula,
   createSetFormulaArray,
@@ -91,5 +92,31 @@ describe("setColumnWidth action callback", () => {
       setColumnWidth({ sync: vi.fn() }, { args: ["12"] }),
     ).rejects.toThrow("between 0 and 255");
     expect(getRange).not.toHaveBeenCalled();
+  });
+});
+
+describe("columnWidthPointsToCharacters", () => {
+  it("inverts the forward conversion at the default digit width", () => {
+    // 7px digit width is what the forward conversion also falls back to.
+    // 48.0075pt is the standard-column width that implies exactly 7px.
+    const standardPoints = (7 * 8.43 + 5) * (72 / 96);
+    for (const characters of [0.5, 1, 10, 20, 255]) {
+      const points = columnWidthCharactersToPoints(
+        characters,
+        8.43,
+        standardPoints,
+      );
+      expect(columnWidthPointsToCharacters(points, 7)).toBeCloseTo(
+        characters,
+        6,
+      );
+    }
+  });
+
+  it("treats non-positive and non-finite widths as zero", () => {
+    expect(columnWidthPointsToCharacters(0)).toBe(0);
+    expect(columnWidthPointsToCharacters(-5)).toBe(0);
+    expect(columnWidthPointsToCharacters(null)).toBe(0);
+    expect(columnWidthPointsToCharacters(undefined)).toBe(0);
   });
 });
