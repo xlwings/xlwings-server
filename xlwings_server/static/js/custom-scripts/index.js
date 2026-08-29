@@ -17,6 +17,10 @@ export { getActiveBookName, getCultureInfoName, getDateFormat };
 import { pyodideReadyPromise, startPyodide } from "../wasm.js";
 import { registerSheetButtons } from "./sheet-buttons.js";
 import {
+  eagerValueRangeAddress,
+  loadValuesOnlyUsedRange,
+  loadWorksheetNotes,
+  mergeCellsState,
   normalizeFillColor,
   rangeMetadata,
   rangeReadKeys,
@@ -474,12 +478,11 @@ async function getBookData(
     sheet.load("name,visibility,names");
     let usedRange;
     if (!excludeArray.includes(sheet.name)) {
-      // Include cells with values or formatting so Sheet.used_range matches
-      // Excel's UsedRange semantics. Lazy loading omits cell values, but keeps
-      // this structural metadata for Book.load(values=False) and Wingman.
-      usedRange = sheet
-        .getUsedRangeOrNullObject(false)
-        .load("address, rowCount, columnCount");
+      // Values-only is intentional here, even though formatting-only cells
+      // extend Excel's/COM's UsedRange. The remote API uses this range to
+      // describe and optionally transfer actual workbook data, so including
+      // formatting-only cells could make the payload needlessly enormous.
+      usedRange = loadValuesOnlyUsedRange(sheet);
     }
     // Metadata like used_range: sent in lazy mode too, so page_setup works on
     // an async book without loading values.
@@ -489,9 +492,13 @@ async function getBookData(
     // Notes: Range.note is a sync property that has to know whether a note
     // exists, so they ride along in the payload. Their text is short, unlike a
     // shape's, so it comes with them rather than needing a second fetch.
-    const notes = excludeArray.includes(sheet.name)
-      ? null
-      : sheet.notes.load("items/content");
+    const notes = loadWorksheetNotes(
+      sheet,
+      excludeArray.includes(sheet.name),
+      Office.context.requirements.isSetSupported.bind(
+        Office.context.requirements,
+      ),
+    );
     sheetsLoader.push({
       sheet: sheet,
       usedRange: usedRange,
@@ -516,11 +523,8 @@ async function getBookData(
     if (!lazy && !excludeArray.includes(item["sheet"].name)) {
       // An empty sheet has no used range; fall back to A1 so the values
       // window stays a 1x1 matrix rather than disappearing.
-      const lastCellAddress = item["usedRange"].isNullObject
-        ? "A1"
-        : unqualifiedAddress(item["usedRange"]).split(":").pop();
       sheetsLoader[ix]["range"] = item["sheet"]
-        .getRange(`A1:${lastCellAddress}`)
+        .getRange(eagerValueRangeAddress(item["usedRange"]))
         .load("values, numberFormatCategories");
     }
     // Names (sheet scope) — always load, even in lazy mode
@@ -858,7 +862,7 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
   const properties = rangeReadProperties(readKeys, hasDateCategories);
   if (readKeys.includes("merge_cells")) {
     // Needed to tell a fully merged range from a partly merged one.
-    properties.push("cellCount");
+    properties.push("rowIndex", "columnIndex");
   }
   return await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItem(sheetName);
@@ -873,7 +877,9 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
       readKeys.includes("merge_area") || readKeys.includes("merge_cells")
         ? range
             .getMergedAreasOrNullObject()
-            .load("areas/address,areas/cellCount")
+            .load(
+              "areas/address,areas/rowIndex,areas/columnIndex,areas/rowCount,areas/columnCount",
+            )
         : null;
     const tables = readKeys.includes("table")
       ? range.getTables(false).load("items/name")
@@ -983,12 +989,7 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
           // Tri-state, like COM's Range.MergeCells: true when the whole range
           // is merged, false when none of it is, and null for a mixed range.
           const areas = mergedAreas.isNullObject ? [] : mergedAreas.areas.items;
-          if (areas.length === 0) {
-            result.merge_cells = false;
-          } else {
-            const merged = areas.reduce((sum, area) => sum + area.cellCount, 0);
-            result.merge_cells = merged >= range.cellCount ? true : null;
-          }
+          result.merge_cells = mergeCellsState(range, areas);
           break;
         }
         case "table":

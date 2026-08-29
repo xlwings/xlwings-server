@@ -14,6 +14,46 @@ export function rangeMetadata(range) {
   };
 }
 
+export function loadValuesOnlyUsedRange(sheet) {
+  return sheet
+    .getUsedRangeOrNullObject(true)
+    .load("address, rowCount, columnCount");
+}
+
+export function eagerValueRangeAddress(usedRange) {
+  const lastCellAddress =
+    !usedRange || usedRange.isNullObject
+      ? "A1"
+      : unqualifiedAddress(usedRange).split(":").pop();
+  return `A1:${lastCellAddress}`;
+}
+
+export function loadWorksheetNotes(sheet, excluded, isSetSupported) {
+  if (excluded || !isSetSupported("ExcelApi", "1.18")) return null;
+  return sheet.notes.load("items/content");
+}
+
+export function mergeCellsState(range, mergedAreas) {
+  const rangeBottom = range.rowIndex + range.rowCount;
+  const rangeRight = range.columnIndex + range.columnCount;
+  const mergedCellCount = mergedAreas.reduce((total, area) => {
+    const overlapRows = Math.max(
+      0,
+      Math.min(rangeBottom, area.rowIndex + area.rowCount) -
+        Math.max(range.rowIndex, area.rowIndex),
+    );
+    const overlapColumns = Math.max(
+      0,
+      Math.min(rangeRight, area.columnIndex + area.columnCount) -
+        Math.max(range.columnIndex, area.columnIndex),
+    );
+    return total + overlapRows * overlapColumns;
+  }, 0);
+
+  if (mergedCellCount === 0) return false;
+  return mergedCellCount === range.rowCount * range.columnCount ? true : null;
+}
+
 // Each key a caller can request maps to the Office.js Range properties that
 // have to be loaded for it. Several keys share properties (the format ones in
 // particular), so the result is deduped and ordered by first appearance.

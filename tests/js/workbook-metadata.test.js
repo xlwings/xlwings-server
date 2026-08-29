@@ -1,12 +1,92 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import {
+  eagerValueRangeAddress,
+  loadValuesOnlyUsedRange,
+  loadWorksheetNotes,
+  mergeCellsState,
   normalizeFillColor,
   rangeMetadata,
   rangeReadKeys,
   rangeReadProperties,
   unqualifiedAddress,
 } from "../../xlwings_server/static/js/custom-scripts/workbook-metadata.js";
+
+describe("loadValuesOnlyUsedRange", () => {
+  it("always requests the values-only Office.js used range", () => {
+    const loaded = {};
+    const load = vi.fn(() => loaded);
+    const getUsedRangeOrNullObject = vi.fn(() => ({ load }));
+
+    expect(loadValuesOnlyUsedRange({ getUsedRangeOrNullObject })).toBe(loaded);
+    expect(getUsedRangeOrNullObject).toHaveBeenCalledWith(true);
+    expect(load).toHaveBeenCalledWith("address, rowCount, columnCount");
+  });
+});
+
+describe("eagerValueRangeAddress", () => {
+  it("builds the eager values window from the values-only used range", () => {
+    const usedRange = {
+      address: "Sheet1!B2:C3",
+      isNullObject: false,
+    };
+    expect(eagerValueRangeAddress(usedRange)).toBe("A1:C3");
+  });
+
+  it("uses a single cell for a sheet without values", () => {
+    expect(eagerValueRangeAddress({ isNullObject: true })).toBe("A1:A1");
+  });
+});
+
+describe("loadWorksheetNotes", () => {
+  it("does not touch the ExcelApi 1.18 property on unsupported hosts", () => {
+    const sheet = {};
+    Object.defineProperty(sheet, "notes", {
+      get: () => {
+        throw new Error("unsupported notes property was accessed");
+      },
+    });
+    const isSetSupported = vi.fn(() => false);
+
+    expect(loadWorksheetNotes(sheet, false, isSetSupported)).toBeNull();
+    expect(isSetSupported).toHaveBeenCalledWith("ExcelApi", "1.18");
+  });
+
+  it("loads notes on supported, included sheets", () => {
+    const loaded = {};
+    const load = vi.fn(() => loaded);
+    const sheet = { notes: { load } };
+
+    expect(loadWorksheetNotes(sheet, false, () => true)).toBe(loaded);
+    expect(load).toHaveBeenCalledWith("items/content");
+  });
+
+  it("skips excluded sheets without checking host support", () => {
+    const isSetSupported = vi.fn();
+    expect(loadWorksheetNotes({}, true, isSetSupported)).toBeNull();
+    expect(isSetSupported).not.toHaveBeenCalled();
+  });
+});
+
+describe("mergeCellsState", () => {
+  const range = { rowIndex: 0, columnIndex: 1, rowCount: 1, columnCount: 2 };
+
+  it("reports false when no cells are merged", () => {
+    expect(mergeCellsState(range, [])).toBe(false);
+  });
+
+  it("reports true when the requested range is fully covered", () => {
+    const area = { rowIndex: 0, columnIndex: 0, rowCount: 1, columnCount: 3 };
+    expect(mergeCellsState(range, [area])).toBe(true);
+  });
+
+  it("reports null when a merged area only overlaps part of the range", () => {
+    // A1:B1 is merged while the requested range is B1:C1. Counting the
+    // merged area's full size would incorrectly report true for both.
+    const area = { rowIndex: 0, columnIndex: 0, rowCount: 1, columnCount: 2 };
+    expect(mergeCellsState(range, [area])).toBeNull();
+  });
+});
 
 describe("unqualifiedAddress", () => {
   it("removes the sheet qualifier", () => {
