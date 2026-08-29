@@ -2,13 +2,25 @@ import { describe, expect, it, vi } from "vitest";
 
 import { createAddChart } from "../../xlwings_server/static/js/custom-scripts/chart-action-callbacks.js";
 
-function harness() {
+function harness({ activeSheetName = "Dashboard" } = {}) {
   const chart = {};
   const sourceRange = { address: "$A$1:$B$6" };
   const sourceSheet = { getRange: vi.fn(() => sourceRange) };
-  const sheet = { charts: { add: vi.fn(() => chart) } };
   const select = vi.fn();
-  const activeSheet = { getRange: vi.fn(() => ({ select })) };
+  // The sheet the chart lands on; named so the callback can compare it with
+  // the active sheet.
+  const sheet = {
+    name: "Dashboard",
+    load: vi.fn(),
+    charts: { add: vi.fn(() => chart) },
+    getRange: vi.fn(() => ({ select })),
+  };
+  const activeSelect = vi.fn();
+  const activeSheet = {
+    name: activeSheetName,
+    load: vi.fn(),
+    getRange: vi.fn(() => ({ select: activeSelect })),
+  };
   const context = {
     workbook: {
       worksheets: {
@@ -26,6 +38,7 @@ function harness() {
     context,
     activeSheet,
     select,
+    activeSelect,
   };
 }
 
@@ -84,8 +97,10 @@ describe("addChart action callback", () => {
 });
 
 describe("addChart selection handling", () => {
-  it("restores the selection that adding a chart would have stolen", async () => {
-    const { sheet, context, activeSheet, select } = harness();
+  it("restores the previous selection when the chart is on the active sheet", async () => {
+    const { sheet, context, activeSheet, activeSelect } = harness({
+      activeSheetName: "Dashboard",
+    });
     const getSelectedRangeAddress = vi.fn(async () => "$D$4");
     const addChart = createAddChart(
       vi.fn(async () => sheet),
@@ -94,16 +109,34 @@ describe("addChart selection handling", () => {
 
     await addChart(context, ACTION);
 
-    // captured before the chart is added, restored after
     expect(getSelectedRangeAddress).toHaveBeenCalledWith(context);
     expect(activeSheet.getRange).toHaveBeenCalledWith("$D$4");
-    expect(select).toHaveBeenCalled();
-    expect(context.sync).toHaveBeenCalled();
+    expect(activeSelect).toHaveBeenCalled();
   });
 
-  it("leaves the selection alone when there was no range selected", async () => {
-    // getSelectedRangeAddress reports null when a shape is selected rather
-    // than a range, and there's nothing to restore.
+  it("selects A1 on the chart's sheet when the selection is elsewhere", async () => {
+    // getSelectedRange() is workbook-wide, so a selection on another sheet
+    // must not be replayed onto the chart's sheet -- that would select the
+    // wrong cells. Deselect the chart instead.
+    const { sheet, context, activeSheet, select, activeSelect } = harness({
+      activeSheetName: "Income Statement",
+    });
+    const addChart = createAddChart(
+      vi.fn(async () => sheet),
+      vi.fn(async () => "$D$4"),
+    );
+
+    await addChart(context, ACTION);
+
+    expect(activeSheet.getRange).not.toHaveBeenCalled();
+    expect(activeSelect).not.toHaveBeenCalled();
+    expect(sheet.getRange).toHaveBeenCalledWith("A1");
+    expect(select).toHaveBeenCalled();
+  });
+
+  it("still deselects the chart when nothing was selected", async () => {
+    // A freshly added sheet has no prior range selection, which is exactly
+    // the case that used to leave the new chart selected.
     const { sheet, context, select } = harness();
     const addChart = createAddChart(
       vi.fn(async () => sheet),
@@ -112,9 +145,17 @@ describe("addChart selection handling", () => {
 
     await addChart(context, ACTION);
 
-    expect(select).not.toHaveBeenCalled();
-    expect(
-      context.workbook.worksheets.getActiveWorksheet,
-    ).not.toHaveBeenCalled();
+    expect(sheet.getRange).toHaveBeenCalledWith("A1");
+    expect(select).toHaveBeenCalled();
+  });
+
+  it("deselects even without a selection helper", async () => {
+    const { sheet, context, select } = harness();
+    const addChart = createAddChart(vi.fn(async () => sheet));
+
+    await addChart(context, ACTION);
+
+    expect(sheet.getRange).toHaveBeenCalledWith("A1");
+    expect(select).toHaveBeenCalled();
   });
 });

@@ -1,7 +1,8 @@
 export function createAddChart(getSheet, getSelectedRangeAddress) {
   return async function addChart(context, action) {
-    // Adding a chart leaves it selected, which steals the user's selection.
-    // Capture it first and restore it afterwards, as addPicture() does.
+    // Adding a chart leaves it selected, which is never what a script wants.
+    // Capture the current selection first so it can be put back, as
+    // addPicture() does.
     const selectedAddress = getSelectedRangeAddress
       ? await getSelectedRangeAddress(context)
       : null;
@@ -22,13 +23,23 @@ export function createAddChart(getSheet, getSelectedRangeAddress) {
     if (action.args[6] != null) chart.width = Number(action.args[6]);
     if (action.args[7] != null) chart.height = Number(action.args[7]);
     chart.name = action.args[0].toString();
+    await context.sync();
 
-    if (selectedAddress) {
-      context.workbook.worksheets
-        .getActiveWorksheet()
-        .getRange(selectedAddress)
-        .select();
-      await context.sync();
+    // getSelectedRange() is workbook-wide, so the captured address belongs to
+    // whichever sheet was active -- restoring it onto the chart's sheet would
+    // select the wrong cells. Only restore it when the chart landed on the
+    // active sheet; otherwise deselect by selecting A1 on the chart's own
+    // sheet, which is still better than leaving the chart selected.
+    const activeSheet = context.workbook.worksheets.getActiveWorksheet();
+    activeSheet.load("name");
+    sheet.load("name");
+    await context.sync();
+
+    if (selectedAddress && activeSheet.name === sheet.name) {
+      activeSheet.getRange(selectedAddress).select();
+    } else {
+      sheet.getRange("A1").select();
     }
+    await context.sync();
   };
 }
