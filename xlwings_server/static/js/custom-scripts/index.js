@@ -488,9 +488,10 @@ async function getBookData(
     const printArea = sheet.pageLayout
       .getPrintAreaOrNullObject()
       .load("areas/address");
-    // Notes: Range.note is a sync property that has to know whether a note
-    // exists, so they ride along in the payload. Their text is short, unlike a
-    // shape's, so it comes with them rather than needing a second fetch.
+    // Notes have to be in the payload: Range.note is a sync property, so it
+    // can't await a fetch to decide whether a note exists. A note's text is
+    // short enough to send along with it, so there's no second read either --
+    // where a shape's text, being unbounded, is fetched only when asked for.
     const notes = loadWorksheetNotes(
       sheet,
       excludeArray.includes(sheet.name),
