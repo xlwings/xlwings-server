@@ -30,7 +30,11 @@ export function eagerValueRangeAddress(usedRange) {
 
 export function loadWorksheetNotes(sheet, excluded, isSetSupported) {
   if (excluded || !isSetSupported("ExcelApi", "1.18")) return null;
-  return sheet.notes.load("items/content");
+  // Deliberately not "items/content": Range.note only needs to know which
+  // cells have a note, and a note's text can be arbitrarily long. Sending it
+  // would put every note's full text in every request. Note.get_text()
+  // fetches it on demand instead.
+  return sheet.notes.load("items");
 }
 
 export function mergeCellsState(range, mergedAreas) {

@@ -63,6 +63,7 @@ const xlwings = {
   getRangeValues,
   getShapeData,
   getChartImage,
+  getNoteText,
   getExpandedAddress,
   getActiveSheetIndex,
   getSelection,
@@ -488,14 +489,10 @@ async function getBookData(
     const printArea = sheet.pageLayout
       .getPrintAreaOrNullObject()
       .load("areas/address");
-    // Notes have to be in the payload: Range.note is a sync property, so it
-    // can't await a fetch to decide whether a note exists. Establishing that
-    // means enumerating sheet.notes and resolving each note's location
-    // anyway, and its content is one more loaded property on a proxy already
-    // being loaded -- not an extra round-trip. (A shape's text is different:
-    // the shape is already in the payload for its geometry, and its text
-    // lives on a separate textFrame object, so that one is fetched on
-    // demand.)
+    // Which cells have a note has to be in the payload, since Range.note is a
+    // sync property and can't await a fetch to answer. Only the addresses go,
+    // though: a note's text is unbounded, and sending it would put every
+    // note's full text in every request. Note.get_text() fetches that.
     const notes = loadWorksheetNotes(
       sheet,
       excludeArray.includes(sheet.name),
@@ -831,10 +828,22 @@ async function getShapeData(sheetName, shapeIndex, keys = ["text"], options) {
 // how Range.note looks them up.
 function notesArray(item) {
   if (!item["notes"] || !item["noteLocations"]) return [];
-  return item["notes"].items.map((note, ix) => ({
+  return item["notes"].items.map((_note, ix) => ({
     address: unqualifiedAddress(item["noteLocations"][ix]),
-    text: note.content,
   }));
+}
+
+// A note's text is fetched when asked for rather than sent with every
+// request, since it can be arbitrarily long. The payload carries only which
+// cells have a note, which is all Range.note needs.
+async function getNoteText(sheetName, cellAddress) {
+  return await Excel.run(async (context) => {
+    const sheet = context.workbook.worksheets.getItem(sheetName);
+    const note = sheet.notes.getItemOrNullObject(cellAddress);
+    note.load("content");
+    await context.sync();
+    return note.isNullObject ? null : note.content;
+  });
 }
 
 // Chart.getImage() returns a base64 PNG, which is data rather than an action,

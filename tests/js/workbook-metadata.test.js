@@ -58,7 +58,9 @@ describe("loadWorksheetNotes", () => {
     const sheet = { notes: { load } };
 
     expect(loadWorksheetNotes(sheet, false, () => true)).toBe(loaded);
-    expect(load).toHaveBeenCalledWith("items/content");
+    // Addresses only: a note's text is fetched on demand, so it doesn't ride
+    // along in every request.
+    expect(load).toHaveBeenCalledWith("items");
   });
 
   it("skips excluded sheets without checking host support", () => {
