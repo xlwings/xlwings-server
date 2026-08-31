@@ -30,7 +30,6 @@ import {
 import { dispatchActions } from "./action-dispatch.js";
 import { getActionSheet } from "./action-targets.js";
 import {
-  columnWidthPointsToCharacters,
   createSetColumnWidth,
   createSetFormula,
   createSetFormulaArray,
@@ -929,12 +928,9 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
           result.wrap_text = range.format.wrapText;
           break;
         case "column_width":
-          // Office.js returns null when the range's columns aren't uniform;
-          // pass that through rather than converting it to 0.
-          result.column_width =
-            range.format.columnWidth === null
-              ? null
-              : columnWidthPointsToCharacters(range.format.columnWidth);
+          // Raw points, as Office.js reports them; null when the range's
+          // columns aren't uniform.
+          result.column_width = range.format.columnWidth;
           break;
         case "row_height":
           result.row_height = range.format.rowHeight;

@@ -20,72 +20,17 @@ export function createSetFormulaArray(getRange, isSetSupported) {
   };
 }
 
-export function columnWidthCharactersToPoints(
-  characters,
-  standardCharacters,
-  standardPoints,
-) {
-  if (!Number.isFinite(characters) || characters < 0 || characters > 255) {
-    throw new Error("column_width must be a number between 0 and 255.");
-  }
-  if (characters === 0) return 0;
-
-  // Excel stores column widths in Normal-style character units, while
-  // RangeFormat.columnWidth uses points. Infer the workbook's maximum digit
-  // width from its standard width instead of assuming a particular font.
-  const pointsPerPixel = 72 / 96;
-  const standardPixels = standardPoints / pointsPerPixel;
-  const inferredDigitWidth =
-    (standardPixels - 5) / Math.max(standardCharacters, Number.EPSILON);
-  const digitWidth =
-    Number.isFinite(inferredDigitWidth) && inferredDigitWidth > 0
-      ? inferredDigitWidth
-      : 7;
-  const pixels =
-    characters < 1
-      ? characters * (digitWidth + 5)
-      : characters * digitWidth + 5;
-  return pixels * pointsPerPixel;
-}
-
-export function columnWidthPointsToCharacters(points, digitWidth = 7) {
-  // Inverse of columnWidthCharactersToPoints. The setter can measure the
-  // workbook's real digit width because it resets the target column first; a
-  // getter must not mutate the sheet, so it assumes 7px (Calibri 11) unless
-  // the caller knows better. Workbooks whose Normal style uses a different
-  // font are off by a couple of percent -- the same assumption the forward
-  // conversion falls back to when inference fails.
-  if (!Number.isFinite(points) || points <= 0) return 0;
-  const pointsPerPixel = 72 / 96;
-  const pixels = points / pointsPerPixel;
-  // Mirrors the sub-1-character branch of the forward conversion.
-  return pixels < digitWidth + 5
-    ? pixels / (digitWidth + 5)
-    : (pixels - 5) / digitWidth;
-}
-
 export function createSetColumnWidth(getRange) {
   return async function setColumnWidth(context, action) {
-    const characters = action.args[0];
-    if (!Number.isFinite(characters) || characters < 0 || characters > 255) {
-      throw new Error("column_width must be a number between 0 and 255.");
+    // Points, which is what Office.js' RangeFormat.columnWidth takes. The
+    // desktop engines pass COM's raw value through the same way; there it
+    // happens to be characters.
+    const points = action.args[0];
+    if (!Number.isFinite(points) || points < 0) {
+      throw new Error("column_width must be a non-negative number.");
     }
     const range = await getRange(context, action);
-    const sheet = range.worksheet;
-
-    // Resetting the target to the standard width is safe because this action
-    // immediately replaces its width, and lets us measure the workbook's real
-    // Normal-style character width without hard-coding Calibri/Aptos metrics.
-    range.format.useStandardWidth = true;
-    range.format.load("columnWidth");
-    sheet.load("standardWidth");
-    await context.sync();
-
-    range.format.columnWidth = columnWidthCharactersToPoints(
-      characters,
-      sheet.standardWidth,
-      range.format.columnWidth,
-    );
+    range.format.columnWidth = points;
     await context.sync();
   };
 }

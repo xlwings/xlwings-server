@@ -1,8 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
-  columnWidthCharactersToPoints,
-  columnWidthPointsToCharacters,
   createSetColumnWidth,
   createSetFormula,
   createSetFormulaArray,
@@ -50,73 +48,43 @@ describe("setFormulaArray action callback", () => {
 });
 
 describe("setColumnWidth action callback", () => {
-  it("converts character units using the worksheet's standard width", async () => {
-    const format = {
-      columnWidth: 48,
-      load: vi.fn(),
-      useStandardWidth: false,
+  function harness() {
+    const format = {};
+    const range = { format };
+    return {
+      range,
+      format,
+      getRange: vi.fn(async () => range),
+      context: { sync: vi.fn(async () => {}) },
     };
-    const sheet = { load: vi.fn(), standardWidth: 8.43 };
-    const range = { format, worksheet: sheet };
-    const context = { sync: vi.fn(async () => {}) };
-    const action = { args: [12] };
-    const setColumnWidth = createSetColumnWidth(vi.fn(async () => range));
+  }
 
-    await setColumnWidth(context, action);
-
-    expect(format.useStandardWidth).toBe(true);
-    expect(format.load).toHaveBeenCalledWith("columnWidth");
-    expect(sheet.load).toHaveBeenCalledWith("standardWidth");
-    expect(format.columnWidth).toBeCloseTo(66.73, 1);
-    expect(context.sync).toHaveBeenCalledTimes(2);
-  });
-
-  it("preserves zero as a hidden column width", () => {
-    expect(columnWidthCharactersToPoints(0, 8.43, 48)).toBe(0);
-  });
-
-  it.each([-1, 256, Number.NaN, "12", true])(
-    "rejects invalid widths",
-    (value) => {
-      expect(() => columnWidthCharactersToPoints(value, 8.43, 48)).toThrow(
-        "between 0 and 255",
-      );
-    },
-  );
-
-  it("rejects an invalid action before changing the range", async () => {
-    const getRange = vi.fn();
+  it("writes the width straight through as points", async () => {
+    // Office.js' RangeFormat.columnWidth is points, and that's the raw
+    // measure xlwings passes on this engine -- no unit conversion either way.
+    const { format, getRange, context } = harness();
     const setColumnWidth = createSetColumnWidth(getRange);
 
-    await expect(
-      setColumnWidth({ sync: vi.fn() }, { args: ["12"] }),
-    ).rejects.toThrow("between 0 and 255");
-    expect(getRange).not.toHaveBeenCalled();
-  });
-});
+    await setColumnWidth(context, { args: [110.5] });
 
-describe("columnWidthPointsToCharacters", () => {
-  it("inverts the forward conversion at the default digit width", () => {
-    // 7px digit width is what the forward conversion also falls back to.
-    // 48.0075pt is the standard-column width that implies exactly 7px.
-    const standardPoints = (7 * 8.43 + 5) * (72 / 96);
-    for (const characters of [0.5, 1, 10, 20, 255]) {
-      const points = columnWidthCharactersToPoints(
-        characters,
-        8.43,
-        standardPoints,
-      );
-      expect(columnWidthPointsToCharacters(points, 7)).toBeCloseTo(
-        characters,
-        6,
-      );
+    expect(format.columnWidth).toBe(110.5);
+    expect(context.sync).toHaveBeenCalled();
+  });
+
+  it("preserves zero, which hides the column", async () => {
+    const { format, getRange, context } = harness();
+    await createSetColumnWidth(getRange)(context, { args: [0] });
+    expect(format.columnWidth).toBe(0);
+  });
+
+  it("rejects invalid widths before touching the range", async () => {
+    for (const value of [-1, NaN, Infinity, null, "wide"]) {
+      const { format, getRange, context } = harness();
+      await expect(
+        createSetColumnWidth(getRange)(context, { args: [value] }),
+      ).rejects.toThrow("column_width must be a non-negative number.");
+      expect(getRange).not.toHaveBeenCalled();
+      expect(format.columnWidth).toBeUndefined();
     }
-  });
-
-  it("treats non-positive and non-finite widths as zero", () => {
-    expect(columnWidthPointsToCharacters(0)).toBe(0);
-    expect(columnWidthPointsToCharacters(-5)).toBe(0);
-    expect(columnWidthPointsToCharacters(null)).toBe(0);
-    expect(columnWidthPointsToCharacters(undefined)).toBe(0);
   });
 });
