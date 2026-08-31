@@ -489,9 +489,13 @@ async function getBookData(
       .getPrintAreaOrNullObject()
       .load("areas/address");
     // Notes have to be in the payload: Range.note is a sync property, so it
-    // can't await a fetch to decide whether a note exists. A note's text is
-    // short enough to send along with it, so there's no second read either --
-    // where a shape's text, being unbounded, is fetched only when asked for.
+    // can't await a fetch to decide whether a note exists. Establishing that
+    // means enumerating sheet.notes and resolving each note's location
+    // anyway, and its content is one more loaded property on a proxy already
+    // being loaded -- not an extra round-trip. (A shape's text is different:
+    // the shape is already in the payload for its geometry, and its text
+    // lives on a separate textFrame object, so that one is fetched on
+    // demand.)
     const notes = loadWorksheetNotes(
       sheet,
       excludeArray.includes(sheet.name),
