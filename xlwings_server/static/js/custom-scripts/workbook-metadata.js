@@ -14,19 +14,160 @@ export function rangeMetadata(range) {
   };
 }
 
-export function rangeReadProperties(mode, includeNumberFormatCategories) {
-  if (!["values", "formulas", "both"].includes(mode)) {
-    throw new Error(`Unsupported range read mode: ${mode}`);
+export function rangeAddressFromDimensions(
+  rowIndex,
+  columnIndex,
+  rowCount,
+  columnCount,
+) {
+  function columnName(index) {
+    let name = "";
+    for (
+      let number = index + 1;
+      number > 0;
+      number = Math.floor((number - 1) / 26)
+    ) {
+      name = String.fromCharCode(65 + ((number - 1) % 26)) + name;
+    }
+    return name;
   }
-  const properties = ["address", "rowCount", "columnCount"];
-  if (mode === "values" || mode === "both") {
-    properties.push("values");
-    if (includeNumberFormatCategories) {
-      properties.push("numberFormatCategories");
+
+  const first = `${columnName(columnIndex)}${rowIndex + 1}`;
+  if (rowCount === 1 && columnCount === 1) return first;
+  const last = `${columnName(columnIndex + columnCount - 1)}${
+    rowIndex + rowCount
+  }`;
+  return `${first}:${last}`;
+}
+
+export function loadValuesOnlyUsedRange(sheet) {
+  return sheet
+    .getUsedRangeOrNullObject(true)
+    .load("address, rowCount, columnCount");
+}
+
+export function eagerValueRangeAddress(usedRange) {
+  const lastCellAddress =
+    !usedRange || usedRange.isNullObject
+      ? "A1"
+      : unqualifiedAddress(usedRange).split(":").pop();
+  return `A1:${lastCellAddress}`;
+}
+
+export function loadWorksheetNotes(sheet, excluded, isSetSupported) {
+  if (excluded || !isSetSupported("ExcelApi", "1.18")) return null;
+  // Deliberately not "items/content": Range.note only needs to know which
+  // cells have a note, and a note's text can be arbitrarily long. Sending it
+  // would put every note's full text in every request. Note.get_text()
+  // fetches it on demand instead.
+  return sheet.notes.load("items");
+}
+
+export function mergeCellsState(range, mergedAreas) {
+  const rangeBottom = range.rowIndex + range.rowCount;
+  const rangeRight = range.columnIndex + range.columnCount;
+  const mergedCellCount = mergedAreas.reduce((total, area) => {
+    const overlapRows = Math.max(
+      0,
+      Math.min(rangeBottom, area.rowIndex + area.rowCount) -
+        Math.max(range.rowIndex, area.rowIndex),
+    );
+    const overlapColumns = Math.max(
+      0,
+      Math.min(rangeRight, area.columnIndex + area.columnCount) -
+        Math.max(range.columnIndex, area.columnIndex),
+    );
+    return total + overlapRows * overlapColumns;
+  }, 0);
+
+  if (mergedCellCount === 0) return false;
+  return mergedCellCount === range.rowCount * range.columnCount ? true : null;
+}
+
+// Each key a caller can request maps to the Office.js Range properties that
+// have to be loaded for it. Several keys share properties (the format ones in
+// particular), so the result is deduped and ordered by first appearance.
+const RANGE_READ_KEYS = {
+  values: ["values"],
+  formulas: ["formulas"],
+  formula_array: ["formulaArray"],
+  number_format: ["numberFormat"],
+  color: ["format/fill/color"],
+  wrap_text: ["format/wrapText"],
+  column_width: ["format/columnWidth"],
+  row_height: ["format/rowHeight"],
+  left: ["left"],
+  top: ["top"],
+  width: ["width"],
+  height: ["height"],
+  // Resolved through method calls in getRangeData rather than range.load(),
+  // so they contribute no properties here.
+  // One key for the whole font: the five attributes come from a single
+  // Office.js object, so fetching them together costs no more than one.
+  font: [
+    "format/font/bold",
+    "format/font/italic",
+    "format/font/size",
+    "format/font/color",
+    "format/font/name",
+  ],
+  hyperlink: ["hyperlink"],
+  current_region: [],
+  merge_area: [],
+  merge_cells: [],
+  table: [],
+};
+
+export function rangeReadKeys(keys) {
+  if (!Array.isArray(keys) || keys.length === 0) {
+    throw new Error(`Unsupported range read mode: ${JSON.stringify(keys)}`);
+  }
+  for (const key of keys) {
+    if (!Object.prototype.hasOwnProperty.call(RANGE_READ_KEYS, key)) {
+      throw new Error(`Unsupported range read key: ${key}`);
     }
   }
-  if (mode === "formulas" || mode === "both") {
-    properties.push("formulas");
+  return keys;
+}
+
+export function rangeReadProperties(keys, includeNumberFormatCategories) {
+  const readKeys = rangeReadKeys(keys);
+  const properties = ["address", "rowCount", "columnCount"];
+  for (const key of readKeys) {
+    for (const property of RANGE_READ_KEYS[key]) {
+      if (!properties.includes(property)) {
+        properties.push(property);
+      }
+    }
+    // Dates come back as serial numbers without their category, so this rides
+    // along with values only.
+    if (key === "values" && includeNumberFormatCategories) {
+      const category = "numberFormatCategories";
+      if (!properties.includes(category)) {
+        properties.push(category);
+      }
+    }
   }
   return properties;
+}
+
+// Office.js allows named HTML colours for a fill ("orange"); xlwings expects
+// #RRGGBB. Resolving a name needs a DOM round-trip, which only happens when a
+// colour is actually read and isn't already hex.
+export function normalizeFillColor(color, resolveNamedColor = canvasColor) {
+  if (!color) return null;
+  if (/^#[0-9a-f]{6}$/i.test(color)) return color;
+  if (/^[0-9a-f]{6}$/i.test(color)) return `#${color}`;
+  const resolved = resolveNamedColor(color);
+  return /^#[0-9a-f]{6}$/i.test(resolved) ? resolved : null;
+}
+
+// Named-colour resolution is the one part that needs a DOM, so it's injected
+// above rather than reached for directly -- that keeps normalizeFillColor
+// testable without pulling jsdom into this package.
+function canvasColor(color) {
+  const context = document.createElement("canvas").getContext("2d");
+  context.fillStyle = "#000000";
+  context.fillStyle = color;
+  return context.fillStyle;
 }

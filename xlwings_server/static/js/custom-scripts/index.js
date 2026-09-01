@@ -17,15 +17,27 @@ export { getActiveBookName, getCultureInfoName, getDateFormat };
 import { pyodideReadyPromise, startPyodide } from "../wasm.js";
 import { registerSheetButtons } from "./sheet-buttons.js";
 import {
+  eagerValueRangeAddress,
+  loadValuesOnlyUsedRange,
+  loadWorksheetNotes,
+  mergeCellsState,
+  normalizeFillColor,
+  rangeAddressFromDimensions,
   rangeMetadata,
+  rangeReadKeys,
   rangeReadProperties,
   unqualifiedAddress,
 } from "./workbook-metadata.js";
 import { dispatchActions } from "./action-dispatch.js";
 import { getActionSheet } from "./action-targets.js";
-import { createSetFormula } from "./range-action-callbacks.js";
+import {
+  createSetColumnWidth,
+  createSetFormula,
+  createSetFormulaArray,
+} from "./range-action-callbacks.js";
 import { unsupportedRangeExpansion } from "./range-expansion.js";
 import { createAddTable } from "./table-action-callbacks.js";
+import { createAddChart } from "./chart-action-callbacks.js";
 
 // Prints the supported API versions into the Console
 printSupportedApiVersions();
@@ -50,6 +62,9 @@ const xlwings = {
   registerCallback,
   getRangeData,
   getRangeValues,
+  getShapeData,
+  getChartImage,
+  getNoteText,
   getExpandedAddress,
   getActiveSheetIndex,
   getSelection,
@@ -405,6 +420,8 @@ async function getBookData(
   payload["client"] = "Office.js";
   payload["version"] = version;
   let activeSheet = worksheets.getActiveWorksheet().load("position");
+  // App-level, so it rides along in the book object rather than per sheet.
+  const application = context.workbook.application.load("calculationMode");
   await context.sync();
 
   // Cell selection address
@@ -414,6 +431,7 @@ async function getBookData(
     name: workbook.name,
     active_sheet_index: activeSheet.position,
     selection: selectionAddress,
+    calculation: application.calculationMode,
   };
 
   // Names (book scope)
@@ -461,17 +479,44 @@ async function getBookData(
     sheet.load("name,visibility,names");
     let usedRange;
     if (!excludeArray.includes(sheet.name)) {
-      // A single used-range read serves both the values window below and the
-      // structural metadata. Lazy loading omits cell values, but intentionally
-      // retains bounded metadata for Book.load(values=False) and Wingman.
-      usedRange = sheet
-        .getUsedRangeOrNullObject(true)
-        .load("address, rowCount, columnCount");
+      // Values-only is intentional here, even though formatting-only cells
+      // extend Excel's/COM's UsedRange. The remote API uses this range to
+      // describe and optionally transfer actual workbook data, so including
+      // formatting-only cells could make the payload needlessly enormous.
+      usedRange = loadValuesOnlyUsedRange(sheet);
     }
+    // Metadata like used_range: sent in lazy mode too, so page_setup works on
+    // an async book without loading values.
+    const printArea = sheet.pageLayout
+      .getPrintAreaOrNullObject()
+      .load("areas/address");
+    // Which cells have a note has to be in the payload, since Range.note is a
+    // sync property and can't await a fetch to answer. Only the addresses go,
+    // though: a note's text is unbounded, and sending it would put every
+    // note's full text in every request. Note.get_text() fetches that.
+    const notes = loadWorksheetNotes(
+      sheet,
+      excludeArray.includes(sheet.name),
+      Office.context.requirements.isSetSupported.bind(
+        Office.context.requirements,
+      ),
+    );
     sheetsLoader.push({
       sheet: sheet,
       usedRange: usedRange,
+      printArea: printArea,
+      notes: notes,
     });
+  });
+
+  await context.sync();
+
+  sheetsLoader.forEach((item) => {
+    if (item["notes"]) {
+      item["noteLocations"] = item["notes"].items.map((note) =>
+        note.getLocation().load("address"),
+      );
+    }
   });
 
   await context.sync();
@@ -480,11 +525,8 @@ async function getBookData(
     if (!lazy && !excludeArray.includes(item["sheet"].name)) {
       // An empty sheet has no used range; fall back to A1 so the values
       // window stays a 1x1 matrix rather than disappearing.
-      const lastCellAddress = item["usedRange"].isNullObject
-        ? "A1"
-        : unqualifiedAddress(item["usedRange"]).split(":").pop();
       sheetsLoader[ix]["range"] = item["sheet"]
-        .getRange(`A1:${lastCellAddress}`)
+        .getRange(eagerValueRangeAddress(item["usedRange"]))
         .load("values, numberFormatCategories");
     }
     // Names (sheet scope) — always load, even in lazy mode
@@ -558,6 +600,10 @@ async function getBookData(
         "showTotals",
         "style",
         "showFilterButton",
+        "highlightFirstColumn",
+        "highlightLastColumn",
+        "showBandedRows",
+        "showBandedColumns",
       ]);
       await context.sync();
       let tablesLoader = [];
@@ -568,6 +614,10 @@ async function getBookData(
           showTotals: table.showTotals,
           style: table.style,
           showFilterButton: table.showFilterButton,
+          highlightFirstColumn: table.highlightFirstColumn,
+          highlightLastColumn: table.highlightLastColumn,
+          showBandedRows: table.showBandedRows,
+          showBandedColumns: table.showBandedColumns,
           range: table.getRange().load("address, rowCount, columnCount"),
           dataBodyRange: table.getDataBodyRange().load("address"),
           headerRowRange: table.showHeaders
@@ -597,14 +647,52 @@ async function getBookData(
           show_totals: table.showTotals,
           table_style: table.style,
           show_autofilter: table.showFilterButton,
+          show_table_style_first_column: table.highlightFirstColumn,
+          show_table_style_last_column: table.highlightLastColumn,
+          show_table_style_row_stripes: table.showBandedRows,
+          show_table_style_column_stripes: table.showBandedColumns,
         });
       }
     }
 
-    // Pictures
-    let picturesArray = [];
+    // Charts
+    let chartsArray = [];
     if (!excludeArray.includes(item["sheet"].name)) {
-      const shapes = sheet.shapes.load(["name", "width", "height", "type"]);
+      const charts = sheet.charts.load([
+        "name",
+        "chartType",
+        "left",
+        "top",
+        "width",
+        "height",
+      ]);
+      await context.sync();
+      for (let chart of charts.items) {
+        chartsArray.push({
+          name: chart.name,
+          chart_type: chart.chartType,
+          left: chart.left,
+          top: chart.top,
+          width: chart.width,
+          height: chart.height,
+        });
+      }
+    }
+
+    // Pictures and shapes: one load covers both, since a picture is a shape
+    // whose type is Image.
+    let picturesArray = [];
+    let shapesArray = [];
+    if (!excludeArray.includes(item["sheet"].name)) {
+      const shapes = sheet.shapes.load([
+        "name",
+        "width",
+        "height",
+        "type",
+        "left",
+        "top",
+        "lockAspectRatio",
+      ]);
       await context.sync();
       for (let shape of sheet.shapes.items) {
         if (shape.type == Excel.ShapeType.image) {
@@ -612,8 +700,19 @@ async function getBookData(
             name: shape.name,
             height: shape.height,
             width: shape.width,
+            left: shape.left,
+            top: shape.top,
+            lock_aspect_ratio: shape.lockAspectRatio,
           });
         }
+        shapesArray.push({
+          name: shape.name,
+          type: shape.type,
+          height: shape.height,
+          width: shape.width,
+          left: shape.left,
+          top: shape.top,
+        });
       }
     }
 
@@ -621,30 +720,188 @@ async function getBookData(
     payload["sheets"].push({
       name: item["sheet"].name,
       visibility: item["sheet"].visibility,
+      print_area: printAreaAddress(item["printArea"]),
+      notes: notesArray(item),
       used_range_address: usedRange.address,
       used_range_row_count: usedRange.row_count,
       used_range_column_count: usedRange.column_count,
       values: values,
       pictures: picturesArray,
+      shapes: shapesArray,
+      charts: chartsArray,
       tables: tablesArray,
     });
   }
   return payload;
 }
 
+// The print area is a RangeAreas: one or more rectangles, or a null object
+// when the sheet has none. xlwings' print_area is a single address string,
+// with the areas comma-separated as Excel writes them.
+function printAreaAddress(printArea) {
+  if (!printArea || printArea.isNullObject) return null;
+  const addresses = printArea.areas.items.map((area) =>
+    unqualifiedAddress(area),
+  );
+  return addresses.length > 0 ? addresses.join(",") : null;
+}
+
+// Keys a shape read can request. Like the range read keys, this keeps the
+// payload sent with every request small: shape text is unbounded, so it's
+// fetched on demand rather than shipped for every shape in the workbook.
+const SHAPE_READ_KEYS = ["text", "characters_text", "font"];
+
+// A shape's text range, optionally narrowed to a character slice. start/length
+// are what Characters carries; null means the whole range.
+function shapeTextRange(shape, start, length) {
+  const textRange = shape.textFrame.textRange;
+  if (start == null) return textRange;
+  return length == null
+    ? textRange.getSubstring(start)
+    : textRange.getSubstring(start, length);
+}
+
+async function getShapeData(sheetName, shapeIndex, keys = ["text"], options) {
+  if (!Array.isArray(keys) || keys.length === 0) {
+    throw new Error(`Unsupported shape read mode: ${JSON.stringify(keys)}`);
+  }
+  for (const key of keys) {
+    if (!SHAPE_READ_KEYS.includes(key)) {
+      throw new Error(`Unsupported shape read key: ${key}`);
+    }
+  }
+  return await Excel.run(async (context) => {
+    const sheet = context.workbook.worksheets.getItem(sheetName);
+    const shapes = sheet.shapes.load("items");
+    await context.sync();
+    const shape = shapes.items[shapeIndex];
+    if (!shape) {
+      throw new Error(`No shape at index ${shapeIndex} on sheet ${sheetName}`);
+    }
+    const start = options ? options.start : null;
+    const length = options ? options.length : null;
+    const result = {};
+    // hasText first: reading textRange.text on a shape without text throws,
+    // and the desktop engines report None in that case.
+    shape.textFrame.load("hasText");
+    await context.sync();
+    const hasText = shape.textFrame.hasText;
+    if (keys.includes("text")) {
+      if (hasText) {
+        shape.textFrame.textRange.load("text");
+        await context.sync();
+        result.text = shape.textFrame.textRange.text;
+      } else {
+        result.text = null;
+      }
+    }
+    if (keys.includes("characters_text")) {
+      if (hasText) {
+        const textRange = shapeTextRange(shape, start, length);
+        textRange.load("text");
+        await context.sync();
+        result.characters_text = textRange.text;
+      } else {
+        result.characters_text = null;
+      }
+    }
+    if (keys.includes("font")) {
+      if (hasText) {
+        const font = shapeTextRange(shape, start, length).font;
+        font.load(["bold", "italic", "size", "color", "name"]);
+        await context.sync();
+        result.font = {
+          bold: font.bold,
+          italic: font.italic,
+          size: font.size,
+          color: normalizeFillColor(font.color),
+          name: font.name,
+        };
+      } else {
+        result.font = null;
+      }
+    }
+    return result;
+  });
+}
+
+// Notes are keyed by the address of the cell they're attached to, which is
+// how Range.note looks them up.
+function notesArray(item) {
+  if (!item["notes"] || !item["noteLocations"]) return [];
+  return item["notes"].items.map((_note, ix) => ({
+    address: unqualifiedAddress(item["noteLocations"][ix]),
+  }));
+}
+
+// A note's text is fetched when asked for rather than sent with every
+// request, since it can be arbitrarily long. The payload carries only which
+// cells have a note, which is all Range.note needs.
+async function getNoteText(sheetName, cellAddress) {
+  return await Excel.run(async (context) => {
+    const sheet = context.workbook.worksheets.getItem(sheetName);
+    const note = sheet.notes.getItemOrNullObject(cellAddress);
+    note.load("content");
+    await context.sync();
+    return note.isNullObject ? null : note.content;
+  });
+}
+
+// Chart.getImage() returns a base64 PNG, which is data rather than an action,
+// so it's fetched on demand like the shape reads.
+async function getChartImage(sheetName, chartIndex) {
+  return await Excel.run(async (context) => {
+    const sheet = context.workbook.worksheets.getItem(sheetName);
+    const charts = sheet.charts.load("items");
+    await context.sync();
+    const chart = charts.items[chartIndex];
+    if (!chart) {
+      throw new Error(`No chart at index ${chartIndex} on sheet ${sheetName}`);
+    }
+    const image = chart.getImage();
+    await context.sync();
+    return image.value;
+  });
+}
+
 // On-demand data fetching for lazy loading
-async function getRangeData(sheetName, address, mode = "values") {
-  const readsValues = mode === "values" || mode === "both";
+async function getRangeData(sheetName, address, keys = ["values"]) {
+  // Validate the public boundary before entering Excel.run() or creating
+  // Office proxies so unsupported modes reject as a plain promise error.
+  const readKeys = rangeReadKeys(keys);
+  const readsValues = readKeys.includes("values");
   const hasDateCategories =
     readsValues &&
     Office.context.requirements.isSetSupported("ExcelApi", "1.12");
-  // Validate the public boundary before entering Excel.run() or creating
-  // Office proxies so unsupported modes reject as a plain promise error.
-  const properties = rangeReadProperties(mode, hasDateCategories);
+  const properties = rangeReadProperties(readKeys, hasDateCategories);
+  if (readKeys.includes("merge_cells")) {
+    // Needed to tell a fully merged range from a partly merged one.
+    properties.push("rowIndex", "columnIndex");
+  }
   return await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItem(sheetName);
     const range = sheet.getRange(address);
     range.load(properties);
+    // These come from method calls rather than loadable properties, so they
+    // need their own proxies queued before the sync.
+    const surroundingRegion = readKeys.includes("current_region")
+      ? range.getSurroundingRegion().load("address")
+      : null;
+    const mergedAreas =
+      readKeys.includes("merge_area") || readKeys.includes("merge_cells")
+        ? range
+            .getMergedAreasOrNullObject()
+            .load(
+              "areas/address,areas/rowIndex,areas/columnIndex,areas/rowCount,areas/columnCount",
+            )
+        : null;
+    if (readKeys.includes("merge_area")) {
+      // Needed to find and expand the merged area after the first sync.
+      range.load("rowIndex,columnIndex");
+    }
+    const tables = readKeys.includes("table")
+      ? range.getTables(false).load("items/name")
+      : null;
     await context.sync();
     const metadata = rangeMetadata(range);
     const result = {
@@ -652,25 +909,214 @@ async function getRangeData(sheetName, address, mode = "values") {
       row_count: metadata.row_count,
       column_count: metadata.column_count,
     };
-    if (readsValues) {
-      const values = range.values;
-      if (hasDateCategories) {
-        convertDateValues(values, range.numberFormatCategories);
+    const mergeAreaAddress = readKeys.includes("merge_area")
+      ? await getFullMergeAreaAddress(context, sheet, range, mergedAreas)
+      : null;
+    for (const key of readKeys) {
+      switch (key) {
+        case "values": {
+          const values = range.values;
+          if (hasDateCategories) {
+            convertDateValues(values, range.numberFormatCategories);
+          }
+          result.values = values;
+          break;
+        }
+        case "formulas":
+          // Office returns an A1 formula or the underlying raw value for cells
+          // without formulas. Keep that representation intact; date conversion
+          // applies only to the calculated values matrix above.
+          result.formulas = range.formulas;
+          break;
+        case "formula_array":
+          result.formula_array = range.formulaArray;
+          break;
+        case "number_format": {
+          // Office.js reports a per-cell matrix, but xlwings' number_format is
+          // a single string (null when the cells don't agree), like COM.
+          const formats = (range.numberFormat || []).flat();
+          const first = formats.length > 0 ? formats[0] : null;
+          result.number_format = formats.every((f) => f === first)
+            ? first
+            : null;
+          break;
+        }
+        case "color":
+          // Office.js may report a named HTML colour ("orange") rather than
+          // #RRGGBB; normalize so the Python side only ever sees hex.
+          result.color = normalizeFillColor(range.format.fill.color);
+          break;
+        case "wrap_text":
+          result.wrap_text = range.format.wrapText;
+          break;
+        case "column_width":
+          // Raw points, as Office.js reports them; null when the range's
+          // columns aren't uniform.
+          result.column_width = range.format.columnWidth;
+          break;
+        case "row_height":
+          result.row_height = range.format.rowHeight;
+          break;
+        case "left":
+          result.left = range.left;
+          break;
+        case "top":
+          result.top = range.top;
+          break;
+        case "width":
+          result.width = range.width;
+          break;
+        case "height":
+          result.height = range.height;
+          break;
+        case "font": {
+          const font = range.format.font;
+          result.font = {
+            bold: font.bold,
+            italic: font.italic,
+            size: font.size,
+            // Office.js may report a named HTML colour here too.
+            color: normalizeFillColor(font.color),
+            name: font.name,
+          };
+          break;
+        }
+        case "hyperlink": {
+          // RangeHyperlink carries the target plus display/tip metadata;
+          // xlwings' hyperlink is just the address. documentReference is the
+          // in-workbook form (e.g. a named range), which has no address.
+          const link = range.hyperlink;
+          result.hyperlink = link
+            ? link.address || link.documentReference || null
+            : null;
+          break;
+        }
+        case "current_region":
+          result.current_region = unqualifiedAddress(surroundingRegion);
+          break;
+        case "merge_area": {
+          result.merge_area = mergeAreaAddress;
+          break;
+        }
+        case "merge_cells": {
+          // Tri-state, like COM's Range.MergeCells: true when the whole range
+          // is merged, false when none of it is, and null for a mixed range.
+          const areas = mergedAreas.isNullObject ? [] : mergedAreas.areas.items;
+          result.merge_cells = mergeCellsState(range, areas);
+          break;
+        }
+        case "table":
+          // A range overlaps at most one table in practice; null means none.
+          result.table = tables.items.length > 0 ? tables.items[0].name : null;
+          break;
       }
-      result.values = values;
-    }
-    if (mode === "formulas" || mode === "both") {
-      // Office returns an A1 formula or the underlying raw value for cells
-      // without formulas. Keep that representation intact; date conversion
-      // applies only to the calculated values matrix above.
-      result.formulas = range.formulas;
     }
     return result;
   });
 }
 
+// Office.js clips both the address and dimensions of a merged area to the range
+// used for the query. Starting with a single cell therefore reports G1 instead
+// of G1:H1. Expand one-dimensional probes from the merge's top-left cell until
+// their returned dimensions no longer reach the probe boundary, then format
+// the complete A1 address from the largest dimensions observed.
+async function getFullMergeAreaAddress(
+  context,
+  sheet,
+  range,
+  initialMergedAreas,
+) {
+  if (!initialMergedAreas || initialMergedAreas.isNullObject) return null;
+
+  // Load the child collection directly. Loading it only through
+  // RangeAreas.load("areas/...") can leave clipped per-item properties on
+  // affected hosts.
+  const detailedAreas = initialMergedAreas.areas;
+  detailedAreas.load("address,rowIndex,columnIndex,rowCount,columnCount");
+  await context.sync();
+  const initialArea = detailedAreas.items.find(
+    (area) =>
+      area.rowIndex <= range.rowIndex &&
+      range.rowIndex < area.rowIndex + area.rowCount &&
+      area.columnIndex <= range.columnIndex &&
+      range.columnIndex < area.columnIndex + area.columnCount,
+  );
+  if (!initialArea) return null;
+
+  const maxRows = 1048576;
+  const maxColumns = 16384;
+  const originRow = initialArea.rowIndex;
+  const originColumn = initialArea.columnIndex;
+  let rowCount = initialArea.rowCount;
+  let columnCount = initialArea.columnCount;
+  let rowsComplete = originRow + rowCount === maxRows;
+  let columnsComplete = originColumn + columnCount === maxColumns;
+
+  while (!rowsComplete || !columnsComplete) {
+    const rowProbeCount = rowsComplete
+      ? rowCount
+      : Math.min(maxRows - originRow, rowCount * 2, rowCount + 256);
+    const columnProbeCount = columnsComplete
+      ? columnCount
+      : Math.min(maxColumns - originColumn, columnCount * 2, columnCount + 256);
+    const verticalAreas = rowsComplete
+      ? null
+      : loadDetailedMergedAreas(
+          sheet.getRangeByIndexes(originRow, originColumn, rowProbeCount, 1),
+          "rowIndex,columnIndex,rowCount",
+        );
+    const horizontalAreas = columnsComplete
+      ? null
+      : loadDetailedMergedAreas(
+          sheet.getRangeByIndexes(originRow, originColumn, 1, columnProbeCount),
+          "rowIndex,columnIndex,columnCount",
+        );
+    await context.sync();
+
+    if (verticalAreas) {
+      const area = verticalAreas.items.find(
+        (candidate) =>
+          candidate.rowIndex === originRow &&
+          candidate.columnIndex === originColumn,
+      );
+      if (!area) return null;
+      const measuredRowCount = area.rowCount;
+      rowCount = Math.max(rowCount, measuredRowCount);
+      rowsComplete =
+        measuredRowCount < rowProbeCount || originRow + rowCount === maxRows;
+    }
+    if (horizontalAreas) {
+      const area = horizontalAreas.items.find(
+        (candidate) =>
+          candidate.rowIndex === originRow &&
+          candidate.columnIndex === originColumn,
+      );
+      if (!area) return null;
+      const measuredColumnCount = area.columnCount;
+      columnCount = Math.max(columnCount, measuredColumnCount);
+      columnsComplete =
+        measuredColumnCount < columnProbeCount ||
+        originColumn + columnCount === maxColumns;
+    }
+  }
+
+  return rangeAddressFromDimensions(
+    originRow,
+    originColumn,
+    rowCount,
+    columnCount,
+  );
+}
+
+function loadDetailedMergedAreas(range, properties) {
+  const mergedAreas = range.getMergedAreasOrNullObject();
+  const detailedAreas = mergedAreas.areas;
+  detailedAreas.load(properties);
+  return detailedAreas;
+}
+
 async function getRangeValues(sheetName, address) {
-  return (await getRangeData(sheetName, address, "values")).values;
+  return (await getRangeData(sheetName, address, ["values"])).values;
 }
 
 async function getExpandedAddress(
@@ -868,27 +1314,74 @@ async function getShapeByType(context, sheetPosition, shapeIndex, shapeType) {
   return myshapes[shapeIndex];
 }
 
+async function getShapeByIndex(context, sheetPosition, shapeIndex) {
+  // Unlike getShapeByType, this indexes the sheet's shapes as-is, matching
+  // the order the payload's shapes array is built in.
+  const sheets = context.workbook.worksheets.load("items");
+  await context.sync();
+  const shapes = sheets.items[sheetPosition].shapes.load("items");
+  await context.sync();
+  return shapes.items[shapeIndex];
+}
+
 export function registerCallback(callback) {
   globalThis.callbacks[callback.name] = callback;
 }
 
 // Functions map
-// Didn't find a way to use registerCallback so that webpack won't strip out these
-// functions when optimizing
 const setFormula = createSetFormula(getRange);
+const setFormulaArray = createSetFormulaArray(
+  getRange,
+  // Lazy: Office.context doesn't exist yet at module-eval time (before
+  // Office.onReady), so it must only be dereferenced when the action runs.
+  (name, version) => Office.context.requirements.isSetSupported(name, version),
+);
+const setColumnWidth = createSetColumnWidth(getRange);
 const addTable = createAddTable(getSheet);
 let funcs = {
   setValues: setValues,
   setFormula: setFormula,
+  setFormulaArray: setFormulaArray,
+  setColumnWidth: setColumnWidth,
+  setRowHeight: setRowHeight,
+  setWrapText: setWrapText,
   addSheet: addSheet,
   setSheetName: setSheetName,
+  setSheetVisibility: setSheetVisibility,
   setAutofit: setAutofit,
+  setSheetAutofit: setSheetAutofit,
+  setPrintArea: setPrintArea,
+  copySheet: copySheet,
   setRangeColor: setRangeColor,
   activateSheet: activateSheet,
+  calculate: calculate,
+  save: save,
+  setCalculation: setCalculation,
+  setScreenUpdating: setScreenUpdating,
   addHyperlink: addHyperlink,
   setNumberFormat: setNumberFormat,
   setPictureName: setPictureName,
   setPictureWidth: setPictureWidth,
+  addChart: createAddChart(getSheet, getSelectedRangeAddress),
+  setChartName: setChartName,
+  setChartType: setChartType,
+  setChartSourceData: setChartSourceData,
+  setChartPosition: setChartPosition,
+  deleteChart: deleteChart,
+  setNoteText: setNoteText,
+  deleteNote: deleteNote,
+  setShapeName: setShapeName,
+  setShapeLeft: setShapeLeft,
+  setShapeTop: setShapeTop,
+  setShapeWidth: setShapeWidth,
+  setShapeHeight: setShapeHeight,
+  setShapeText: setShapeText,
+  setShapeFontProperty: setShapeFontProperty,
+  deleteShape: deleteShape,
+  scaleShape: scaleShape,
+  setPictureLeft: setPictureLeft,
+  setPictureTop: setPictureTop,
+  setPictureLockAspectRatio: setPictureLockAspectRatio,
   setPictureHeight: setPictureHeight,
   deletePicture: deletePicture,
   addPicture: addPicture,
@@ -896,6 +1389,7 @@ let funcs = {
   alert: alert,
   setRangeName: setRangeName,
   namesAdd: namesAdd,
+  setNameRefersTo: setNameRefersTo,
   nameDelete: nameDelete,
   runMacro: runMacro,
   rangeDelete: rangeDelete,
@@ -903,6 +1397,9 @@ let funcs = {
   rangeSelect: rangeSelect,
   rangeClearContents: rangeClearContents,
   rangeClearFormats: rangeClearFormats,
+  rangeMerge: rangeMerge,
+  rangeUnmerge: rangeUnmerge,
+  rangeAutofill: rangeAutofill,
   rangeGroup: rangeGroup,
   rangeUngroup: rangeUngroup,
   rangeClear: rangeClear,
@@ -913,6 +1410,10 @@ let funcs = {
   showAutofilterTable: showAutofilterTable,
   showHeadersTable: showHeadersTable,
   showTotalsTable: showTotalsTable,
+  showTableStyleFirstColumn: showTableStyleFirstColumn,
+  showTableStyleLastColumn: showTableStyleLastColumn,
+  showTableStyleRowStripes: showTableStyleRowStripes,
+  showTableStyleColumnStripes: showTableStyleColumnStripes,
   setTableStyle: setTableStyle,
   copyRange: copyRange,
   copyFromRange: copyFromRange,
@@ -940,6 +1441,18 @@ async function setFontProperty(context, action) {
 async function setValues(context, action) {
   let range = await getRange(context, action);
   range.values = action.values;
+  await context.sync();
+}
+
+async function setRowHeight(context, action) {
+  let range = await getRange(context, action);
+  range.format.rowHeight = parseFloat(action.args[0].toString());
+  await context.sync();
+}
+
+async function setWrapText(context, action) {
+  let range = await getRange(context, action);
+  range.format.wrapText = Boolean(action.args[0]);
   await context.sync();
 }
 
@@ -976,6 +1489,11 @@ async function setSheetName(context, action) {
   sheet.name = action.args[0].toString();
 }
 
+async function setSheetVisibility(context, action) {
+  const sheet = await getSheet(context, action);
+  sheet.visibility = action.args[0].toString();
+}
+
 async function setAutofit(context, action) {
   if (action.args[0] === "columns") {
     let range = await getRange(context, action);
@@ -986,10 +1504,74 @@ async function setAutofit(context, action) {
   }
 }
 
+async function copySheet(context, action) {
+  const sheet = await getSheet(context, action);
+  const sheets = context.workbook.worksheets;
+  sheets.load("items/name");
+  await context.sync();
+  const relativeTo = sheets.items[parseInt(action.args[1].toString())];
+  const copy = sheet.copy(action.args[0].toString(), relativeTo);
+  // Excel names the copy itself. Python has already inserted the sheet into
+  // its local list under the name it predicted, so rename to match or the two
+  // sides disagree about what the sheet is called.
+  copy.name = action.args[2].toString();
+}
+
+async function setPrintArea(context, action) {
+  const sheet = await getSheet(context, action);
+  const printArea = action.args[0];
+  if (printArea == null) {
+    // Office.js has no clearPrintArea; an empty string is what resets it.
+    sheet.pageLayout.setPrintArea("");
+  } else {
+    sheet.pageLayout.setPrintArea(printArea.toString());
+  }
+}
+
+async function setSheetAutofit(context, action) {
+  // Sheet-level, so there are no range coordinates on the action to feed
+  // getRange(): getRange() with no address is the whole sheet.
+  const sheet = await getSheet(context, action);
+  if (action.args[0] === "columns") {
+    sheet.getRange().format.autofitColumns();
+  } else {
+    sheet.getRange().format.autofitRows();
+  }
+}
+
 async function setRangeColor(context, action) {
   let range = await getRange(context, action);
-  range.format.fill.color = action.args[0].toString();
+  if (action.args[0] == null) {
+    // color = None removes the background, which is a documented xlwings
+    // feature; assigning null here would throw instead.
+    range.format.fill.clear();
+  } else {
+    range.format.fill.color = action.args[0].toString();
+  }
   await context.sync();
+}
+
+async function calculate(context, action) {
+  context.workbook.application.calculate(Excel.CalculationType.full);
+}
+
+async function save(context, action) {
+  // Saves in place. Office.js has no SaveAs, so Book.save() rejects a path
+  // on the Python side rather than silently saving somewhere else.
+  context.workbook.save(Excel.SaveBehavior.save);
+}
+
+async function setCalculation(context, action) {
+  context.workbook.application.calculationMode = action.args[0].toString();
+}
+
+async function setScreenUpdating(context, action) {
+  // Office.js has no screen updating flag, only a suspend-until-next-sync
+  // call, so there's nothing to do when re-enabling: the next sync ends the
+  // suspension by itself. Calling it repeatedly makes the window flicker.
+  if (!action.args[0]) {
+    context.workbook.application.suspendScreenUpdatingUntilNextSync();
+  }
 }
 
 async function activateSheet(context, action) {
@@ -1033,6 +1615,209 @@ async function setPictureHeight(context, action) {
     Excel.ShapeType.image,
   );
   myshape.height = Number(action.args[1]);
+}
+
+async function getChartByIndex(context, sheetPosition, chartIndex) {
+  const sheets = context.workbook.worksheets.load("items");
+  await context.sync();
+  const charts = sheets.items[sheetPosition].charts.load("items");
+  await context.sync();
+  return charts.items[chartIndex];
+}
+
+async function setChartName(context, action) {
+  const chart = await getChartByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  chart.name = action.args[1].toString();
+}
+
+async function setChartType(context, action) {
+  const chart = await getChartByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  chart.chartType = action.args[1].toString();
+}
+
+async function setChartSourceData(context, action) {
+  const chart = await getChartByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  const sourceSheet = context.workbook.worksheets.getItem(
+    action.args[1].toString(),
+  );
+  chart.setData(sourceSheet.getRange(action.args[2].toString()));
+}
+
+async function setChartPosition(context, action) {
+  const chart = await getChartByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  chart[action.args[1].toString()] = Number(action.args[2]);
+}
+
+async function deleteChart(context, action) {
+  const chart = await getChartByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  chart.delete();
+}
+
+async function setNoteText(context, action) {
+  const sheet = await getSheet(context, action);
+  const address = action.args[0].toString();
+  const note = sheet.notes.getItemOrNullObject(address);
+  await context.sync();
+  if (note.isNullObject) {
+    // The public API says the note must already exist, and the desktop
+    // engines fail here too rather than creating one.
+    throw new Error(`There's no note on ${address} to set the text of.`);
+  }
+  note.content = action.args[1].toString();
+}
+
+async function deleteNote(context, action) {
+  const sheet = await getSheet(context, action);
+  const note = sheet.notes.getItemOrNullObject(action.args[0].toString());
+  await context.sync();
+  if (!note.isNullObject) {
+    note.delete();
+  }
+}
+
+async function setShapeName(context, action) {
+  const shape = await getShapeByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  shape.name = action.args[1].toString();
+}
+
+async function setShapeLeft(context, action) {
+  const shape = await getShapeByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  shape.left = Number(action.args[1]);
+}
+
+async function setShapeTop(context, action) {
+  const shape = await getShapeByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  shape.top = Number(action.args[1]);
+}
+
+async function setShapeWidth(context, action) {
+  const shape = await getShapeByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  shape.width = Number(action.args[1]);
+}
+
+async function setShapeHeight(context, action) {
+  const shape = await getShapeByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  shape.height = Number(action.args[1]);
+}
+
+async function setShapeFontProperty(context, action) {
+  const shape = await getShapeByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  const start = action.args[1];
+  const length = action.args[2];
+  const font = shapeTextRange(
+    shape,
+    start == null ? null : Number(start),
+    length == null ? null : Number(length),
+  ).font;
+  font[action.args[3].toString()] = action.args[4];
+}
+
+async function setShapeText(context, action) {
+  const shape = await getShapeByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  shape.textFrame.textRange.text = action.args[1].toString();
+}
+
+async function deleteShape(context, action) {
+  const shape = await getShapeByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  shape.delete();
+}
+
+async function scaleShape(context, action) {
+  const shape = await getShapeByIndex(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+  );
+  const factor = Number(action.args[1]);
+  const scaleType = action.args[2].toString();
+  const scaleFrom = action.args[3].toString();
+  if (action.args[4] === "height") {
+    shape.scaleHeight(factor, scaleType, scaleFrom);
+  } else {
+    shape.scaleWidth(factor, scaleType, scaleFrom);
+  }
+}
+
+async function setPictureLeft(context, action) {
+  const myshape = await getShapeByType(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+    Excel.ShapeType.image,
+  );
+  myshape.left = Number(action.args[1]);
+}
+
+async function setPictureTop(context, action) {
+  const myshape = await getShapeByType(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+    Excel.ShapeType.image,
+  );
+  myshape.top = Number(action.args[1]);
+}
+
+async function setPictureLockAspectRatio(context, action) {
+  const myshape = await getShapeByType(
+    context,
+    action.sheet_position,
+    Number(action.args[0]),
+    Excel.ShapeType.image,
+  );
+  myshape.lockAspectRatio = Boolean(action.args[1]);
 }
 
 async function setPictureWidth(context, action) {
@@ -1158,6 +1943,22 @@ async function nameDelete(context, action) {
   }
 }
 
+async function setNameRefersTo(context, action) {
+  const name = action.args[0].toString();
+  const bookScope = Boolean(action.args[1]);
+  const scopeSheetIndex = Number(action.args[2]);
+  const refersTo = action.args[3].toString();
+  // NamedItem.formula is the writable side of refers_to; NamedItem.name is
+  // read-only, which is why Name.name raises on the Python side.
+  if (bookScope === true) {
+    context.workbook.names.getItem(name).formula = refersTo;
+  } else {
+    const sheets = context.workbook.worksheets.load("items");
+    await context.sync();
+    sheets.items[scopeSheetIndex].names.getItem(name).formula = refersTo;
+  }
+}
+
 async function runMacro(context, action) {
   await globalThis.callbacks[action.args[0].toString()](
     context,
@@ -1220,6 +2021,26 @@ async function setTableStyle(context, action) {
   mytable.style = action.args[1].toString();
 }
 
+async function showTableStyleFirstColumn(context, action) {
+  const mytable = await getTable(context, action);
+  mytable.highlightFirstColumn = Boolean(action.args[1]);
+}
+
+async function showTableStyleLastColumn(context, action) {
+  const mytable = await getTable(context, action);
+  mytable.highlightLastColumn = Boolean(action.args[1]);
+}
+
+async function showTableStyleRowStripes(context, action) {
+  const mytable = await getTable(context, action);
+  mytable.showBandedRows = Boolean(action.args[1]);
+}
+
+async function showTableStyleColumnStripes(context, action) {
+  const mytable = await getTable(context, action);
+  mytable.showBandedColumns = Boolean(action.args[1]);
+}
+
 async function copyRange(context, action) {
   const destination = context.workbook.worksheets.items[
     parseInt(action.args[0].toString())
@@ -1256,6 +2077,26 @@ async function sheetClearFormats(context, action) {
 async function sheetClearContents(context, action) {
   const sheet = await getSheet(context, action);
   sheet.getRanges().clear(Excel.ClearApplyTo.contents);
+}
+
+async function rangeMerge(context, action) {
+  let range = await getRange(context, action);
+  range.merge(Boolean(action.args[0]));
+  await context.sync();
+}
+
+async function rangeAutofill(context, action) {
+  let range = await getRange(context, action);
+  const sheet = await getSheet(context, action);
+  const destination = sheet.getRange(action.args[0].toString());
+  range.autoFill(destination, action.args[1].toString());
+  await context.sync();
+}
+
+async function rangeUnmerge(context, action) {
+  let range = await getRange(context, action);
+  range.unmerge();
+  await context.sync();
 }
 
 async function rangeGroup(context, action) {
