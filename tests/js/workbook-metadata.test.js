@@ -6,6 +6,7 @@ import {
   loadWorksheetNotes,
   mergeCellsState,
   normalizeFillColor,
+  rangeAddressFromDimensions,
   rangeMetadata,
   rangeReadKeys,
   rangeReadProperties,
@@ -126,6 +127,17 @@ describe("rangeMetadata", () => {
       row_count: 0,
       column_count: 0,
     });
+  });
+});
+
+describe("rangeAddressFromDimensions", () => {
+  it("constructs a rectangular A1 address from zero-based coordinates", () => {
+    expect(rangeAddressFromDimensions(0, 6, 1, 2)).toBe("G1:H1");
+    expect(rangeAddressFromDimensions(3, 25, 2, 3)).toBe("Z4:AB5");
+  });
+
+  it("uses a single address for a one-cell range", () => {
+    expect(rangeAddressFromDimensions(0, 0, 1, 1)).toBe("A1");
   });
 });
 

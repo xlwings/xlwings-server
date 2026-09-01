@@ -22,6 +22,7 @@ import {
   loadWorksheetNotes,
   mergeCellsState,
   normalizeFillColor,
+  rangeAddressFromDimensions,
   rangeMetadata,
   rangeReadKeys,
   rangeReadProperties,
@@ -894,22 +895,9 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
               "areas/address,areas/rowIndex,areas/columnIndex,areas/rowCount,areas/columnCount",
             )
         : null;
-    // getMergedAreasOrNullObject() only reports the part of a merged area that
-    // falls *inside* the queried range, so asking a single cell returns that
-    // cell rather than the block it belongs to -- where COM's MergeArea gives
-    // the whole block. Widen to the surrounding region, which is the
-    // contiguous block around the cell and so contains any merged area the
-    // cell belongs to. Not the entire row: that has 16k columns, and
-    // getMergedAreasOrNullObject() gives up past 512 merged areas.
-    const mergeAreaSearch = readKeys.includes("merge_area")
-      ? range
-          .getSurroundingRegion()
-          .getMergedAreasOrNullObject()
-          .load("areas/address,areas/columnIndex,areas/columnCount")
-      : null;
     if (readKeys.includes("merge_area")) {
-      // Needed to pick the area covering this range out of the region.
-      range.load("columnIndex");
+      // Needed to find and expand the merged area after the first sync.
+      range.load("rowIndex,columnIndex");
     }
     const tables = readKeys.includes("table")
       ? range.getTables(false).load("items/name")
@@ -921,6 +909,9 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
       row_count: metadata.row_count,
       column_count: metadata.column_count,
     };
+    const mergeAreaAddress = readKeys.includes("merge_area")
+      ? await getFullMergeAreaAddress(context, sheet, range, mergedAreas)
+      : null;
     for (const key of readKeys) {
       switch (key) {
         case "values": {
@@ -1004,19 +995,7 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
           result.current_region = unqualifiedAddress(surroundingRegion);
           break;
         case "merge_area": {
-          // The region may hold several merged blocks; pick the one covering
-          // this range's first column. null when the cell isn't merged, which
-          // the Python side turns into the range itself, as COM does.
-          const areas =
-            !mergeAreaSearch || mergeAreaSearch.isNullObject
-              ? []
-              : mergeAreaSearch.areas.items;
-          const covering = areas.find(
-            (area) =>
-              area.columnIndex <= range.columnIndex &&
-              range.columnIndex < area.columnIndex + area.columnCount,
-          );
-          result.merge_area = covering ? unqualifiedAddress(covering) : null;
+          result.merge_area = mergeAreaAddress;
           break;
         }
         case "merge_cells": {
@@ -1034,6 +1013,106 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
     }
     return result;
   });
+}
+
+// Office.js clips both the address and dimensions of a merged area to the range
+// used for the query. Starting with a single cell therefore reports G1 instead
+// of G1:H1. Expand one-dimensional probes from the merge's top-left cell until
+// their returned dimensions no longer reach the probe boundary, then format
+// the complete A1 address from the largest dimensions observed.
+async function getFullMergeAreaAddress(
+  context,
+  sheet,
+  range,
+  initialMergedAreas,
+) {
+  if (!initialMergedAreas || initialMergedAreas.isNullObject) return null;
+
+  // Load the child collection directly. Loading it only through
+  // RangeAreas.load("areas/...") can leave clipped per-item properties on
+  // affected hosts.
+  const detailedAreas = initialMergedAreas.areas;
+  detailedAreas.load("address,rowIndex,columnIndex,rowCount,columnCount");
+  await context.sync();
+  const initialArea = detailedAreas.items.find(
+    (area) =>
+      area.rowIndex <= range.rowIndex &&
+      range.rowIndex < area.rowIndex + area.rowCount &&
+      area.columnIndex <= range.columnIndex &&
+      range.columnIndex < area.columnIndex + area.columnCount,
+  );
+  if (!initialArea) return null;
+
+  const maxRows = 1048576;
+  const maxColumns = 16384;
+  const originRow = initialArea.rowIndex;
+  const originColumn = initialArea.columnIndex;
+  let rowCount = initialArea.rowCount;
+  let columnCount = initialArea.columnCount;
+  let rowsComplete = originRow + rowCount === maxRows;
+  let columnsComplete = originColumn + columnCount === maxColumns;
+
+  while (!rowsComplete || !columnsComplete) {
+    const rowProbeCount = rowsComplete
+      ? rowCount
+      : Math.min(maxRows - originRow, rowCount * 2, rowCount + 256);
+    const columnProbeCount = columnsComplete
+      ? columnCount
+      : Math.min(maxColumns - originColumn, columnCount * 2, columnCount + 256);
+    const verticalAreas = rowsComplete
+      ? null
+      : loadDetailedMergedAreas(
+          sheet.getRangeByIndexes(originRow, originColumn, rowProbeCount, 1),
+          "rowIndex,columnIndex,rowCount",
+        );
+    const horizontalAreas = columnsComplete
+      ? null
+      : loadDetailedMergedAreas(
+          sheet.getRangeByIndexes(originRow, originColumn, 1, columnProbeCount),
+          "rowIndex,columnIndex,columnCount",
+        );
+    await context.sync();
+
+    if (verticalAreas) {
+      const area = verticalAreas.items.find(
+        (candidate) =>
+          candidate.rowIndex === originRow &&
+          candidate.columnIndex === originColumn,
+      );
+      if (!area) return null;
+      const measuredRowCount = area.rowCount;
+      rowCount = Math.max(rowCount, measuredRowCount);
+      rowsComplete =
+        measuredRowCount < rowProbeCount || originRow + rowCount === maxRows;
+    }
+    if (horizontalAreas) {
+      const area = horizontalAreas.items.find(
+        (candidate) =>
+          candidate.rowIndex === originRow &&
+          candidate.columnIndex === originColumn,
+      );
+      if (!area) return null;
+      const measuredColumnCount = area.columnCount;
+      columnCount = Math.max(columnCount, measuredColumnCount);
+      columnsComplete =
+        measuredColumnCount < columnProbeCount ||
+        originColumn + columnCount === maxColumns;
+    }
+  }
+
+  return rangeAddressFromDimensions(
+    originRow,
+    originColumn,
+    rowCount,
+    columnCount,
+  );
+}
+
+function loadDetailedMergedAreas(range, properties) {
+  const mergedAreas = range.getMergedAreasOrNullObject();
+  const detailedAreas = mergedAreas.areas;
+  detailedAreas.load(properties);
+  return detailedAreas;
 }
 
 async function getRangeValues(sheetName, address) {

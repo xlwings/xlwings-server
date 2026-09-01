@@ -14,6 +14,32 @@ export function rangeMetadata(range) {
   };
 }
 
+export function rangeAddressFromDimensions(
+  rowIndex,
+  columnIndex,
+  rowCount,
+  columnCount,
+) {
+  function columnName(index) {
+    let name = "";
+    for (
+      let number = index + 1;
+      number > 0;
+      number = Math.floor((number - 1) / 26)
+    ) {
+      name = String.fromCharCode(65 + ((number - 1) % 26)) + name;
+    }
+    return name;
+  }
+
+  const first = `${columnName(columnIndex)}${rowIndex + 1}`;
+  if (rowCount === 1 && columnCount === 1) return first;
+  const last = `${columnName(columnIndex + columnCount - 1)}${
+    rowIndex + rowCount
+  }`;
+  return `${first}:${last}`;
+}
+
 export function loadValuesOnlyUsedRange(sheet) {
   return sheet
     .getUsedRangeOrNullObject(true)
