@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.13.0 (Sep 1, 2026)
+
+- Improved xlwings API coverage.
+
 ## 1.12.1 (Aug 25, 2026)
 
 - Internal changes for xlwings Lite.
