@@ -1329,12 +1329,12 @@ export function registerCallback(callback) {
 }
 
 // Functions map
-// Didn't find a way to use registerCallback so that webpack won't strip out these
-// functions when optimizing
 const setFormula = createSetFormula(getRange);
 const setFormulaArray = createSetFormulaArray(
   getRange,
-  Office.context.requirements.isSetSupported.bind(Office.context.requirements),
+  // Lazy: Office.context doesn't exist yet at module-eval time (before
+  // Office.onReady), so it must only be dereferenced when the action runs.
+  (name, version) => Office.context.requirements.isSetSupported(name, version),
 );
 const setColumnWidth = createSetColumnWidth(getRange);
 const addTable = createAddTable(getSheet);
