@@ -894,6 +894,21 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
               "areas/address,areas/rowIndex,areas/columnIndex,areas/rowCount,areas/columnCount",
             )
         : null;
+    // getMergedAreasOrNullObject() only reports the part of a merged area that
+    // falls *inside* the queried range, so asking a single cell returns that
+    // cell rather than the block it belongs to. COM's MergeArea returns the
+    // whole block, so widen the query to the entire row -- a merged area is
+    // contiguous, so the block containing this cell is wholly inside it.
+    const mergeAreaSearch = readKeys.includes("merge_area")
+      ? range
+          .getEntireRow()
+          .getMergedAreasOrNullObject()
+          .load("areas/address,areas/columnIndex,areas/columnCount")
+      : null;
+    if (readKeys.includes("merge_area")) {
+      // Needed to pick the area covering this range out of the row.
+      range.load("columnIndex");
+    }
     const tables = readKeys.includes("table")
       ? range.getTables(false).load("items/name")
       : null;
@@ -987,12 +1002,18 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
           result.current_region = unqualifiedAddress(surroundingRegion);
           break;
         case "merge_area": {
-          // Office.js returns every merged area overlapping the range; xlwings
-          // wants the one containing the cell, and the cell itself when it
-          // isn't merged.
-          const areas = mergedAreas.isNullObject ? [] : mergedAreas.areas.items;
-          result.merge_area =
-            areas.length > 0 ? unqualifiedAddress(areas[0]) : null;
+          // The row may hold several merged blocks; pick the one covering this
+          // range's first column. null when the cell isn't merged, which the
+          // Python side turns into the range itself, as COM does.
+          const areas = mergeAreaSearch.isNullObject
+            ? []
+            : mergeAreaSearch.areas.items;
+          const covering = areas.find(
+            (area) =>
+              area.columnIndex <= range.columnIndex &&
+              range.columnIndex < area.columnIndex + area.columnCount,
+          );
+          result.merge_area = covering ? unqualifiedAddress(covering) : null;
           break;
         }
         case "merge_cells": {
