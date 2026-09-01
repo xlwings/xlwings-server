@@ -896,17 +896,19 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
         : null;
     // getMergedAreasOrNullObject() only reports the part of a merged area that
     // falls *inside* the queried range, so asking a single cell returns that
-    // cell rather than the block it belongs to. COM's MergeArea returns the
-    // whole block, so widen the query to the entire row -- a merged area is
-    // contiguous, so the block containing this cell is wholly inside it.
+    // cell rather than the block it belongs to -- where COM's MergeArea gives
+    // the whole block. Widen to the surrounding region, which is the
+    // contiguous block around the cell and so contains any merged area the
+    // cell belongs to. Not the entire row: that has 16k columns, and
+    // getMergedAreasOrNullObject() gives up past 512 merged areas.
     const mergeAreaSearch = readKeys.includes("merge_area")
       ? range
-          .getEntireRow()
+          .getSurroundingRegion()
           .getMergedAreasOrNullObject()
           .load("areas/address,areas/columnIndex,areas/columnCount")
       : null;
     if (readKeys.includes("merge_area")) {
-      // Needed to pick the area covering this range out of the row.
+      // Needed to pick the area covering this range out of the region.
       range.load("columnIndex");
     }
     const tables = readKeys.includes("table")
@@ -1002,12 +1004,13 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
           result.current_region = unqualifiedAddress(surroundingRegion);
           break;
         case "merge_area": {
-          // The row may hold several merged blocks; pick the one covering this
-          // range's first column. null when the cell isn't merged, which the
-          // Python side turns into the range itself, as COM does.
-          const areas = mergeAreaSearch.isNullObject
-            ? []
-            : mergeAreaSearch.areas.items;
+          // The region may hold several merged blocks; pick the one covering
+          // this range's first column. null when the cell isn't merged, which
+          // the Python side turns into the range itself, as COM does.
+          const areas =
+            !mergeAreaSearch || mergeAreaSearch.isNullObject
+              ? []
+              : mergeAreaSearch.areas.items;
           const covering = areas.find(
             (area) =>
               area.columnIndex <= range.columnIndex &&
