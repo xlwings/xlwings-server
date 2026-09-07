@@ -22,7 +22,7 @@ uv run run.py init
 
 ### Minimum Python Version and Type Hints
 
-This project requires Python 3.10+ (see `requires-python` in `pyproject.toml`). Use modern Python 3.10+ features:
+This project requires Python 3.11+ (see `requires-python` in `pyproject.toml`). Use modern Python 3.11+ features:
 
 **Type Hints (PEP 604 and PEP 585):**
 
@@ -33,7 +33,7 @@ This project requires Python 3.10+ (see `requires-python` in `pyproject.toml`). 
 **Examples:**
 
 ```python
-# Good (Python 3.10+)
+# Good (Python 3.11+)
 def process(data: dict[str, Any], default: str | None = None) -> list[str]:
     ...
 

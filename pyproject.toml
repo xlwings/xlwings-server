@@ -11,12 +11,11 @@ license = { text = "xlwings PRO License OR PolyForm Noncommercial License 1.0.0"
 authors = [
     { name = "Zoomer Analytics GmbH", email = "felix.zumstein@zoomeranalytics.com" },
 ]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Topic :: Office/Business :: Financial :: Spreadsheet",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
@@ -40,7 +39,6 @@ dependencies = [
     "python-socketio>=5.15.1",
     "redis>=7.1.0",
     "tomlkit>=0.13.2",
-    "typing-extensions>=4.15.0 ; python_full_version < '3.11'",
     "uvicorn>=0.38.0",
     "uvloop>=0.22.1 ; sys_platform != 'win32'",
     "xlwings>=0.37.0",
@@ -100,7 +98,7 @@ exclude = [
 [tool.ruff]
 line-length = 88
 fix = true
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.lint]
 unfixable = [
