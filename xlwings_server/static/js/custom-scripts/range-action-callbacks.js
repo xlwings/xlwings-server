@@ -62,9 +62,11 @@ export function createSetBorderProperty(getRange) {
     switch (attribute) {
       case "line_style":
         property = "style";
-        // null is how Python asks for the border to be removed
+        // null is how Python asks for the border to be removed. Lite hands
+        // the actions over via Pyodide's to_js(), which turns None into
+        // undefined rather than null, so check loosely.
         officeValue =
-          value === null
+          value == null
             ? BORDER_LINE_STYLES.none
             : officeBorderValue(BORDER_LINE_STYLES, value, "line style");
         break;

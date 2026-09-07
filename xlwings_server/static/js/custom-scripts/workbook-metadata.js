@@ -196,9 +196,13 @@ const BORDER_WEIGHTS_FROM_OFFICE = invert(BORDER_WEIGHTS);
 
 // Turns the loaded items of a RangeBorderCollection into the payload the
 // Python side reads: all eight sides keyed by their snake_case name, each with
-// line_style ("none" for no border), weight and color. Office.js reports an
-// empty or absent value when the range's cells don't agree, which becomes null,
-// like every other read. A removed border has no colour, so that's null too.
+// line_style ("none" for no border), weight and color. Unlike the desktop
+// engines, Office.js doesn't flag a side whose segments differ from cell to
+// cell: an edge reports its first segment's value, and an inside border reads
+// "None" once the range's cells don't share the same border formatting, even
+// though every cell's own borders are intact (measured on Excel for Mac,
+// 2026-09-07). An empty, absent or unknown value still becomes null, like
+// every other read. A removed border has no colour, so that's null too.
 export function normalizeBorders(items, resolveNamedColor = canvasColor) {
   const bySide = new Map((items || []).map((item) => [item.sideIndex, item]));
   const borders = {};

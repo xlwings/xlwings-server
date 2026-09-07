@@ -373,8 +373,10 @@ describe("normalizeBorders", () => {
     expect(borders.edge_bottom.color).toBe("#00ff00");
   });
 
-  it("reports null where the range's cells don't agree", () => {
-    // Office.js leaves the value empty for a mixed range
+  it("reports null for empty values", () => {
+    // Office.js doesn't leave border values empty for a mixed range (it
+    // reports the first segment's), but an empty value still mustn't leak
+    // through as "" or throw.
     const items = uniform("", "", "");
     const borders = normalizeBorders(items, named);
     expect(borders.edge_left).toEqual({

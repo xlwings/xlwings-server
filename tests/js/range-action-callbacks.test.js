@@ -157,12 +157,16 @@ describe("setBorderProperty action callback", () => {
     expect(h.writes).toEqual([["EdgeTop", "style", officeStyle]]);
   });
 
-  it("removes the border for a null line style", async () => {
+  it.each([
+    ["null", null],
+    // Lite's Pyodide bridge turns Python's None into undefined, not null
+    ["undefined", undefined],
+  ])("removes the border for a %s line style", async (_, value) => {
     const h = harness();
     const setBorderProperty = createSetBorderProperty(h.getRange);
 
     await setBorderProperty(h.context, {
-      args: ["inside_horizontal", "line_style", null],
+      args: ["inside_horizontal", "line_style", value],
     });
 
     expect(h.writes).toEqual([["InsideHorizontal", "style", "None"]]);
