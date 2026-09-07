@@ -1,13 +1,7 @@
 import logging
-from typing import Any
+from typing import Any, Self
 
 from pydantic import BaseModel, Field, model_validator
-
-try:
-    from typing import Self
-except ImportError:
-    # Python < 3.11
-    from typing_extensions import Self
 
 logger = logging.getLogger(__name__)
 

@@ -18,7 +18,7 @@ xlwings Server adds Python support to Microsoft Excel without the need of a loca
 - Intellectual property protection: the Python source code can't be accessed by the Excel user
 - Supports SSO (single sign-on) authentication and RBAC (role-based access control) via Microsoft Entra ID (previously known as Azure AD)
 - No sensitive credentials need to be stored on the end-user's computer or in the workbook
-- Compatible with Python 3.10+
+- Compatible with Python 3.11+
 
 ```{toctree}
 :hidden:

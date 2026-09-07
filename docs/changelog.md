@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Python 3.11 is now the minimum supported version.
+
 ## 1.13.0 (Sep 1, 2026)
 
 - Improved xlwings API coverage.
