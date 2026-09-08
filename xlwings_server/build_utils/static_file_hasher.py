@@ -195,7 +195,16 @@ class StaticFileHasher:
             )
 
             for old_pattern, new_pattern in patterns:
-                new_content = new_content.replace(old_pattern, new_pattern)
+                if old_pattern not in new_content:
+                    continue
+                # Match a complete filename, not an extension prefix:
+                # reference.js must not rewrite a vendored reference.json URL
+                # (or a .js.map URL) to a file that was never renamed.
+                new_content = re.sub(
+                    re.escape(old_pattern) + r"(?![\w.-])",
+                    lambda match: new_pattern,
+                    new_content,
+                )
 
         if new_content != content:
             file_path.write_text(new_content)
