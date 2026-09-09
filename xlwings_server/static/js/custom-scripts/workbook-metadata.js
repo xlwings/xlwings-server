@@ -116,6 +116,11 @@ const RANGE_READ_KEYS = {
   merge_area: [],
   merge_cells: [],
   table: [],
+  // format.borders is a collection, which range.load() can't express as a
+  // property path, so getRangeData loads it explicitly. One key for all eight
+  // sides: they come from one collection, so fetching them together costs no
+  // more than one.
+  borders: [],
 };
 
 export function rangeReadKeys(keys) {
@@ -151,9 +156,78 @@ export function rangeReadProperties(keys, includeNumberFormatCategories) {
   return properties;
 }
 
-// Office.js allows named HTML colours for a fill ("orange"); xlwings expects
+// The border vocabulary the Python side uses (snake_case, see
+// xlwings.base_classes) against the Office.js BorderIndex / BorderLineStyle /
+// BorderWeight strings. Python only ever sends and expects the left-hand side.
+export const BORDER_SIDES = {
+  edge_top: "EdgeTop",
+  edge_bottom: "EdgeBottom",
+  edge_left: "EdgeLeft",
+  edge_right: "EdgeRight",
+  inside_vertical: "InsideVertical",
+  inside_horizontal: "InsideHorizontal",
+  diagonal_down: "DiagonalDown",
+  diagonal_up: "DiagonalUp",
+};
+export const BORDER_LINE_STYLES = {
+  continuous: "Continuous",
+  dash: "Dash",
+  dash_dot: "DashDot",
+  dash_dot_dot: "DashDotDot",
+  dot: "Dot",
+  double: "Double",
+  slant_dash_dot: "SlantDashDot",
+  none: "None",
+};
+export const BORDER_WEIGHTS = {
+  hairline: "Hairline",
+  thin: "Thin",
+  medium: "Medium",
+  thick: "Thick",
+};
+
+function invert(mapping) {
+  return Object.fromEntries(
+    Object.entries(mapping).map(([key, value]) => [value, key]),
+  );
+}
+const BORDER_LINE_STYLES_FROM_OFFICE = invert(BORDER_LINE_STYLES);
+const BORDER_WEIGHTS_FROM_OFFICE = invert(BORDER_WEIGHTS);
+
+// Turns the loaded items of a RangeBorderCollection into the payload the
+// Python side reads: all eight sides keyed by their snake_case name, each with
+// line_style ("none" for no border), weight and color. Unlike the desktop
+// engines, Office.js doesn't flag a side whose segments differ from cell to
+// cell: an edge reports its first segment's value, and an inside border reads
+// "None" once the range's cells don't share the same border formatting, even
+// though every cell's own borders are intact (measured on Excel for Mac,
+// 2026-09-07). An empty, absent or unknown value still becomes null, like
+// every other read. A removed border has no color, so that's null too.
+export function normalizeBorders(items, resolveNamedColor = canvasColor) {
+  const bySide = new Map((items || []).map((item) => [item.sideIndex, item]));
+  const borders = {};
+  for (const [side, index] of Object.entries(BORDER_SIDES)) {
+    const item = bySide.get(index);
+    const lineStyle = item?.style
+      ? (BORDER_LINE_STYLES_FROM_OFFICE[item.style] ?? null)
+      : null;
+    borders[side] = {
+      line_style: lineStyle,
+      weight: item?.weight
+        ? (BORDER_WEIGHTS_FROM_OFFICE[item.weight] ?? null)
+        : null,
+      color:
+        lineStyle === "none" || !item
+          ? null
+          : normalizeFillColor(item.color, resolveNamedColor),
+    };
+  }
+  return borders;
+}
+
+// Office.js allows named HTML colors for a fill ("orange"); xlwings expects
 // #RRGGBB. Resolving a name needs a DOM round-trip, which only happens when a
-// colour is actually read and isn't already hex.
+// color is actually read and isn't already hex.
 export function normalizeFillColor(color, resolveNamedColor = canvasColor) {
   if (!color) return null;
   if (/^#[0-9a-f]{6}$/i.test(color)) return color;
@@ -162,7 +236,7 @@ export function normalizeFillColor(color, resolveNamedColor = canvasColor) {
   return /^#[0-9a-f]{6}$/i.test(resolved) ? resolved : null;
 }
 
-// Named-colour resolution is the one part that needs a DOM, so it's injected
+// Named-color resolution is the one part that needs a DOM, so it's injected
 // above rather than reached for directly -- that keeps normalizeFillColor
 // testable without pulling jsdom into this package.
 function canvasColor(color) {

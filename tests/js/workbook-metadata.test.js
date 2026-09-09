@@ -5,6 +5,7 @@ import {
   loadValuesOnlyUsedRange,
   loadWorksheetNotes,
   mergeCellsState,
+  normalizeBorders,
   normalizeFillColor,
   rangeAddressFromDimensions,
   rangeMetadata,
@@ -222,11 +223,12 @@ describe("rangeReadProperties", () => {
   });
 
   it("adds no load properties for the method-resolved keys", () => {
-    // current_region, merge_area, merge_cells and table come from method
-    // calls in getRangeData, not from range.load().
+    // current_region, merge_area, merge_cells, table and borders come from
+    // method calls or an explicit collection load in getRangeData, not from
+    // range.load().
     expect(
       rangeReadProperties(
-        ["current_region", "merge_area", "merge_cells", "table"],
+        ["current_region", "merge_area", "merge_cells", "table", "borders"],
         false,
       ),
     ).toEqual(["address", "rowCount", "columnCount"]);
@@ -257,22 +259,158 @@ describe("rangeReadKeys", () => {
 });
 
 describe("normalizeFillColor", () => {
-  // Office.js documents both #RRGGBB and named HTML colours for a fill; the
+  // Office.js documents both #RRGGBB and named HTML colors for a fill; the
   // Python side's hex_to_rgb() only understands the former.
   const named = (color) => (color === "orange" ? "#ffa500" : "");
 
-  it("passes hex colours through, adding the missing hash", () => {
+  it("passes hex colors through, adding the missing hash", () => {
     expect(normalizeFillColor("#FFA500", named)).toBe("#FFA500");
     expect(normalizeFillColor("FFA500", named)).toBe("#FFA500");
   });
 
-  it("resolves a named colour", () => {
+  it("resolves a named color", () => {
     expect(normalizeFillColor("orange", named)).toBe("#ffa500");
   });
 
-  it("treats an absent or unresolvable colour as no fill", () => {
+  it("treats an absent or unresolvable color as no fill", () => {
     expect(normalizeFillColor(null, named)).toBeNull();
     expect(normalizeFillColor("", named)).toBeNull();
-    expect(normalizeFillColor("notacolour", named)).toBeNull();
+    expect(normalizeFillColor("notacolor", named)).toBeNull();
+  });
+});
+
+describe("normalizeBorders", () => {
+  // What Python's Border.get_*() / Borders.get_*() read: all eight sides,
+  // keyed and valued in the snake_case vocabulary of xlwings.base_classes.
+  const named = (color) => (color === "orange" ? "#ffa500" : "");
+  const SIDES = {
+    edge_top: "EdgeTop",
+    edge_bottom: "EdgeBottom",
+    edge_left: "EdgeLeft",
+    edge_right: "EdgeRight",
+    inside_vertical: "InsideVertical",
+    inside_horizontal: "InsideHorizontal",
+    diagonal_down: "DiagonalDown",
+    diagonal_up: "DiagonalUp",
+  };
+  const uniform = (style, weight, color) =>
+    Object.values(SIDES).map((sideIndex) => ({
+      sideIndex,
+      style,
+      weight,
+      color,
+    }));
+
+  it("reports all eight sides in the Python vocabulary", () => {
+    const borders = normalizeBorders(
+      uniform("Continuous", "Thin", "#FF0000"),
+      named,
+    );
+    expect(Object.keys(borders)).toEqual(Object.keys(SIDES));
+    for (const side of Object.keys(SIDES)) {
+      expect(borders[side]).toEqual({
+        line_style: "continuous",
+        weight: "thin",
+        color: "#FF0000",
+      });
+    }
+  });
+
+  it.each([
+    ["Continuous", "continuous"],
+    ["Dash", "dash"],
+    ["DashDot", "dash_dot"],
+    ["DashDotDot", "dash_dot_dot"],
+    ["Dot", "dot"],
+    ["Double", "double"],
+    ["SlantDashDot", "slant_dash_dot"],
+  ])("maps the line style %s to %s", (officeStyle, lineStyle) => {
+    const borders = normalizeBorders(uniform(officeStyle, "Thin", "#000000"));
+    expect(borders.edge_top.line_style).toBe(lineStyle);
+  });
+
+  it.each([
+    ["Hairline", "hairline"],
+    ["Thin", "thin"],
+    ["Medium", "medium"],
+    ["Thick", "thick"],
+  ])("maps the weight %s to %s", (officeWeight, weight) => {
+    const borders = normalizeBorders(
+      uniform("Continuous", officeWeight, "#000000"),
+    );
+    expect(borders.inside_vertical.weight).toBe(weight);
+  });
+
+  it("reports a removed border as none without a color", () => {
+    const items = uniform("Continuous", "Thin", "#000000");
+    items[0].style = "None";
+    const borders = normalizeBorders(items, named);
+    expect(borders.edge_top).toEqual({
+      line_style: "none",
+      weight: "thin",
+      color: null,
+    });
+    expect(borders.edge_bottom.color).toBe("#000000");
+  });
+
+  it("keeps the sides apart", () => {
+    const items = uniform("Continuous", "Thin", "#000000");
+    items.find((item) => item.sideIndex === "DiagonalUp").style = "Double";
+    items.find((item) => item.sideIndex === "InsideHorizontal").weight =
+      "Thick";
+    const borders = normalizeBorders(items, named);
+    expect(borders.diagonal_up.line_style).toBe("double");
+    expect(borders.diagonal_down.line_style).toBe("continuous");
+    expect(borders.inside_horizontal.weight).toBe("thick");
+    expect(borders.inside_vertical.weight).toBe("thin");
+  });
+
+  it("normalizes named and hash-less colors", () => {
+    const items = uniform("Continuous", "Thin", "orange");
+    items[1].color = "00ff00";
+    const borders = normalizeBorders(items, named);
+    expect(borders.edge_top.color).toBe("#ffa500");
+    expect(borders.edge_bottom.color).toBe("#00ff00");
+  });
+
+  it("reports null for empty values", () => {
+    // Office.js doesn't leave border values empty for a mixed range (it
+    // reports the first segment's), but an empty value still mustn't leak
+    // through as "" or throw.
+    const items = uniform("", "", "");
+    const borders = normalizeBorders(items, named);
+    expect(borders.edge_left).toEqual({
+      line_style: null,
+      weight: null,
+      color: null,
+    });
+    expect(
+      normalizeBorders(uniform(null, null, null), named).edge_left,
+    ).toEqual({ line_style: null, weight: null, color: null });
+  });
+
+  it("tolerates missing items and unknown values", () => {
+    const borders = normalizeBorders(
+      [
+        {
+          sideIndex: "EdgeTop",
+          style: "Fancy",
+          weight: "Bold",
+          color: "#000000",
+        },
+      ],
+      named,
+    );
+    expect(borders.edge_top).toEqual({
+      line_style: null,
+      weight: null,
+      color: "#000000",
+    });
+    expect(borders.edge_bottom).toEqual({
+      line_style: null,
+      weight: null,
+      color: null,
+    });
+    expect(Object.keys(normalizeBorders(null, named))).toHaveLength(8);
   });
 });
