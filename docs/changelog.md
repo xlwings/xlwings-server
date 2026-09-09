@@ -1,8 +1,9 @@
 # Changelog
 
-## Unreleased
+## 1.14.0 (Sep 9, 2026)
 
-- Python 3.11 is now the minimum supported version.
+- Added support to set `Range.borders`, see https://docs.xlwings.org/en/latest/api/border.html and https://docs.xlwings.org/en/latest/api/borders.html
+- Dropped support for Python 3.10.
 
 ## 1.13.0 (Sep 1, 2026)
 

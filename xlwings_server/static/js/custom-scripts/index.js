@@ -21,6 +21,7 @@ import {
   loadValuesOnlyUsedRange,
   loadWorksheetNotes,
   mergeCellsState,
+  normalizeBorders,
   normalizeFillColor,
   rangeAddressFromDimensions,
   rangeMetadata,
@@ -32,6 +33,7 @@ import { readNamedItems } from "./named-items.js";
 import { dispatchActions } from "./action-dispatch.js";
 import { getActionSheet } from "./action-targets.js";
 import {
+  createSetBorderProperty,
   createSetColumnWidth,
   createSetFormula,
   createSetFormulaArray,
@@ -830,6 +832,12 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
     const tables = readKeys.includes("table")
       ? range.getTables(false).load("items/name")
       : null;
+    // A collection, so it can't ride along in range.load() above.
+    const borders = readKeys.includes("borders")
+      ? range.format.borders.load(
+          "items/sideIndex,items/style,items/weight,items/color",
+        )
+      : null;
     await context.sync();
     const metadata = rangeMetadata(range);
     const result = {
@@ -870,7 +878,7 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
           break;
         }
         case "color":
-          // Office.js may report a named HTML colour ("orange") rather than
+          // Office.js may report a named HTML color ("orange") rather than
           // #RRGGBB; normalize so the Python side only ever sees hex.
           result.color = normalizeFillColor(range.format.fill.color);
           break;
@@ -903,7 +911,7 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
             bold: font.bold,
             italic: font.italic,
             size: font.size,
-            // Office.js may report a named HTML colour here too.
+            // Office.js may report a named HTML color here too.
             color: normalizeFillColor(font.color),
             name: font.name,
           };
@@ -933,6 +941,9 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
           result.merge_cells = mergeCellsState(range, areas);
           break;
         }
+        case "borders":
+          result.borders = normalizeBorders(borders.items);
+          break;
         case "table":
           // A range overlaps at most one table in practice; null means none.
           result.table = tables.items.length > 0 ? tables.items[0].name : null;
@@ -1265,6 +1276,7 @@ const setFormulaArray = createSetFormulaArray(
   (name, version) => Office.context.requirements.isSetSupported(name, version),
 );
 const setColumnWidth = createSetColumnWidth(getRange);
+const setBorderProperty = createSetBorderProperty(getRange);
 const addTable = createAddTable(getSheet);
 let funcs = {
   setValues: setValues,
@@ -1352,6 +1364,7 @@ let funcs = {
   freezePaneAtRange: freezePaneAtRange,
   freezePaneUnfreeze: freezePaneUnfreeze,
   setFontProperty: setFontProperty,
+  setBorderProperty: setBorderProperty,
 };
 
 Object.assign(globalThis.callbacks, funcs);
