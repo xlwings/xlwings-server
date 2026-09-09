@@ -9,6 +9,7 @@ export async function readNamedItems(context, scopes) {
   await context.sync();
 
   const entries = scopes.flatMap(({ collection, scopeSheet = null }) =>
+    // Preserve the native payload; xlwings.Names applies the shared filter.
     collection.items.map((item) => ({
       item,
       scopeSheet,

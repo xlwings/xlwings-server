@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Office.js: `book.names` now includes user-defined constants and formulas, including LAMBDAs. Excel-generated `_xlfn.*` and `_xlpm.*` names are filtered by xlwings across engines. Scripts that iterate over names must no longer assume every name refers to a range.
+- Office.js: `Name.refers_to` now returns the original formula (for example, `=OFFSET(...)`) instead of rebuilding its resolved address. Use `Name.refers_to_range` when you need the resolved single range.
+
 ## 1.14.0 (Sep 9, 2026)
 
 - Added support to set `Range.borders`, see https://docs.xlwings.org/en/latest/api/border.html and https://docs.xlwings.org/en/latest/api/borders.html
