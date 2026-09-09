@@ -80,6 +80,36 @@ describe("named item snapshots", () => {
     },
   );
 
+  it.each([false, true])(
+    "preserves internal and hidden names for the shared Python filter (sheet scope: %s)",
+    async (sheetScope) => {
+      const scopeSheet = sheetScope
+        ? loadable({ name: "Scope", position: 0 })
+        : null;
+      const items = [
+        "_xlfn.LAMBDA",
+        "_xlpm.value",
+        "_xlfn.UNIQUE",
+        "_xlfn.ANCHORARRAY",
+        "HiddenUserName",
+      ].map((name) => ({
+        name,
+        type: "Error",
+        formula: "=#NAME?",
+        visible: false,
+      }));
+      const result = await readNamedItems({ sync: vi.fn(async () => {}) }, [
+        { collection: loadable({ items }), scopeSheet },
+      ]);
+      expect(result.map(({ name }) => name)).toEqual(
+        items.map(({ name }) => name),
+      );
+      expect(result.every(({ book_scope }) => book_scope === !sheetScope)).toBe(
+        true,
+      );
+    },
+  );
+
   it("batches workbook and worksheet names without syncing per sheet", async () => {
     const context = { sync: vi.fn(async () => {}) };
     const scopes = Array.from({ length: 20 }, (_, index) => ({
