@@ -188,7 +188,7 @@ describe("setBorderProperty action callback", () => {
     expect(h.writes).toEqual([["EdgeLeft", "weight", officeWeight]]);
   });
 
-  it("writes the hex colour through unchanged", async () => {
+  it("writes the hex color through unchanged", async () => {
     const h = harness();
     const setBorderProperty = createSetBorderProperty(h.getRange);
 
@@ -221,7 +221,7 @@ describe("setBorderProperty action callback", () => {
   });
 
   it("applies a combined write in the order the actions arrive", async () => {
-    // Borders.set() queues colour, weight, line style per side, in that order
+    // Borders.set() queues color, weight, line style per side, in that order
     // (see xlwings.main.Borders.set), and relies on the client keeping it.
     const h = harness();
     const setBorderProperty = createSetBorderProperty(h.getRange);

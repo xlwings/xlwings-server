@@ -259,23 +259,23 @@ describe("rangeReadKeys", () => {
 });
 
 describe("normalizeFillColor", () => {
-  // Office.js documents both #RRGGBB and named HTML colours for a fill; the
+  // Office.js documents both #RRGGBB and named HTML colors for a fill; the
   // Python side's hex_to_rgb() only understands the former.
   const named = (color) => (color === "orange" ? "#ffa500" : "");
 
-  it("passes hex colours through, adding the missing hash", () => {
+  it("passes hex colors through, adding the missing hash", () => {
     expect(normalizeFillColor("#FFA500", named)).toBe("#FFA500");
     expect(normalizeFillColor("FFA500", named)).toBe("#FFA500");
   });
 
-  it("resolves a named colour", () => {
+  it("resolves a named color", () => {
     expect(normalizeFillColor("orange", named)).toBe("#ffa500");
   });
 
-  it("treats an absent or unresolvable colour as no fill", () => {
+  it("treats an absent or unresolvable color as no fill", () => {
     expect(normalizeFillColor(null, named)).toBeNull();
     expect(normalizeFillColor("", named)).toBeNull();
-    expect(normalizeFillColor("notacolour", named)).toBeNull();
+    expect(normalizeFillColor("notacolor", named)).toBeNull();
   });
 });
 
@@ -341,7 +341,7 @@ describe("normalizeBorders", () => {
     expect(borders.inside_vertical.weight).toBe(weight);
   });
 
-  it("reports a removed border as none without a colour", () => {
+  it("reports a removed border as none without a color", () => {
     const items = uniform("Continuous", "Thin", "#000000");
     items[0].style = "None";
     const borders = normalizeBorders(items, named);
@@ -365,7 +365,7 @@ describe("normalizeBorders", () => {
     expect(borders.inside_vertical.weight).toBe("thin");
   });
 
-  it("normalizes named and hash-less colours", () => {
+  it("normalizes named and hash-less colors", () => {
     const items = uniform("Continuous", "Thin", "orange");
     items[1].color = "00ff00";
     const borders = normalizeBorders(items, named);
