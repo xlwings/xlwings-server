@@ -157,7 +157,7 @@ export function rangeReadProperties(keys, includeNumberFormatCategories) {
 }
 
 // The border vocabulary the Python side uses (snake_case, see
-// xlwings.enums) against the Office.js BorderIndex / BorderLineStyle /
+// xlwings.base_classes) against the Office.js BorderIndex / BorderLineStyle /
 // BorderWeight strings. Python only ever sends and expects the left-hand side.
 export const BORDER_SIDES = {
   edge_top: "EdgeTop",

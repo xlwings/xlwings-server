@@ -281,7 +281,7 @@ describe("normalizeFillColor", () => {
 
 describe("normalizeBorders", () => {
   // What Python's Border.get_*() / Borders.get_*() read: all eight sides,
-  // keyed and valued in the snake_case vocabulary of xlwings.enums.
+  // keyed and valued in the snake_case vocabulary of xlwings.base_classes.
   const named = (color) => (color === "orange" ? "#ffa500" : "");
   const SIDES = {
     edge_top: "EdgeTop",
