@@ -202,7 +202,7 @@ const BORDER_WEIGHTS_FROM_OFFICE = invert(BORDER_WEIGHTS);
 // "None" once the range's cells don't share the same border formatting, even
 // though every cell's own borders are intact (measured on Excel for Mac,
 // 2026-09-07). An empty, absent or unknown value still becomes null, like
-// every other read. A removed border has no colour, so that's null too.
+// every other read. A removed border has no color, so that's null too.
 export function normalizeBorders(items, resolveNamedColor = canvasColor) {
   const bySide = new Map((items || []).map((item) => [item.sideIndex, item]));
   const borders = {};
@@ -225,9 +225,9 @@ export function normalizeBorders(items, resolveNamedColor = canvasColor) {
   return borders;
 }
 
-// Office.js allows named HTML colours for a fill ("orange"); xlwings expects
+// Office.js allows named HTML colors for a fill ("orange"); xlwings expects
 // #RRGGBB. Resolving a name needs a DOM round-trip, which only happens when a
-// colour is actually read and isn't already hex.
+// color is actually read and isn't already hex.
 export function normalizeFillColor(color, resolveNamedColor = canvasColor) {
   if (!color) return null;
   if (/^#[0-9a-f]{6}$/i.test(color)) return color;
@@ -236,7 +236,7 @@ export function normalizeFillColor(color, resolveNamedColor = canvasColor) {
   return /^#[0-9a-f]{6}$/i.test(resolved) ? resolved : null;
 }
 
-// Named-colour resolution is the one part that needs a DOM, so it's injected
+// Named-color resolution is the one part that needs a DOM, so it's injected
 // above rather than reached for directly -- that keeps normalizeFillColor
 // testable without pulling jsdom into this package.
 function canvasColor(color) {

@@ -52,7 +52,7 @@ export function createSetBorderProperty(getRange) {
   // One action per side and attribute, see xlwings.pro._xlremote.Border. The
   // Python side validates and sends its snake_case vocabulary; anything else
   // here is a protocol mismatch and fails before touching the range. Combined
-  // writes arrive as separate actions already in the documented colour,
+  // writes arrive as separate actions already in the documented color,
   // weight, line-style order, so nothing needs reordering.
   return async function setBorderProperty(context, action) {
     const [side, attribute, value] = action.args;

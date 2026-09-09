@@ -1,9 +1,9 @@
 # Changelog
 
-## Unreleased
+## 1.14.0 (Sep 9, 2026)
 
-- Python 3.11 is now the minimum supported version.
-- `Range.borders` can now be set (line style, weight and colour per side, or via `set()`/`clear()`), and read in xlwings Lite via `await myrange.borders["edge_top"].get_line_style()`. Requires xlwings 0.38.0.
+- Added support to set `Range.borders`, see https://docs.xlwings.org/en/latest/api/border.html and https://docs.xlwings.org/en/latest/api/borders.html
+- Dropped support for Python 3.10.
 
 ## 1.13.0 (Sep 1, 2026)
 

@@ -950,7 +950,7 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
           break;
         }
         case "color":
-          // Office.js may report a named HTML colour ("orange") rather than
+          // Office.js may report a named HTML color ("orange") rather than
           // #RRGGBB; normalize so the Python side only ever sees hex.
           result.color = normalizeFillColor(range.format.fill.color);
           break;
@@ -983,7 +983,7 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
             bold: font.bold,
             italic: font.italic,
             size: font.size,
-            // Office.js may report a named HTML colour here too.
+            // Office.js may report a named HTML color here too.
             color: normalizeFillColor(font.color),
             name: font.name,
           };
