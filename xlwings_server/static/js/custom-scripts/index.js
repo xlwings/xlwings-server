@@ -441,7 +441,7 @@ async function getBookData(
   payload["sheets"] = [];
   let sheetsLoader = [];
   sheets.forEach((sheet) => {
-    sheet.load("name,visibility,names");
+    sheet.load("name,visibility,names,showGridlines");
     let usedRange;
     if (!excludeArray.includes(sheet.name)) {
       // Values-only is intentional here, even though formatting-only cells
@@ -650,6 +650,7 @@ async function getBookData(
     payload["sheets"].push({
       name: item["sheet"].name,
       visibility: item["sheet"].visibility,
+      show_gridlines: item["sheet"].showGridlines,
       print_area: printAreaAddress(item["printArea"]),
       notes: notesArray(item),
       used_range_address: usedRange.address,
@@ -1288,6 +1289,7 @@ let funcs = {
   addSheet: addSheet,
   setSheetName: setSheetName,
   setSheetVisibility: setSheetVisibility,
+  setShowGridlines: setShowGridlines,
   setAutofit: setAutofit,
   setSheetAutofit: setSheetAutofit,
   setPrintArea: setPrintArea,
@@ -1433,6 +1435,11 @@ async function setSheetName(context, action) {
 async function setSheetVisibility(context, action) {
   const sheet = await getSheet(context, action);
   sheet.visibility = action.args[0].toString();
+}
+
+async function setShowGridlines(context, action) {
+  const sheet = await getSheet(context, action);
+  sheet.showGridlines = Boolean(action.args[0]);
 }
 
 async function setAutofit(context, action) {
