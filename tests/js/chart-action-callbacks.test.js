@@ -1,6 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createAddChart } from "../../xlwings_server/static/js/custom-scripts/chart-action-callbacks.js";
+import {
+  createAddChart,
+  createSetChartLegend,
+  createSetChartPlotBy,
+  createSetChartSourceData,
+  createSetChartStyle,
+  createSetChartTitle,
+} from "../../xlwings_server/static/js/custom-scripts/chart-action-callbacks.js";
 
 function harness({ activeSheetName = "Dashboard" } = {}) {
   const chart = {};
@@ -83,6 +90,61 @@ describe("addChart action callback", () => {
     expect(chart.height).toBe(280);
   });
 
+  it("passes seriesBy only when Python sent one", async () => {
+    // Without it, Office.js keeps its "Auto" heuristic.
+    const { chart, sheet, sourceRange, context } = harness();
+    const addChart = createAddChart(vi.fn(async () => sheet));
+
+    await addChart(context, {
+      sheet_position: 0,
+      args: ["MyChart", "Line", "Sheet1", "$A$1:$B$6", 0, 0, 355, 211, "Rows"],
+    });
+    expect(sheet.charts.add).toHaveBeenLastCalledWith(
+      "Line",
+      sourceRange,
+      "Rows",
+    );
+
+    await addChart(context, {
+      sheet_position: 0,
+      args: ["MyChart", "Line", "Sheet1", "$A$1:$B$6", 0, 0, 355, 211, null],
+    });
+    expect(sheet.charts.add).toHaveBeenLastCalledWith("Line", sourceRange);
+    expect(chart.name).toBe("MyChart");
+  });
+
+  it("positions the chart at the anchor cell and keeps the requested size", async () => {
+    const { chart, sheet, context } = harness();
+    const anchorRange = { address: "$D$4" };
+    sheet.getRange = vi.fn((address) =>
+      address === "$D$4" ? anchorRange : { select: vi.fn() },
+    );
+    chart.setPosition = vi.fn();
+    const addChart = createAddChart(vi.fn(async () => sheet));
+
+    await addChart(context, {
+      sheet_position: 0,
+      args: [
+        "MyChart",
+        "Line",
+        "Sheet1",
+        "$A$1:$B$6",
+        null,
+        null,
+        450,
+        280,
+        null,
+        "$D$4",
+      ],
+    });
+
+    expect(chart.setPosition).toHaveBeenCalledWith(anchorRange);
+    expect(chart.left).toBeUndefined();
+    expect(chart.top).toBeUndefined();
+    expect(chart.width).toBe(450);
+    expect(chart.height).toBe(280);
+  });
+
   it("leaves geometry alone when it isn't supplied", async () => {
     const { chart, sheet, context } = harness();
     const addChart = createAddChart(vi.fn(async () => sheet));
@@ -157,5 +219,140 @@ describe("addChart selection handling", () => {
 
     expect(sheet.getRange).toHaveBeenCalledWith("A1");
     expect(select).toHaveBeenCalled();
+  });
+});
+
+function chartHarness() {
+  const chart = { title: {}, legend: {} };
+  const sourceRange = { address: "$A$1:$B$6" };
+  const sourceSheet = { getRange: vi.fn(() => sourceRange) };
+  const context = {
+    workbook: { worksheets: { getItem: vi.fn(() => sourceSheet) } },
+    sync: vi.fn(async () => {}),
+  };
+  const getChart = vi.fn(async () => chart);
+  return { chart, sourceRange, sourceSheet, context, getChart };
+}
+
+describe("setChartSourceData action callback", () => {
+  it("accepts the legacy three-argument payload and lets Excel pick", async () => {
+    const { chart, sourceRange, sourceSheet, context, getChart } =
+      chartHarness();
+    chart.setData = vi.fn();
+    const setChartSourceData = createSetChartSourceData(getChart);
+
+    await setChartSourceData(context, {
+      sheet_position: 0,
+      args: [0, "Sheet1", "$A$1:$B$6"],
+    });
+
+    expect(context.workbook.worksheets.getItem).toHaveBeenCalledWith("Sheet1");
+    expect(sourceSheet.getRange).toHaveBeenCalledWith("$A$1:$B$6");
+    expect(chart.setData).toHaveBeenCalledWith(sourceRange);
+  });
+
+  it("passes an explicit seriesBy through", async () => {
+    const { chart, sourceRange, context, getChart } = chartHarness();
+    chart.setData = vi.fn();
+    const setChartSourceData = createSetChartSourceData(getChart);
+
+    await setChartSourceData(context, {
+      sheet_position: 0,
+      args: [0, "Sheet1", "$A$1:$B$6", "Columns"],
+    });
+
+    expect(chart.setData).toHaveBeenCalledWith(sourceRange, "Columns");
+  });
+});
+
+describe("setChartTitle action callback", () => {
+  it("shows the title and sets its text", async () => {
+    const { chart, context, getChart } = chartHarness();
+    const setChartTitle = createSetChartTitle(getChart);
+
+    await setChartTitle(context, { sheet_position: 0, args: [0, "Sales"] });
+
+    expect(getChart).toHaveBeenCalledWith(context, {
+      sheet_position: 0,
+      args: [0, "Sales"],
+    });
+    expect(chart.title).toEqual({ visible: true, text: "Sales" });
+  });
+
+  it("hides the title for null without touching the text", async () => {
+    const { chart, context, getChart } = chartHarness();
+    const setChartTitle = createSetChartTitle(getChart);
+
+    await setChartTitle(context, { sheet_position: 0, args: [0, null] });
+
+    expect(chart.title).toEqual({ visible: false });
+  });
+});
+
+describe("setChartLegend action callback", () => {
+  it("position then hide ends hidden", async () => {
+    const { chart, context, getChart } = chartHarness();
+    const setChartLegend = createSetChartLegend(getChart);
+
+    await setChartLegend(context, {
+      sheet_position: 0,
+      args: [0, "position", "Bottom"],
+    });
+    expect(chart.legend).toEqual({ visible: true, position: "Bottom" });
+
+    await setChartLegend(context, {
+      sheet_position: 0,
+      args: [0, "visible", false],
+    });
+    expect(chart.legend.visible).toBe(false);
+  });
+
+  it("hide then position ends visible at that position", async () => {
+    const { chart, context, getChart } = chartHarness();
+    const setChartLegend = createSetChartLegend(getChart);
+
+    await setChartLegend(context, {
+      sheet_position: 0,
+      args: [0, "visible", false],
+    });
+    await setChartLegend(context, {
+      sheet_position: 0,
+      args: [0, "position", "Top"],
+    });
+
+    expect(chart.legend).toEqual({ visible: true, position: "Top" });
+  });
+
+  it("rejects an unknown attribute before touching the chart", async () => {
+    const { chart, context, getChart } = chartHarness();
+    const setChartLegend = createSetChartLegend(getChart);
+
+    await expect(
+      setChartLegend(context, {
+        sheet_position: 0,
+        args: [0, "overlay", true],
+      }),
+    ).rejects.toThrow("Unknown chart legend attribute: overlay");
+    expect(chart.legend).toEqual({});
+  });
+});
+
+describe("setChartPlotBy and setChartStyle action callbacks", () => {
+  it("assigns plotBy", async () => {
+    const { chart, context, getChart } = chartHarness();
+    await createSetChartPlotBy(getChart)(context, {
+      sheet_position: 0,
+      args: [0, "Rows"],
+    });
+    expect(chart.plotBy).toBe("Rows");
+  });
+
+  it("assigns style as a number", async () => {
+    const { chart, context, getChart } = chartHarness();
+    await createSetChartStyle(getChart)(context, {
+      sheet_position: 0,
+      args: [0, "12"],
+    });
+    expect(chart.style).toBe(12);
   });
 });
