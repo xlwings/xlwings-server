@@ -40,7 +40,16 @@ import {
 } from "./range-action-callbacks.js";
 import { unsupportedRangeExpansion } from "./range-expansion.js";
 import { createAddTable } from "./table-action-callbacks.js";
-import { createAddChart } from "./chart-action-callbacks.js";
+import {
+  chartFromAction,
+  createAddChart,
+  createSetChartLegend,
+  createSetChartPlotBy,
+  createSetChartSourceData,
+  createSetChartStyle,
+  createSetChartTitle,
+  getChartByIndex,
+} from "./chart-action-callbacks.js";
 
 // Prints the supported API versions into the Console
 printSupportedApiVersions();
@@ -1278,6 +1287,13 @@ const setFormulaArray = createSetFormulaArray(
 );
 const setColumnWidth = createSetColumnWidth(getRange);
 const setBorderProperty = createSetBorderProperty(getRange);
+// Chart handlers built from their factories; like setBorderProperty they must
+// be declared before `funcs` below, which is evaluated at module load.
+const setChartSourceData = createSetChartSourceData(chartFromAction);
+const setChartTitle = createSetChartTitle(chartFromAction);
+const setChartLegend = createSetChartLegend(chartFromAction);
+const setChartPlotBy = createSetChartPlotBy(chartFromAction);
+const setChartStyle = createSetChartStyle(chartFromAction);
 const addTable = createAddTable(getSheet);
 let funcs = {
   setValues: setValues,
@@ -1310,6 +1326,10 @@ let funcs = {
   setChartSourceData: setChartSourceData,
   setChartPosition: setChartPosition,
   deleteChart: deleteChart,
+  setChartTitle: setChartTitle,
+  setChartLegend: setChartLegend,
+  setChartPlotBy: setChartPlotBy,
+  setChartStyle: setChartStyle,
   setNoteText: setNoteText,
   deleteNote: deleteNote,
   setShapeName: setShapeName,
@@ -1565,14 +1585,6 @@ async function setPictureHeight(context, action) {
   myshape.height = Number(action.args[1]);
 }
 
-async function getChartByIndex(context, sheetPosition, chartIndex) {
-  const sheets = context.workbook.worksheets.load("items");
-  await context.sync();
-  const charts = sheets.items[sheetPosition].charts.load("items");
-  await context.sync();
-  return charts.items[chartIndex];
-}
-
 async function setChartName(context, action) {
   const chart = await getChartByIndex(
     context,
@@ -1589,18 +1601,6 @@ async function setChartType(context, action) {
     Number(action.args[0]),
   );
   chart.chartType = action.args[1].toString();
-}
-
-async function setChartSourceData(context, action) {
-  const chart = await getChartByIndex(
-    context,
-    action.sheet_position,
-    Number(action.args[0]),
-  );
-  const sourceSheet = context.workbook.worksheets.getItem(
-    action.args[1].toString(),
-  );
-  chart.setData(sourceSheet.getRange(action.args[2].toString()));
 }
 
 async function setChartPosition(context, action) {
