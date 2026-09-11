@@ -5,8 +5,49 @@ import {
   createSetColumnWidth,
   createSetFormula,
   createSetFormulaArray,
+  createSetValues,
 } from "../../xlwings_server/static/js/custom-scripts/range-action-callbacks.js";
 import { dispatchActions } from "../../xlwings_server/static/js/custom-scripts/action-dispatch.js";
+
+describe("setValues action callback", () => {
+  it("awaits a separate sync for each write before dispatching the next", async () => {
+    const ranges = [{}, {}, {}];
+    const actions = ranges.map((_, index) => ({
+      func: "setValues",
+      start_row: index,
+      values: [[index]],
+    }));
+    const pendingSyncs = [];
+    const context = {
+      sync: vi.fn(() => new Promise((resolve) => pendingSyncs.push(resolve))),
+    };
+    const getRange = vi.fn(async (_, action) => ranges[action.start_row]);
+    let completed = false;
+    const execution = dispatchActions(actions, context, {
+      setValues: createSetValues(getRange),
+    }).then(() => {
+      completed = true;
+    });
+
+    for (let index = 0; index < actions.length; index++) {
+      await vi.waitFor(() => {
+        expect(context.sync).toHaveBeenCalledTimes(index + 1);
+      });
+      expect(getRange).toHaveBeenCalledTimes(index + 1);
+      expect(getRange).toHaveBeenLastCalledWith(context, actions[index]);
+      expect(ranges[index].values).toEqual(actions[index].values);
+      expect(completed).toBe(false);
+      if (index + 1 < ranges.length) {
+        expect(ranges[index + 1].values).toBeUndefined();
+      }
+      pendingSyncs[index]();
+    }
+
+    await execution;
+    expect(completed).toBe(true);
+    expect(context.sync).toHaveBeenCalledTimes(3);
+  });
+});
 
 describe("setFormula action callback", () => {
   it("writes the formula matrix and synchronizes the request context", async () => {

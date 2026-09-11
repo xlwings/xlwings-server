@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  convertDateValues,
   eagerValueRangeAddress,
+  liveRangeValues,
   loadValuesOnlyUsedRange,
   loadWorksheetNotes,
   mergeCellsState,
@@ -412,5 +414,59 @@ describe("normalizeBorders", () => {
       color: null,
     });
     expect(Object.keys(normalizeBorders(null, named))).toHaveLength(8);
+  });
+});
+
+describe("liveRangeValues", () => {
+  it("passes a null values result through without touching date categories", () => {
+    // Office.js returns null instead of raising on an oversized range get.
+    const range = { values: null };
+    Object.defineProperty(range, "numberFormatCategories", {
+      get: () => {
+        throw new Error("unloaded numberFormatCategories was accessed");
+      },
+    });
+
+    expect(liveRangeValues(range, true)).toBeNull();
+    expect(liveRangeValues(range, false)).toBeNull();
+  });
+
+  it("converts date and time serials when categories are available", () => {
+    const range = {
+      values: [[45000, "x", 0.5]],
+      numberFormatCategories: [["Date", "Text", "Time"]],
+    };
+
+    expect(liveRangeValues(range, true)).toEqual([
+      ["2023-03-15T00:00:00.000Z", "x", "1899-12-30T12:00:00.000Z"],
+    ]);
+  });
+
+  it("leaves values untouched on hosts without date categories", () => {
+    const range = { values: [[45000, "x"]] };
+    Object.defineProperty(range, "numberFormatCategories", {
+      get: () => {
+        throw new Error("unloaded numberFormatCategories was accessed");
+      },
+    });
+
+    expect(liveRangeValues(range, false)).toEqual([[45000, "x"]]);
+  });
+});
+
+describe("convertDateValues", () => {
+  it("only converts numbers in Date and Time cells, in place", () => {
+    const values = [
+      [45000, 45000],
+      ["45000", null],
+    ];
+    convertDateValues(values, [
+      ["Date", "Number"],
+      ["Date", "Time"],
+    ]);
+    expect(values).toEqual([
+      ["2023-03-15T00:00:00.000Z", 45000],
+      ["45000", null],
+    ]);
   });
 });

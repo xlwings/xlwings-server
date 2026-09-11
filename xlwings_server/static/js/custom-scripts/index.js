@@ -17,7 +17,9 @@ export { getActiveBookName, getCultureInfoName, getDateFormat };
 import { pyodideReadyPromise, startPyodide } from "../wasm.js";
 import { registerSheetButtons } from "./sheet-buttons.js";
 import {
+  convertDateValues,
   eagerValueRangeAddress,
+  liveRangeValues,
   loadValuesOnlyUsedRange,
   loadWorksheetNotes,
   mergeCellsState,
@@ -37,6 +39,7 @@ import {
   createSetColumnWidth,
   createSetFormula,
   createSetFormulaArray,
+  createSetValues,
 } from "./range-action-callbacks.js";
 import { unsupportedRangeExpansion } from "./range-expansion.js";
 import { createAddTable } from "./table-action-callbacks.js";
@@ -320,20 +323,6 @@ async function getSelection() {
     const selectionAddress = await getSelectedRangeAddress(context);
     await context.sync();
     return { sheetIndex: activeSheet.position, address: selectionAddress };
-  });
-}
-
-function convertDateValues(values, categories) {
-  values.forEach((row, ri) => {
-    const catRow = categories[ri];
-    row.forEach((val, ci) => {
-      const cat = catRow[ci].toString();
-      if ((cat === "Date" || cat === "Time") && typeof val === "number") {
-        values[ri][ci] = new Date(
-          Math.round((val - 25569) * 86400 * 1000),
-        ).toISOString();
-      }
-    });
   });
 }
 
@@ -860,14 +849,10 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
       : null;
     for (const key of readKeys) {
       switch (key) {
-        case "values": {
-          const values = range.values;
-          if (hasDateCategories) {
-            convertDateValues(values, range.numberFormatCategories);
-          }
-          result.values = values;
+        case "values":
+          // May be null on an oversized read; Python raises the diagnostic.
+          result.values = liveRangeValues(range, hasDateCategories);
           break;
-        }
         case "formulas":
           // Office returns an A1 formula or the underlying raw value for cells
           // without formulas. Keep that representation intact; date conversion
@@ -1278,6 +1263,7 @@ export function registerCallback(callback) {
 }
 
 // Functions map
+const setValues = createSetValues(getRange);
 const setFormula = createSetFormula(getRange);
 const setFormulaArray = createSetFormulaArray(
   getRange,
@@ -1398,12 +1384,6 @@ async function setFontProperty(context, action) {
   let value = action.args[1];
   if (property === "bold" || property === "italic") value = Boolean(value);
   range.format.font[property] = value;
-  await context.sync();
-}
-
-async function setValues(context, action) {
-  let range = await getRange(context, action);
-  range.values = action.values;
   await context.sync();
 }
 
