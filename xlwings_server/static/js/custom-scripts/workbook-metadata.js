@@ -336,13 +336,19 @@ function hierarchyNames(collection) {
 }
 
 function pivotTableMetadata(pivotTable) {
+  // The areas can hold Excel's "Values" pseudo hierarchy (localized name),
+  // which isn't a source field: only report what `hierarchies` lists, like
+  // the desktop engines do.
+  const fieldNames = hierarchyNames(pivotTable.hierarchies);
+  const sourceFieldsOnly = (collection) =>
+    hierarchyNames(collection).filter((name) => fieldNames.includes(name));
   return {
     id: pivotTable.id,
     name: pivotTable.name,
-    field_names: hierarchyNames(pivotTable.hierarchies),
-    rows: hierarchyNames(pivotTable.rowHierarchies),
-    columns: hierarchyNames(pivotTable.columnHierarchies),
-    filters: hierarchyNames(pivotTable.filterHierarchies),
+    field_names: fieldNames,
+    rows: sourceFieldsOnly(pivotTable.rowHierarchies),
+    columns: sourceFieldsOnly(pivotTable.columnHierarchies),
+    filters: sourceFieldsOnly(pivotTable.filterHierarchies),
     values: pivotTable.dataHierarchies.items.map((hierarchy) => ({
       id: hierarchy.id,
       name: hierarchy.name,

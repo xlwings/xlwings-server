@@ -502,6 +502,31 @@ describe("loadChartAndPivotMetadata", () => {
     },
   });
 
+  it("reports only source fields in the areas, not the Values pseudo hierarchy", async () => {
+    // Excel lists a localized "Values" hierarchy in the columns (or rows) area
+    // once a pivot has value fields; it isn't in `hierarchies`.
+    const withValues = pivot();
+    withValues.columnHierarchies = collection([
+      { name: "Werte" },
+      { name: "Sales" },
+    ]);
+    withValues.rowHierarchies = collection([{ name: "Region" }]);
+    const sheet = {
+      pivotTables: collection([withValues]),
+      charts: collection([]),
+    };
+    const context = { sync: vi.fn(async () => {}) };
+    const metadata = await loadChartAndPivotMetadata(
+      context,
+      sheet,
+      false,
+      true,
+    );
+    expect(metadata.pivot_tables[0].field_names).toEqual(["Region", "Sales"]);
+    expect(metadata.pivot_tables[0].rows).toEqual(["Region"]);
+    expect(metadata.pivot_tables[0].columns).toEqual(["Sales"]);
+  });
+
   it("keeps pivots and their IDs on excluded sheets without loading charts", async () => {
     const sheet = {
       pivotTables: collection([pivot()]),
