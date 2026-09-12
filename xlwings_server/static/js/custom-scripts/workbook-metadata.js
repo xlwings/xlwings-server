@@ -3,6 +3,33 @@ export function unqualifiedAddress(range) {
   return range.address.split("!").pop();
 }
 
+export function convertDateValues(values, categories) {
+  values.forEach((row, ri) => {
+    const catRow = categories[ri];
+    row.forEach((val, ci) => {
+      const cat = catRow[ci].toString();
+      if ((cat === "Date" || cat === "Time") && typeof val === "number") {
+        values[ri][ci] = new Date(
+          Math.round((val - 25569) * 86400 * 1000),
+        ).toISOString();
+      }
+    });
+  });
+}
+
+// Values of a live (on-demand) range read. Office.js may return null instead of
+// raising when a range get exceeds its 5,000,000-cell limit; pass that through
+// untouched so Python can raise a diagnostic (convertDateValues would throw on
+// null first). numberFormatCategories is only touched when it was loaded.
+export function liveRangeValues(range, hasDateCategories) {
+  const values = range.values;
+  if (values == null) return null;
+  if (hasDateCategories) {
+    convertDateValues(values, range.numberFormatCategories);
+  }
+  return values;
+}
+
 export function rangeMetadata(range) {
   if (!range || range.isNullObject) {
     return { address: null, row_count: 0, column_count: 0 };

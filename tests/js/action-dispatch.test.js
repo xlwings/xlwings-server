@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { dispatchActions } from "../../xlwings_server/static/js/custom-scripts/action-dispatch.js";
+import { createSetValues } from "../../xlwings_server/static/js/custom-scripts/range-action-callbacks.js";
 
 describe("dispatchActions", () => {
   it("dispatches actions in order and preserves sheet sync behavior", async () => {
@@ -48,6 +49,39 @@ describe("dispatchActions", () => {
       appliedActionCount: 0,
       actionFunc: "missing",
     });
+  });
+
+  it("stops before the third write when the second write's sync rejects", async () => {
+    const ranges = [{}, {}, {}];
+    const actions = ranges.map((_, index) => ({
+      func: "setValues",
+      start_row: index,
+      values: [[index]],
+    }));
+    const cause = new Error("Excel rejected the second chunk");
+    const context = {
+      sync: vi
+        .fn()
+        .mockResolvedValueOnce(undefined)
+        .mockRejectedValueOnce(cause),
+    };
+    const getRange = vi.fn(async (_, action) => ranges[action.start_row]);
+
+    await expect(
+      dispatchActions(actions, context, {
+        setValues: createSetValues(getRange),
+      }),
+    ).rejects.toMatchObject({
+      code: "action_failed",
+      actionIndex: 1,
+      appliedActionCount: 2,
+      actionFunc: "setValues",
+      cause,
+    });
+    expect(context.sync).toHaveBeenCalledTimes(2);
+    expect(getRange).toHaveBeenCalledTimes(2);
+    expect(ranges[0].values).toEqual([[0]]);
+    expect(ranges[2].values).toBeUndefined();
   });
 
   it("wraps callback failures with their batch position", async () => {

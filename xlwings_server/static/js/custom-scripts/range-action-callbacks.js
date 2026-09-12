@@ -4,6 +4,14 @@ import {
   BORDER_WEIGHTS,
 } from "./workbook-metadata.js";
 
+export function createSetValues(getRange) {
+  return async function setValues(context, action) {
+    const range = await getRange(context, action);
+    range.values = action.values;
+    await context.sync();
+  };
+}
+
 export function createSetFormula(getRange) {
   return async function setFormula(context, action) {
     const range = await getRange(context, action);
