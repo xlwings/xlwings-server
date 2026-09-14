@@ -121,6 +121,8 @@ const RANGE_READ_KEYS = {
   number_format: ["numberFormat"],
   color: ["format/fill/color"],
   wrap_text: ["format/wrapText"],
+  horizontal_alignment: ["format/horizontalAlignment"],
+  vertical_alignment: ["format/verticalAlignment"],
   column_width: ["format/columnWidth"],
   row_height: ["format/rowHeight"],
   left: ["left"],

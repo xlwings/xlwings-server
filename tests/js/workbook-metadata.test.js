@@ -225,6 +225,47 @@ describe("rangeReadProperties", () => {
     ]);
   });
 
+  it("loads the format properties for the alignment keys", () => {
+    expect(rangeReadProperties(["horizontal_alignment"], false)).toEqual([
+      "address",
+      "rowCount",
+      "columnCount",
+      "format/horizontalAlignment",
+    ]);
+    expect(rangeReadProperties(["vertical_alignment"], false)).toEqual([
+      "address",
+      "rowCount",
+      "columnCount",
+      "format/verticalAlignment",
+    ]);
+    // both axes together, and alongside the neighbouring format key
+    expect(
+      rangeReadProperties(
+        ["wrap_text", "horizontal_alignment", "vertical_alignment"],
+        false,
+      ),
+    ).toEqual([
+      "address",
+      "rowCount",
+      "columnCount",
+      "format/wrapText",
+      "format/horizontalAlignment",
+      "format/verticalAlignment",
+    ]);
+    // a repeated key doesn't duplicate its property
+    expect(
+      rangeReadProperties(
+        ["horizontal_alignment", "horizontal_alignment"],
+        false,
+      ),
+    ).toEqual([
+      "address",
+      "rowCount",
+      "columnCount",
+      "format/horizontalAlignment",
+    ]);
+  });
+
   it("adds no load properties for the method-resolved keys", () => {
     // current_region, merge_area, merge_cells, table and borders come from
     // method calls or an explicit collection load in getRangeData, not from
@@ -250,6 +291,18 @@ describe("rangeReadProperties", () => {
 describe("rangeReadKeys", () => {
   it("passes a list of keys through", () => {
     expect(rangeReadKeys(["color", "top"])).toEqual(["color", "top"]);
+  });
+
+  it("accepts the alignment keys", () => {
+    expect(rangeReadKeys(["horizontal_alignment"])).toEqual([
+      "horizontal_alignment",
+    ]);
+    expect(rangeReadKeys(["vertical_alignment"])).toEqual([
+      "vertical_alignment",
+    ]);
+    expect(
+      rangeReadKeys(["horizontal_alignment", "vertical_alignment"]),
+    ).toEqual(["horizontal_alignment", "vertical_alignment"]);
   });
 
   it("rejects strings, empty lists and unknown keys", () => {

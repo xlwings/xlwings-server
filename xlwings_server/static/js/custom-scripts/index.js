@@ -888,6 +888,13 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
         case "wrap_text":
           result.wrap_text = range.format.wrapText;
           break;
+        case "horizontal_alignment":
+          // null when the range's cells don't all agree
+          result.horizontal_alignment = range.format.horizontalAlignment;
+          break;
+        case "vertical_alignment":
+          result.vertical_alignment = range.format.verticalAlignment;
+          break;
         case "column_width":
           // Raw points, as Office.js reports them; null when the range's
           // columns aren't uniform.
@@ -1402,6 +1409,8 @@ let funcs = {
   freezePaneUnfreeze: freezePaneUnfreeze,
   setFontProperty: setFontProperty,
   setBorderProperty: setBorderProperty,
+  setHorizontalAlignment: setHorizontalAlignment,
+  setVerticalAlignment: setVerticalAlignment,
 };
 
 Object.assign(globalThis.callbacks, funcs);
@@ -1425,6 +1434,18 @@ async function setRowHeight(context, action) {
 async function setWrapText(context, action) {
   let range = await getRange(context, action);
   range.format.wrapText = Boolean(action.args[0]);
+  await context.sync();
+}
+
+async function setHorizontalAlignment(context, action) {
+  let range = await getRange(context, action);
+  range.format.horizontalAlignment = action.args[0];
+  await context.sync();
+}
+
+async function setVerticalAlignment(context, action) {
+  let range = await getRange(context, action);
+  range.format.verticalAlignment = action.args[0];
   await context.sync();
 }
 
