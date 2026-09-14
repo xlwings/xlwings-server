@@ -311,9 +311,9 @@ export async function loadChartAndPivotMetadata(
 }
 
 // Everything the payload reports about a pivot table, loaded with a single
-// path-expansion load on the sheet's pivotTables collection. Names only for
-// the hierarchies: the source field of a value hierarchy needs a hop through
-// `field`, since its own name is the caption ("Sum of Sales").
+// path-expansion load on the sheet's pivotTables collection. A data hierarchy's
+// `name` is its displayed caption (e.g., "Sum of Sales"). Read
+// `field.name` to get the source field (e.g., "Sales").
 const PIVOT_TABLE_LOAD_PATHS = [
   "items/id",
   "items/name",
