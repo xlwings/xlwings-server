@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.15.0 (Sep 14, 2026)
+
+- Added support for the latest xlwings features.
+
 ## 1.14.0 (Sep 9, 2026)
 
 - `book.names` now includes user-defined constants and formulas, including LAMBDAs, so scripts that iterate over names must no longer assume every name refers to a range. Excel-generated `_xlfn.*` and `_xlpm.*` names are now filtered out.
