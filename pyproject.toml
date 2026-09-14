@@ -41,7 +41,7 @@ dependencies = [
     "tomlkit>=0.13.2",
     "uvicorn>=0.38.0",
     "uvloop>=0.22.1 ; sys_platform != 'win32'",
-    "xlwings>=0.37.2",
+    "xlwings>=0.37.3",
 ]
 
 [project.urls]

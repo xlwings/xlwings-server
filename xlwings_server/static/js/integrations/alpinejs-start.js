@@ -9,7 +9,7 @@
 // The Alpine import is RELATIVE (not url_for) so it resolves under any
 // XLWINGS_APP_PATH and stays an external module -- inline scripts would be
 // blocked by the strict CSP that this feature exists to support.
-import { Alpine } from "../../vendor/@alpinejs/csp/3.15.12/dist/module.esm.min.js";
+import { Alpine } from "../../vendor/@alpinejs/csp/3.17.3/dist/module.esm.min.js";
 
 document.addEventListener("alpine:init", () => {
   const components = globalThis.alpineComponents || {};
