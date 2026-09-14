@@ -20,6 +20,7 @@ import {
   convertDateValues,
   eagerValueRangeAddress,
   liveRangeValues,
+  loadChartAndPivotMetadata,
   loadValuesOnlyUsedRange,
   loadWorksheetNotes,
   mergeCellsState,
@@ -53,6 +54,19 @@ import {
   createSetChartTitle,
   getChartByIndex,
 } from "./chart-action-callbacks.js";
+import {
+  createAddPivotField,
+  createAddPivotTable,
+  createAddPivotValueField,
+  createDeletePivotTable,
+  createRefreshPivotTable,
+  createRemovePivotField,
+  createRemovePivotValueField,
+  createSetPivotLayout,
+  createSetPivotTableName,
+  createSetPivotValueField,
+  pivotTableFromAction,
+} from "./pivot-action-callbacks.js";
 
 // Prints the supported API versions into the Console
 printSupportedApiVersions();
@@ -503,6 +517,13 @@ async function getBookData(
       .map(({ sheet }) => ({ collection: sheet.names, scopeSheet: sheet })),
   ]);
 
+  // Pivot tables need ExcelApi 1.8; older hosts get null so Python can tell
+  // "unsupported" apart from "none on this sheet".
+  const pivotTablesSupported = Office.context.requirements.isSetSupported(
+    "ExcelApi",
+    "1.8",
+  );
+
   // values
   for (let item of sheetsLoader) {
     let sheet = item["sheet"]; // TODO: replace item["sheet"] with sheet
@@ -583,29 +604,15 @@ async function getBookData(
       }
     }
 
-    // Charts
-    let chartsArray = [];
-    if (!excludeArray.includes(item["sheet"].name)) {
-      const charts = sheet.charts.load([
-        "name",
-        "chartType",
-        "left",
-        "top",
-        "width",
-        "height",
-      ]);
-      await context.sync();
-      for (let chart of charts.items) {
-        chartsArray.push({
-          name: chart.name,
-          chart_type: chart.chartType,
-          left: chart.left,
-          top: chart.top,
-          width: chart.width,
-          height: chart.height,
-        });
-      }
-    }
+    // Keep pivot metadata even on excluded sheets: subsequent writes use
+    // collection indices, and default pivot names are workbook-wide.
+    const { charts: chartsArray, pivot_tables: pivotTablesArray } =
+      await loadChartAndPivotMetadata(
+        context,
+        sheet,
+        excludeArray.includes(sheet.name),
+        pivotTablesSupported,
+      );
 
     // Pictures and shapes: one load covers both, since a picture is a shape
     // whose type is Image.
@@ -659,6 +666,7 @@ async function getBookData(
       shapes: shapesArray,
       charts: chartsArray,
       tables: tablesArray,
+      pivot_tables: pivotTablesArray,
     });
   }
   return payload;
@@ -1281,6 +1289,17 @@ const setChartLegend = createSetChartLegend(chartFromAction);
 const setChartPlotBy = createSetChartPlotBy(chartFromAction);
 const setChartStyle = createSetChartStyle(chartFromAction);
 const addTable = createAddTable(getSheet);
+// Pivot table handlers, same factory pattern as the charts above.
+const addPivotTable = createAddPivotTable(getSheet, getSelectedRangeAddress);
+const setPivotTableName = createSetPivotTableName(pivotTableFromAction);
+const addPivotField = createAddPivotField(pivotTableFromAction);
+const removePivotField = createRemovePivotField(pivotTableFromAction);
+const addPivotValueField = createAddPivotValueField(pivotTableFromAction);
+const setPivotValueField = createSetPivotValueField(pivotTableFromAction);
+const removePivotValueField = createRemovePivotValueField(pivotTableFromAction);
+const setPivotLayout = createSetPivotLayout(pivotTableFromAction);
+const refreshPivotTable = createRefreshPivotTable(pivotTableFromAction);
+const deletePivotTable = createDeletePivotTable(pivotTableFromAction);
 let funcs = {
   setValues: setValues,
   setFormula: setFormula,
@@ -1316,6 +1335,16 @@ let funcs = {
   setChartLegend: setChartLegend,
   setChartPlotBy: setChartPlotBy,
   setChartStyle: setChartStyle,
+  addPivotTable: addPivotTable,
+  setPivotTableName: setPivotTableName,
+  addPivotField: addPivotField,
+  removePivotField: removePivotField,
+  addPivotValueField: addPivotValueField,
+  setPivotValueField: setPivotValueField,
+  removePivotValueField: removePivotValueField,
+  setPivotLayout: setPivotLayout,
+  refreshPivotTable: refreshPivotTable,
+  deletePivotTable: deletePivotTable,
   setNoteText: setNoteText,
   deleteNote: deleteNote,
   setShapeName: setShapeName,

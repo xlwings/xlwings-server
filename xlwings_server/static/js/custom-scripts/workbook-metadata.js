@@ -272,3 +272,94 @@ function canvasColor(color) {
   context.fillStyle = color;
   return context.fillStyle;
 }
+
+// Exclusion controls the cell/chart snapshot, but a pivot collection must
+// stay complete so writes never address an existing pivot as a newly added one.
+export async function loadChartAndPivotMetadata(
+  context,
+  sheet,
+  excluded,
+  pivotTablesSupported,
+) {
+  const charts = excluded
+    ? null
+    : sheet.charts.load([
+        "name",
+        "chartType",
+        "left",
+        "top",
+        "width",
+        "height",
+      ]);
+  const pivots = pivotTablesSupported
+    ? sheet.pivotTables.load(PIVOT_TABLE_LOAD_PATHS)
+    : null;
+  if (charts || pivots) await context.sync();
+  return {
+    charts: charts
+      ? charts.items.map((chart) => ({
+          name: chart.name,
+          chart_type: chart.chartType,
+          left: chart.left,
+          top: chart.top,
+          width: chart.width,
+          height: chart.height,
+        }))
+      : [],
+    pivot_tables: pivots ? pivots.items.map(pivotTableMetadata) : null,
+  };
+}
+
+// Everything the payload reports about a pivot table, loaded with a single
+// path-expansion load on the sheet's pivotTables collection. A data hierarchy's
+// `name` is its displayed caption (e.g., "Sum of Sales"). Read
+// `field.name` to get the source field (e.g., "Sales").
+const PIVOT_TABLE_LOAD_PATHS = [
+  "items/id",
+  "items/name",
+  "items/hierarchies/items/name",
+  "items/rowHierarchies/items/name",
+  "items/columnHierarchies/items/name",
+  "items/filterHierarchies/items/name",
+  "items/dataHierarchies/items/id",
+  "items/dataHierarchies/items/name",
+  "items/dataHierarchies/items/summarizeBy",
+  "items/dataHierarchies/items/numberFormat",
+  "items/dataHierarchies/items/field/name",
+  "items/layout/layoutType",
+  "items/layout/showRowGrandTotals",
+  "items/layout/showColumnGrandTotals",
+].join(",");
+
+function hierarchyNames(collection) {
+  return collection.items.map((hierarchy) => hierarchy.name);
+}
+
+function pivotTableMetadata(pivotTable) {
+  // The areas can hold Excel's "Values" pseudo hierarchy (localized name),
+  // which isn't a source field: only report what `hierarchies` lists, like
+  // the desktop engines do.
+  const fieldNames = hierarchyNames(pivotTable.hierarchies);
+  const sourceFieldsOnly = (collection) =>
+    hierarchyNames(collection).filter((name) => fieldNames.includes(name));
+  return {
+    id: pivotTable.id,
+    name: pivotTable.name,
+    field_names: fieldNames,
+    rows: sourceFieldsOnly(pivotTable.rowHierarchies),
+    columns: sourceFieldsOnly(pivotTable.columnHierarchies),
+    filters: sourceFieldsOnly(pivotTable.filterHierarchies),
+    values: pivotTable.dataHierarchies.items.map((hierarchy) => ({
+      id: hierarchy.id,
+      name: hierarchy.name,
+      source_field: hierarchy.field.name,
+      // The raw Excel.AggregationFunction string; Python maps it.
+      function: hierarchy.summarizeBy,
+      number_format: hierarchy.numberFormat,
+    })),
+    // Office.js reports null for a layout it can't describe.
+    layout: pivotTable.layout.layoutType ?? null,
+    show_row_grand_totals: pivotTable.layout.showRowGrandTotals,
+    show_column_grand_totals: pivotTable.layout.showColumnGrandTotals,
+  };
+}

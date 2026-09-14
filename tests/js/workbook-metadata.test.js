@@ -4,6 +4,7 @@ import {
   convertDateValues,
   eagerValueRangeAddress,
   liveRangeValues,
+  loadChartAndPivotMetadata,
   loadValuesOnlyUsedRange,
   loadWorksheetNotes,
   mergeCellsState,
@@ -468,5 +469,165 @@ describe("convertDateValues", () => {
       ["2023-03-15T00:00:00.000Z", 45000],
       ["45000", null],
     ]);
+  });
+});
+
+describe("loadChartAndPivotMetadata", () => {
+  const collection = (items) => ({
+    items,
+    load: vi.fn(function () {
+      return this;
+    }),
+  });
+  const pivot = () => ({
+    id: "pivot-1",
+    name: "ExistingReport",
+    hierarchies: collection([{ name: "Region" }, { name: "Sales" }]),
+    rowHierarchies: collection([{ name: "Region" }]),
+    columnHierarchies: collection([]),
+    filterHierarchies: collection([]),
+    dataHierarchies: collection([
+      {
+        id: "value-1",
+        name: "Sum of Sales",
+        field: { name: "Sales" },
+        summarizeBy: "Sum",
+        numberFormat: "0.00",
+      },
+    ]),
+    layout: {
+      layoutType: "Compact",
+      showRowGrandTotals: true,
+      showColumnGrandTotals: true,
+    },
+  });
+
+  it("reports only source fields in the areas, not the Values pseudo hierarchy", async () => {
+    // Excel lists a localized "Values" hierarchy in the columns (or rows) area
+    // once a pivot has value fields; it isn't in `hierarchies`.
+    const withValues = pivot();
+    withValues.columnHierarchies = collection([
+      { name: "Werte" },
+      { name: "Sales" },
+    ]);
+    withValues.rowHierarchies = collection([{ name: "Region" }]);
+    const sheet = {
+      pivotTables: collection([withValues]),
+      charts: collection([]),
+    };
+    const context = { sync: vi.fn(async () => {}) };
+    const metadata = await loadChartAndPivotMetadata(
+      context,
+      sheet,
+      false,
+      true,
+    );
+    expect(metadata.pivot_tables[0].field_names).toEqual(["Region", "Sales"]);
+    expect(metadata.pivot_tables[0].rows).toEqual(["Region"]);
+    expect(metadata.pivot_tables[0].columns).toEqual(["Sales"]);
+  });
+
+  it("keeps pivots and their IDs on excluded sheets without loading charts", async () => {
+    const sheet = {
+      pivotTables: collection([pivot()]),
+      get charts() {
+        throw new Error("excluded charts accessed");
+      },
+    };
+    const context = { sync: vi.fn(async () => {}) };
+    const metadata = await loadChartAndPivotMetadata(
+      context,
+      sheet,
+      true,
+      true,
+    );
+    expect(metadata.charts).toEqual([]);
+    expect(metadata.pivot_tables).toEqual([
+      {
+        id: "pivot-1",
+        name: "ExistingReport",
+        field_names: ["Region", "Sales"],
+        rows: ["Region"],
+        columns: [],
+        filters: [],
+        values: [
+          {
+            id: "value-1",
+            name: "Sum of Sales",
+            source_field: "Sales",
+            function: "Sum",
+            number_format: "0.00",
+          },
+        ],
+        layout: "Compact",
+        show_row_grand_totals: true,
+        show_column_grand_totals: true,
+      },
+    ]);
+    // A newly created pivot must be appended after the existing report.
+    expect(metadata.pivot_tables.length).toBe(1);
+    expect(sheet.pivotTables.load.mock.calls[0][0]).toContain("items/id");
+    expect(sheet.pivotTables.load.mock.calls[0][0]).toContain(
+      "items/dataHierarchies/items/id",
+    );
+    expect(context.sync).toHaveBeenCalledTimes(1);
+  });
+
+  it("loads included charts and pivots in a single sync", async () => {
+    const chart = {
+      name: "Chart",
+      chartType: "ColumnClustered",
+      left: 1,
+      top: 2,
+      width: 3,
+      height: 4,
+    };
+    const sheet = {
+      charts: collection([chart]),
+      pivotTables: collection([pivot()]),
+    };
+    const context = { sync: vi.fn(async () => {}) };
+    const metadata = await loadChartAndPivotMetadata(
+      context,
+      sheet,
+      false,
+      true,
+    );
+    expect(metadata.charts).toEqual([
+      {
+        name: "Chart",
+        chart_type: "ColumnClustered",
+        left: 1,
+        top: 2,
+        width: 3,
+        height: 4,
+      },
+    ]);
+    expect(metadata.pivot_tables[0].id).toBe("pivot-1");
+    expect(context.sync).toHaveBeenCalledTimes(1);
+  });
+
+  it("distinguishes unsupported hosts from empty collections", async () => {
+    const sheet = {
+      get pivotTables() {
+        throw new Error("unsupported pivots accessed");
+      },
+      get charts() {
+        throw new Error("excluded charts accessed");
+      },
+    };
+    const context = { sync: vi.fn(async () => {}) };
+    expect(
+      await loadChartAndPivotMetadata(context, sheet, true, false),
+    ).toEqual({ charts: [], pivot_tables: null });
+    expect(context.sync).not.toHaveBeenCalled();
+    expect(
+      await loadChartAndPivotMetadata(
+        context,
+        { pivotTables: collection([]) },
+        true,
+        true,
+      ),
+    ).toEqual({ charts: [], pivot_tables: [] });
   });
 });
