@@ -1318,6 +1318,7 @@ let funcs = {
   setWrapText: setWrapText,
   addSheet: addSheet,
   setSheetName: setSheetName,
+  setSheetPosition: setSheetPosition,
   setSheetVisibility: setSheetVisibility,
   setShowGridlines: setShowGridlines,
   setAutofit: setAutofit,
@@ -1483,6 +1484,11 @@ async function addSheet(context, action) {
 async function setSheetName(context, action) {
   const sheet = await getSheet(context, action);
   sheet.name = action.args[0].toString();
+}
+
+async function setSheetPosition(context, action) {
+  const sheet = await getSheet(context, action);
+  sheet.position = parseInt(action.args[0].toString());
 }
 
 async function setSheetVisibility(context, action) {
