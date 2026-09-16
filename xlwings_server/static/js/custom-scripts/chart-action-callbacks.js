@@ -36,6 +36,10 @@ export function createAddChart(getSheet, getSelectedRangeAddress) {
     if (action.args[5] != null) chart.top = Number(action.args[5]);
     if (action.args[6] != null) chart.width = Number(action.args[6]);
     if (action.args[7] != null) chart.height = Number(action.args[7]);
+    // style (args[10]) is part of creation so every backend produces the same
+    // modern Excel default without a second action. null retains Excel's host
+    // default when the Python caller explicitly requests style=None.
+    if (action.args[10] != null) chart.style = Number(action.args[10]);
     chart.name = action.args[0].toString();
     await context.sync();
 
@@ -90,6 +94,22 @@ export function createSetChartSourceData(getChart) {
     } else {
       chart.setData(range, seriesBy.toString());
     }
+  };
+}
+
+export function createSetChartXAxisValues(getChart) {
+  return async function setChartXAxisValues(context, action) {
+    const chart = await getChart(context, action);
+    const sourceSheet = context.workbook.worksheets.getItem(
+      action.args[1].toString(),
+    );
+    const range = sourceSheet.getRange(action.args[2].toString());
+    const series = chart.series.load("items");
+    await context.sync();
+    for (const item of series.items) {
+      item.setXAxisValues(range);
+    }
+    await context.sync();
   };
 }
 

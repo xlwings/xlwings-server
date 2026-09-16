@@ -52,6 +52,7 @@ import {
   createSetChartSourceData,
   createSetChartStyle,
   createSetChartTitle,
+  createSetChartXAxisValues,
   getChartByIndex,
 } from "./chart-action-callbacks.js";
 import {
@@ -1291,6 +1292,7 @@ const setBorderProperty = createSetBorderProperty(getRange);
 // Chart handlers built from their factories; like setBorderProperty they must
 // be declared before `funcs` below, which is evaluated at module load.
 const setChartSourceData = createSetChartSourceData(chartFromAction);
+const setChartXAxisValues = createSetChartXAxisValues(chartFromAction);
 const setChartTitle = createSetChartTitle(chartFromAction);
 const setChartLegend = createSetChartLegend(chartFromAction);
 const setChartPlotBy = createSetChartPlotBy(chartFromAction);
@@ -1336,6 +1338,7 @@ let funcs = {
   setChartName: setChartName,
   setChartType: setChartType,
   setChartSourceData: setChartSourceData,
+  setChartXAxisValues: setChartXAxisValues,
   setChartPosition: setChartPosition,
   deleteChart: deleteChart,
   setChartTitle: setChartTitle,
