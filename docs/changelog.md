@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.16.0 (Sep 16, 2026)
+
+- Added support for the latest xlwings features.
+
 ## 1.15.0 (Sep 14, 2026)
 
 - Added support for the latest xlwings features.
