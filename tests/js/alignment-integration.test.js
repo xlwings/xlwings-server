@@ -151,6 +151,26 @@ for (const [key, property, func, values] of axes) {
   });
 }
 
+describe("worksheet position client integration", () => {
+  it("moves a worksheet directly without copying it", async () => {
+    const { sheet, context } = harness();
+    sheet.position = 1;
+
+    await client.runActions({
+      actions: [
+        {
+          func: "setSheetPosition",
+          args: [0],
+          sheet_position: 1,
+        },
+      ],
+    });
+
+    expect(sheet.position).toBe(0);
+    expect(context.sync).toHaveBeenCalled();
+  });
+});
+
 it("preserves null for both mixed alignments in a combined read", async () => {
   harness(null, null);
   expect(
