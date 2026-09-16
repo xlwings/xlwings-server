@@ -7,6 +7,7 @@ import {
   createSetChartSourceData,
   createSetChartStyle,
   createSetChartTitle,
+  createSetChartXAxisValues,
 } from "../../xlwings_server/static/js/custom-scripts/chart-action-callbacks.js";
 
 function harness({ activeSheetName = "Dashboard" } = {}) {
@@ -60,7 +61,19 @@ describe("addChart action callback", () => {
     const addChart = createAddChart(vi.fn(async () => sheet));
     const action = {
       sheet_position: 0,
-      args: ["MyChart", "Line", "Sheet1", "$A$1:$B$6", 300, 20, 450, 280],
+      args: [
+        "MyChart",
+        "Line",
+        "Sheet1",
+        "$A$1:$B$6",
+        300,
+        20,
+        450,
+        280,
+        null,
+        null,
+        227,
+      ],
     };
 
     await addChart(context, action);
@@ -69,6 +82,31 @@ describe("addChart action callback", () => {
     expect(sourceSheet.getRange).toHaveBeenCalledWith("$A$1:$B$6");
     expect(sheet.charts.add).toHaveBeenCalledWith("Line", sourceRange);
     expect(chart.name).toBe("MyChart");
+    expect(chart.style).toBe(227);
+  });
+
+  it("retains Excel's native style when creation receives null", async () => {
+    const { chart, sheet, context } = harness();
+    const addChart = createAddChart(vi.fn(async () => sheet));
+
+    await addChart(context, {
+      sheet_position: 0,
+      args: [
+        "MyChart",
+        "Line",
+        "Sheet1",
+        "$A$1:$B$6",
+        300,
+        20,
+        450,
+        280,
+        null,
+        null,
+        null,
+      ],
+    });
+
+    expect(chart).not.toHaveProperty("style");
   });
 
   it("sets the geometry as points rather than through setPosition()", async () => {
@@ -262,6 +300,30 @@ describe("setChartSourceData action callback", () => {
     });
 
     expect(chart.setData).toHaveBeenCalledWith(sourceRange, "Columns");
+  });
+});
+
+describe("setChartXAxisValues action callback", () => {
+  it("assigns one category range to every chart series", async () => {
+    const { chart, sourceRange, sourceSheet, context, getChart } =
+      chartHarness();
+    const first = { setXAxisValues: vi.fn() };
+    const second = { setXAxisValues: vi.fn() };
+    const series = { items: [first, second] };
+    chart.series = { load: vi.fn(() => series) };
+    const setChartXAxisValues = createSetChartXAxisValues(getChart);
+
+    await setChartXAxisValues(context, {
+      sheet_position: 0,
+      args: [0, "Sheet1", "$A$2:$A$6"],
+    });
+
+    expect(context.workbook.worksheets.getItem).toHaveBeenCalledWith("Sheet1");
+    expect(sourceSheet.getRange).toHaveBeenCalledWith("$A$2:$A$6");
+    expect(chart.series.load).toHaveBeenCalledWith("items");
+    expect(context.sync).toHaveBeenCalledTimes(2);
+    expect(first.setXAxisValues).toHaveBeenCalledWith(sourceRange);
+    expect(second.setXAxisValues).toHaveBeenCalledWith(sourceRange);
   });
 });
 
