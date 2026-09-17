@@ -505,7 +505,7 @@ async function getBookData(
       // window stays a 1x1 matrix rather than disappearing.
       sheetsLoader[ix]["range"] = item["sheet"]
         .getRange(eagerValueRangeAddress(item["usedRange"]))
-        .load("values, numberFormatCategories");
+        .load("values, numberFormat");
     }
   });
 
@@ -533,12 +533,7 @@ async function getBookData(
       values = [[]];
     } else {
       values = item["range"].values;
-      if (Office.context.requirements.isSetSupported("ExcelApi", "1.12")) {
-        // numberFormatCategories requires Excel 2021/365
-        // i.e., dates aren't transformed to Python's datetime in Excel <=2019
-
-        convertDateValues(values, item["range"].numberFormatCategories);
-      }
+      convertDateValues(values, item["range"].numberFormat);
     }
     // Tables
     let tablesArray = [];
@@ -808,10 +803,7 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
   // Office proxies so unsupported modes reject as a plain promise error.
   const readKeys = rangeReadKeys(keys);
   const readsValues = readKeys.includes("values");
-  const hasDateCategories =
-    readsValues &&
-    Office.context.requirements.isSetSupported("ExcelApi", "1.12");
-  const properties = rangeReadProperties(readKeys, hasDateCategories);
+  const properties = rangeReadProperties(readKeys, readsValues);
   if (readKeys.includes("merge_cells")) {
     // Needed to tell a fully merged range from a partly merged one.
     properties.push("rowIndex", "columnIndex");
@@ -860,7 +852,7 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
       switch (key) {
         case "values":
           // May be null on an oversized read; Python raises the diagnostic.
-          result.values = liveRangeValues(range, hasDateCategories);
+          result.values = liveRangeValues(range, readsValues);
           break;
         case "formulas":
           // Office returns an A1 formula or the underlying raw value for cells
