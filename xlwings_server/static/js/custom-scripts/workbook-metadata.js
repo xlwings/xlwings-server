@@ -3,12 +3,83 @@ export function unqualifiedAddress(range) {
   return range.address.split("!").pop();
 }
 
-export function convertDateValues(values, categories) {
+// Excel reports user-defined date/time formats as "Custom" instead of "Date"
+// or "Time". Inspect the actual format code while ignoring literal text and
+// other constructs whose letters must not be mistaken for date/time tokens.
+export function isDateNumberFormat(format) {
+  if (typeof format !== "string") return false;
+
+  for (let i = 0; i < format.length; ) {
+    const char = format[i];
+
+    // Quoted text is literal. Excel represents a literal quote inside it as
+    // two consecutive quotes.
+    if (char === '"') {
+      i += 1;
+      while (i < format.length) {
+        if (format[i] !== '"') {
+          i += 1;
+        } else if (format[i + 1] === '"') {
+          i += 2;
+        } else {
+          i += 1;
+          break;
+        }
+      }
+      continue;
+    }
+
+    // Backslash escapes, spacing (_), and fill (*) all make the following
+    // character literal.
+    if (char === "\\" || char === "_" || char === "*") {
+      i += 2;
+      continue;
+    }
+
+    // Brackets normally hold colors, conditions, currencies, or locales.
+    // The exception is an elapsed-time token such as [h], [mm], or [ss].
+    if (char === "[") {
+      const end = format.indexOf("]", i + 1);
+      if (end === -1) return false;
+      if (/^(?:h+|m+|s+)$/i.test(format.slice(i + 1, end))) return true;
+      i = end + 1;
+      continue;
+    }
+
+    if (format.slice(i, i + 7).toLowerCase() === "general") {
+      i += 7;
+      continue;
+    }
+
+    // Consume number placeholders as one unit. This prevents the E in a
+    // scientific format such as 0.00E+00 from being read as an era token.
+    if ("0#?.".includes(char)) {
+      i += 1;
+      while (i < format.length && "0#?.,Ee+-%".includes(format[i])) i += 1;
+      continue;
+    }
+
+    if (
+      "ymdhseg".includes(char.toLowerCase()) ||
+      /^b[12]/i.test(format.slice(i)) ||
+      /^(?:a\/p|am\/pm)/i.test(format.slice(i)) ||
+      format.startsWith("上午/下午", i)
+    ) {
+      return true;
+    }
+
+    i += 1;
+  }
+  return false;
+}
+
+export function convertDateValues(values, numberFormats) {
   values.forEach((row, ri) => {
-    const catRow = categories[ri];
     row.forEach((val, ci) => {
-      const cat = catRow[ci].toString();
-      if ((cat === "Date" || cat === "Time") && typeof val === "number") {
+      if (
+        typeof val === "number" &&
+        isDateNumberFormat(numberFormats?.[ri]?.[ci])
+      ) {
         values[ri][ci] = new Date(
           Math.round((val - 25569) * 86400 * 1000),
         ).toISOString();
@@ -20,12 +91,12 @@ export function convertDateValues(values, categories) {
 // Values of a live (on-demand) range read. Office.js may return null instead of
 // raising when a range get exceeds its 5,000,000-cell limit; pass that through
 // untouched so Python can raise a diagnostic (convertDateValues would throw on
-// null first). numberFormatCategories is only touched when it was loaded.
-export function liveRangeValues(range, hasDateCategories) {
+// null first). Number formats are only touched when they were loaded.
+export function liveRangeValues(range, hasNumberFormats) {
   const values = range.values;
   if (values == null) return null;
-  if (hasDateCategories) {
-    convertDateValues(values, range.numberFormatCategories);
+  if (hasNumberFormats) {
+    convertDateValues(values, range.numberFormat);
   }
   return values;
 }
@@ -164,7 +235,7 @@ export function rangeReadKeys(keys) {
   return keys;
 }
 
-export function rangeReadProperties(keys, includeNumberFormatCategories) {
+export function rangeReadProperties(keys, includeNumberFormats) {
   const readKeys = rangeReadKeys(keys);
   const properties = ["address", "rowCount", "columnCount"];
   for (const key of readKeys) {
@@ -173,12 +244,11 @@ export function rangeReadProperties(keys, includeNumberFormatCategories) {
         properties.push(property);
       }
     }
-    // Dates come back as serial numbers without their category, so this rides
-    // along with values only.
-    if (key === "values" && includeNumberFormatCategories) {
-      const category = "numberFormatCategories";
-      if (!properties.includes(category)) {
-        properties.push(category);
+    // Dates come back as serial numbers, so the format code rides along with
+    // values to identify which numbers need conversion.
+    if (key === "values" && includeNumberFormats) {
+      if (!properties.includes("numberFormat")) {
+        properties.push("numberFormat");
       }
     }
   }

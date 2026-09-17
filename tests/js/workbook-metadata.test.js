@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   convertDateValues,
   eagerValueRangeAddress,
+  isDateNumberFormat,
   liveRangeValues,
   loadChartAndPivotMetadata,
   loadValuesOnlyUsedRange,
@@ -164,7 +165,7 @@ describe("rangeReadProperties", () => {
       "rowCount",
       "columnCount",
       "values",
-      "numberFormatCategories",
+      "numberFormat",
       "formulas",
     ]);
     expect(rangeReadProperties(["values", "formulas"], false)).toEqual([
@@ -207,13 +208,13 @@ describe("rangeReadProperties", () => {
     ]);
   });
 
-  it("adds date categories for values in the list form too", () => {
+  it("adds number formats for values in the list form too", () => {
     expect(rangeReadProperties(["values", "wrap_text"], true)).toEqual([
       "address",
       "rowCount",
       "columnCount",
       "values",
-      "numberFormatCategories",
+      "numberFormat",
       "format/wrapText",
     ]);
     // ...but not when values isn't requested
@@ -472,12 +473,12 @@ describe("normalizeBorders", () => {
 });
 
 describe("liveRangeValues", () => {
-  it("passes a null values result through without touching date categories", () => {
+  it("passes a null values result through without touching number formats", () => {
     // Office.js returns null instead of raising on an oversized range get.
     const range = { values: null };
-    Object.defineProperty(range, "numberFormatCategories", {
+    Object.defineProperty(range, "numberFormat", {
       get: () => {
-        throw new Error("unloaded numberFormatCategories was accessed");
+        throw new Error("unloaded numberFormat was accessed");
       },
     });
 
@@ -485,10 +486,10 @@ describe("liveRangeValues", () => {
     expect(liveRangeValues(range, false)).toBeNull();
   });
 
-  it("converts date and time serials when categories are available", () => {
+  it("converts date and time serials when number formats are available", () => {
     const range = {
       values: [[45000, "x", 0.5]],
-      numberFormatCategories: [["Date", "Text", "Time"]],
+      numberFormat: [["m/d/yyyy", "General", "h:mm"]],
     };
 
     expect(liveRangeValues(range, true)).toEqual([
@@ -496,11 +497,11 @@ describe("liveRangeValues", () => {
     ]);
   });
 
-  it("leaves values untouched on hosts without date categories", () => {
+  it("leaves values untouched when number formats were not loaded", () => {
     const range = { values: [[45000, "x"]] };
-    Object.defineProperty(range, "numberFormatCategories", {
+    Object.defineProperty(range, "numberFormat", {
       get: () => {
-        throw new Error("unloaded numberFormatCategories was accessed");
+        throw new Error("unloaded numberFormat was accessed");
       },
     });
 
@@ -509,19 +510,59 @@ describe("liveRangeValues", () => {
 });
 
 describe("convertDateValues", () => {
-  it("only converts numbers in Date and Time cells, in place", () => {
+  it("only converts numbers with date/time formats, in place", () => {
     const values = [
       [45000, 45000],
       ["45000", null],
     ];
     convertDateValues(values, [
-      ["Date", "Number"],
-      ["Date", "Time"],
+      ["m/d/yyyy", "#,##0.00"],
+      ["m/d/yyyy", "h:mm"],
     ]);
     expect(values).toEqual([
       ["2023-03-15T00:00:00.000Z", 45000],
       ["45000", null],
     ]);
+  });
+
+  it("converts numbers with custom date and time formats", () => {
+    const values = [[45000, 45000.5, 45000]];
+    convertDateValues(values, [
+      ["yyyy-mm-dd", "dd/mm/yyyy hh:mm:ss", "#,##0.00"],
+    ]);
+
+    expect(values).toEqual([
+      ["2023-03-15T00:00:00.000Z", "2023-03-15T12:00:00.000Z", 45000],
+    ]);
+  });
+});
+
+describe("isDateNumberFormat", () => {
+  it.each([
+    "yyyy-mm-dd",
+    "dd/mm/yyyy hh:mm:ss",
+    "[$-F800]dddd, mmmm dd, yyyy",
+    "[$-F400]h:mm:ss AM/PM",
+    'm"M"d"D";@',
+    '[$-404]e"year"m"month"d"day"',
+    "[h]:mm:ss",
+    "[Blue]yyyy-mm-dd;[Red]-yyyy-mm-dd",
+    "h:mm AM/PM",
+  ])("recognizes date/time format %s", (format) => {
+    expect(isDateNumberFormat(format)).toBe(true);
+  });
+
+  it.each([
+    "General",
+    "0.00E+00",
+    "#,##0.00",
+    '0.00 "days"',
+    "#,#0 \\d",
+    "[$-409]#,##0.00",
+    "[Red]0.00",
+    "#,##0*y",
+  ])("rejects non-date format %s", (format) => {
+    expect(isDateNumberFormat(format)).toBe(false);
   });
 });
 
