@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  conditionalFormatMetadata,
   convertDateValues,
   eagerValueRangeAddress,
   isDateNumberFormat,
@@ -268,12 +269,18 @@ describe("rangeReadProperties", () => {
   });
 
   it("adds no load properties for the method-resolved keys", () => {
-    // current_region, merge_area, merge_cells, table and borders come from
-    // method calls or an explicit collection load in getRangeData, not from
-    // range.load().
+    // These keys come from method calls or explicit collection loads in
+    // getRangeData, not from range.load().
     expect(
       rangeReadProperties(
-        ["current_region", "merge_area", "merge_cells", "table", "borders"],
+        [
+          "current_region",
+          "merge_area",
+          "merge_cells",
+          "table",
+          "borders",
+          "conditional_formats",
+        ],
         false,
       ),
     ).toEqual(["address", "rowCount", "columnCount"]);
@@ -312,6 +319,29 @@ describe("rangeReadKeys", () => {
     expect(() => rangeReadKeys(["nope"])).toThrow(
       "Unsupported range read key: nope",
     );
+  });
+});
+
+describe("conditionalFormatMetadata", () => {
+  it("preserves collection order, native types and stop-if-true state", () => {
+    expect(
+      conditionalFormatMetadata([
+        { type: "CellValue", stopIfTrue: true },
+        { type: "DataBar", stopIfTrue: null },
+        { type: "PresetCriteria", stopIfTrue: false },
+      ]),
+    ).toEqual([
+      { type: "CellValue", stop_if_true: true },
+      { type: "DataBar", stop_if_true: null },
+      { type: "PresetCriteria", stop_if_true: false },
+    ]);
+  });
+
+  it("handles empty collections and missing stop-if-true values", () => {
+    expect(conditionalFormatMetadata([])).toEqual([]);
+    expect(conditionalFormatMetadata([{ type: "IconSet" }])).toEqual([
+      { type: "IconSet", stop_if_true: null },
+    ]);
   });
 });
 

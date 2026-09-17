@@ -17,6 +17,7 @@ export { getActiveBookName, getCultureInfoName, getDateFormat };
 import { pyodideReadyPromise, startPyodide } from "../wasm.js";
 import { registerSheetButtons } from "./sheet-buttons.js";
 import {
+  conditionalFormatMetadata,
   convertDateValues,
   eagerValueRangeAddress,
   liveRangeValues,
@@ -36,6 +37,8 @@ import { readNamedItems } from "./named-items.js";
 import { dispatchActions } from "./action-dispatch.js";
 import { getActionSheet } from "./action-targets.js";
 import {
+  createClearConditionalFormats,
+  createDeleteConditionalFormat,
   createSetBorderProperty,
   createSetColumnWidth,
   createSetFormula,
@@ -804,6 +807,14 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
   const readKeys = rangeReadKeys(keys);
   const readsValues = readKeys.includes("values");
   const properties = rangeReadProperties(readKeys, readsValues);
+  if (
+    readKeys.includes("conditional_formats") &&
+    !Office.context.requirements.isSetSupported("ExcelApi", "1.6")
+  ) {
+    throw new Error(
+      "Conditional formatting requires ExcelApi 1.6 and isn't supported by this Excel host.",
+    );
+  }
   if (readKeys.includes("merge_cells")) {
     // Needed to tell a fully merged range from a partly merged one.
     properties.push("rowIndex", "columnIndex");
@@ -837,6 +848,9 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
       ? range.format.borders.load(
           "items/sideIndex,items/style,items/weight,items/color",
         )
+      : null;
+    const conditionalFormats = readKeys.includes("conditional_formats")
+      ? range.conditionalFormats.load("items/type,items/stopIfTrue")
       : null;
     await context.sync();
     const metadata = rangeMetadata(range);
@@ -950,6 +964,11 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
         case "table":
           // A range overlaps at most one table in practice; null means none.
           result.table = tables.items.length > 0 ? tables.items[0].name : null;
+          break;
+        case "conditional_formats":
+          result.conditional_formats = conditionalFormatMetadata(
+            conditionalFormats.items,
+          );
           break;
       }
     }
@@ -1281,6 +1300,16 @@ const setFormulaArray = createSetFormulaArray(
 );
 const setColumnWidth = createSetColumnWidth(getRange);
 const setBorderProperty = createSetBorderProperty(getRange);
+const conditionalFormatSupport = (name, version) =>
+  Office.context.requirements.isSetSupported(name, version);
+const clearConditionalFormats = createClearConditionalFormats(
+  getRange,
+  conditionalFormatSupport,
+);
+const deleteConditionalFormat = createDeleteConditionalFormat(
+  getRange,
+  conditionalFormatSupport,
+);
 // Chart handlers built from their factories; like setBorderProperty they must
 // be declared before `funcs` below, which is evaluated at module load.
 const setChartSourceData = createSetChartSourceData(chartFromAction);
@@ -1405,6 +1434,8 @@ let funcs = {
   freezePaneUnfreeze: freezePaneUnfreeze,
   setFontProperty: setFontProperty,
   setBorderProperty: setBorderProperty,
+  clearConditionalFormats: clearConditionalFormats,
+  deleteConditionalFormat: deleteConditionalFormat,
   setHorizontalAlignment: setHorizontalAlignment,
   setVerticalAlignment: setVerticalAlignment,
 };

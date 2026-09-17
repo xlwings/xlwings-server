@@ -91,7 +91,7 @@ function harness(
     }),
   };
   vi.stubGlobal("Excel", { run: vi.fn(async (fn) => fn(context)) });
-  return { stored, sheet, worksheets, context };
+  return { stored, range, sheet, worksheets, context };
 }
 
 const axes = [
@@ -185,4 +185,69 @@ it("preserves null for both mixed alignments in a combined read", async () => {
     horizontal_alignment: null,
     vertical_alignment: null,
   });
+});
+
+it("reads, deletes and clears conditional formats through the client", async () => {
+  vi.stubGlobal("Office", {
+    context: {
+      requirements: { isSetSupported: vi.fn(() => true) },
+    },
+  });
+  const { range } = harness();
+  const items = [];
+  function addRule(type, stopIfTrue) {
+    const rule = {
+      type,
+      stopIfTrue,
+      load: vi.fn(),
+      delete: vi.fn(() => items.splice(items.indexOf(rule), 1)),
+    };
+    items.push(rule);
+    return rule;
+  }
+  addRule("CellValue", true);
+  addRule("DataBar", null);
+  addRule("PresetCriteria", false);
+  range.conditionalFormats = {
+    items,
+    load: vi.fn(() => range.conditionalFormats),
+    getItemAt: vi.fn((position) => items[position]),
+    clearAll: vi.fn(() => items.splice(0)),
+  };
+
+  expect(
+    await client.getRangeData("Report", "$B$3:$C$4", ["conditional_formats"]),
+  ).toEqual({
+    address: "$B$3:$C$4",
+    row_count: 2,
+    column_count: 2,
+    conditional_formats: [
+      { type: "CellValue", stop_if_true: true },
+      { type: "DataBar", stop_if_true: null },
+      { type: "PresetCriteria", stop_if_true: false },
+    ],
+  });
+
+  const target = {
+    sheet_position: 1,
+    start_row: 2,
+    start_column: 1,
+    row_count: 2,
+    column_count: 2,
+  };
+  await client.runActions({
+    actions: [
+      {
+        ...target,
+        func: "deleteConditionalFormat",
+        args: [0, "CellValue", true],
+      },
+    ],
+  });
+  expect(items.map((rule) => rule.type)).toEqual(["DataBar", "PresetCriteria"]);
+
+  await client.runActions({
+    actions: [{ ...target, func: "clearConditionalFormats", args: [] }],
+  });
+  expect(items).toEqual([]);
 });

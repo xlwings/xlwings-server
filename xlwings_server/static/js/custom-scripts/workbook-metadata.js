@@ -112,6 +112,14 @@ export function rangeMetadata(range) {
   };
 }
 
+export function conditionalFormatMetadata(items) {
+  return (items || []).map((item) => ({
+    type: item.type,
+    // Office.js reports null for rule families that don't have StopIfTrue.
+    stop_if_true: item.stopIfTrue ?? null,
+  }));
+}
+
 export function rangeAddressFromDimensions(
   rowIndex,
   columnIndex,
@@ -216,6 +224,7 @@ const RANGE_READ_KEYS = {
   merge_area: [],
   merge_cells: [],
   table: [],
+  conditional_formats: [],
   // format.borders is a collection, which range.load() can't express as a
   // property path, so getRangeData loads it explicitly. One key for all eight
   // sides: they come from one collection, so fetching them together costs no

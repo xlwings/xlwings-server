@@ -97,3 +97,43 @@ export function createSetBorderProperty(getRange) {
     await context.sync();
   };
 }
+
+function requireConditionalFormats(isSetSupported) {
+  if (!isSetSupported("ExcelApi", "1.6")) {
+    throw new Error(
+      "Conditional formatting requires ExcelApi 1.6 and isn't supported by this Excel host.",
+    );
+  }
+}
+
+export function createClearConditionalFormats(getRange, isSetSupported) {
+  return async function clearConditionalFormats(context, action) {
+    requireConditionalFormats(isSetSupported);
+    const range = await getRange(context, action);
+    range.conditionalFormats.clearAll();
+    await context.sync();
+  };
+}
+
+export function createDeleteConditionalFormat(getRange, isSetSupported) {
+  return async function deleteConditionalFormat(context, action) {
+    requireConditionalFormats(isSetSupported);
+    const [position, expectedType, expectedStopIfTrue] = action.args || [];
+    if (!Number.isSafeInteger(position) || position < 0) {
+      throw new Error(`Invalid conditional-format position: ${position}`);
+    }
+    const range = await getRange(context, action);
+    const rule = range.conditionalFormats.getItemAt(position);
+    rule.load("type,stopIfTrue");
+    await context.sync();
+    const actualStopIfTrue = rule.stopIfTrue ?? null;
+    const expectedStop = expectedStopIfTrue ?? null;
+    if (rule.type !== expectedType || actualStopIfTrue !== expectedStop) {
+      throw new Error(
+        `Conditional-format rule at position ${position} changed since it was read.`,
+      );
+    }
+    rule.delete();
+    await context.sync();
+  };
+}
