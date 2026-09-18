@@ -331,7 +331,12 @@ describe("conditionalFormatMetadata", () => {
           type: "CellValue",
           stopIfTrue: true,
           cellValue: {
-            rule: { operator: "LessThan", formula1: "60" },
+            rule: {
+              operator: "LessThan",
+              formula1: "60",
+              // Excel may retain this inactive value after an operator change.
+              formula2: "999",
+            },
             format: {
               fill: { color: "#FFFF00" },
               font: { color: null, bold: null, italic: true },
@@ -363,6 +368,27 @@ describe("conditionalFormatMetadata", () => {
     expect(conditionalFormatMetadata([{ type: "IconSet" }])).toEqual([
       { type: "IconSet", stop_if_true: null },
     ]);
+  });
+
+  it("preserves a second formula only for between operators", () => {
+    const metadata = conditionalFormatMetadata([
+      {
+        type: "CellValue",
+        cellValue: {
+          rule: {
+            operator: "Between",
+            formula1: "5",
+            formula2: "10",
+          },
+          format: {
+            fill: { color: null },
+            font: { color: null, bold: null, italic: null },
+          },
+        },
+      },
+    ]);
+
+    expect(metadata[0].formula2).toBe("10");
   });
 
   it("serializes visual rule details and effective thresholds", () => {

@@ -393,7 +393,10 @@ function applyConditionalFormat(
     }
     detail.rule = next;
   } else if (type === "Custom" && Object.hasOwn(values, "formula")) {
-    detail.rule = { formula: values.formula };
+    // CustomConditionalFormat.rule is a read-only navigation property, while
+    // its formula is writable. Unlike CellValueConditionalFormat.rule, the
+    // parent rule object itself cannot be replaced.
+    detail.rule.formula = values.formula;
   } else if (type === "ColorScale") {
     const criteria = values.colors.map((color, index) => ({
       color,

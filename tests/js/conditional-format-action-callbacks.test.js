@@ -103,35 +103,37 @@ describe("addConditionalFormat action callback", () => {
       { type: "Custom", formula: "=$A2<>$B2" },
       { formula: "=$A2<>$B2" },
     ],
-  ])(
-    "does not read an unloaded %s rule before assigning it",
-    async (type, spec, expected) => {
-      let assigned;
-      const detail = { format: format() };
-      Object.defineProperty(detail, "rule", {
-        get() {
+  ])("respects the %s rule proxy contract", async (type, spec, expected) => {
+    let assigned;
+    const nestedRule = { formula: "" };
+    const detail = { format: format() };
+    Object.defineProperty(detail, "rule", {
+      get() {
+        if (type === "CellValue")
           throw new Error("The property 'rule' is not available");
-        },
-        set(value) {
-          assigned = value;
-        },
-      });
-      const rule = {
-        stopIfTrue: false,
-        [type === "CellValue" ? "cellValue" : "custom"]: detail,
-      };
-      const getRange = vi.fn(async () => ({
-        conditionalFormats: { add: vi.fn(() => rule) },
-      }));
+        return nestedRule;
+      },
+      set(value) {
+        if (type === "Custom")
+          throw new Error("Attempted to assign to readonly property");
+        assigned = value;
+      },
+    });
+    const rule = {
+      stopIfTrue: false,
+      [type === "CellValue" ? "cellValue" : "custom"]: detail,
+    };
+    const getRange = vi.fn(async () => ({
+      conditionalFormats: { add: vi.fn(() => rule) },
+    }));
 
-      await createAddConditionalFormat(getRange, supported)(
-        { sync: vi.fn(async () => {}) },
-        { args: [spec] },
-      );
+    await createAddConditionalFormat(getRange, supported)(
+      { sync: vi.fn(async () => {}) },
+      { args: [spec] },
+    );
 
-      expect(assigned).toEqual(expected);
-    },
-  );
+    expect(type === "CellValue" ? assigned : nestedRule).toEqual(expected);
+  });
 
   it("rejects malformed input before touching Excel", async () => {
     const h = harness("CellValue");

@@ -122,10 +122,15 @@ export function conditionalFormatMetadata(items) {
     let detail;
     if (item.type === "CellValue") {
       detail = item.cellValue;
+      const usesFormula2 = ["Between", "NotBetween"].includes(
+        detail.rule.operator,
+      );
       Object.assign(metadata, {
         operator: detail.rule.operator,
         formula1: detail.rule.formula1,
-        formula2: detail.rule.formula2 ?? null,
+        // Excel may retain an inactive second formula after switching away
+        // from a between operator. Keep the public model semantic.
+        formula2: usesFormula2 ? (detail.rule.formula2 ?? null) : null,
       });
     } else if (item.type === "Custom") {
       detail = item.custom;
