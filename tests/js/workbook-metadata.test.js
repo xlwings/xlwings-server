@@ -370,6 +370,16 @@ describe("conditionalFormatMetadata", () => {
     ]);
   });
 
+  it("orders loaded rules by their evaluation priority", () => {
+    expect(
+      conditionalFormatMetadata([
+        { type: "PresetCriteria", priority: 2 },
+        { type: "ContainsText", priority: 0 },
+        { type: "TopBottom", priority: 1 },
+      ]).map((rule) => rule.type),
+    ).toEqual(["ContainsText", "TopBottom", "PresetCriteria"]);
+  });
+
   it("preserves a second formula only for between operators", () => {
     const metadata = conditionalFormatMetadata([
       {

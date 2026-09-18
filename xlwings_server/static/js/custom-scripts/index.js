@@ -853,7 +853,9 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
         )
       : null;
     const conditionalFormats = readKeys.includes("conditional_formats")
-      ? range.conditionalFormats.load("items/type,items/stopIfTrue")
+      ? range.conditionalFormats.load(
+          "items/priority,items/type,items/stopIfTrue",
+        )
       : null;
     await context.sync();
     if (

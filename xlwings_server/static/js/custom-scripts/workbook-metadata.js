@@ -113,7 +113,13 @@ export function rangeMetadata(range) {
 }
 
 export function conditionalFormatMetadata(items) {
-  return (items || []).map((item) => {
+  const source = items || [];
+  // Office.js priority is the zero-based index used by getItemAt(). The host
+  // doesn't guarantee that a loaded collection's items array is in that order.
+  const ordered = source.every((item) => Number.isFinite(item.priority))
+    ? [...source].sort((left, right) => left.priority - right.priority)
+    : source;
+  return ordered.map((item) => {
     const metadata = {
       type: item.type,
       // Office.js reports null for rule families that don't have StopIfTrue.
