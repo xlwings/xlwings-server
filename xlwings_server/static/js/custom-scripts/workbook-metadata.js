@@ -113,11 +113,54 @@ export function rangeMetadata(range) {
 }
 
 export function conditionalFormatMetadata(items) {
-  return (items || []).map((item) => ({
-    type: item.type,
-    // Office.js reports null for rule families that don't have StopIfTrue.
-    stop_if_true: item.stopIfTrue ?? null,
-  }));
+  return (items || []).map((item) => {
+    const metadata = {
+      type: item.type,
+      // Office.js reports null for rule families that don't have StopIfTrue.
+      stop_if_true: item.stopIfTrue ?? null,
+    };
+    let detail;
+    if (item.type === "CellValue") {
+      detail = item.cellValue;
+      Object.assign(metadata, {
+        operator: detail.rule.operator,
+        formula1: detail.rule.formula1,
+        formula2: detail.rule.formula2 ?? null,
+      });
+    } else if (item.type === "Custom") {
+      detail = item.custom;
+      metadata.formula = detail.rule.formula;
+    }
+    if (detail) {
+      Object.assign(metadata, {
+        fill_color: detail.format.fill.color?.toLowerCase() ?? null,
+        font_color: detail.format.font.color?.toLowerCase() ?? null,
+        font_bold: detail.format.font.bold ?? null,
+        font_italic: detail.format.font.italic ?? null,
+      });
+    }
+    return metadata;
+  });
+}
+
+export function loadConditionalFormatDetails(items) {
+  let loaded = false;
+  for (const item of items || []) {
+    let detail;
+    if (item.type === "CellValue") {
+      detail = item.cellValue;
+      detail.load("rule");
+    } else if (item.type === "Custom") {
+      detail = item.custom;
+      detail.rule.load("formula");
+    }
+    if (detail) {
+      detail.format.fill.load("color");
+      detail.format.font.load("color,bold,italic");
+      loaded = true;
+    }
+  }
+  return loaded;
 }
 
 export function rangeAddressFromDimensions(

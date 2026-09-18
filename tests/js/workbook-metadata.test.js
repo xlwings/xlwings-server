@@ -326,12 +326,32 @@ describe("conditionalFormatMetadata", () => {
   it("preserves collection order, native types and stop-if-true state", () => {
     expect(
       conditionalFormatMetadata([
-        { type: "CellValue", stopIfTrue: true },
+        {
+          type: "CellValue",
+          stopIfTrue: true,
+          cellValue: {
+            rule: { operator: "LessThan", formula1: "60" },
+            format: {
+              fill: { color: "#FFFF00" },
+              font: { color: null, bold: null, italic: true },
+            },
+          },
+        },
         { type: "DataBar", stopIfTrue: null },
         { type: "PresetCriteria", stopIfTrue: false },
       ]),
     ).toEqual([
-      { type: "CellValue", stop_if_true: true },
+      {
+        type: "CellValue",
+        stop_if_true: true,
+        operator: "LessThan",
+        formula1: "60",
+        formula2: null,
+        fill_color: "#ffff00",
+        font_color: null,
+        font_bold: null,
+        font_italic: true,
+      },
       { type: "DataBar", stop_if_true: null },
       { type: "PresetCriteria", stop_if_true: false },
     ]);

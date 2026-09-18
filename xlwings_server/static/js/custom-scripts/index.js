@@ -21,6 +21,7 @@ import {
   convertDateValues,
   eagerValueRangeAddress,
   liveRangeValues,
+  loadConditionalFormatDetails,
   loadChartAndPivotMetadata,
   loadValuesOnlyUsedRange,
   loadWorksheetNotes,
@@ -37,8 +38,10 @@ import { readNamedItems } from "./named-items.js";
 import { dispatchActions } from "./action-dispatch.js";
 import { getActionSheet } from "./action-targets.js";
 import {
+  createAddConditionalFormat,
   createClearConditionalFormats,
   createDeleteConditionalFormat,
+  createSetConditionalFormat,
   createSetBorderProperty,
   createSetColumnWidth,
   createSetFormula,
@@ -853,6 +856,12 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
       ? range.conditionalFormats.load("items/type,items/stopIfTrue")
       : null;
     await context.sync();
+    if (
+      conditionalFormats &&
+      loadConditionalFormatDetails(conditionalFormats.items)
+    ) {
+      await context.sync();
+    }
     const metadata = rangeMetadata(range);
     const result = {
       address: metadata.address,
@@ -1306,6 +1315,14 @@ const clearConditionalFormats = createClearConditionalFormats(
   getRange,
   conditionalFormatSupport,
 );
+const addConditionalFormat = createAddConditionalFormat(
+  getRange,
+  conditionalFormatSupport,
+);
+const setConditionalFormat = createSetConditionalFormat(
+  getRange,
+  conditionalFormatSupport,
+);
 const deleteConditionalFormat = createDeleteConditionalFormat(
   getRange,
   conditionalFormatSupport,
@@ -1436,6 +1453,8 @@ let funcs = {
   setBorderProperty: setBorderProperty,
   clearConditionalFormats: clearConditionalFormats,
   deleteConditionalFormat: deleteConditionalFormat,
+  addConditionalFormat: addConditionalFormat,
+  setConditionalFormat: setConditionalFormat,
   setHorizontalAlignment: setHorizontalAlignment,
   setVerticalAlignment: setVerticalAlignment,
 };

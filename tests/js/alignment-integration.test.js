@@ -202,6 +202,34 @@ it("reads, deletes and clears conditional formats through the client", async () 
       load: vi.fn(),
       delete: vi.fn(() => items.splice(items.indexOf(rule), 1)),
     };
+    if (type === "CellValue") {
+      rule.cellValue = {
+        rule: { operator: "LessThan", formula1: "60" },
+        load: vi.fn(),
+        format: {
+          fill: { color: "#FFFF00", load: vi.fn() },
+          font: {
+            color: null,
+            bold: null,
+            italic: true,
+            load: vi.fn(),
+          },
+        },
+      };
+    } else if (type === "Custom") {
+      rule.custom = {
+        rule: { formula: "=TRUE", load: vi.fn() },
+        format: {
+          fill: { color: null, load: vi.fn() },
+          font: {
+            color: null,
+            bold: null,
+            italic: null,
+            load: vi.fn(),
+          },
+        },
+      };
+    }
     items.push(rule);
     return rule;
   }
@@ -211,6 +239,7 @@ it("reads, deletes and clears conditional formats through the client", async () 
   range.conditionalFormats = {
     items,
     load: vi.fn(() => range.conditionalFormats),
+    add: vi.fn((type) => addRule(type, false)),
     getItemAt: vi.fn((position) => items[position]),
     clearAll: vi.fn(() => items.splice(0)),
   };
@@ -222,7 +251,17 @@ it("reads, deletes and clears conditional formats through the client", async () 
     row_count: 2,
     column_count: 2,
     conditional_formats: [
-      { type: "CellValue", stop_if_true: true },
+      {
+        type: "CellValue",
+        stop_if_true: true,
+        operator: "LessThan",
+        formula1: "60",
+        formula2: null,
+        fill_color: "#ffff00",
+        font_color: null,
+        font_bold: null,
+        font_italic: true,
+      },
       { type: "DataBar", stop_if_true: null },
       { type: "PresetCriteria", stop_if_true: false },
     ],
@@ -250,4 +289,46 @@ it("reads, deletes and clears conditional formats through the client", async () 
     actions: [{ ...target, func: "clearConditionalFormats", args: [] }],
   });
   expect(items).toEqual([]);
+
+  await client.runActions({
+    actions: [
+      {
+        ...target,
+        func: "addConditionalFormat",
+        args: [
+          {
+            type: "CellValue",
+            operator: "LessThan",
+            formula1: "60",
+            formula2: null,
+            fill_color: "#ffff00",
+            font_italic: true,
+            stop_if_true: false,
+          },
+        ],
+      },
+    ],
+  });
+  const [added] = (
+    await client.getRangeData("Report", "$B$3:$C$4", ["conditional_formats"])
+  ).conditional_formats;
+  expect(added).toMatchObject({
+    type: "CellValue",
+    operator: "LessThan",
+    formula1: "60",
+    fill_color: "#ffff00",
+    font_italic: true,
+  });
+
+  await client.runActions({
+    actions: [
+      {
+        ...target,
+        func: "setConditionalFormat",
+        args: [0, added, { formula1: "70", stop_if_true: true }],
+      },
+    ],
+  });
+  expect(items[0].cellValue.rule.formula1).toBe("70");
+  expect(items[0].stopIfTrue).toBe(true);
 });
