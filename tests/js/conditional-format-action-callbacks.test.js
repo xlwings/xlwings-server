@@ -97,6 +97,137 @@ describe("addConditionalFormat action callback", () => {
     ).rejects.toThrow("Invalid conditional-format operator");
     expect(h.getRange).not.toHaveBeenCalled();
   });
+
+  it("adds a color scale with explicit number thresholds", async () => {
+    const rule = { colorScale: { criteria: null } };
+    const add = vi.fn(() => rule);
+    const getRange = vi.fn(async () => ({ conditionalFormats: { add } }));
+    const context = { sync: vi.fn(async () => {}) };
+
+    await createAddConditionalFormat(getRange, supported)(context, {
+      args: [
+        {
+          type: "ColorScale",
+          colors: ["#f8696b", "#ffeb84", "#63be7b"],
+          threshold_types: ["Number", "Number", "Number"],
+          thresholds: [0, 50, 100],
+        },
+      ],
+    });
+
+    expect(add).toHaveBeenCalledWith("ColorScale");
+    expect(rule.colorScale.criteria).toEqual({
+      minimum: { color: "#f8696b", type: "Number", formula: "0" },
+      midpoint: { color: "#ffeb84", type: "Number", formula: "50" },
+      maximum: { color: "#63be7b", type: "Number", formula: "100" },
+    });
+  });
+
+  it("adds a data bar with an automatic lower bound", async () => {
+    const rule = {
+      dataBar: {
+        lowerBoundRule: null,
+        upperBoundRule: null,
+        positiveFormat: {},
+        showDataBarOnly: false,
+      },
+    };
+    const add = vi.fn(() => rule);
+    const getRange = vi.fn(async () => ({ conditionalFormats: { add } }));
+    const context = { sync: vi.fn(async () => {}) };
+
+    await createAddConditionalFormat(getRange, supported)(context, {
+      args: [
+        {
+          type: "DataBar",
+          bar_color: "#638ec6",
+          gradient: false,
+          show_value: false,
+          threshold_types: ["Automatic", "Number"],
+          thresholds: [null, 100],
+        },
+      ],
+    });
+
+    expect(rule.dataBar.lowerBoundRule).toEqual({ type: "Automatic" });
+    expect(rule.dataBar.upperBoundRule).toEqual({
+      type: "Number",
+      formula: "100",
+    });
+    expect(rule.dataBar.positiveFormat).toEqual({
+      fillColor: "#638ec6",
+      gradientFill: false,
+    });
+    expect(rule.dataBar.showDataBarOnly).toBe(true);
+  });
+
+  it("adds an icon set with fixed thresholds", async () => {
+    const rule = { iconSet: {} };
+    const add = vi.fn(() => rule);
+    const getRange = vi.fn(async () => ({ conditionalFormats: { add } }));
+    const context = { sync: vi.fn(async () => {}) };
+
+    await createAddConditionalFormat(getRange, supported)(context, {
+      args: [
+        {
+          type: "IconSet",
+          icon_set: "ThreeTrafficLights1",
+          show_value: false,
+          reverse_order: true,
+          threshold_types: ["Number", "Number"],
+          thresholds: [60, 80],
+        },
+      ],
+    });
+
+    expect(rule.iconSet.style).toBe("ThreeTrafficLights1");
+    expect(rule.iconSet.showIconOnly).toBe(true);
+    expect(rule.iconSet.reverseIconOrder).toBe(true);
+    expect(rule.iconSet.criteria.slice(1)).toEqual([
+      { type: "Number", operator: "GreaterThanOrEqual", formula: "60" },
+      { type: "Number", operator: "GreaterThanOrEqual", formula: "80" },
+    ]);
+  });
+
+  it("rejects malformed visual rules before touching Excel", async () => {
+    const getRange = vi.fn();
+    await expect(
+      createAddConditionalFormat(getRange, supported)(
+        { sync: vi.fn() },
+        {
+          args: [
+            {
+              type: "IconSet",
+              icon_set: "ThreeArrows",
+              show_value: true,
+              reverse_order: false,
+              threshold_types: ["Number"],
+              thresholds: [50],
+            },
+          ],
+        },
+      ),
+    ).rejects.toThrow("thresholds must contain 2");
+    await expect(
+      createAddConditionalFormat(getRange, supported)(
+        { sync: vi.fn() },
+        {
+          args: [
+            {
+              type: "DataBar",
+              bar_color: "#638ec6",
+              gradient: true,
+              show_value: true,
+              threshold_types: ["Automatic", "Automatic"],
+              thresholds: [null, null],
+              font_bold: true,
+            },
+          ],
+        },
+      ),
+    ).rejects.toThrow("font_bold is not valid for DataBar rules");
+    expect(getRange).not.toHaveBeenCalled();
+  });
 });
 
 describe("setConditionalFormat action callback", () => {

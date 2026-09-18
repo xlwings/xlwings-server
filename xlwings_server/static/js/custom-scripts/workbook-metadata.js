@@ -130,6 +130,43 @@ export function conditionalFormatMetadata(items) {
     } else if (item.type === "Custom") {
       detail = item.custom;
       metadata.formula = detail.rule.formula;
+    } else if (item.type === "ColorScale" && item.colorScale) {
+      const criteria = item.colorScale.criteria;
+      const points = [criteria.minimum];
+      if (criteria.midpoint) points.push(criteria.midpoint);
+      points.push(criteria.maximum);
+      Object.assign(metadata, {
+        colors: points.map((point) => normalizeFillColor(point.color)),
+        threshold_types: points.map((point) => point.type),
+        thresholds: points.map((point) => point.formula ?? null),
+      });
+    } else if (item.type === "DataBar" && item.dataBar) {
+      detail = item.dataBar;
+      Object.assign(metadata, {
+        bar_color: normalizeFillColor(detail.positiveFormat.fillColor),
+        gradient: detail.positiveFormat.gradientFill,
+        show_value: !detail.showDataBarOnly,
+        threshold_types: [
+          detail.lowerBoundRule.type,
+          detail.upperBoundRule.type,
+        ],
+        thresholds: [
+          detail.lowerBoundRule.formula ?? null,
+          detail.upperBoundRule.formula ?? null,
+        ],
+      });
+      detail = null;
+    } else if (item.type === "IconSet" && item.iconSet) {
+      detail = item.iconSet;
+      const thresholds = detail.criteria.slice(1);
+      Object.assign(metadata, {
+        icon_set: detail.style,
+        show_value: !detail.showIconOnly,
+        reverse_order: detail.reverseIconOrder,
+        threshold_types: thresholds.map((criterion) => criterion.type),
+        thresholds: thresholds.map((criterion) => criterion.formula ?? null),
+      });
+      detail = null;
     }
     if (detail) {
       Object.assign(metadata, {
@@ -153,6 +190,16 @@ export function loadConditionalFormatDetails(items) {
     } else if (item.type === "Custom") {
       detail = item.custom;
       detail.rule.load("formula");
+    } else if (item.type === "ColorScale" && item.colorScale) {
+      item.colorScale.load("criteria,threeColorScale");
+      loaded = true;
+    } else if (item.type === "DataBar" && item.dataBar) {
+      item.dataBar.load("lowerBoundRule,showDataBarOnly,upperBoundRule");
+      item.dataBar.positiveFormat.load("fillColor,gradientFill");
+      loaded = true;
+    } else if (item.type === "IconSet" && item.iconSet) {
+      item.iconSet.load("criteria,reverseIconOrder,showIconOnly,style");
+      loaded = true;
     }
     if (detail) {
       detail.format.fill.load("color");

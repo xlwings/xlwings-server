@@ -118,6 +118,48 @@ const CONDITIONAL_FORMAT_OPERATORS = new Set([
   "GreaterThanOrEqual",
   "LessThanOrEqual",
 ]);
+const CONDITIONAL_FORMAT_TYPES = new Set([
+  "CellValue",
+  "Custom",
+  "ColorScale",
+  "DataBar",
+  "IconSet",
+]);
+const CONDITIONAL_FORMAT_THRESHOLD_TYPES = new Set([
+  "Number",
+  "Percent",
+  "Percentile",
+]);
+const CONDITIONAL_FORMAT_CRITERION_TYPES = new Set([
+  "Automatic",
+  "LowestValue",
+  "HighestValue",
+  "Number",
+  "Percent",
+  "Percentile",
+]);
+const CONDITIONAL_FORMAT_ICON_SETS = new Set([
+  "ThreeArrows",
+  "ThreeArrowsGray",
+  "ThreeFlags",
+  "ThreeTrafficLights1",
+  "ThreeTrafficLights2",
+  "ThreeSigns",
+  "ThreeSymbols",
+  "ThreeSymbols2",
+  "FourArrows",
+  "FourArrowsGray",
+  "FourRedToBlack",
+  "FourRating",
+  "FourTrafficLights",
+  "FiveArrows",
+  "FiveArrowsGray",
+  "FiveRating",
+  "FiveQuarters",
+  "ThreeStars",
+  "ThreeTriangles",
+  "FiveBoxes",
+]);
 
 function validateConditionalFormatColor(value, name) {
   if (
@@ -133,7 +175,7 @@ function validateConditionalFormatSpec(spec, { partial = false } = {}) {
     throw new Error("Conditional-format specification must be an object.");
   }
   const type = spec.type;
-  if (!partial && type !== "CellValue" && type !== "Custom") {
+  if (!partial && !CONDITIONAL_FORMAT_TYPES.has(type)) {
     throw new Error(`Unsupported conditional-format type: ${type}`);
   }
   const family = type;
@@ -146,7 +188,25 @@ function validateConditionalFormatSpec(spec, { partial = false } = {}) {
     "stop_if_true",
   ]);
   const familyKeys =
-    family === "CellValue" ? ["operator", "formula1", "formula2"] : ["formula"];
+    {
+      CellValue: ["operator", "formula1", "formula2"],
+      Custom: ["formula"],
+      ColorScale: ["colors", "threshold_types", "thresholds"],
+      DataBar: [
+        "bar_color",
+        "gradient",
+        "show_value",
+        "threshold_types",
+        "thresholds",
+      ],
+      IconSet: [
+        "icon_set",
+        "show_value",
+        "reverse_order",
+        "threshold_types",
+        "thresholds",
+      ],
+    }[family] || [];
   for (const key of Object.keys(spec)) {
     if (!commonKeys.has(key) && !familyKeys.includes(key)) {
       throw new Error(`Invalid ${family} conditional-format field: ${key}`);
@@ -194,6 +254,52 @@ function validateConditionalFormatSpec(spec, { partial = false } = {}) {
         );
       }
     }
+  } else if (!partial && family === "ColorScale") {
+    if (!Array.isArray(spec.colors) || ![2, 3].includes(spec.colors.length)) {
+      throw new Error("ColorScale colors must contain two or three colors.");
+    }
+    spec.colors.forEach((value, index) => {
+      if (value == null) throw new Error(`colors[${index}] is required.`);
+      validateConditionalFormatColor(value, `colors[${index}]`);
+    });
+    validateVisualThresholds(spec, spec.colors.length);
+  } else if (!partial && family === "DataBar") {
+    if (spec.bar_color == null) throw new Error("bar_color is required.");
+    validateConditionalFormatColor(spec.bar_color, "bar_color");
+    validateVisualThresholds(spec, 2, { allowAutomatic: true });
+    for (const name of ["gradient", "show_value"]) {
+      if (typeof spec[name] !== "boolean") {
+        throw new Error(`${name} must be a boolean.`);
+      }
+    }
+  } else if (!partial && family === "IconSet") {
+    if (!CONDITIONAL_FORMAT_ICON_SETS.has(spec.icon_set)) {
+      throw new Error(`Invalid conditional-format icon set: ${spec.icon_set}`);
+    }
+    const count = spec.icon_set.startsWith("Three")
+      ? 3
+      : spec.icon_set.startsWith("Four")
+        ? 4
+        : 5;
+    validateVisualThresholds(spec, count - 1);
+    for (const name of ["show_value", "reverse_order"]) {
+      if (typeof spec[name] !== "boolean") {
+        throw new Error(`${name} must be a boolean.`);
+      }
+    }
+  }
+  if (["ColorScale", "DataBar", "IconSet"].includes(family)) {
+    for (const name of [
+      "fill_color",
+      "font_color",
+      "font_bold",
+      "font_italic",
+      "stop_if_true",
+    ]) {
+      if (spec[name] != null) {
+        throw new Error(`${name} is not valid for ${family} rules.`);
+      }
+    }
   }
   validateConditionalFormatColor(spec.fill_color, "fill_color");
   validateConditionalFormatColor(spec.font_color, "font_color");
@@ -208,8 +314,57 @@ function validateConditionalFormatSpec(spec, { partial = false } = {}) {
   }
 }
 
+function validateVisualThresholds(
+  spec,
+  count,
+  { allowAutomatic = false } = {},
+) {
+  if (
+    !Array.isArray(spec.threshold_types) ||
+    !Array.isArray(spec.thresholds) ||
+    spec.threshold_types.length !== count ||
+    spec.thresholds.length !== count
+  ) {
+    throw new Error(
+      `Conditional-format thresholds must contain ${count} entries.`,
+    );
+  }
+  spec.threshold_types.forEach((type, index) => {
+    const valid = allowAutomatic
+      ? CONDITIONAL_FORMAT_CRITERION_TYPES.has(type)
+      : CONDITIONAL_FORMAT_THRESHOLD_TYPES.has(type) ||
+        type === "LowestValue" ||
+        type === "HighestValue";
+    if (!valid) throw new Error(`Invalid threshold type: ${type}`);
+    const value = spec.thresholds[index];
+    const noValue = ["Automatic", "LowestValue", "HighestValue"].includes(type);
+    if (noValue ? value != null : !Number.isFinite(value)) {
+      throw new Error(`Invalid threshold value at position ${index}.`);
+    }
+    if (
+      ["Percent", "Percentile"].includes(type) &&
+      (value < 0 || value > 100)
+    ) {
+      throw new Error(
+        `Threshold at position ${index} must be between 0 and 100.`,
+      );
+    }
+  });
+  const values = spec.thresholds.filter((value) => value != null);
+  if (values.some((value, index) => index > 0 && values[index - 1] >= value)) {
+    throw new Error(
+      "Conditional-format thresholds must be strictly increasing.",
+    );
+  }
+}
+
 function applyConditionalFormat(rule, type, values) {
-  const detail = type === "CellValue" ? rule.cellValue : rule.custom;
+  let detail =
+    type === "CellValue"
+      ? rule.cellValue
+      : type === "Custom"
+        ? rule.custom
+        : null;
   if (
     type === "CellValue" &&
     ["operator", "formula1", "formula2"].some((key) =>
@@ -231,11 +386,56 @@ function applyConditionalFormat(rule, type, values) {
     detail.rule = next;
   } else if (type === "Custom" && Object.hasOwn(values, "formula")) {
     detail.rule.formula = values.formula;
+  } else if (type === "ColorScale") {
+    const criteria = values.colors.map((color, index) => ({
+      color,
+      type: values.threshold_types[index],
+      formula:
+        values.thresholds[index] == null
+          ? null
+          : String(values.thresholds[index]),
+    }));
+    rule.colorScale.criteria = {
+      minimum: criteria[0],
+      ...(criteria.length === 3 ? { midpoint: criteria[1] } : {}),
+      maximum: criteria.at(-1),
+    };
+  } else if (type === "DataBar") {
+    detail = rule.dataBar;
+    const bound = (index) => ({
+      type: values.threshold_types[index],
+      ...(values.thresholds[index] == null
+        ? {}
+        : { formula: String(values.thresholds[index]) }),
+    });
+    detail.lowerBoundRule = bound(0);
+    detail.upperBoundRule = bound(1);
+    detail.positiveFormat.fillColor = values.bar_color;
+    detail.positiveFormat.gradientFill = values.gradient;
+    detail.showDataBarOnly = !values.show_value;
+    detail = null;
+  } else if (type === "IconSet") {
+    detail = rule.iconSet;
+    detail.style = values.icon_set;
+    detail.showIconOnly = !values.show_value;
+    detail.reverseIconOrder = values.reverse_order;
+    detail.criteria = [
+      { type: "Percent", operator: "GreaterThanOrEqual", formula: "0" },
+      ...values.thresholds.map((value, index) => ({
+        type: values.threshold_types[index],
+        operator: "GreaterThanOrEqual",
+        formula: String(value),
+      })),
+    ];
+    detail = null;
   }
-  if (values.fill_color != null) detail.format.fill.color = values.fill_color;
-  if (values.font_color != null) detail.format.font.color = values.font_color;
-  if (values.font_bold != null) detail.format.font.bold = values.font_bold;
-  if (values.font_italic != null)
+  if (detail && values.fill_color != null)
+    detail.format.fill.color = values.fill_color;
+  if (detail && values.font_color != null)
+    detail.format.font.color = values.font_color;
+  if (detail && values.font_bold != null)
+    detail.format.font.bold = values.font_bold;
+  if (detail && values.font_italic != null)
     detail.format.font.italic = values.font_italic;
   if (values.stop_if_true != null) rule.stopIfTrue = values.stop_if_true;
 }

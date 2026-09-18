@@ -6,6 +6,7 @@ import {
   eagerValueRangeAddress,
   isDateNumberFormat,
   liveRangeValues,
+  loadConditionalFormatDetails,
   loadChartAndPivotMetadata,
   loadValuesOnlyUsedRange,
   loadWorksheetNotes,
@@ -362,6 +363,99 @@ describe("conditionalFormatMetadata", () => {
     expect(conditionalFormatMetadata([{ type: "IconSet" }])).toEqual([
       { type: "IconSet", stop_if_true: null },
     ]);
+  });
+
+  it("serializes visual rule details and effective thresholds", () => {
+    expect(
+      conditionalFormatMetadata([
+        {
+          type: "ColorScale",
+          colorScale: {
+            criteria: {
+              minimum: { type: "LowestValue", color: "#F8696B" },
+              midpoint: {
+                type: "Percentile",
+                formula: "50",
+                color: "#FFEB84",
+              },
+              maximum: { type: "HighestValue", color: "#63BE7B" },
+            },
+          },
+        },
+        {
+          type: "DataBar",
+          dataBar: {
+            lowerBoundRule: { type: "Automatic" },
+            upperBoundRule: { type: "Number", formula: "100" },
+            positiveFormat: { fillColor: "#638EC6", gradientFill: true },
+            showDataBarOnly: false,
+          },
+        },
+        {
+          type: "IconSet",
+          iconSet: {
+            style: "ThreeTrafficLights1",
+            showIconOnly: true,
+            reverseIconOrder: true,
+            criteria: [
+              {},
+              { type: "Number", formula: "60" },
+              { type: "Number", formula: "80" },
+            ],
+          },
+        },
+      ]),
+    ).toEqual([
+      {
+        type: "ColorScale",
+        stop_if_true: null,
+        colors: ["#F8696B", "#FFEB84", "#63BE7B"],
+        threshold_types: ["LowestValue", "Percentile", "HighestValue"],
+        thresholds: [null, "50", null],
+      },
+      {
+        type: "DataBar",
+        stop_if_true: null,
+        bar_color: "#638EC6",
+        gradient: true,
+        show_value: true,
+        threshold_types: ["Automatic", "Number"],
+        thresholds: [null, "100"],
+      },
+      {
+        type: "IconSet",
+        stop_if_true: null,
+        icon_set: "ThreeTrafficLights1",
+        show_value: false,
+        reverse_order: true,
+        threshold_types: ["Number", "Number"],
+        thresholds: ["60", "80"],
+      },
+    ]);
+  });
+
+  it("loads each visual rule family in one detail pass", () => {
+    const colorScale = { load: vi.fn() };
+    const dataBar = { load: vi.fn(), positiveFormat: { load: vi.fn() } };
+    const iconSet = { load: vi.fn() };
+
+    expect(
+      loadConditionalFormatDetails([
+        { type: "ColorScale", colorScale },
+        { type: "DataBar", dataBar },
+        { type: "IconSet", iconSet },
+      ]),
+    ).toBe(true);
+    expect(colorScale.load).toHaveBeenCalledWith("criteria,threeColorScale");
+    expect(dataBar.load).toHaveBeenCalledWith(
+      "lowerBoundRule,showDataBarOnly,upperBoundRule",
+    );
+    expect(dataBar.positiveFormat.load).toHaveBeenCalledWith(
+      "fillColor,gradientFill",
+    );
+    expect(iconSet.load).toHaveBeenCalledWith(
+      "criteria,reverseIconOrder,showIconOnly,style",
+    );
   });
 });
 
