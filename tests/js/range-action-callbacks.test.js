@@ -5,9 +5,11 @@ import {
   createSetBorderProperty,
   createSetColumnWidth,
   createSetDataValidationList,
+  createSetDataValidationRule,
   createSetFormula,
   createSetFormulaArray,
   createSetValues,
+  readDataValidation,
 } from "../../xlwings_server/static/js/custom-scripts/range-action-callbacks.js";
 import { dispatchActions } from "../../xlwings_server/static/js/custom-scripts/action-dispatch.js";
 
@@ -137,15 +139,18 @@ describe("setColumnWidth action callback", () => {
 describe("data validation action callbacks", () => {
   function harness() {
     const dataValidation = {
+      type: "WholeNumber",
       rule: { wholeNumber: { formula1: 1 } },
       ignoreBlanks: false,
       prompt: { showPrompt: true, title: "Choose", message: "Pick one" },
       errorAlert: {
         showAlert: true,
+        style: "Stop",
         title: "Invalid",
         message: "Use the list",
       },
       clear: vi.fn(),
+      load: vi.fn(() => dataValidation),
     };
     const target = { dataValidation };
     const sourceRange = { address: "$C$2:$C$4" };
@@ -186,7 +191,7 @@ describe("data validation action callbacks", () => {
     expect(h.dataValidation.prompt).toBe(prompt);
     expect(h.dataValidation.errorAlert).toBe(errorAlert);
     expect(h.dataValidation.ignoreBlanks).toBe(false);
-    expect(h.context.sync).toHaveBeenCalledOnce();
+    expect(h.context.sync).toHaveBeenCalledTimes(2);
   });
 
   it("uses a worksheet Range as the list source", async () => {
@@ -231,6 +236,202 @@ describe("data validation action callbacks", () => {
     });
 
     expect(h.dataValidation.rule.list.source).toBe("=Statuses");
+  });
+
+  it.each(["Inconsistent", "MixedCriteria"])(
+    "does not overwrite a %s target with a list rule",
+    async (type) => {
+      const h = harness();
+      h.dataValidation.type = type;
+      const originalRule = h.dataValidation.rule;
+      await expect(
+        createSetDataValidationList(
+          h.getRange,
+          h.getSheet,
+          () => true,
+        )(h.context, { args: [{ type: "literal", values: ["Open"] }, true] }),
+      ).rejects.toThrow("different validation rules");
+      expect(h.dataValidation.rule).toBe(originalRule);
+      expect(h.context.sync).toHaveBeenCalledOnce();
+    },
+  );
+
+  it.each([
+    ["whole_number", "wholeNumber", "between", "Between", "1", "10"],
+    ["decimal", "decimal", "greater_than", "GreaterThan", "0.5", null],
+    [
+      "date",
+      "date",
+      "greater_than_or_equal",
+      "GreaterThanOrEqualTo",
+      "=46023",
+      null,
+    ],
+    ["time", "time", "less_than", "LessThan", "=0.5", null],
+    [
+      "text_length",
+      "textLength",
+      "less_than_or_equal",
+      "LessThanOrEqualTo",
+      "40",
+      null,
+    ],
+  ])(
+    "sets a %s rule while preserving surrounding settings",
+    async (type, officeKey, operator, officeOperator, formula1, formula2) => {
+      const h = harness();
+      const prompt = h.dataValidation.prompt;
+      const errorAlert = h.dataValidation.errorAlert;
+      const setRule = createSetDataValidationRule(h.getRange, () => true);
+
+      await setRule(h.context, {
+        args: [{ type, operator, formula1, formula2 }],
+      });
+
+      expect(h.dataValidation.rule).toEqual({
+        [officeKey]: {
+          operator: officeOperator,
+          formula1,
+          ...(formula2 == null ? {} : { formula2 }),
+        },
+      });
+      expect(h.dataValidation.prompt).toBe(prompt);
+      expect(h.dataValidation.errorAlert).toBe(errorAlert);
+      expect(h.dataValidation.ignoreBlanks).toBe(false);
+      expect(h.context.sync).toHaveBeenCalledTimes(2);
+    },
+  );
+
+  it("sets a custom-formula rule", async () => {
+    const h = harness();
+    await createSetDataValidationRule(h.getRange, () => true)(h.context, {
+      args: [
+        {
+          type: "custom",
+          operator: null,
+          formula1: "=COUNTIF(A:A,A1)=1",
+          formula2: null,
+        },
+      ],
+    });
+    expect(h.dataValidation.rule).toEqual({
+      custom: { formula: "=COUNTIF(A:A,A1)=1" },
+    });
+  });
+
+  it.each([
+    [
+      { type: "unknown", operator: "between", formula1: "1", formula2: "2" },
+      "Unknown data validation rule type",
+    ],
+    [
+      { type: "decimal", operator: "unknown", formula1: "1", formula2: null },
+      "Unknown data validation operator",
+    ],
+    [
+      { type: "decimal", operator: "between", formula1: "1", formula2: null },
+      "formula2 is required",
+    ],
+    [
+      {
+        type: "decimal",
+        operator: "greater_than",
+        formula1: "1",
+        formula2: "2",
+      },
+      "formula2 isn't valid",
+    ],
+    [
+      { type: "custom", operator: null, formula1: "A1>0", formula2: null },
+      "Custom data validation",
+    ],
+  ])(
+    "rejects an invalid generic rule before touching the range",
+    async (spec, message) => {
+      const h = harness();
+      await expect(
+        createSetDataValidationRule(h.getRange, () => true)(h.context, {
+          args: [spec],
+        }),
+      ).rejects.toThrow(message);
+      expect(h.getRange).not.toHaveBeenCalled();
+      expect(h.context.sync).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(["Inconsistent", "MixedCriteria"])(
+    "does not overwrite a %s target",
+    async (type) => {
+      const h = harness();
+      h.dataValidation.type = type;
+      const originalRule = h.dataValidation.rule;
+      await expect(
+        createSetDataValidationRule(h.getRange, () => true)(h.context, {
+          args: [
+            {
+              type: "decimal",
+              operator: "greater_than",
+              formula1: "0",
+              formula2: null,
+            },
+          ],
+        }),
+      ).rejects.toThrow("different validation rules");
+      expect(h.dataValidation.rule).toBe(originalRule);
+      expect(h.context.sync).toHaveBeenCalledOnce();
+    },
+  );
+
+  it("reads a complete normalized validation snapshot", async () => {
+    const h = harness();
+    h.dataValidation.rule = {
+      wholeNumber: {
+        operator: "Between",
+        formula1: "=1",
+        formula2: "=10",
+      },
+    };
+    expect(await readDataValidation(h.context, h.target, () => true)).toEqual({
+      type: "whole_number",
+      operator: "between",
+      formula1: "=1",
+      formula2: "=10",
+      formula: null,
+      source: null,
+      in_cell_dropdown: null,
+      ignore_blank: false,
+      input_title: "Choose",
+      input_message: "Pick one",
+      show_input: true,
+      error_title: "Invalid",
+      error_message: "Use the list",
+      show_error: true,
+      alert_style: "stop",
+    });
+    expect(h.context.sync).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([
+    ["None", "none"],
+    ["MixedCriteria", "mixed_criteria"],
+    ["Inconsistent", "inconsistent"],
+  ])("reads %s without trying to load one rule", async (officeType, type) => {
+    const h = harness();
+    h.dataValidation.type = officeType;
+    const snapshot = await readDataValidation(h.context, h.target, () => true);
+    expect(snapshot.type).toBe(type);
+    expect(snapshot.operator).toBeNull();
+    expect(snapshot.ignore_blank).toBeNull();
+    expect(h.context.sync).toHaveBeenCalledOnce();
+  });
+
+  it("rejects validation inspection on hosts below ExcelApi 1.8", async () => {
+    const h = harness();
+    await expect(
+      readDataValidation(h.context, h.target, () => false),
+    ).rejects.toThrow("requires ExcelApi 1.8");
+    expect(h.dataValidation.load).not.toHaveBeenCalled();
+    expect(h.context.sync).not.toHaveBeenCalled();
   });
 
   it("clears the complete validation", async () => {
@@ -289,7 +490,9 @@ describe("data validation action callbacks", () => {
   it("propagates protected-sheet failures from the Office request", async () => {
     const h = harness();
     const protectedError = new Error("The worksheet is protected");
-    h.context.sync.mockRejectedValueOnce(protectedError);
+    h.context.sync
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(protectedError);
     const setList = createSetDataValidationList(
       h.getRange,
       h.getSheet,
