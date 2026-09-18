@@ -88,6 +88,51 @@ describe("addConditionalFormat action callback", () => {
     expect(h.rule.custom.format.font.bold).toBe(true);
   });
 
+  it.each([
+    [
+      "CellValue",
+      {
+        type: "CellValue",
+        operator: "LessThan",
+        formula1: "60",
+      },
+      { operator: "LessThan", formula1: "60" },
+    ],
+    [
+      "Custom",
+      { type: "Custom", formula: "=$A2<>$B2" },
+      { formula: "=$A2<>$B2" },
+    ],
+  ])(
+    "does not read an unloaded %s rule before assigning it",
+    async (type, spec, expected) => {
+      let assigned;
+      const detail = { format: format() };
+      Object.defineProperty(detail, "rule", {
+        get() {
+          throw new Error("The property 'rule' is not available");
+        },
+        set(value) {
+          assigned = value;
+        },
+      });
+      const rule = {
+        stopIfTrue: false,
+        [type === "CellValue" ? "cellValue" : "custom"]: detail,
+      };
+      const getRange = vi.fn(async () => ({
+        conditionalFormats: { add: vi.fn(() => rule) },
+      }));
+
+      await createAddConditionalFormat(getRange, supported)(
+        { sync: vi.fn(async () => {}) },
+        { args: [spec] },
+      );
+
+      expect(assigned).toEqual(expected);
+    },
+  );
+
   it("rejects malformed input before touching Excel", async () => {
     const h = harness("CellValue");
     await expect(

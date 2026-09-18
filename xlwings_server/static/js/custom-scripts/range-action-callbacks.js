@@ -358,7 +358,12 @@ function validateVisualThresholds(
   }
 }
 
-function applyConditionalFormat(rule, type, values) {
+function applyConditionalFormat(
+  rule,
+  type,
+  values,
+  { mergeExistingRule = true } = {},
+) {
   let detail =
     type === "CellValue"
       ? rule.cellValue
@@ -371,7 +376,10 @@ function applyConditionalFormat(rule, type, values) {
       Object.hasOwn(values, key),
     )
   ) {
-    const current = detail.rule || {};
+    // A newly added Office.js proxy permits assigning rule, but reading it
+    // requires load() and context.sync(). Edits have already loaded the rule
+    // and need its omitted fields for a partial update.
+    const current = mergeExistingRule ? detail.rule || {} : {};
     const operator = values.operator ?? current.operator;
     const next = {
       operator,
@@ -385,7 +393,7 @@ function applyConditionalFormat(rule, type, values) {
     }
     detail.rule = next;
   } else if (type === "Custom" && Object.hasOwn(values, "formula")) {
-    detail.rule.formula = values.formula;
+    detail.rule = { formula: values.formula };
   } else if (type === "ColorScale") {
     const criteria = values.colors.map((color, index) => ({
       color,
@@ -447,7 +455,9 @@ export function createAddConditionalFormat(getRange, isSetSupported) {
     validateConditionalFormatSpec(spec);
     const range = await getRange(context, action);
     const rule = range.conditionalFormats.add(spec.type);
-    applyConditionalFormat(rule, spec.type, spec);
+    applyConditionalFormat(rule, spec.type, spec, {
+      mergeExistingRule: false,
+    });
     await context.sync();
   };
 }
