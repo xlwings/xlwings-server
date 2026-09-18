@@ -372,12 +372,28 @@ describe("conditionalFormatMetadata", () => {
 
   it("orders loaded rules by their evaluation priority", () => {
     expect(
-      conditionalFormatMetadata([
-        { type: "PresetCriteria", priority: 2 },
-        { type: "ContainsText", priority: 0 },
-        { type: "TopBottom", priority: 1 },
-      ]).map((rule) => rule.type),
+      conditionalFormatMetadata(
+        [
+          { type: "PresetCriteria", priority: 2 },
+          { type: "ContainsText", priority: 0 },
+          { type: "TopBottom", priority: 1 },
+        ],
+        { sortByPriority: true },
+      ).map((rule) => rule.type),
     ).toEqual(["ContainsText", "TopBottom", "PresetCriteria"]);
+  });
+
+  it("does not read priority when preserving the supplied order", () => {
+    const item = { type: "PresetCriteria" };
+    Object.defineProperty(item, "priority", {
+      get() {
+        throw new Error("priority was not loaded");
+      },
+    });
+
+    expect(conditionalFormatMetadata([item])).toEqual([
+      { type: "PresetCriteria", stop_if_true: null },
+    ]);
   });
 
   it("preserves a second formula only for between operators", () => {

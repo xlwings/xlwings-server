@@ -979,6 +979,7 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
         case "conditional_formats":
           result.conditional_formats = conditionalFormatMetadata(
             conditionalFormats.items,
+            { sortByPriority: true },
           );
           break;
       }

@@ -112,11 +112,14 @@ export function rangeMetadata(range) {
   };
 }
 
-export function conditionalFormatMetadata(items) {
+export function conditionalFormatMetadata(
+  items,
+  { sortByPriority = false } = {},
+) {
   const source = items || [];
   // Office.js priority is the zero-based index used by getItemAt(). The host
   // doesn't guarantee that a loaded collection's items array is in that order.
-  const ordered = source.every((item) => Number.isFinite(item.priority))
+  const ordered = sortByPriority
     ? [...source].sort((left, right) => left.priority - right.priority)
     : source;
   return ordered.map((item) => {

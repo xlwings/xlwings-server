@@ -461,6 +461,10 @@ export function createAddConditionalFormat(getRange, isSetSupported) {
     applyConditionalFormat(rule, spec.type, spec, {
       mergeExistingRule: false,
     });
+    // The public API guarantees highest-priority insertion. Office.js
+    // documents add() that way, but assign it explicitly as well so collection
+    // order stays deterministic across hosts.
+    rule.priority = 0;
     await context.sync();
   };
 }

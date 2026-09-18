@@ -68,6 +68,7 @@ describe("addConditionalFormat action callback", () => {
     expect(h.rule.cellValue.format.fill.color).toBe("#ffff00");
     expect(h.rule.cellValue.format.font.italic).toBe(true);
     expect(h.rule.stopIfTrue).toBe(true);
+    expect(h.rule.priority).toBe(0);
     expect(h.context.sync).toHaveBeenCalledOnce();
   });
 
@@ -289,6 +290,11 @@ describe("setConditionalFormat action callback", () => {
         format: format("#ffff00", { italic: true }),
       },
     };
+    Object.defineProperty(rule, "priority", {
+      get() {
+        throw new Error("priority was not loaded");
+      },
+    });
     const getItemAt = vi.fn(() => rule);
     return {
       rule,
