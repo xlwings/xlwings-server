@@ -36,8 +36,10 @@ import { readNamedItems } from "./named-items.js";
 import { dispatchActions } from "./action-dispatch.js";
 import { getActionSheet } from "./action-targets.js";
 import {
+  createDeleteDataValidation,
   createSetBorderProperty,
   createSetColumnWidth,
+  createSetDataValidationList,
   createSetFormula,
   createSetFormulaArray,
   createSetValues,
@@ -1281,6 +1283,14 @@ const setFormulaArray = createSetFormulaArray(
 );
 const setColumnWidth = createSetColumnWidth(getRange);
 const setBorderProperty = createSetBorderProperty(getRange);
+const setDataValidationList = createSetDataValidationList(
+  getRange,
+  (name, version) => Office.context.requirements.isSetSupported(name, version),
+);
+const deleteDataValidation = createDeleteDataValidation(
+  getRange,
+  (name, version) => Office.context.requirements.isSetSupported(name, version),
+);
 // Chart handlers built from their factories; like setBorderProperty they must
 // be declared before `funcs` below, which is evaluated at module load.
 const setChartSourceData = createSetChartSourceData(chartFromAction);
@@ -1405,6 +1415,8 @@ let funcs = {
   freezePaneUnfreeze: freezePaneUnfreeze,
   setFontProperty: setFontProperty,
   setBorderProperty: setBorderProperty,
+  setDataValidationList: setDataValidationList,
+  deleteDataValidation: deleteDataValidation,
   setHorizontalAlignment: setHorizontalAlignment,
   setVerticalAlignment: setVerticalAlignment,
 };

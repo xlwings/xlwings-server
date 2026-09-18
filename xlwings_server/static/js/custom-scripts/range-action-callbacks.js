@@ -49,6 +49,109 @@ export function createSetColumnWidth(getRange) {
   };
 }
 
+function requireDataValidationApi(isSetSupported) {
+  if (!isSetSupported("ExcelApi", "1.8")) {
+    throw new Error(
+      "data_validation requires ExcelApi 1.8 and isn't supported by this Excel host.",
+    );
+  }
+}
+
+function dataValidationListSource(context, payload) {
+  if (!payload || typeof payload !== "object") {
+    throw new Error("Data validation list source must be an object.");
+  }
+  switch (payload.type) {
+    case "literal": {
+      if (
+        !Array.isArray(payload.values) ||
+        payload.values.length === 0 ||
+        payload.values.some(
+          (value) =>
+            typeof value !== "string" ||
+            value.includes(",") ||
+            value.includes(";"),
+        )
+      ) {
+        throw new Error(
+          "Literal data validation values must be a non-empty array of strings without separators.",
+        );
+      }
+      const source = payload.values.join(",");
+      if (source.length > 255) {
+        throw new Error(
+          "A literal data validation source cannot exceed 255 characters.",
+        );
+      }
+      return source;
+    }
+    case "range": {
+      const fields = [
+        payload.sheet_position,
+        payload.start_row,
+        payload.start_column,
+        payload.row_count,
+        payload.column_count,
+      ];
+      if (
+        fields.some((value) => !Number.isInteger(value)) ||
+        payload.sheet_position < 0 ||
+        payload.start_row < 0 ||
+        payload.start_column < 0 ||
+        payload.row_count < 1 ||
+        payload.column_count < 1 ||
+        (payload.row_count !== 1 && payload.column_count !== 1)
+      ) {
+        throw new Error(
+          "Data validation range sources must contain valid one-dimensional coordinates.",
+        );
+      }
+      const sheet = context.workbook.worksheets.getItemAt(
+        payload.sheet_position,
+      );
+      return sheet.getRangeByIndexes(
+        payload.start_row,
+        payload.start_column,
+        payload.row_count,
+        payload.column_count,
+      );
+    }
+    case "name":
+      if (typeof payload.name !== "string" || payload.name.length === 0) {
+        throw new Error("Data validation named sources require a name.");
+      }
+      return `=${payload.name}`;
+    default:
+      throw new Error(`Unknown data validation list source: ${payload.type}`);
+  }
+}
+
+export function createSetDataValidationList(getRange, isSetSupported) {
+  return async function setDataValidationList(context, action) {
+    requireDataValidationApi(isSetSupported);
+    const [sourcePayload, inCellDropdown] = action.args ?? [];
+    if (typeof inCellDropdown !== "boolean") {
+      throw new Error("in_cell_dropdown must be a boolean.");
+    }
+    const source = dataValidationListSource(context, sourcePayload);
+    const range = await getRange(context, action);
+    // Assigning only the rule preserves ignoreBlanks, prompt and errorAlert.
+    range.dataValidation.rule = {
+      list: { source, inCellDropDown: inCellDropdown },
+    };
+    await context.sync();
+  };
+}
+
+export function createDeleteDataValidation(getRange, isSetSupported) {
+  return async function deleteDataValidation(context, action) {
+    requireDataValidationApi(isSetSupported);
+    const range = await getRange(context, action);
+    range.dataValidation.clear();
+    await context.sync();
+  };
+}
+
 function officeBorderValue(mapping, value, what) {
   if (!Object.prototype.hasOwnProperty.call(mapping, value)) {
     throw new Error(`Unknown border ${what}: ${value}`);

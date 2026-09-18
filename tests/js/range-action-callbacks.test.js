@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  createDeleteDataValidation,
   createSetBorderProperty,
   createSetColumnWidth,
+  createSetDataValidationList,
   createSetFormula,
   createSetFormulaArray,
   createSetValues,
@@ -129,6 +131,167 @@ describe("setColumnWidth action callback", () => {
       expect(getRange).not.toHaveBeenCalled();
       expect(format.columnWidth).toBeUndefined();
     }
+  });
+});
+
+describe("data validation action callbacks", () => {
+  function harness() {
+    const dataValidation = {
+      rule: { wholeNumber: { formula1: 1 } },
+      ignoreBlanks: false,
+      prompt: { showPrompt: true, title: "Choose", message: "Pick one" },
+      errorAlert: {
+        showAlert: true,
+        title: "Invalid",
+        message: "Use the list",
+      },
+      clear: vi.fn(),
+    };
+    const target = { dataValidation };
+    const sourceRange = { address: "$C$2:$C$4" };
+    const sourceSheet = {
+      getRangeByIndexes: vi.fn(() => sourceRange),
+    };
+    const getItemAt = vi.fn(() => sourceSheet);
+    return {
+      dataValidation,
+      target,
+      sourceRange,
+      sourceSheet,
+      getItemAt,
+      getRange: vi.fn(async () => target),
+      context: {
+        workbook: { worksheets: { getItemAt } },
+        sync: vi.fn(async () => {}),
+      },
+    };
+  }
+
+  it("sets a literal list while preserving prompts, alerts and ignoreBlanks", async () => {
+    const h = harness();
+    const prompt = h.dataValidation.prompt;
+    const errorAlert = h.dataValidation.errorAlert;
+    const setList = createSetDataValidationList(h.getRange, () => true);
+
+    await setList(h.context, {
+      args: [{ type: "literal", values: ["Open", "Closed"] }, false],
+    });
+
+    expect(h.dataValidation.rule).toEqual({
+      list: { source: "Open,Closed", inCellDropDown: false },
+    });
+    expect(h.dataValidation.prompt).toBe(prompt);
+    expect(h.dataValidation.errorAlert).toBe(errorAlert);
+    expect(h.dataValidation.ignoreBlanks).toBe(false);
+    expect(h.context.sync).toHaveBeenCalledOnce();
+  });
+
+  it("uses a worksheet Range as the list source", async () => {
+    const h = harness();
+    const setList = createSetDataValidationList(h.getRange, () => true);
+
+    await setList(h.context, {
+      args: [
+        {
+          type: "range",
+          sheet_position: 1,
+          start_row: 1,
+          start_column: 2,
+          row_count: 3,
+          column_count: 1,
+        },
+        true,
+      ],
+    });
+
+    expect(h.getItemAt).toHaveBeenCalledWith(1);
+    expect(h.sourceSheet.getRangeByIndexes).toHaveBeenCalledWith(1, 2, 3, 1);
+    expect(h.dataValidation.rule).toEqual({
+      list: { source: h.sourceRange, inCellDropDown: true },
+    });
+  });
+
+  it("uses a defined name as the list source", async () => {
+    const h = harness();
+    const setList = createSetDataValidationList(h.getRange, () => true);
+
+    await setList(h.context, {
+      args: [{ type: "name", name: "Statuses" }, true],
+    });
+
+    expect(h.dataValidation.rule.list.source).toBe("=Statuses");
+  });
+
+  it("clears the complete validation", async () => {
+    const h = harness();
+    const deleteValidation = createDeleteDataValidation(h.getRange, () => true);
+
+    await deleteValidation(h.context, { args: [] });
+
+    expect(h.dataValidation.clear).toHaveBeenCalledOnce();
+    expect(h.context.sync).toHaveBeenCalledOnce();
+  });
+
+  it("rejects hosts below ExcelApi 1.8 before resolving the range", async () => {
+    const h = harness();
+    const setList = createSetDataValidationList(h.getRange, () => false);
+
+    await expect(
+      setList(h.context, {
+        args: [{ type: "literal", values: ["Open"] }, true],
+      }),
+    ).rejects.toThrow("ExcelApi 1.8");
+    expect(h.getRange).not.toHaveBeenCalled();
+    expect(h.context.sync).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [null, true, "must be an object"],
+    [{ type: "literal", values: [] }, true, "non-empty array"],
+    [{ type: "literal", values: ["Open,Closed"] }, true, "without separators"],
+    [{ type: "range", sheet_position: 0 }, true, "coordinates"],
+    [{ type: "name", name: "" }, true, "require a name"],
+    [{ type: "unknown" }, true, "Unknown data validation"],
+    [{ type: "literal", values: ["Open"] }, 1, "must be a boolean"],
+  ])(
+    "rejects an invalid source before touching the target",
+    async (source, dropdown, message) => {
+      const h = harness();
+      const setList = createSetDataValidationList(h.getRange, () => true);
+
+      await expect(
+        setList(h.context, { args: [source, dropdown] }),
+      ).rejects.toThrow(message);
+      expect(h.getRange).not.toHaveBeenCalled();
+      expect(h.context.sync).not.toHaveBeenCalled();
+    },
+  );
+
+  it("propagates protected-sheet failures from the Office request", async () => {
+    const h = harness();
+    const protectedError = new Error("The worksheet is protected");
+    h.context.sync.mockRejectedValueOnce(protectedError);
+    const setList = createSetDataValidationList(h.getRange, () => true);
+
+    await expect(
+      setList(h.context, {
+        args: [{ type: "literal", values: ["Open"] }, true],
+      }),
+    ).rejects.toBe(protectedError);
+  });
+
+  it("propagates a missing target range without synchronizing", async () => {
+    const h = harness();
+    const missingError = new Error("The target range no longer exists");
+    h.getRange.mockRejectedValueOnce(missingError);
+    const setList = createSetDataValidationList(h.getRange, () => true);
+
+    await expect(
+      setList(h.context, {
+        args: [{ type: "literal", values: ["Open"] }, true],
+      }),
+    ).rejects.toBe(missingError);
+    expect(h.context.sync).not.toHaveBeenCalled();
   });
 });
 
