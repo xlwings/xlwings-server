@@ -451,6 +451,26 @@ function applyConditionalFormat(
   if (values.stop_if_true != null) rule.stopIfTrue = values.stop_if_true;
 }
 
+function conditionalFormatMetadataValueEqual(actual, expected) {
+  if (Array.isArray(actual) || Array.isArray(expected)) {
+    return (
+      Array.isArray(actual) &&
+      Array.isArray(expected) &&
+      actual.length === expected.length &&
+      actual.every((value, index) =>
+        conditionalFormatMetadataValueEqual(value, expected[index]),
+      )
+    );
+  }
+  return (actual ?? null) === (expected ?? null);
+}
+
+function conditionalFormatMetadataMatches(actual, expected) {
+  return Object.entries(expected).every(([key, value]) =>
+    conditionalFormatMetadataValueEqual(actual[key], value),
+  );
+}
+
 export function createAddConditionalFormat(getRange, isSetSupported) {
   return async function addConditionalFormat(context, action) {
     requireConditionalFormats(isSetSupported);
@@ -494,9 +514,7 @@ export function createSetConditionalFormat(getRange, isSetSupported) {
     }
     if (loadConditionalFormatDetails([rule])) await context.sync();
     const actual = conditionalFormatMetadata([rule])[0];
-    const unchanged = Object.entries(expected).every(
-      ([key, value]) => (actual[key] ?? null) === (value ?? null),
-    );
+    const unchanged = conditionalFormatMetadataMatches(actual, expected);
     if (!unchanged) {
       throw new Error(
         `Conditional-format rule at position ${position} changed since it was read.`,
@@ -523,17 +541,25 @@ export function createClearConditionalFormats(getRange, isSetSupported) {
 export function createDeleteConditionalFormat(getRange, isSetSupported) {
   return async function deleteConditionalFormat(context, action) {
     requireConditionalFormats(isSetSupported);
-    const [position, expectedType, expectedStopIfTrue] = action.args || [];
+    const [position, expected] = action.args || [];
     if (!Number.isSafeInteger(position) || position < 0) {
       throw new Error(`Invalid conditional-format position: ${position}`);
+    }
+    if (!expected || typeof expected.type !== "string") {
+      throw new Error("A conditional-format snapshot is required.");
     }
     const range = await getRange(context, action);
     const rule = range.conditionalFormats.getItemAt(position);
     rule.load("type,stopIfTrue");
     await context.sync();
-    const actualStopIfTrue = rule.stopIfTrue ?? null;
-    const expectedStop = expectedStopIfTrue ?? null;
-    if (rule.type !== expectedType || actualStopIfTrue !== expectedStop) {
+    if (rule.type !== expected.type) {
+      throw new Error(
+        `Conditional-format rule at position ${position} changed since it was read.`,
+      );
+    }
+    if (loadConditionalFormatDetails([rule])) await context.sync();
+    const actual = conditionalFormatMetadata([rule])[0];
+    if (!conditionalFormatMetadataMatches(actual, expected)) {
       throw new Error(
         `Conditional-format rule at position ${position} changed since it was read.`,
       );

@@ -279,7 +279,20 @@ it("reads, deletes and clears conditional formats through the client", async () 
       {
         ...target,
         func: "deleteConditionalFormat",
-        args: [0, "CellValue", true],
+        args: [
+          0,
+          {
+            type: "CellValue",
+            stop_if_true: true,
+            operator: "LessThan",
+            formula1: "60",
+            formula2: null,
+            fill_color: "#ffff00",
+            font_color: null,
+            font_bold: null,
+            font_italic: true,
+          },
+        ],
       },
     ],
   });

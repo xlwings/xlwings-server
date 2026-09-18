@@ -150,14 +150,18 @@ export function conditionalFormatMetadata(
       if (criteria.midpoint) points.push(criteria.midpoint);
       points.push(criteria.maximum);
       Object.assign(metadata, {
-        colors: points.map((point) => normalizeFillColor(point.color)),
+        colors: points.map(
+          (point) => normalizeFillColor(point.color)?.toLowerCase() ?? null,
+        ),
         threshold_types: points.map((point) => point.type),
         thresholds: points.map((point) => point.formula ?? null),
       });
     } else if (item.type === "DataBar" && item.dataBar) {
       detail = item.dataBar;
       Object.assign(metadata, {
-        bar_color: normalizeFillColor(detail.positiveFormat.fillColor),
+        bar_color:
+          normalizeFillColor(detail.positiveFormat.fillColor)?.toLowerCase() ??
+          null,
         gradient: detail.positiveFormat.gradientFill,
         show_value: !detail.showDataBarOnly,
         threshold_types: [

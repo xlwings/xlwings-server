@@ -346,6 +346,18 @@ describe("setConditionalFormat action callback", () => {
     expect(h.context.sync).toHaveBeenCalledTimes(2);
   });
 
+  it("refuses a rule whose formatting changed since it was read", async () => {
+    const h = harness();
+    h.rule.cellValue.format.fill.color = "#00ff00";
+    await expect(
+      createSetConditionalFormat(h.getRange, supported)(h.context, {
+        args: [0, expected, { formula1: "70" }],
+      }),
+    ).rejects.toThrow("changed since it was read");
+    expect(h.rule.cellValue.rule.formula1).toBe("60");
+    expect(h.context.sync).toHaveBeenCalledTimes(2);
+  });
+
   it("updates a custom formula without disturbing its font", async () => {
     const rule = {
       type: "Custom",
@@ -404,6 +416,18 @@ describe("clearConditionalFormats action callback", () => {
 });
 
 describe("deleteConditionalFormat action callback", () => {
+  const expectedCellValue = {
+    type: "CellValue",
+    stop_if_true: true,
+    operator: "LessThan",
+    formula1: "60",
+    formula2: null,
+    fill_color: "#ffff00",
+    font_color: null,
+    font_bold: null,
+    font_italic: true,
+  };
+
   function harness({ type = "CellValue", stopIfTrue = true } = {}) {
     const rule = {
       type,
@@ -411,6 +435,25 @@ describe("deleteConditionalFormat action callback", () => {
       load: vi.fn(),
       delete: vi.fn(),
     };
+    if (type === "CellValue") {
+      rule.cellValue = {
+        rule: { operator: "LessThan", formula1: "60" },
+        load: vi.fn(),
+        format: format("#ffff00", { italic: true }),
+      };
+    } else if (type === "DataBar") {
+      rule.dataBar = {
+        lowerBoundRule: { type: "Automatic" },
+        upperBoundRule: { type: "Number", formula: "100" },
+        positiveFormat: {
+          fillColor: "#638EC6",
+          gradientFill: true,
+          load: vi.fn(),
+        },
+        showDataBarOnly: false,
+        load: vi.fn(),
+      };
+    }
     const getItemAt = vi.fn(() => rule);
     const range = { conditionalFormats: { getItemAt } };
     return {
@@ -425,31 +468,56 @@ describe("deleteConditionalFormat action callback", () => {
     const h = harness();
     const callback = createDeleteConditionalFormat(h.getRange, supported);
 
-    await callback(h.context, { args: [2, "CellValue", true] });
+    await callback(h.context, { args: [2, expectedCellValue] });
 
     expect(h.getItemAt).toHaveBeenCalledWith(2);
     expect(h.rule.load).toHaveBeenCalledWith("type,stopIfTrue");
-    expect(h.context.sync).toHaveBeenCalledTimes(2);
+    expect(h.context.sync).toHaveBeenCalledTimes(3);
     expect(h.rule.delete).toHaveBeenCalledOnce();
   });
 
-  it("accepts null stop-if-true for rule families without that setting", async () => {
+  it("compares visual-rule arrays before deleting", async () => {
     const h = harness({ type: "DataBar", stopIfTrue: null });
     await createDeleteConditionalFormat(h.getRange, supported)(h.context, {
-      args: [0, "DataBar", undefined],
+      args: [
+        0,
+        {
+          type: "DataBar",
+          stop_if_true: null,
+          bar_color: "#638ec6",
+          gradient: true,
+          show_value: true,
+          threshold_types: ["Automatic", "Number"],
+          thresholds: [null, "100"],
+        },
+      ],
     });
     expect(h.rule.delete).toHaveBeenCalledOnce();
+    expect(h.context.sync).toHaveBeenCalledTimes(3);
   });
 
   it("refuses a stale position instead of deleting a neighboring rule", async () => {
     const h = harness({ type: "Custom", stopIfTrue: false });
     await expect(
       createDeleteConditionalFormat(h.getRange, supported)(h.context, {
-        args: [0, "CellValue", false],
+        args: [0, { ...expectedCellValue, stop_if_true: false }],
       }),
     ).rejects.toThrow("changed since it was read");
     expect(h.rule.delete).not.toHaveBeenCalled();
     expect(h.context.sync).toHaveBeenCalledOnce();
+  });
+
+  it("refuses a same-type rule whose condition changed", async () => {
+    const h = harness();
+    h.rule.cellValue.rule.formula1 = "61";
+
+    await expect(
+      createDeleteConditionalFormat(h.getRange, supported)(h.context, {
+        args: [0, expectedCellValue],
+      }),
+    ).rejects.toThrow("changed since it was read");
+    expect(h.rule.delete).not.toHaveBeenCalled();
+    expect(h.context.sync).toHaveBeenCalledTimes(2);
   });
 
   it("surfaces a missing rule without attempting a deletion", async () => {
@@ -462,7 +530,7 @@ describe("deleteConditionalFormat action callback", () => {
 
     await expect(
       createDeleteConditionalFormat(h.getRange, supported)(h.context, {
-        args: [4, "CellValue", true],
+        args: [4, expectedCellValue],
       }),
     ).rejects.toThrow("invalid or missing");
     expect(h.getItemAt).toHaveBeenCalledWith(4);
@@ -475,7 +543,7 @@ describe("deleteConditionalFormat action callback", () => {
       const h = harness();
       await expect(
         createDeleteConditionalFormat(h.getRange, supported)(h.context, {
-          args: [position, "CellValue", true],
+          args: [position, expectedCellValue],
         }),
       ).rejects.toThrow("Invalid conditional-format position");
       expect(h.getRange).not.toHaveBeenCalled();
@@ -486,11 +554,17 @@ describe("deleteConditionalFormat action callback", () => {
     const h = harness();
     h.context.sync
       .mockResolvedValueOnce(undefined)
+      .mockResolvedValueOnce(undefined)
       .mockRejectedValueOnce(new Error("The worksheet is protected"));
 
     await expect(
       dispatchActions(
-        [{ func: "deleteConditionalFormat", args: [0, "CellValue", true] }],
+        [
+          {
+            func: "deleteConditionalFormat",
+            args: [0, expectedCellValue],
+          },
+        ],
         h.context,
         {
           deleteConditionalFormat: createDeleteConditionalFormat(

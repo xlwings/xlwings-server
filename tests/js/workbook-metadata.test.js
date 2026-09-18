@@ -461,14 +461,14 @@ describe("conditionalFormatMetadata", () => {
       {
         type: "ColorScale",
         stop_if_true: null,
-        colors: ["#F8696B", "#FFEB84", "#63BE7B"],
+        colors: ["#f8696b", "#ffeb84", "#63be7b"],
         threshold_types: ["LowestValue", "Percentile", "HighestValue"],
         thresholds: [null, "50", null],
       },
       {
         type: "DataBar",
         stop_if_true: null,
-        bar_color: "#638EC6",
+        bar_color: "#638ec6",
         gradient: true,
         show_value: true,
         threshold_types: ["Automatic", "Number"],
