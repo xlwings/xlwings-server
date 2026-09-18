@@ -1285,6 +1285,8 @@ const setColumnWidth = createSetColumnWidth(getRange);
 const setBorderProperty = createSetBorderProperty(getRange);
 const setDataValidationList = createSetDataValidationList(
   getRange,
+  (context, sheetPosition) =>
+    getActionSheet(context, { sheet_position: sheetPosition }),
   (name, version) => Office.context.requirements.isSetSupported(name, version),
 );
 const deleteDataValidation = createDeleteDataValidation(

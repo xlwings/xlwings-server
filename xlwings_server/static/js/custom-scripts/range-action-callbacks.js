@@ -57,7 +57,7 @@ function requireDataValidationApi(isSetSupported) {
   }
 }
 
-function dataValidationListSource(context, payload) {
+async function dataValidationListSource(context, payload, getSheet) {
   if (!payload || typeof payload !== "object") {
     throw new Error("Data validation list source must be an object.");
   }
@@ -106,9 +106,7 @@ function dataValidationListSource(context, payload) {
           "Data validation range sources must contain valid one-dimensional coordinates.",
         );
       }
-      const sheet = context.workbook.worksheets.getItemAt(
-        payload.sheet_position,
-      );
+      const sheet = await getSheet(context, payload.sheet_position);
       return sheet.getRangeByIndexes(
         payload.start_row,
         payload.start_column,
@@ -126,14 +124,22 @@ function dataValidationListSource(context, payload) {
   }
 }
 
-export function createSetDataValidationList(getRange, isSetSupported) {
+export function createSetDataValidationList(
+  getRange,
+  getSheet,
+  isSetSupported,
+) {
   return async function setDataValidationList(context, action) {
     requireDataValidationApi(isSetSupported);
     const [sourcePayload, inCellDropdown] = action.args ?? [];
     if (typeof inCellDropdown !== "boolean") {
       throw new Error("in_cell_dropdown must be a boolean.");
     }
-    const source = dataValidationListSource(context, sourcePayload);
+    const source = await dataValidationListSource(
+      context,
+      sourcePayload,
+      getSheet,
+    );
     const range = await getRange(context, action);
     // Assigning only the rule preserves ignoreBlanks, prompt and errorAlert.
     range.dataValidation.rule = {

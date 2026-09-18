@@ -152,16 +152,15 @@ describe("data validation action callbacks", () => {
     const sourceSheet = {
       getRangeByIndexes: vi.fn(() => sourceRange),
     };
-    const getItemAt = vi.fn(() => sourceSheet);
+    const getSheet = vi.fn(async () => sourceSheet);
     return {
       dataValidation,
       target,
       sourceRange,
       sourceSheet,
-      getItemAt,
+      getSheet,
       getRange: vi.fn(async () => target),
       context: {
-        workbook: { worksheets: { getItemAt } },
         sync: vi.fn(async () => {}),
       },
     };
@@ -171,7 +170,11 @@ describe("data validation action callbacks", () => {
     const h = harness();
     const prompt = h.dataValidation.prompt;
     const errorAlert = h.dataValidation.errorAlert;
-    const setList = createSetDataValidationList(h.getRange, () => true);
+    const setList = createSetDataValidationList(
+      h.getRange,
+      h.getSheet,
+      () => true,
+    );
 
     await setList(h.context, {
       args: [{ type: "literal", values: ["Open", "Closed"] }, false],
@@ -188,7 +191,11 @@ describe("data validation action callbacks", () => {
 
   it("uses a worksheet Range as the list source", async () => {
     const h = harness();
-    const setList = createSetDataValidationList(h.getRange, () => true);
+    const setList = createSetDataValidationList(
+      h.getRange,
+      h.getSheet,
+      () => true,
+    );
 
     await setList(h.context, {
       args: [
@@ -204,7 +211,7 @@ describe("data validation action callbacks", () => {
       ],
     });
 
-    expect(h.getItemAt).toHaveBeenCalledWith(1);
+    expect(h.getSheet).toHaveBeenCalledWith(h.context, 1);
     expect(h.sourceSheet.getRangeByIndexes).toHaveBeenCalledWith(1, 2, 3, 1);
     expect(h.dataValidation.rule).toEqual({
       list: { source: h.sourceRange, inCellDropDown: true },
@@ -213,7 +220,11 @@ describe("data validation action callbacks", () => {
 
   it("uses a defined name as the list source", async () => {
     const h = harness();
-    const setList = createSetDataValidationList(h.getRange, () => true);
+    const setList = createSetDataValidationList(
+      h.getRange,
+      h.getSheet,
+      () => true,
+    );
 
     await setList(h.context, {
       args: [{ type: "name", name: "Statuses" }, true],
@@ -234,7 +245,11 @@ describe("data validation action callbacks", () => {
 
   it("rejects hosts below ExcelApi 1.8 before resolving the range", async () => {
     const h = harness();
-    const setList = createSetDataValidationList(h.getRange, () => false);
+    const setList = createSetDataValidationList(
+      h.getRange,
+      h.getSheet,
+      () => false,
+    );
 
     await expect(
       setList(h.context, {
@@ -257,7 +272,11 @@ describe("data validation action callbacks", () => {
     "rejects an invalid source before touching the target",
     async (source, dropdown, message) => {
       const h = harness();
-      const setList = createSetDataValidationList(h.getRange, () => true);
+      const setList = createSetDataValidationList(
+        h.getRange,
+        h.getSheet,
+        () => true,
+      );
 
       await expect(
         setList(h.context, { args: [source, dropdown] }),
@@ -271,7 +290,11 @@ describe("data validation action callbacks", () => {
     const h = harness();
     const protectedError = new Error("The worksheet is protected");
     h.context.sync.mockRejectedValueOnce(protectedError);
-    const setList = createSetDataValidationList(h.getRange, () => true);
+    const setList = createSetDataValidationList(
+      h.getRange,
+      h.getSheet,
+      () => true,
+    );
 
     await expect(
       setList(h.context, {
@@ -284,7 +307,11 @@ describe("data validation action callbacks", () => {
     const h = harness();
     const missingError = new Error("The target range no longer exists");
     h.getRange.mockRejectedValueOnce(missingError);
-    const setList = createSetDataValidationList(h.getRange, () => true);
+    const setList = createSetDataValidationList(
+      h.getRange,
+      h.getSheet,
+      () => true,
+    );
 
     await expect(
       setList(h.context, {
