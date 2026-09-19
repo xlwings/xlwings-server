@@ -40,13 +40,17 @@ import { getActionSheet } from "./action-targets.js";
 import {
   createAddConditionalFormat,
   createClearConditionalFormats,
+  createDeleteDataValidation,
   createDeleteConditionalFormat,
   createSetConditionalFormat,
   createSetBorderProperty,
   createSetColumnWidth,
+  createSetDataValidationList,
+  createSetDataValidationRule,
   createSetFormula,
   createSetFormulaArray,
   createSetValues,
+  readDataValidation,
 } from "./range-action-callbacks.js";
 import { unsupportedRangeExpansion } from "./range-expansion.js";
 import { createAddTable } from "./table-action-callbacks.js";
@@ -808,6 +812,14 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
   // Validate the public boundary before entering Excel.run() or creating
   // Office proxies so unsupported modes reject as a plain promise error.
   const readKeys = rangeReadKeys(keys);
+  if (
+    readKeys.includes("data_validation") &&
+    !Office.context.requirements.isSetSupported("ExcelApi", "1.8")
+  ) {
+    throw new Error(
+      "data_validation requires ExcelApi 1.8 and isn't supported by this Excel host.",
+    );
+  }
   const readsValues = readKeys.includes("values");
   const properties = rangeReadProperties(readKeys, readsValues);
   if (
@@ -975,6 +987,13 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
         case "table":
           // A range overlaps at most one table in practice; null means none.
           result.table = tables.items.length > 0 ? tables.items[0].name : null;
+          break;
+        case "data_validation":
+          result.data_validation = await readDataValidation(
+            context,
+            range,
+            () => true,
+          );
           break;
         case "conditional_formats":
           result.conditional_formats = conditionalFormatMetadata(
@@ -1312,6 +1331,20 @@ const setFormulaArray = createSetFormulaArray(
 );
 const setColumnWidth = createSetColumnWidth(getRange);
 const setBorderProperty = createSetBorderProperty(getRange);
+const setDataValidationList = createSetDataValidationList(
+  getRange,
+  (context, sheetPosition) =>
+    getActionSheet(context, { sheet_position: sheetPosition }),
+  (name, version) => Office.context.requirements.isSetSupported(name, version),
+);
+const setDataValidationRule = createSetDataValidationRule(
+  getRange,
+  (name, version) => Office.context.requirements.isSetSupported(name, version),
+);
+const deleteDataValidation = createDeleteDataValidation(
+  getRange,
+  (name, version) => Office.context.requirements.isSetSupported(name, version),
+);
 const conditionalFormatSupport = (name, version) =>
   Office.context.requirements.isSetSupported(name, version);
 const clearConditionalFormats = createClearConditionalFormats(
@@ -1454,6 +1487,9 @@ let funcs = {
   freezePaneUnfreeze: freezePaneUnfreeze,
   setFontProperty: setFontProperty,
   setBorderProperty: setBorderProperty,
+  setDataValidationList: setDataValidationList,
+  setDataValidationRule: setDataValidationRule,
+  deleteDataValidation: deleteDataValidation,
   clearConditionalFormats: clearConditionalFormats,
   deleteConditionalFormat: deleteConditionalFormat,
   addConditionalFormat: addConditionalFormat,

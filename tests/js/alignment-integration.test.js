@@ -36,6 +36,9 @@ beforeAll(async () => {
   vi.stubGlobal("document", { addEventListener: vi.fn() });
   vi.stubGlobal("callbacks", {});
   vi.stubGlobal("xlwings", undefined);
+  vi.stubGlobal("Office", {
+    context: { requirements: { isSetSupported: vi.fn(() => true) } },
+  });
   await import("../../xlwings_server/static/js/custom-scripts/index.js");
   client = globalThis.xlwings;
 });
@@ -64,11 +67,31 @@ function harness(
       },
     });
   }
+  const dataValidation = {
+    type: "Decimal",
+    rule: {
+      decimal: {
+        operator: "Between",
+        formula1: "=0",
+        formula2: "=1",
+      },
+    },
+    ignoreBlanks: true,
+    prompt: { showPrompt: false, title: "", message: "" },
+    errorAlert: {
+      showAlert: true,
+      style: "Stop",
+      title: "Invalid",
+      message: "Enter a value from 0 through 1",
+    },
+  };
+  dataValidation.load = vi.fn(() => dataValidation);
   const range = {
     address: "Report!$B$3:$C$4",
     rowCount: 2,
     columnCount: 2,
     format,
+    dataValidation,
     load: vi.fn((paths) => {
       paths.forEach((path) => pendingLoads.add(path));
       return range;
@@ -91,7 +114,7 @@ function harness(
     }),
   };
   vi.stubGlobal("Excel", { run: vi.fn(async (fn) => fn(context)) });
-  return { stored, range, sheet, worksheets, context };
+  return { stored, dataValidation, range, sheet, worksheets, context };
 }
 
 const axes = [
@@ -184,6 +207,34 @@ it("preserves null for both mixed alignments in a combined read", async () => {
     column_count: 2,
     horizontal_alignment: null,
     vertical_alignment: null,
+  });
+});
+
+it("reads data validation through the public range-data callback", async () => {
+  harness();
+  expect(
+    await client.getRangeData("Report", "$B$3:$C$4", ["data_validation"]),
+  ).toEqual({
+    address: "$B$3:$C$4",
+    row_count: 2,
+    column_count: 2,
+    data_validation: {
+      type: "decimal",
+      operator: "between",
+      formula1: "=0",
+      formula2: "=1",
+      formula: null,
+      source: null,
+      in_cell_dropdown: null,
+      ignore_blank: true,
+      input_title: "",
+      input_message: "",
+      show_input: false,
+      error_title: "Invalid",
+      error_message: "Enter a value from 0 through 1",
+      show_error: true,
+      alert_style: "stop",
+    },
   });
 });
 

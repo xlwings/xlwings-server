@@ -332,6 +332,7 @@ const RANGE_READ_KEYS = {
   merge_area: [],
   merge_cells: [],
   table: [],
+  data_validation: [],
   conditional_formats: [],
   // format.borders is a collection, which range.load() can't express as a
   // property path, so getRangeData loads it explicitly. One key for all eight
