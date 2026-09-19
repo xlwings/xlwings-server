@@ -121,6 +121,14 @@ function normalizedDataValidationType(type) {
   return DATA_VALIDATION_TYPES[type] ?? "unknown";
 }
 
+function normalizedDataValidationFormula(value) {
+  if (value == null) {
+    return null;
+  }
+  const formula = String(value);
+  return formula.startsWith("=") ? formula : `=${formula}`;
+}
+
 function ensureUniformDataValidation(type) {
   if (type === "Inconsistent" || type === "MixedCriteria") {
     throw new Error(
@@ -170,8 +178,8 @@ export async function readDataValidation(context, range, isSetSupported) {
       Object.entries(DATA_VALIDATION_OPERATORS).find(
         ([, officeValue]) => officeValue === criteria.operator,
       )?.[0] ?? null;
-    snapshot.formula1 = criteria.formula1 ?? null;
-    snapshot.formula2 = criteria.formula2 ?? null;
+    snapshot.formula1 = normalizedDataValidationFormula(criteria.formula1);
+    snapshot.formula2 = normalizedDataValidationFormula(criteria.formula2);
   }
   return snapshot;
 }

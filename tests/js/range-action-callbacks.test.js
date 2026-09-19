@@ -387,8 +387,8 @@ describe("data validation action callbacks", () => {
     h.dataValidation.rule = {
       wholeNumber: {
         operator: "Between",
-        formula1: "=1",
-        formula2: "=10",
+        formula1: 1,
+        formula2: "10",
       },
     };
     expect(await readDataValidation(h.context, h.target, () => true)).toEqual({
