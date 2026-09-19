@@ -257,8 +257,8 @@ describe("data validation action callbacks", () => {
   );
 
   it.each([
-    ["whole_number", "wholeNumber", "between", "Between", "1", "10"],
-    ["decimal", "decimal", "greater_than", "GreaterThan", "0.5", null],
+    ["whole_number", "wholeNumber", "between", "Between", "=1", "=10"],
+    ["decimal", "decimal", "greater_than", "GreaterThan", "=0.5", null],
     [
       "date",
       "date",
@@ -273,7 +273,7 @@ describe("data validation action callbacks", () => {
       "textLength",
       "less_than_or_equal",
       "LessThanOrEqualTo",
-      "40",
+      "=40",
       null,
     ],
   ])(
