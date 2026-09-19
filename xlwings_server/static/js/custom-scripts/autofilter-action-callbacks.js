@@ -38,6 +38,46 @@ function escapeCustomFilterValue(value) {
     .replaceAll("?", "~?");
 }
 
+function formattedDateValue(value) {
+  if (typeof value === "string") return value;
+  if (!value || typeof value !== "object") {
+    throw new Error(
+      "AutoFilter comparison values must be strings, dates, or null.",
+    );
+  }
+  const match = String(value.value).match(
+    /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2}):(\d{2}(?:\.\d+)?))?$/,
+  );
+  if (
+    !["date", "datetime"].includes(value.type) ||
+    !match ||
+    (value.type === "date" && match[4] !== undefined) ||
+    (value.type === "datetime" && match[4] === undefined)
+  ) {
+    throw new Error("Invalid AutoFilter date comparison value.");
+  }
+  const [, yearText, monthText, dayText, hour, minute, second] = match;
+  const year = Number(yearText);
+  const month = Number(monthText);
+  const day = Number(dayText);
+  const parsed = new Date(0);
+  parsed.setUTCHours(0, 0, 0, 0);
+  parsed.setUTCFullYear(year, month - 1, day);
+  if (
+    parsed.getUTCFullYear() !== year ||
+    parsed.getUTCMonth() !== month - 1 ||
+    parsed.getUTCDate() !== day ||
+    (value.type === "datetime" &&
+      (Number(hour) > 23 || Number(minute) > 59 || Number(second) >= 60))
+  ) {
+    throw new Error("Invalid AutoFilter date comparison value.");
+  }
+  const date = `${String(month)}/${String(day)}/${String(year)}`;
+  return value.type === "datetime"
+    ? `${date} ${String(Number(hour))}:${String(Number(minute))}:${second}`
+    : date;
+}
+
 function comparisonCriteria(spec) {
   if (!Object.hasOwn(COMPARISON_PREFIXES, spec.operator)) {
     if (!["between", "not_between"].includes(spec.operator)) {
@@ -58,15 +98,12 @@ function comparisonCriteria(spec) {
       criterion1: spec.operator === "equal_to" ? "=" : "<>",
     };
   }
-  if (typeof spec.value1 !== "string") {
-    throw new Error("AutoFilter comparison value1 must be a string or null.");
-  }
-  const first = escapeCustomFilterValue(spec.value1);
+  const first = escapeCustomFilterValue(formattedDateValue(spec.value1));
   if (["between", "not_between"].includes(spec.operator)) {
-    if (typeof spec.value2 !== "string") {
+    if (spec.value2 == null) {
       throw new Error(`${spec.operator} requires value2.`);
     }
-    const second = escapeCustomFilterValue(spec.value2);
+    const second = escapeCustomFilterValue(formattedDateValue(spec.value2));
     return {
       filterOn: "Custom",
       criterion1: `${spec.operator === "between" ? ">=" : "<"}${first}`,
@@ -98,11 +135,188 @@ function filterCriteria(spec) {
     return { filterOn: "Values", values: spec.values };
   }
   if (spec.type === "comparison") return comparisonCriteria(spec);
+  if (["top_items", "bottom_items"].includes(spec.type)) {
+    if (!Number.isInteger(spec.value) || spec.value < 1 || spec.value > 255) {
+      throw new Error("AutoFilter item count must be between 1 and 255.");
+    }
+    return {
+      filterOn: spec.type === "top_items" ? "TopItems" : "BottomItems",
+      criterion1: String(spec.value),
+    };
+  }
+  if (["top_percent", "bottom_percent"].includes(spec.type)) {
+    if (!Number.isFinite(spec.value) || spec.value < 0 || spec.value > 100) {
+      throw new Error("AutoFilter percent must be between 0 and 100.");
+    }
+    return {
+      filterOn: spec.type === "top_percent" ? "TopPercent" : "BottomPercent",
+      criterion1: String(spec.value),
+    };
+  }
   throw new Error(`Unknown AutoFilter criteria type: ${String(spec.type)}.`);
 }
 
 function normalizedAddress(address) {
   return String(address).split("!").at(-1).replaceAll("$", "").toUpperCase();
+}
+
+export function emptyAutoFilterCriteria(field, type = "none") {
+  return {
+    field,
+    type,
+    values: null,
+    operator: null,
+    value1: null,
+    value2: null,
+    count: null,
+    percent: null,
+  };
+}
+
+function unescapeCustomFilterValue(value) {
+  return value.replaceAll(/~([~*?])/g, "$1");
+}
+
+function splitComparison(value) {
+  if (typeof value !== "string") return [null, null];
+  for (const prefix of [">=", "<=", "<>", ">", "<", "="]) {
+    if (value.startsWith(prefix)) {
+      const operand = value.slice(prefix.length);
+      return [prefix, operand ? unescapeCustomFilterValue(operand) : null];
+    }
+  }
+  return ["=", unescapeCustomFilterValue(value)];
+}
+
+export function normalizeAutoFilterCriteria(field, criteria) {
+  const filterOn = String(criteria?.filterOn ?? "").toLowerCase();
+  const type = {
+    values: "values",
+    custom: "comparison",
+    topitems: "top_items",
+    bottomitems: "bottom_items",
+    toppercent: "top_percent",
+    bottompercent: "bottom_percent",
+  }[filterOn];
+  if (!filterOn) {
+    return emptyAutoFilterCriteria(field);
+  }
+  if (filterOn === "unknown") {
+    return emptyAutoFilterCriteria(field, "unknown");
+  }
+  if (!type) return emptyAutoFilterCriteria(field, "unknown");
+  const snapshot = emptyAutoFilterCriteria(field, type);
+  if (type === "values") {
+    if (Array.isArray(criteria.values) && criteria.values.length === 0) {
+      return emptyAutoFilterCriteria(field);
+    }
+    if (
+      !Array.isArray(criteria.values) ||
+      criteria.values.some((value) => typeof value !== "string")
+    ) {
+      return emptyAutoFilterCriteria(field, "unknown");
+    }
+    snapshot.values = criteria.values;
+    return snapshot;
+  }
+  if (["top_items", "bottom_items"].includes(type)) {
+    if (/^[<>]/.test(String(criteria.criterion1))) return snapshot;
+    const count = Number(criteria.criterion1);
+    if (!Number.isInteger(count) || count < 1 || count > 255) {
+      return emptyAutoFilterCriteria(field, "unknown");
+    }
+    snapshot.count = count;
+    return snapshot;
+  }
+  if (["top_percent", "bottom_percent"].includes(type)) {
+    if (/^[<>]/.test(String(criteria.criterion1))) return snapshot;
+    const percent = Number(criteria.criterion1);
+    if (!Number.isFinite(percent) || percent < 0 || percent > 100) {
+      return emptyAutoFilterCriteria(field, "unknown");
+    }
+    snapshot.percent = percent;
+    return snapshot;
+  }
+
+  if (criteria.criterion1 == null) {
+    return emptyAutoFilterCriteria(field);
+  }
+
+  const [prefix1, value1] = splitComparison(criteria.criterion1);
+  const [prefix2, value2] = splitComparison(criteria.criterion2);
+  let operator;
+  if (criteria.criterion2 != null) {
+    const join = String(criteria.operator ?? "").toLowerCase();
+    if (join === "and" && prefix1 === ">=" && prefix2 === "<=") {
+      operator = "between";
+    } else if (join === "or" && prefix1 === "<" && prefix2 === ">") {
+      operator = "not_between";
+    } else {
+      return emptyAutoFilterCriteria(field, "unknown");
+    }
+  } else {
+    operator = {
+      "=": "equal_to",
+      "<>": "not_equal_to",
+      ">": "greater_than",
+      "<": "less_than",
+      ">=": "greater_than_or_equal",
+      "<=": "less_than_or_equal",
+    }[prefix1];
+    if (!operator) return emptyAutoFilterCriteria(field, "unknown");
+  }
+  snapshot.operator = operator;
+  snapshot.value1 = value1;
+  snapshot.value2 = value2;
+  return snapshot;
+}
+
+export function createGetAutoFilterCriteria(excelRun, isSetSupported) {
+  return async function getAutoFilterCriteria(
+    sheetName,
+    address,
+    tableIndex = null,
+  ) {
+    return await excelRun(async (context) => {
+      const sheet = context.workbook.worksheets.getItem(sheetName);
+      if (tableIndex !== null) {
+        requireApi(isSetSupported, "1.2", "Table");
+        const table = sheet.tables.getItemAt(tableIndex);
+        const columns = table.columns.load("items");
+        await context.sync();
+        const filters = columns.items.map((column) =>
+          column.filter.load("criteria"),
+        );
+        await context.sync();
+        return filters.map((filter, index) =>
+          normalizeAutoFilterCriteria(index + 1, filter.criteria),
+        );
+      }
+
+      requireApi(isSetSupported, "1.9", "Range");
+      const range = sheet.getRange(address).load("address,columnCount");
+      const filteredRange = sheet.autoFilter
+        .getRangeOrNullObject()
+        .load("address");
+      sheet.autoFilter.load("criteria");
+      await context.sync();
+      if (
+        filteredRange.isNullObject ||
+        normalizedAddress(filteredRange.address) !==
+          normalizedAddress(range.address)
+      ) {
+        return Array.from({ length: range.columnCount }, (_, index) =>
+          emptyAutoFilterCriteria(index + 1),
+        );
+      }
+      return Array.from({ length: range.columnCount }, (_, index) =>
+        normalizeAutoFilterCriteria(
+          index + 1,
+          sheet.autoFilter.criteria[index],
+        ),
+      );
+    });
+  };
 }
 
 async function matchingRangeAutoFilter(context, sheet, range) {
@@ -161,12 +375,19 @@ export function createApplyAutoFilterTable(getTable, isSetSupported) {
     const filter = table.columns.getItemAt(field - 1).filter;
     if (spec.type === "values") {
       filter.applyValuesFilter(criteria.values);
-    } else {
+    } else if (spec.type === "comparison") {
       filter.applyCustomFilter(
         criteria.criterion1,
         criteria.criterion2,
         criteria.operator,
       );
+    } else {
+      ({
+        top_items: filter.applyTopItemsFilter.bind(filter),
+        bottom_items: filter.applyBottomItemsFilter.bind(filter),
+        top_percent: filter.applyTopPercentFilter.bind(filter),
+        bottom_percent: filter.applyBottomPercentFilter.bind(filter),
+      })[spec.type](spec.value);
     }
     await context.sync();
   };

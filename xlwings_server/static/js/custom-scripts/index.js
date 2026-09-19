@@ -59,6 +59,7 @@ import {
   createApplyAutoFilterTable,
   createClearAutoFilterRange,
   createClearAutoFilterTable,
+  createGetAutoFilterCriteria,
 } from "./autofilter-action-callbacks.js";
 import {
   chartFromAction,
@@ -107,6 +108,7 @@ const xlwings = {
   hideGlobalStatus,
   registerCallback,
   getRangeData,
+  getAutoFilterCriteria,
   getRangeValues,
   getShapeData,
   getChartImage,
@@ -1011,6 +1013,16 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
     }
     return result;
   });
+}
+
+async function getAutoFilterCriteria(sheetName, address, tableIndex = null) {
+  const readCriteria = createGetAutoFilterCriteria(
+    Excel.run.bind(Excel),
+    Office.context.requirements.isSetSupported.bind(
+      Office.context.requirements,
+    ),
+  );
+  return await readCriteria(sheetName, address, tableIndex);
 }
 
 // Office.js clips both the address and dimensions of a merged area to the range

@@ -53,6 +53,7 @@ it("registers the AutoFilter action callbacks in the shipped client", () => {
   ]) {
     expect(globalThis.callbacks[name]).toBeTypeOf("function");
   }
+  expect(client.getAutoFilterCriteria).toBeTypeOf("function");
 });
 
 function harness(
