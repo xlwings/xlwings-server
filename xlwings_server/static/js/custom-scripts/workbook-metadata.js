@@ -112,6 +112,122 @@ export function rangeMetadata(range) {
   };
 }
 
+export function conditionalFormatMetadata(
+  items,
+  { sortByPriority = false } = {},
+) {
+  const source = items || [];
+  // Office.js priority is the zero-based index used by getItemAt(). The host
+  // doesn't guarantee that a loaded collection's items array is in that order.
+  const ordered = sortByPriority
+    ? [...source].sort((left, right) => left.priority - right.priority)
+    : source;
+  return ordered.map((item) => {
+    const metadata = {
+      type: item.type,
+      // Office.js reports null for rule families that don't have StopIfTrue.
+      stop_if_true: item.stopIfTrue ?? null,
+    };
+    let detail;
+    if (item.type === "CellValue") {
+      detail = item.cellValue;
+      const usesFormula2 = ["Between", "NotBetween"].includes(
+        detail.rule.operator,
+      );
+      Object.assign(metadata, {
+        operator: detail.rule.operator,
+        formula1: detail.rule.formula1,
+        // Excel may retain an inactive second formula after switching away
+        // from a between operator. Keep the public model semantic.
+        formula2: usesFormula2 ? (detail.rule.formula2 ?? null) : null,
+      });
+    } else if (item.type === "Custom") {
+      detail = item.custom;
+      metadata.formula = detail.rule.formula;
+    } else if (item.type === "ColorScale" && item.colorScale) {
+      const criteria = item.colorScale.criteria;
+      const points = [criteria.minimum];
+      if (criteria.midpoint) points.push(criteria.midpoint);
+      points.push(criteria.maximum);
+      Object.assign(metadata, {
+        colors: points.map(
+          (point) => normalizeFillColor(point.color)?.toLowerCase() ?? null,
+        ),
+        threshold_types: points.map((point) => point.type),
+        thresholds: points.map((point) => point.formula ?? null),
+      });
+    } else if (item.type === "DataBar" && item.dataBar) {
+      detail = item.dataBar;
+      Object.assign(metadata, {
+        bar_color:
+          normalizeFillColor(detail.positiveFormat.fillColor)?.toLowerCase() ??
+          null,
+        gradient: detail.positiveFormat.gradientFill,
+        show_value: !detail.showDataBarOnly,
+        threshold_types: [
+          detail.lowerBoundRule.type,
+          detail.upperBoundRule.type,
+        ],
+        thresholds: [
+          detail.lowerBoundRule.formula ?? null,
+          detail.upperBoundRule.formula ?? null,
+        ],
+      });
+      detail = null;
+    } else if (item.type === "IconSet" && item.iconSet) {
+      detail = item.iconSet;
+      const thresholds = detail.criteria.slice(1);
+      Object.assign(metadata, {
+        icon_set: detail.style,
+        show_value: !detail.showIconOnly,
+        reverse_order: detail.reverseIconOrder,
+        threshold_types: thresholds.map((criterion) => criterion.type),
+        thresholds: thresholds.map((criterion) => criterion.formula ?? null),
+      });
+      detail = null;
+    }
+    if (detail) {
+      Object.assign(metadata, {
+        fill_color: detail.format.fill.color?.toLowerCase() ?? null,
+        font_color: detail.format.font.color?.toLowerCase() ?? null,
+        font_bold: detail.format.font.bold ?? null,
+        font_italic: detail.format.font.italic ?? null,
+      });
+    }
+    return metadata;
+  });
+}
+
+export function loadConditionalFormatDetails(items) {
+  let loaded = false;
+  for (const item of items || []) {
+    let detail;
+    if (item.type === "CellValue") {
+      detail = item.cellValue;
+      detail.load("rule");
+    } else if (item.type === "Custom") {
+      detail = item.custom;
+      detail.rule.load("formula");
+    } else if (item.type === "ColorScale" && item.colorScale) {
+      item.colorScale.load("criteria,threeColorScale");
+      loaded = true;
+    } else if (item.type === "DataBar" && item.dataBar) {
+      item.dataBar.load("lowerBoundRule,showDataBarOnly,upperBoundRule");
+      item.dataBar.positiveFormat.load("fillColor,gradientFill");
+      loaded = true;
+    } else if (item.type === "IconSet" && item.iconSet) {
+      item.iconSet.load("criteria,reverseIconOrder,showIconOnly,style");
+      loaded = true;
+    }
+    if (detail) {
+      detail.format.fill.load("color");
+      detail.format.font.load("color,bold,italic");
+      loaded = true;
+    }
+  }
+  return loaded;
+}
+
 export function rangeAddressFromDimensions(
   rowIndex,
   columnIndex,
@@ -217,6 +333,7 @@ const RANGE_READ_KEYS = {
   merge_cells: [],
   table: [],
   data_validation: [],
+  conditional_formats: [],
   // format.borders is a collection, which range.load() can't express as a
   // property path, so getRangeData loads it explicitly. One key for all eight
   // sides: they come from one collection, so fetching them together costs no

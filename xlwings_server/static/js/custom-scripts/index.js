@@ -17,9 +17,11 @@ export { getActiveBookName, getCultureInfoName, getDateFormat };
 import { pyodideReadyPromise, startPyodide } from "../wasm.js";
 import { registerSheetButtons } from "./sheet-buttons.js";
 import {
+  conditionalFormatMetadata,
   convertDateValues,
   eagerValueRangeAddress,
   liveRangeValues,
+  loadConditionalFormatDetails,
   loadChartAndPivotMetadata,
   loadValuesOnlyUsedRange,
   loadWorksheetNotes,
@@ -36,7 +38,11 @@ import { readNamedItems } from "./named-items.js";
 import { dispatchActions } from "./action-dispatch.js";
 import { getActionSheet } from "./action-targets.js";
 import {
+  createAddConditionalFormat,
+  createClearConditionalFormats,
   createDeleteDataValidation,
+  createDeleteConditionalFormat,
+  createSetConditionalFormat,
   createSetBorderProperty,
   createSetColumnWidth,
   createSetDataValidationList,
@@ -816,6 +822,14 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
   }
   const readsValues = readKeys.includes("values");
   const properties = rangeReadProperties(readKeys, readsValues);
+  if (
+    readKeys.includes("conditional_formats") &&
+    !Office.context.requirements.isSetSupported("ExcelApi", "1.6")
+  ) {
+    throw new Error(
+      "Conditional formatting requires ExcelApi 1.6 and isn't supported by this Excel host.",
+    );
+  }
   if (readKeys.includes("merge_cells")) {
     // Needed to tell a fully merged range from a partly merged one.
     properties.push("rowIndex", "columnIndex");
@@ -850,7 +864,18 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
           "items/sideIndex,items/style,items/weight,items/color",
         )
       : null;
+    const conditionalFormats = readKeys.includes("conditional_formats")
+      ? range.conditionalFormats.load(
+          "items/priority,items/type,items/stopIfTrue",
+        )
+      : null;
     await context.sync();
+    if (
+      conditionalFormats &&
+      loadConditionalFormatDetails(conditionalFormats.items)
+    ) {
+      await context.sync();
+    }
     const metadata = rangeMetadata(range);
     const result = {
       address: metadata.address,
@@ -968,6 +993,12 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
             context,
             range,
             () => true,
+          );
+          break;
+        case "conditional_formats":
+          result.conditional_formats = conditionalFormatMetadata(
+            conditionalFormats.items,
+            { sortByPriority: true },
           );
           break;
       }
@@ -1314,6 +1345,24 @@ const deleteDataValidation = createDeleteDataValidation(
   getRange,
   (name, version) => Office.context.requirements.isSetSupported(name, version),
 );
+const conditionalFormatSupport = (name, version) =>
+  Office.context.requirements.isSetSupported(name, version);
+const clearConditionalFormats = createClearConditionalFormats(
+  getRange,
+  conditionalFormatSupport,
+);
+const addConditionalFormat = createAddConditionalFormat(
+  getRange,
+  conditionalFormatSupport,
+);
+const setConditionalFormat = createSetConditionalFormat(
+  getRange,
+  conditionalFormatSupport,
+);
+const deleteConditionalFormat = createDeleteConditionalFormat(
+  getRange,
+  conditionalFormatSupport,
+);
 // Chart handlers built from their factories; like setBorderProperty they must
 // be declared before `funcs` below, which is evaluated at module load.
 const setChartSourceData = createSetChartSourceData(chartFromAction);
@@ -1441,6 +1490,10 @@ let funcs = {
   setDataValidationList: setDataValidationList,
   setDataValidationRule: setDataValidationRule,
   deleteDataValidation: deleteDataValidation,
+  clearConditionalFormats: clearConditionalFormats,
+  deleteConditionalFormat: deleteConditionalFormat,
+  addConditionalFormat: addConditionalFormat,
+  setConditionalFormat: setConditionalFormat,
   setHorizontalAlignment: setHorizontalAlignment,
   setVerticalAlignment: setVerticalAlignment,
 };

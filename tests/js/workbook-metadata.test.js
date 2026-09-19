@@ -1,10 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  conditionalFormatMetadata,
   convertDateValues,
   eagerValueRangeAddress,
   isDateNumberFormat,
   liveRangeValues,
+  loadConditionalFormatDetails,
   loadChartAndPivotMetadata,
   loadValuesOnlyUsedRange,
   loadWorksheetNotes,
@@ -268,12 +270,18 @@ describe("rangeReadProperties", () => {
   });
 
   it("adds no load properties for the method-resolved keys", () => {
-    // current_region, merge_area, merge_cells, table and borders come from
-    // method calls or an explicit collection load in getRangeData, not from
-    // range.load().
+    // These keys come from method calls or explicit collection loads in
+    // getRangeData, not from range.load().
     expect(
       rangeReadProperties(
-        ["current_region", "merge_area", "merge_cells", "table", "borders"],
+        [
+          "current_region",
+          "merge_area",
+          "merge_cells",
+          "table",
+          "borders",
+          "conditional_formats",
+        ],
         false,
       ),
     ).toEqual(["address", "rowCount", "columnCount"]);
@@ -311,6 +319,194 @@ describe("rangeReadKeys", () => {
     expect(() => rangeReadKeys([])).toThrow("Unsupported range read mode");
     expect(() => rangeReadKeys(["nope"])).toThrow(
       "Unsupported range read key: nope",
+    );
+  });
+});
+
+describe("conditionalFormatMetadata", () => {
+  it("preserves collection order, native types and stop-if-true state", () => {
+    expect(
+      conditionalFormatMetadata([
+        {
+          type: "CellValue",
+          stopIfTrue: true,
+          cellValue: {
+            rule: {
+              operator: "LessThan",
+              formula1: "60",
+              // Excel may retain this inactive value after an operator change.
+              formula2: "999",
+            },
+            format: {
+              fill: { color: "#FFFF00" },
+              font: { color: null, bold: null, italic: true },
+            },
+          },
+        },
+        { type: "DataBar", stopIfTrue: null },
+        { type: "PresetCriteria", stopIfTrue: false },
+      ]),
+    ).toEqual([
+      {
+        type: "CellValue",
+        stop_if_true: true,
+        operator: "LessThan",
+        formula1: "60",
+        formula2: null,
+        fill_color: "#ffff00",
+        font_color: null,
+        font_bold: null,
+        font_italic: true,
+      },
+      { type: "DataBar", stop_if_true: null },
+      { type: "PresetCriteria", stop_if_true: false },
+    ]);
+  });
+
+  it("handles empty collections and missing stop-if-true values", () => {
+    expect(conditionalFormatMetadata([])).toEqual([]);
+    expect(conditionalFormatMetadata([{ type: "IconSet" }])).toEqual([
+      { type: "IconSet", stop_if_true: null },
+    ]);
+  });
+
+  it("orders loaded rules by their evaluation priority", () => {
+    expect(
+      conditionalFormatMetadata(
+        [
+          { type: "PresetCriteria", priority: 2 },
+          { type: "ContainsText", priority: 0 },
+          { type: "TopBottom", priority: 1 },
+        ],
+        { sortByPriority: true },
+      ).map((rule) => rule.type),
+    ).toEqual(["ContainsText", "TopBottom", "PresetCriteria"]);
+  });
+
+  it("does not read priority when preserving the supplied order", () => {
+    const item = { type: "PresetCriteria" };
+    Object.defineProperty(item, "priority", {
+      get() {
+        throw new Error("priority was not loaded");
+      },
+    });
+
+    expect(conditionalFormatMetadata([item])).toEqual([
+      { type: "PresetCriteria", stop_if_true: null },
+    ]);
+  });
+
+  it("preserves a second formula only for between operators", () => {
+    const metadata = conditionalFormatMetadata([
+      {
+        type: "CellValue",
+        cellValue: {
+          rule: {
+            operator: "Between",
+            formula1: "5",
+            formula2: "10",
+          },
+          format: {
+            fill: { color: null },
+            font: { color: null, bold: null, italic: null },
+          },
+        },
+      },
+    ]);
+
+    expect(metadata[0].formula2).toBe("10");
+  });
+
+  it("serializes visual rule details and effective thresholds", () => {
+    expect(
+      conditionalFormatMetadata([
+        {
+          type: "ColorScale",
+          colorScale: {
+            criteria: {
+              minimum: { type: "LowestValue", color: "#F8696B" },
+              midpoint: {
+                type: "Percentile",
+                formula: "50",
+                color: "#FFEB84",
+              },
+              maximum: { type: "HighestValue", color: "#63BE7B" },
+            },
+          },
+        },
+        {
+          type: "DataBar",
+          dataBar: {
+            lowerBoundRule: { type: "Automatic" },
+            upperBoundRule: { type: "Number", formula: "100" },
+            positiveFormat: { fillColor: "#638EC6", gradientFill: true },
+            showDataBarOnly: false,
+          },
+        },
+        {
+          type: "IconSet",
+          iconSet: {
+            style: "ThreeTrafficLights1",
+            showIconOnly: true,
+            reverseIconOrder: true,
+            criteria: [
+              {},
+              { type: "Number", formula: "60" },
+              { type: "Number", formula: "80" },
+            ],
+          },
+        },
+      ]),
+    ).toEqual([
+      {
+        type: "ColorScale",
+        stop_if_true: null,
+        colors: ["#f8696b", "#ffeb84", "#63be7b"],
+        threshold_types: ["LowestValue", "Percentile", "HighestValue"],
+        thresholds: [null, "50", null],
+      },
+      {
+        type: "DataBar",
+        stop_if_true: null,
+        bar_color: "#638ec6",
+        gradient: true,
+        show_value: true,
+        threshold_types: ["Automatic", "Number"],
+        thresholds: [null, "100"],
+      },
+      {
+        type: "IconSet",
+        stop_if_true: null,
+        icon_set: "ThreeTrafficLights1",
+        show_value: false,
+        reverse_order: true,
+        threshold_types: ["Number", "Number"],
+        thresholds: ["60", "80"],
+      },
+    ]);
+  });
+
+  it("loads each visual rule family in one detail pass", () => {
+    const colorScale = { load: vi.fn() };
+    const dataBar = { load: vi.fn(), positiveFormat: { load: vi.fn() } };
+    const iconSet = { load: vi.fn() };
+
+    expect(
+      loadConditionalFormatDetails([
+        { type: "ColorScale", colorScale },
+        { type: "DataBar", dataBar },
+        { type: "IconSet", iconSet },
+      ]),
+    ).toBe(true);
+    expect(colorScale.load).toHaveBeenCalledWith("criteria,threeColorScale");
+    expect(dataBar.load).toHaveBeenCalledWith(
+      "lowerBoundRule,showDataBarOnly,upperBoundRule",
+    );
+    expect(dataBar.positiveFormat.load).toHaveBeenCalledWith(
+      "fillColor,gradientFill",
+    );
+    expect(iconSet.load).toHaveBeenCalledWith(
+      "criteria,reverseIconOrder,showIconOnly,style",
     );
   });
 });
