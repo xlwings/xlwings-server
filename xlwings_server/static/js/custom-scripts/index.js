@@ -55,6 +55,12 @@ import {
 import { unsupportedRangeExpansion } from "./range-expansion.js";
 import { createAddTable } from "./table-action-callbacks.js";
 import {
+  createApplyAutoFilterRange,
+  createApplyAutoFilterTable,
+  createClearAutoFilterRange,
+  createClearAutoFilterTable,
+} from "./autofilter-action-callbacks.js";
+import {
   chartFromAction,
   createAddChart,
   createSetChartLegend,
@@ -1372,6 +1378,26 @@ const setChartLegend = createSetChartLegend(chartFromAction);
 const setChartPlotBy = createSetChartPlotBy(chartFromAction);
 const setChartStyle = createSetChartStyle(chartFromAction);
 const addTable = createAddTable(getSheet);
+const autoFilterSupport = (name, version) =>
+  Office.context.requirements.isSetSupported(name, version);
+const applyAutoFilterRange = createApplyAutoFilterRange(
+  getRange,
+  getSheet,
+  autoFilterSupport,
+);
+const clearAutoFilterRange = createClearAutoFilterRange(
+  getRange,
+  getSheet,
+  autoFilterSupport,
+);
+const applyAutoFilterTable = createApplyAutoFilterTable(
+  getTable,
+  autoFilterSupport,
+);
+const clearAutoFilterTable = createClearAutoFilterTable(
+  getTable,
+  autoFilterSupport,
+);
 // Pivot table handlers, same factory pattern as the charts above.
 const addPivotTable = createAddPivotTable(getSheet, getSelectedRangeAddress);
 const setPivotTableName = createSetPivotTableName(pivotTableFromAction);
@@ -1467,6 +1493,10 @@ let funcs = {
   rangeClear: rangeClear,
   rangeAdjustIndent: rangeAdjustIndent,
   addTable: addTable,
+  applyAutoFilterRange: applyAutoFilterRange,
+  clearAutoFilterRange: clearAutoFilterRange,
+  applyAutoFilterTable: applyAutoFilterTable,
+  clearAutoFilterTable: clearAutoFilterTable,
   setTableName: setTableName,
   resizeTable: resizeTable,
   showAutofilterTable: showAutofilterTable,
