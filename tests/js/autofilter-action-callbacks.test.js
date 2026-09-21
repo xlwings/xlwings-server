@@ -25,7 +25,13 @@ function rangeHarness({
     getRangeOrNullObject: vi.fn(() => filteredRange),
   };
   const range = { address: targetAddress, load: vi.fn() };
-  const sheet = { autoFilter };
+  const sheet = {
+    name: "Sheet1",
+    autoFilter,
+    load: vi.fn(function () {
+      return this;
+    }),
+  };
   return {
     autoFilter,
     filteredRange,
@@ -49,6 +55,10 @@ function tableHarness() {
     clear: vi.fn(),
   }));
   const table = {
+    name: "Table1",
+    load: vi.fn(function () {
+      return this;
+    }),
     columns: { getItemAt: vi.fn((index) => ({ filter: filters[index] })) },
   };
   return {
@@ -460,6 +470,78 @@ describe("AutoFilter criteria inspection", () => {
     ]);
   });
 
+  it("uses successfully applied values when a range host reports Unknown", async () => {
+    const criteriaCache = new Map();
+    const applyHarness = rangeHarness();
+    await createApplyAutoFilterRange(
+      applyHarness.getRange,
+      applyHarness.getSheet,
+      applyHarness.supported,
+      criteriaCache,
+    )(applyHarness.context, {
+      args: [1, { type: "values", values: ["East", "West"] }],
+      column_count: 3,
+    });
+
+    const range = {
+      address: "Sheet1!$A$1:$C$8",
+      columnCount: 3,
+      load: vi.fn(function () {
+        return this;
+      }),
+    };
+    const filteredRange = {
+      address: range.address,
+      isNullObject: false,
+      load: vi.fn(function () {
+        return this;
+      }),
+    };
+    const autoFilter = {
+      criteria: [{ filterOn: "Unknown" }, {}, {}],
+      load: vi.fn(function () {
+        return this;
+      }),
+      getRangeOrNullObject: vi.fn(() => filteredRange),
+    };
+    const context = {
+      workbook: {
+        worksheets: {
+          getItem: vi.fn(() => ({
+            getRange: vi.fn(() => range),
+            autoFilter,
+          })),
+        },
+      },
+      sync: vi.fn(async () => {}),
+    };
+    const read = createGetAutoFilterCriteria(
+      async (callback) => await callback(context),
+      vi.fn(() => true),
+      criteriaCache,
+    );
+
+    expect(await read("Sheet1", "A1:C8")).toMatchObject([
+      { type: "values", values: ["East", "West"] },
+      { type: "none" },
+      { type: "none" },
+    ]);
+
+    applyHarness.filteredRange.isNullObject = false;
+    applyHarness.filteredRange.address = applyHarness.range.address;
+    await createClearAutoFilterRange(
+      applyHarness.getRange,
+      applyHarness.getSheet,
+      applyHarness.supported,
+      criteriaCache,
+    )(applyHarness.context, { args: [1], column_count: 3 });
+    expect(await read("Sheet1", "A1:C8")).toMatchObject([
+      { type: "unknown" },
+      { type: "none" },
+      { type: "none" },
+    ]);
+  });
+
   it("reads every table column through its Filter object", async () => {
     const filters = [
       { criteria: { filterOn: "BottomPercent", criterion1: "20" } },
@@ -476,7 +558,13 @@ describe("AutoFilter criteria inspection", () => {
         return this;
       }),
     };
-    const table = { columns };
+    const table = {
+      name: "Table1",
+      columns,
+      load: vi.fn(function () {
+        return this;
+      }),
+    };
     const sheet = { tables: { getItemAt: vi.fn(() => table) } };
     const context = {
       workbook: { worksheets: { getItem: vi.fn(() => sheet) } },
@@ -494,6 +582,71 @@ describe("AutoFilter criteria inspection", () => {
         operator: "not_equal_to",
         value1: null,
       },
+    ]);
+  });
+
+  it("uses successfully applied values when a table host reports Unknown", async () => {
+    const criteriaCache = new Map();
+    const applyHarness = tableHarness();
+    await createApplyAutoFilterTable(
+      applyHarness.getTable,
+      applyHarness.supported,
+      criteriaCache,
+    )(applyHarness.context, {
+      args: [0, 1, { type: "values", values: ["East"] }],
+      column_count: 3,
+      sheet_position: 0,
+    });
+
+    const filter = {
+      criteria: { filterOn: "Unknown" },
+      load: vi.fn(function () {
+        return this;
+      }),
+    };
+    const table = {
+      name: "Table1",
+      columns: {
+        items: [{ filter }],
+        load: vi.fn(function () {
+          return this;
+        }),
+      },
+      load: vi.fn(function () {
+        return this;
+      }),
+    };
+    const context = {
+      workbook: {
+        worksheets: {
+          getItem: vi.fn(() => ({
+            tables: { getItemAt: vi.fn(() => table) },
+          })),
+        },
+      },
+      sync: vi.fn(async () => {}),
+    };
+    const read = createGetAutoFilterCriteria(
+      async (callback) => await callback(context),
+      vi.fn(() => true),
+      criteriaCache,
+    );
+
+    expect(await read("Sheet1", "A1:A8", 0)).toMatchObject([
+      { type: "values", values: ["East"] },
+    ]);
+
+    await createClearAutoFilterTable(
+      applyHarness.getTable,
+      applyHarness.supported,
+      criteriaCache,
+    )(applyHarness.context, {
+      args: [0, 1],
+      column_count: 3,
+      sheet_position: 0,
+    });
+    expect(await read("Sheet1", "A1:A8", 0)).toMatchObject([
+      { type: "unknown" },
     ]);
   });
 });

@@ -1021,6 +1021,7 @@ async function getAutoFilterCriteria(sheetName, address, tableIndex = null) {
     Office.context.requirements.isSetSupported.bind(
       Office.context.requirements,
     ),
+    autoFilterCriteriaCache,
   );
   return await readCriteria(sheetName, address, tableIndex);
 }
@@ -1390,25 +1391,30 @@ const setChartLegend = createSetChartLegend(chartFromAction);
 const setChartPlotBy = createSetChartPlotBy(chartFromAction);
 const setChartStyle = createSetChartStyle(chartFromAction);
 const addTable = createAddTable(getSheet);
+const autoFilterCriteriaCache = new Map();
 const autoFilterSupport = (name, version) =>
   Office.context.requirements.isSetSupported(name, version);
 const applyAutoFilterRange = createApplyAutoFilterRange(
   getRange,
   getSheet,
   autoFilterSupport,
+  autoFilterCriteriaCache,
 );
 const clearAutoFilterRange = createClearAutoFilterRange(
   getRange,
   getSheet,
   autoFilterSupport,
+  autoFilterCriteriaCache,
 );
 const applyAutoFilterTable = createApplyAutoFilterTable(
   getTable,
   autoFilterSupport,
+  autoFilterCriteriaCache,
 );
 const clearAutoFilterTable = createClearAutoFilterTable(
   getTable,
   autoFilterSupport,
+  autoFilterCriteriaCache,
 );
 // Pivot table handlers, same factory pattern as the charts above.
 const addPivotTable = createAddPivotTable(getSheet, getSelectedRangeAddress);

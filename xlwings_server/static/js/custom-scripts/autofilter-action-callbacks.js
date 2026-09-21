@@ -160,6 +160,37 @@ function normalizedAddress(address) {
   return String(address).split("!").at(-1).replaceAll("$", "").toUpperCase();
 }
 
+function rangeCacheTarget(sheetName, address) {
+  return `range:${String(sheetName).toUpperCase()}:${normalizedAddress(address)}`;
+}
+
+function tableCacheTarget(tableName) {
+  return `table:${String(tableName).toUpperCase()}`;
+}
+
+function criteriaCacheKey(target, field) {
+  return `${target}:${String(field)}`;
+}
+
+function rememberAppliedCriteria(criteriaCache, target, field, spec) {
+  if (!criteriaCache) return;
+  const key = criteriaCacheKey(target, field);
+  if (spec.type === "values") {
+    criteriaCache.set(key, [...spec.values]);
+  } else {
+    criteriaCache.delete(key);
+  }
+}
+
+function forgetAppliedCriteria(criteriaCache, target, field, columnCount) {
+  if (!criteriaCache) return;
+  const first = field === null ? 1 : field;
+  const last = field === null ? columnCount : field;
+  for (let index = first; index <= last; index += 1) {
+    criteriaCache.delete(criteriaCacheKey(target, index));
+  }
+}
+
 export function emptyAutoFilterCriteria(field, type = "none") {
   return {
     field,
@@ -285,7 +316,35 @@ export function normalizeAutoFilterCriteria(field, criteria) {
   return snapshot;
 }
 
-export function createGetAutoFilterCriteria(excelRun, isSetSupported) {
+function normalizeAutoFilterCriteriaWithCache(
+  field,
+  criteria,
+  criteriaCache,
+  target,
+) {
+  const snapshot = normalizeAutoFilterCriteria(field, criteria);
+  if (!criteriaCache) return snapshot;
+
+  const key = criteriaCacheKey(target, field);
+  if (snapshot.type === "unknown") {
+    const values = criteriaCache.get(key);
+    if (values) {
+      snapshot.type = "values";
+      snapshot.values = [...values];
+    }
+  } else if (snapshot.type === "values") {
+    criteriaCache.set(key, [...snapshot.values]);
+  } else {
+    criteriaCache.delete(key);
+  }
+  return snapshot;
+}
+
+export function createGetAutoFilterCriteria(
+  excelRun,
+  isSetSupported,
+  criteriaCache = null,
+) {
   return async function getAutoFilterCriteria(
     sheetName,
     address,
@@ -296,14 +355,21 @@ export function createGetAutoFilterCriteria(excelRun, isSetSupported) {
       if (tableIndex !== null) {
         requireApi(isSetSupported, "1.2", "Table");
         const table = sheet.tables.getItemAt(tableIndex);
+        if (criteriaCache) table.load("name");
         const columns = table.columns.load("items");
         await context.sync();
         const filters = columns.items.map((column) =>
           column.filter.load("criteria"),
         );
         await context.sync();
+        const target = tableCacheTarget(table.name);
         return filters.map((filter, index) =>
-          normalizeAutoFilterCriteria(index + 1, filter.criteria),
+          normalizeAutoFilterCriteriaWithCache(
+            index + 1,
+            filter.criteria,
+            criteriaCache,
+            target,
+          ),
         );
       }
 
@@ -323,20 +389,29 @@ export function createGetAutoFilterCriteria(excelRun, isSetSupported) {
           emptyAutoFilterCriteria(index + 1),
         );
       }
+      const target = rangeCacheTarget(sheetName, range.address);
       return Array.from({ length: range.columnCount }, (_, index) =>
-        normalizeAutoFilterCriteria(
+        normalizeAutoFilterCriteriaWithCache(
           index + 1,
           sheet.autoFilter.criteria[index],
+          criteriaCache,
+          target,
         ),
       );
     });
   };
 }
 
-async function matchingRangeAutoFilter(context, sheet, range) {
+async function matchingRangeAutoFilter(
+  context,
+  sheet,
+  range,
+  loadSheetName = false,
+) {
   const filteredRange = sheet.autoFilter.getRangeOrNullObject();
   filteredRange.load("address");
   range.load("address");
+  if (loadSheetName) sheet.load("name");
   await context.sync();
   if (filteredRange.isNullObject) return null;
   return (
@@ -345,47 +420,89 @@ async function matchingRangeAutoFilter(context, sheet, range) {
   );
 }
 
-export function createApplyAutoFilterRange(getRange, getSheet, isSetSupported) {
+export function createApplyAutoFilterRange(
+  getRange,
+  getSheet,
+  isSetSupported,
+  criteriaCache = null,
+) {
   return async function applyAutoFilterRange(context, action) {
     requireApi(isSetSupported, "1.14", "Range");
     const field = validateField(action, 0);
     const criteria = filterCriteria(action.args[1]);
     const range = await getRange(context, action);
     const sheet = await getSheet(context, action);
-    if ((await matchingRangeAutoFilter(context, sheet, range)) === false) {
+    if (
+      (await matchingRangeAutoFilter(
+        context,
+        sheet,
+        range,
+        criteriaCache !== null,
+      )) === false
+    ) {
       throw new Error(
         "This worksheet already has an AutoFilter on a different range.",
       );
     }
     sheet.autoFilter.apply(range, field - 1, criteria);
     await context.sync();
+    rememberAppliedCriteria(
+      criteriaCache,
+      rangeCacheTarget(sheet.name, range.address),
+      field,
+      action.args[1],
+    );
   };
 }
 
-export function createClearAutoFilterRange(getRange, getSheet, isSetSupported) {
+export function createClearAutoFilterRange(
+  getRange,
+  getSheet,
+  isSetSupported,
+  criteriaCache = null,
+) {
   return async function clearAutoFilterRange(context, action) {
     requireApi(isSetSupported, "1.14", "Range");
     const field = action.args?.[0];
     if (field !== null) validateField(action, 0);
     const range = await getRange(context, action);
     const sheet = await getSheet(context, action);
-    if ((await matchingRangeAutoFilter(context, sheet, range)) !== true) return;
+    if (
+      (await matchingRangeAutoFilter(
+        context,
+        sheet,
+        range,
+        criteriaCache !== null,
+      )) !== true
+    )
+      return;
     const fields = field === null ? action.column_count : field;
     const first = field === null ? 1 : field;
     for (let fieldIndex = first; fieldIndex <= fields; fieldIndex += 1) {
       sheet.autoFilter.clearColumnCriteria(fieldIndex - 1);
     }
     await context.sync();
+    forgetAppliedCriteria(
+      criteriaCache,
+      rangeCacheTarget(sheet.name, range.address),
+      field,
+      action.column_count,
+    );
   };
 }
 
-export function createApplyAutoFilterTable(getTable, isSetSupported) {
+export function createApplyAutoFilterTable(
+  getTable,
+  isSetSupported,
+  criteriaCache = null,
+) {
   return async function applyAutoFilterTable(context, action) {
     requireApi(isSetSupported, "1.2", "Table");
     const field = validateField(action, 1);
     const spec = action.args[2];
     const criteria = filterCriteria(spec);
     const table = await getTable(context, action);
+    if (criteriaCache) table.load("name");
     const filter = table.columns.getItemAt(field - 1).filter;
     if (spec.type === "values") {
       filter.applyValuesFilter(criteria.values);
@@ -404,20 +521,37 @@ export function createApplyAutoFilterTable(getTable, isSetSupported) {
       })[spec.type](spec.value);
     }
     await context.sync();
+    rememberAppliedCriteria(
+      criteriaCache,
+      tableCacheTarget(table.name),
+      field,
+      spec,
+    );
   };
 }
 
-export function createClearAutoFilterTable(getTable, isSetSupported) {
+export function createClearAutoFilterTable(
+  getTable,
+  isSetSupported,
+  criteriaCache = null,
+) {
   return async function clearAutoFilterTable(context, action) {
     requireApi(isSetSupported, "1.2", "Table");
     const field = action.args?.[1];
     if (field !== null) validateField(action, 1);
     const table = await getTable(context, action);
+    if (criteriaCache) table.load("name");
     const fields = field === null ? action.column_count : field;
     const first = field === null ? 1 : field;
     for (let fieldIndex = first; fieldIndex <= fields; fieldIndex += 1) {
       table.columns.getItemAt(fieldIndex - 1).filter.clear();
     }
     await context.sync();
+    forgetAppliedCriteria(
+      criteriaCache,
+      tableCacheTarget(table.name),
+      field,
+      action.column_count,
+    );
   };
 }
