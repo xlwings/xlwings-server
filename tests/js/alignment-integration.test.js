@@ -44,6 +44,18 @@ beforeAll(async () => {
 });
 afterAll(() => vi.unstubAllGlobals());
 
+it("registers the AutoFilter action callbacks in the shipped client", () => {
+  for (const name of [
+    "applyAutoFilterRange",
+    "clearAutoFilterRange",
+    "applyAutoFilterTable",
+    "clearAutoFilterTable",
+  ]) {
+    expect(globalThis.callbacks[name]).toBeTypeOf("function");
+  }
+  expect(client.getAutoFilterCriteria).toBeTypeOf("function");
+});
+
 function harness(
   horizontalAlignment = "General",
   verticalAlignment = "Bottom",

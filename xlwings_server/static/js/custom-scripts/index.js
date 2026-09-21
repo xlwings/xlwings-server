@@ -55,6 +55,13 @@ import {
 import { unsupportedRangeExpansion } from "./range-expansion.js";
 import { createAddTable } from "./table-action-callbacks.js";
 import {
+  createApplyAutoFilterRange,
+  createApplyAutoFilterTable,
+  createClearAutoFilterRange,
+  createClearAutoFilterTable,
+  createGetAutoFilterCriteria,
+} from "./autofilter-action-callbacks.js";
+import {
   chartFromAction,
   createAddChart,
   createSetChartLegend,
@@ -101,6 +108,7 @@ const xlwings = {
   hideGlobalStatus,
   registerCallback,
   getRangeData,
+  getAutoFilterCriteria,
   getRangeValues,
   getShapeData,
   getChartImage,
@@ -1007,6 +1015,17 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
   });
 }
 
+async function getAutoFilterCriteria(sheetName, address, tableIndex = null) {
+  const readCriteria = createGetAutoFilterCriteria(
+    Excel.run.bind(Excel),
+    Office.context.requirements.isSetSupported.bind(
+      Office.context.requirements,
+    ),
+    autoFilterCriteriaCache,
+  );
+  return await readCriteria(sheetName, address, tableIndex);
+}
+
 // Office.js clips both the address and dimensions of a merged area to the range
 // used for the query. Starting with a single cell therefore reports G1 instead
 // of G1:H1. Expand one-dimensional probes from the merge's top-left cell until
@@ -1372,6 +1391,31 @@ const setChartLegend = createSetChartLegend(chartFromAction);
 const setChartPlotBy = createSetChartPlotBy(chartFromAction);
 const setChartStyle = createSetChartStyle(chartFromAction);
 const addTable = createAddTable(getSheet);
+const autoFilterCriteriaCache = new Map();
+const autoFilterSupport = (name, version) =>
+  Office.context.requirements.isSetSupported(name, version);
+const applyAutoFilterRange = createApplyAutoFilterRange(
+  getRange,
+  getSheet,
+  autoFilterSupport,
+  autoFilterCriteriaCache,
+);
+const clearAutoFilterRange = createClearAutoFilterRange(
+  getRange,
+  getSheet,
+  autoFilterSupport,
+  autoFilterCriteriaCache,
+);
+const applyAutoFilterTable = createApplyAutoFilterTable(
+  getTable,
+  autoFilterSupport,
+  autoFilterCriteriaCache,
+);
+const clearAutoFilterTable = createClearAutoFilterTable(
+  getTable,
+  autoFilterSupport,
+  autoFilterCriteriaCache,
+);
 // Pivot table handlers, same factory pattern as the charts above.
 const addPivotTable = createAddPivotTable(getSheet, getSelectedRangeAddress);
 const setPivotTableName = createSetPivotTableName(pivotTableFromAction);
@@ -1467,6 +1511,10 @@ let funcs = {
   rangeClear: rangeClear,
   rangeAdjustIndent: rangeAdjustIndent,
   addTable: addTable,
+  applyAutoFilterRange: applyAutoFilterRange,
+  clearAutoFilterRange: clearAutoFilterRange,
+  applyAutoFilterTable: applyAutoFilterTable,
+  clearAutoFilterTable: clearAutoFilterTable,
   setTableName: setTableName,
   resizeTable: resizeTable,
   showAutofilterTable: showAutofilterTable,
