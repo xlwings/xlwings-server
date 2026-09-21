@@ -84,6 +84,7 @@ describe("range AutoFilter action callbacks", () => {
 
   it.each([
     ["equal_to", null, undefined, { filterOn: "Custom", criterion1: "=" }],
+    ["equal_to", undefined, undefined, { filterOn: "Custom", criterion1: "=" }],
     ["not_equal_to", null, undefined, { filterOn: "Custom", criterion1: "<>" }],
     [
       "between",

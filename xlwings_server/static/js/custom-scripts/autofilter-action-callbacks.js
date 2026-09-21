@@ -86,7 +86,7 @@ function comparisonCriteria(spec) {
       );
     }
   }
-  if (spec.value1 === null) {
+  if (spec.value1 == null) {
     if (!["equal_to", "not_equal_to"].includes(spec.operator)) {
       throw new Error("Blank filters require equal_to or not_equal_to.");
     }
