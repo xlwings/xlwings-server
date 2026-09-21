@@ -590,7 +590,7 @@ describe("AutoFilter criteria inspection", () => {
     ]);
   });
 
-  it("uses successfully applied values when a table host reports Unknown", async () => {
+  it("uses successfully applied values when a table host reports equality", async () => {
     const criteriaCache = new Map();
     const applyHarness = tableHarness();
     await createApplyAutoFilterTable(
@@ -604,7 +604,7 @@ describe("AutoFilter criteria inspection", () => {
     });
 
     const filter = {
-      criteria: { filterOn: "Unknown" },
+      criteria: { filterOn: "Custom", criterion1: "=East" },
       load: vi.fn(function () {
         return this;
       }),
@@ -651,7 +651,7 @@ describe("AutoFilter criteria inspection", () => {
       sheet_position: 0,
     });
     expect(await read("Sheet1", "A1:A8", 0)).toMatchObject([
-      { type: "unknown" },
+      { type: "comparison", operator: "equal_to", value1: "East" },
     ]);
   });
 });

@@ -326,12 +326,21 @@ function normalizeAutoFilterCriteriaWithCache(
   if (!criteriaCache) return snapshot;
 
   const key = criteriaCacheKey(target, field);
-  if (snapshot.type === "unknown") {
-    const values = criteriaCache.get(key);
-    if (values) {
-      snapshot.type = "values";
-      snapshot.values = [...values];
-    }
+  const values = criteriaCache.get(key);
+  const equivalentSingleValueComparison =
+    snapshot.type === "comparison" &&
+    snapshot.operator === "equal_to" &&
+    snapshot.value2 === null &&
+    values?.length === 1 &&
+    snapshot.value1 === values[0];
+  if (
+    values &&
+    (snapshot.type === "unknown" || equivalentSingleValueComparison)
+  ) {
+    snapshot.type = "values";
+    snapshot.values = [...values];
+    snapshot.operator = null;
+    snapshot.value1 = null;
   } else if (snapshot.type === "values") {
     criteriaCache.set(key, [...snapshot.values]);
   } else {
