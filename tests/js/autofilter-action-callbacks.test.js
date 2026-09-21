@@ -365,6 +365,17 @@ describe("AutoFilter criteria inspection", () => {
     ],
     [
       {
+        filterOn: "Values",
+        values: { 0: "East", 1: "West", length: 2 },
+      },
+      { type: "values", values: ["East", "West"] },
+    ],
+    [
+      { filterOn: "Unknown", values: ["East", "West"] },
+      { type: "values", values: ["East", "West"] },
+    ],
+    [
+      {
         filterOn: "Custom",
         criterion1: ">=1/1/2026",
         criterion2: "<=3/31/2026",

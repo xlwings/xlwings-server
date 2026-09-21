@@ -188,6 +188,18 @@ function splitComparison(value) {
   return ["=", unescapeCustomFilterValue(value)];
 }
 
+function normalizedValueFilter(values) {
+  let normalized;
+  try {
+    normalized = values == null ? null : Array.from(values);
+  } catch {
+    return null;
+  }
+  return normalized?.every((value) => typeof value === "string")
+    ? normalized
+    : null;
+}
+
 export function normalizeAutoFilterCriteria(field, criteria) {
   const filterOn = String(criteria?.filterOn ?? "").toLowerCase();
   const type = {
@@ -202,21 +214,23 @@ export function normalizeAutoFilterCriteria(field, criteria) {
     return emptyAutoFilterCriteria(field);
   }
   if (filterOn === "unknown") {
+    const values = normalizedValueFilter(criteria.values);
+    if (values?.length) {
+      const snapshot = emptyAutoFilterCriteria(field, "values");
+      snapshot.values = values;
+      return snapshot;
+    }
     return emptyAutoFilterCriteria(field, "unknown");
   }
   if (!type) return emptyAutoFilterCriteria(field, "unknown");
   const snapshot = emptyAutoFilterCriteria(field, type);
   if (type === "values") {
-    if (Array.isArray(criteria.values) && criteria.values.length === 0) {
-      return emptyAutoFilterCriteria(field);
-    }
-    if (
-      !Array.isArray(criteria.values) ||
-      criteria.values.some((value) => typeof value !== "string")
-    ) {
+    const values = normalizedValueFilter(criteria.values);
+    if (values?.length === 0) return emptyAutoFilterCriteria(field);
+    if (!values) {
       return emptyAutoFilterCriteria(field, "unknown");
     }
-    snapshot.values = criteria.values;
+    snapshot.values = values;
     return snapshot;
   }
   if (["top_items", "bottom_items"].includes(type)) {
