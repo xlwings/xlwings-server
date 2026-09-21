@@ -197,13 +197,15 @@ describe("range AutoFilter action callbacks", () => {
     await callback(h.context, { args: [2], column_count: 3 });
     expect(h.autoFilter.clearColumnCriteria).toHaveBeenLastCalledWith(1);
 
-    h.autoFilter.clearColumnCriteria.mockClear();
-    await callback(h.context, { args: [null], column_count: 3 });
-    expect(h.autoFilter.clearColumnCriteria.mock.calls).toEqual([
-      [0],
-      [1],
-      [2],
-    ]);
+    for (const args of [[null], [undefined], []]) {
+      h.autoFilter.clearColumnCriteria.mockClear();
+      await callback(h.context, { args, column_count: 3 });
+      expect(h.autoFilter.clearColumnCriteria.mock.calls).toEqual([
+        [0],
+        [1],
+        [2],
+      ]);
+    }
   });
 
   it("treats clearing a nonmatching or absent range filter as a no-op", async () => {
@@ -267,10 +269,13 @@ describe("table AutoFilter action callbacks", () => {
       0, 1, 0,
     ]);
 
-    await callback(h.context, { args: [0, null], column_count: 3 });
-    expect(h.filters.map((filter) => filter.clear.mock.calls.length)).toEqual([
-      1, 2, 1,
-    ]);
+    for (const args of [[0, null], [0, undefined], [0]]) {
+      h.filters.forEach((filter) => filter.clear.mockClear());
+      await callback(h.context, { args, column_count: 3 });
+      expect(h.filters.map((filter) => filter.clear.mock.calls.length)).toEqual(
+        [1, 1, 1],
+      );
+    }
   });
 });
 

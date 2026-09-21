@@ -463,7 +463,7 @@ export function createClearAutoFilterRange(
 ) {
   return async function clearAutoFilterRange(context, action) {
     requireApi(isSetSupported, "1.14", "Range");
-    const field = action.args?.[0];
+    const field = action.args?.[0] ?? null;
     if (field !== null) validateField(action, 0);
     const range = await getRange(context, action);
     const sheet = await getSheet(context, action);
@@ -537,7 +537,7 @@ export function createClearAutoFilterTable(
 ) {
   return async function clearAutoFilterTable(context, action) {
     requireApi(isSetSupported, "1.2", "Table");
-    const field = action.args?.[1];
+    const field = action.args?.[1] ?? null;
     if (field !== null) validateField(action, 1);
     const table = await getTable(context, action);
     if (criteriaCache) table.load("name");
