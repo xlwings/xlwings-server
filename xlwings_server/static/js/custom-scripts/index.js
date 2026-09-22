@@ -64,6 +64,8 @@ import {
 import {
   chartFromAction,
   createAddChart,
+  createGetChartAxisData,
+  createSetChartAxis,
   createSetChartLegend,
   createSetChartPlotBy,
   createSetChartSourceData,
@@ -111,6 +113,7 @@ const xlwings = {
   getAutoFilterCriteria,
   getRangeValues,
   getShapeData,
+  getChartAxisData,
   getChartImage,
   getNoteText,
   getExpandedAddress,
@@ -1026,6 +1029,16 @@ async function getAutoFilterCriteria(sheetName, address, tableIndex = null) {
   return await readCriteria(sheetName, address, tableIndex);
 }
 
+async function getChartAxisData(sheetName, chartIndex, axisType, keys) {
+  const readAxis = createGetChartAxisData(
+    Excel.run.bind(Excel),
+    Office.context.requirements.isSetSupported.bind(
+      Office.context.requirements,
+    ),
+  );
+  return await readAxis(sheetName, chartIndex, axisType, keys);
+}
+
 // Office.js clips both the address and dimensions of a merged area to the range
 // used for the query. Starting with a single cell therefore reports G1 instead
 // of G1:H1. Expand one-dimensional probes from the merge's top-left cell until
@@ -1387,6 +1400,9 @@ const deleteConditionalFormat = createDeleteConditionalFormat(
 const setChartSourceData = createSetChartSourceData(chartFromAction);
 const setChartXAxisValues = createSetChartXAxisValues(chartFromAction);
 const setChartTitle = createSetChartTitle(chartFromAction);
+const setChartAxis = createSetChartAxis(chartFromAction, (name, version) =>
+  Office.context.requirements.isSetSupported(name, version),
+);
 const setChartLegend = createSetChartLegend(chartFromAction);
 const setChartPlotBy = createSetChartPlotBy(chartFromAction);
 const setChartStyle = createSetChartStyle(chartFromAction);
@@ -1461,6 +1477,7 @@ let funcs = {
   setChartPosition: setChartPosition,
   deleteChart: deleteChart,
   setChartTitle: setChartTitle,
+  setChartAxis: setChartAxis,
   setChartLegend: setChartLegend,
   setChartPlotBy: setChartPlotBy,
   setChartStyle: setChartStyle,

@@ -79,6 +79,218 @@ export function chartFromAction(context, action) {
   );
 }
 
+const CHART_AXIS_KEYS = new Set([
+  "title",
+  "minimum_scale",
+  "maximum_scale",
+  "major_unit",
+  "number_format",
+  "visible",
+]);
+
+function requireChartAxisSupport(isSetSupported) {
+  if (!isSetSupported("ExcelApi", "1.8")) {
+    throw new Error(
+      "Chart axes require ExcelApi 1.8 and aren't supported by this Excel host.",
+    );
+  }
+}
+
+function chartAxisType(value) {
+  const axisType = value?.toString();
+  if (axisType !== "category" && axisType !== "value") {
+    throw new Error(`Unknown chart axis type: ${axisType}`);
+  }
+  return axisType;
+}
+
+function chartAxis(chart, axisType) {
+  switch (axisType) {
+    case "category":
+      return chart.axes.categoryAxis;
+    case "value":
+      return chart.axes.valueAxis;
+    default:
+      throw new Error(`Unknown chart axis type: ${axisType}`);
+  }
+}
+
+function chartAxisValues(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error("Chart axis values must be an object");
+  }
+  const values = {};
+  for (const [key, raw] of Object.entries(value)) {
+    if (!CHART_AXIS_KEYS.has(key)) {
+      throw new Error(`Unknown chart axis attribute: ${key}`);
+    }
+    switch (key) {
+      case "title":
+        if (raw != null && typeof raw !== "string") {
+          throw new Error("Chart axis title must be a string or null");
+        }
+        values.title = raw ?? null;
+        break;
+      case "minimum_scale":
+      case "maximum_scale":
+        if (raw != null && (typeof raw !== "number" || !Number.isFinite(raw))) {
+          throw new Error(`Chart axis ${key} must be a finite number or null`);
+        }
+        values[key] = raw ?? null;
+        break;
+      case "major_unit":
+        if (
+          raw != null &&
+          (typeof raw !== "number" || !Number.isFinite(raw) || raw <= 0)
+        ) {
+          throw new Error(
+            "Chart axis major_unit must be a positive finite number or null",
+          );
+        }
+        values.major_unit = raw ?? null;
+        break;
+      case "number_format":
+        if (typeof raw !== "string") {
+          throw new Error("Chart axis number_format must be a string");
+        }
+        values.number_format = raw;
+        break;
+      case "visible":
+        if (typeof raw !== "boolean") {
+          throw new Error("Chart axis visible must be a boolean");
+        }
+        values.visible = raw;
+        break;
+    }
+  }
+  return values;
+}
+
+export function createSetChartAxis(getChart, isSetSupported = () => true) {
+  return async function setChartAxis(context, action) {
+    requireChartAxisSupport(isSetSupported);
+    const axisType = chartAxisType(action.args[1]);
+    const values = chartAxisValues(action.args[2]);
+    const chart = await getChart(context, action);
+    const axis = chartAxis(chart, axisType);
+    axis.load("visible");
+    await context.sync();
+
+    const attributes = Object.keys(values).filter((key) => key !== "visible");
+    const titleShowsAxis =
+      Object.hasOwn(values, "title") && values.title !== null;
+    const explicitTemporaryShow = values.visible === false && attributes.length;
+    if (
+      !axis.visible &&
+      values.visible !== true &&
+      !titleShowsAxis &&
+      !explicitTemporaryShow &&
+      attributes.some((key) => key !== "title")
+    ) {
+      throw new Error(
+        `The chart has no visible primary ${axisType} axis. Set visible=True first.`,
+      );
+    }
+
+    if (values.visible === true || titleShowsAxis || explicitTemporaryShow) {
+      axis.visible = true;
+    }
+    if (Object.hasOwn(values, "title")) {
+      if (values.title === null) {
+        axis.title.visible = false;
+      } else {
+        axis.title.visible = true;
+        axis.title.text = values.title;
+      }
+    }
+    if (Object.hasOwn(values, "minimum_scale")) {
+      axis.minimum = values.minimum_scale === null ? "" : values.minimum_scale;
+    }
+    if (Object.hasOwn(values, "maximum_scale")) {
+      axis.maximum = values.maximum_scale === null ? "" : values.maximum_scale;
+    }
+    if (Object.hasOwn(values, "major_unit")) {
+      axis.majorUnit = values.major_unit === null ? "" : values.major_unit;
+    }
+    if (Object.hasOwn(values, "number_format")) {
+      axis.numberFormat = values.number_format;
+    }
+    if (values.visible === false) axis.visible = false;
+    await context.sync();
+  };
+}
+
+export function createGetChartAxisData(runExcel, isSetSupported = () => true) {
+  return async function getChartAxisData(
+    sheetName,
+    chartIndex,
+    axisType,
+    keys = [...CHART_AXIS_KEYS],
+  ) {
+    requireChartAxisSupport(isSetSupported);
+    const normalizedAxisType = chartAxisType(axisType);
+    const readKeys = Array.from(keys ?? []);
+    for (const key of readKeys) {
+      if (!CHART_AXIS_KEYS.has(key)) {
+        throw new Error(`Unknown chart axis read key: ${key}`);
+      }
+    }
+    return await runExcel(async (context) => {
+      const sheet = context.workbook.worksheets.getItem(sheetName);
+      const charts = sheet.charts;
+      charts.load("items");
+      await context.sync();
+      const chart = charts.items[Number(chartIndex)];
+      if (!chart) {
+        throw new Error(
+          `No chart at index ${chartIndex} on sheet ${sheetName}`,
+        );
+      }
+      const axis = chartAxis(chart, normalizedAxisType);
+      axis.load("visible");
+      await context.sync();
+
+      const result = {};
+      if (readKeys.includes("visible")) result.visible = Boolean(axis.visible);
+      if (!axis.visible) {
+        if (readKeys.includes("title")) result.title = null;
+        const unavailable = readKeys.find(
+          (key) => key !== "visible" && key !== "title",
+        );
+        if (unavailable) {
+          throw new Error(
+            `The chart has no visible primary ${normalizedAxisType} axis; ${unavailable} is unavailable.`,
+          );
+        }
+        return result;
+      }
+
+      const propertyMap = {
+        minimum_scale: "minimum",
+        maximum_scale: "maximum",
+        major_unit: "majorUnit",
+        number_format: "numberFormat",
+      };
+      const properties = readKeys
+        .filter((key) => propertyMap[key])
+        .map((key) => propertyMap[key]);
+      if (properties.length) axis.load(properties);
+      if (readKeys.includes("title")) axis.title.load(["visible", "text"]);
+      if (properties.length || readKeys.includes("title")) {
+        await context.sync();
+      }
+
+      if (readKeys.includes("title")) {
+        result.title = axis.title.visible ? axis.title.text : null;
+      }
+      for (const [key, property] of Object.entries(propertyMap)) {
+        if (readKeys.includes(key)) result[key] = axis[property];
+      }
+      return result;
+    });
+  };
+}
+
 export function createSetChartSourceData(getChart) {
   return async function setChartSourceData(context, action) {
     const chart = await getChart(context, action);

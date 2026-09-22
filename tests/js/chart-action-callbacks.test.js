@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   createAddChart,
+  createGetChartAxisData,
+  createSetChartAxis,
   createSetChartLegend,
   createSetChartPlotBy,
   createSetChartSourceData,
@@ -348,6 +350,250 @@ describe("setChartTitle action callback", () => {
     await setChartTitle(context, { sheet_position: 0, args: [0, null] });
 
     expect(chart.title).toEqual({ visible: false });
+  });
+});
+
+function axisHarness({ visible = true } = {}) {
+  const categoryAxis = {
+    visible,
+    title: { visible: false, text: "" },
+    load: vi.fn(),
+  };
+  categoryAxis.title.load = vi.fn();
+  const valueAxis = {
+    visible,
+    title: { visible: false, text: "" },
+    load: vi.fn(),
+  };
+  valueAxis.title.load = vi.fn();
+  const chart = { axes: { categoryAxis, valueAxis } };
+  const context = { sync: vi.fn(async () => {}) };
+  const getChart = vi.fn(async () => chart);
+  const supported = vi.fn(() => true);
+  return { chart, categoryAxis, valueAxis, context, getChart, supported };
+}
+
+describe("setChartAxis action callback", () => {
+  it("sets all requested value-axis attributes in one action", async () => {
+    const { valueAxis, context, getChart, supported } = axisHarness();
+    const setChartAxis = createSetChartAxis(getChart, supported);
+
+    await setChartAxis(context, {
+      sheet_position: 0,
+      args: [
+        0,
+        "value",
+        {
+          title: "Revenue",
+          minimum_scale: 0,
+          maximum_scale: 100,
+          major_unit: 20,
+          number_format: "$#,##0",
+          visible: true,
+        },
+      ],
+    });
+
+    expect(supported).toHaveBeenCalledWith("ExcelApi", "1.8");
+    expect(valueAxis).toMatchObject({
+      visible: true,
+      minimum: 0,
+      maximum: 100,
+      majorUnit: 20,
+      numberFormat: "$#,##0",
+    });
+    expect(valueAxis.title).toMatchObject({ visible: true, text: "Revenue" });
+    expect(context.sync).toHaveBeenCalledTimes(2);
+  });
+
+  it("maps null scales to Office.js automatic values", async () => {
+    const { categoryAxis, context, getChart } = axisHarness();
+    await createSetChartAxis(getChart)(context, {
+      args: [
+        0,
+        "category",
+        { minimum_scale: null, maximum_scale: null, major_unit: null },
+      ],
+    });
+    expect(categoryAxis.minimum).toBe("");
+    expect(categoryAxis.maximum).toBe("");
+    expect(categoryAxis.majorUnit).toBe("");
+  });
+
+  it("shows an absent axis for a title and applies explicit hiding last", async () => {
+    const { valueAxis, context, getChart } = axisHarness({ visible: false });
+    await createSetChartAxis(getChart)(context, {
+      args: [0, "value", { title: "Revenue", visible: false }],
+    });
+    expect(valueAxis.title).toMatchObject({ visible: true, text: "Revenue" });
+    expect(valueAxis.visible).toBe(false);
+  });
+
+  it("rejects formatting an absent axis unless the request shows it", async () => {
+    const { context, getChart } = axisHarness({ visible: false });
+    await expect(
+      createSetChartAxis(getChart)(context, {
+        args: [0, "value", { minimum_scale: 0 }],
+      }),
+    ).rejects.toThrow("Set visible=True first");
+  });
+
+  it.each([
+    ["axis type", [0, "series", { visible: true }], "Unknown chart axis type"],
+    [
+      "attribute",
+      [0, "value", { logarithmic: true }],
+      "Unknown chart axis attribute",
+    ],
+    ["major unit", [0, "value", { major_unit: 0 }], "positive finite number"],
+    [
+      "numeric string",
+      [0, "value", { minimum_scale: "0" }],
+      "finite number or null",
+    ],
+    [
+      "boolean scale",
+      [0, "value", { maximum_scale: true }],
+      "finite number or null",
+    ],
+    [
+      "number format",
+      [0, "value", { number_format: null }],
+      "must be a string",
+    ],
+    ["values payload", [0, "value", null], "values must be an object"],
+  ])("rejects an invalid %s", async (_label, args, message) => {
+    const { context, getChart } = axisHarness();
+    await expect(
+      createSetChartAxis(getChart)(context, { args }),
+    ).rejects.toThrow(message);
+  });
+
+  it("rejects unsupported hosts before resolving a chart", async () => {
+    const { context, getChart } = axisHarness();
+    await expect(
+      createSetChartAxis(getChart, () => false)(context, {
+        args: [0, "value", { visible: true }],
+      }),
+    ).rejects.toThrow("require ExcelApi 1.8");
+    expect(getChart).not.toHaveBeenCalled();
+  });
+
+  it("propagates a protected-chart failure from the mutation sync", async () => {
+    const { context, getChart } = axisHarness();
+    context.sync
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error("The chart is protected"));
+    await expect(
+      createSetChartAxis(getChart)(context, {
+        args: [0, "value", { title: "Revenue" }],
+      }),
+    ).rejects.toThrow("The chart is protected");
+  });
+
+  it("propagates a missing-chart failure before touching an axis", async () => {
+    const { context } = axisHarness();
+    const getChart = vi.fn(async () => {
+      throw new Error("No chart at index 4");
+    });
+    await expect(
+      createSetChartAxis(getChart)(context, {
+        args: [4, "value", { visible: true }],
+      }),
+    ).rejects.toThrow("No chart at index 4");
+  });
+});
+
+function axisReadHarness({ visible = true, includeChart = true } = {}) {
+  const axis = {
+    visible,
+    minimum: 0,
+    maximum: 100,
+    majorUnit: 20,
+    numberFormat: "$#,##0",
+    load: vi.fn(),
+    title: { visible: true, text: "Revenue", load: vi.fn() },
+  };
+  const chart = {
+    axes: { categoryAxis: { ...axis }, valueAxis: axis },
+  };
+  const charts = { items: includeChart ? [chart] : [], load: vi.fn() };
+  const sheet = { charts };
+  const context = {
+    workbook: { worksheets: { getItem: vi.fn(() => sheet) } },
+    sync: vi.fn(async () => {}),
+  };
+  const runExcel = vi.fn(async (callback) => await callback(context));
+  return { axis, chart, charts, sheet, context, runExcel };
+}
+
+describe("getChartAxisData", () => {
+  it("reads the requested host-backed values", async () => {
+    const { axis, context, runExcel } = axisReadHarness();
+    const getChartAxisData = createGetChartAxisData(runExcel);
+
+    await expect(
+      getChartAxisData("Sheet1", 0, "value", [
+        "title",
+        "minimum_scale",
+        "maximum_scale",
+        "major_unit",
+        "number_format",
+        "visible",
+      ]),
+    ).resolves.toEqual({
+      title: "Revenue",
+      minimum_scale: 0,
+      maximum_scale: 100,
+      major_unit: 20,
+      number_format: "$#,##0",
+      visible: true,
+    });
+    expect(axis.load).toHaveBeenNthCalledWith(1, "visible");
+    expect(axis.load).toHaveBeenNthCalledWith(2, [
+      "minimum",
+      "maximum",
+      "majorUnit",
+      "numberFormat",
+    ]);
+    expect(context.sync).toHaveBeenCalledTimes(3);
+  });
+
+  it("returns false and no title for an absent axis", async () => {
+    const { runExcel } = axisReadHarness({ visible: false });
+    await expect(
+      createGetChartAxisData(runExcel)("Sheet1", 0, "value", [
+        "visible",
+        "title",
+      ]),
+    ).resolves.toEqual({ visible: false, title: null });
+  });
+
+  it("rejects unavailable formatting on an absent axis", async () => {
+    const { runExcel } = axisReadHarness({ visible: false });
+    await expect(
+      createGetChartAxisData(runExcel)("Sheet1", 0, "value", ["minimum_scale"]),
+    ).rejects.toThrow("minimum_scale is unavailable");
+  });
+
+  it("reports a missing chart", async () => {
+    const { runExcel } = axisReadHarness({ includeChart: false });
+    await expect(
+      createGetChartAxisData(runExcel)("Sheet1", 0, "value", ["visible"]),
+    ).rejects.toThrow("No chart at index 0 on sheet Sheet1");
+  });
+
+  it("validates support and read keys before entering Excel.run", async () => {
+    const { runExcel } = axisReadHarness();
+    await expect(
+      createGetChartAxisData(runExcel, () => false)("Sheet1", 0, "value", [
+        "visible",
+      ]),
+    ).rejects.toThrow("require ExcelApi 1.8");
+    await expect(
+      createGetChartAxisData(runExcel)("Sheet1", 0, "value", ["log_base"]),
+    ).rejects.toThrow("Unknown chart axis read key");
+    expect(runExcel).not.toHaveBeenCalled();
   });
 });
 
