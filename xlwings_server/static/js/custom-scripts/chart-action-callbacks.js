@@ -1,3 +1,5 @@
+import { isHexColor } from "./workbook-metadata.js";
+
 export function createAddChart(getSheet, getSelectedRangeAddress) {
   return async function addChart(context, action) {
     // Adding a chart leaves it selected, which is never what a script wants.
@@ -65,9 +67,42 @@ export function createAddChart(getSheet, getSelectedRangeAddress) {
 export async function getChartByIndex(context, sheetPosition, chartIndex) {
   const sheets = context.workbook.worksheets.load("items");
   await context.sync();
-  const charts = sheets.items[sheetPosition].charts.load("items");
+  const normalizedSheetPosition = Number(sheetPosition);
+  if (
+    !Number.isInteger(normalizedSheetPosition) ||
+    normalizedSheetPosition < 0 ||
+    normalizedSheetPosition >= sheets.items.length
+  ) {
+    throw new Error(`No sheet at position ${sheetPosition}`);
+  }
+  const charts = sheets.items[normalizedSheetPosition].charts.load("count");
   await context.sync();
-  return charts.items[chartIndex];
+  const normalizedChartIndex = Number(chartIndex);
+  if (
+    !Number.isInteger(normalizedChartIndex) ||
+    normalizedChartIndex < 0 ||
+    normalizedChartIndex >= charts.count
+  ) {
+    throw new Error(
+      `No chart at index ${chartIndex} on sheet position ${sheetPosition}`,
+    );
+  }
+  return charts.getItemAt(normalizedChartIndex);
+}
+
+async function getChartByNameAndIndex(context, sheetName, chartIndex) {
+  const sheet = context.workbook.worksheets.getItem(sheetName);
+  const charts = sheet.charts.load("count");
+  await context.sync();
+  const normalizedChartIndex = Number(chartIndex);
+  if (
+    !Number.isInteger(normalizedChartIndex) ||
+    normalizedChartIndex < 0 ||
+    normalizedChartIndex >= charts.count
+  ) {
+    throw new Error(`No chart at index ${chartIndex} on sheet ${sheetName}`);
+  }
+  return charts.getItemAt(normalizedChartIndex);
 }
 
 // The chart actions all carry the chart's index as their first arg.
@@ -173,7 +208,7 @@ function chartSeriesValues(value) {
         values.marker_size = raw;
         break;
       default:
-        if (typeof raw !== "string" || !/^#[0-9a-f]{6}$/i.test(raw)) {
+        if (!isHexColor(raw)) {
           throw new Error(`Chart series ${key} must be a #RRGGBB color`);
         }
         values[key] = raw;
@@ -184,13 +219,17 @@ function chartSeriesValues(value) {
 }
 
 async function seriesAt(context, chart, seriesIndex) {
-  const collection = chart.series.load("items");
+  const collection = chart.series.load("count");
   await context.sync();
-  const series = collection.items[Number(seriesIndex)];
-  if (!series) {
+  const normalizedSeriesIndex = Number(seriesIndex);
+  if (
+    !Number.isInteger(normalizedSeriesIndex) ||
+    normalizedSeriesIndex < 0 ||
+    normalizedSeriesIndex >= collection.count
+  ) {
     throw new Error(`No chart series at index ${seriesIndex}`);
   }
-  return series;
+  return collection.getItemAt(normalizedSeriesIndex);
 }
 
 export function createSetChartSeries(getChart, isSetSupported = () => true) {
@@ -233,15 +272,11 @@ export function createGetChartSeriesCount(
   return async function getChartSeriesCount(sheetName, chartIndex) {
     requireChartSeriesSupport(isSetSupported, []);
     return await runExcel(async (context) => {
-      const sheet = context.workbook.worksheets.getItem(sheetName);
-      const charts = sheet.charts.load("items");
-      await context.sync();
-      const chart = charts.items[Number(chartIndex)];
-      if (!chart) {
-        throw new Error(
-          `No chart at index ${chartIndex} on sheet ${sheetName}`,
-        );
-      }
+      const chart = await getChartByNameAndIndex(
+        context,
+        sheetName,
+        chartIndex,
+      );
       const series = chart.series.load("count");
       await context.sync();
       return series.count;
@@ -267,15 +302,11 @@ export function createGetChartSeriesData(
     }
     requireChartSeriesSupport(isSetSupported, readKeys, { reading: true });
     return await runExcel(async (context) => {
-      const sheet = context.workbook.worksheets.getItem(sheetName);
-      const charts = sheet.charts.load("items");
-      await context.sync();
-      const chart = charts.items[Number(chartIndex)];
-      if (!chart) {
-        throw new Error(
-          `No chart at index ${chartIndex} on sheet ${sheetName}`,
-        );
-      }
+      const chart = await getChartByNameAndIndex(
+        context,
+        sheetName,
+        chartIndex,
+      );
       const series = await seriesAt(context, chart, seriesIndex);
       const propertyMap = {
         name: "name",
@@ -456,16 +487,11 @@ export function createGetChartAxisData(runExcel, isSetSupported = () => true) {
       }
     }
     return await runExcel(async (context) => {
-      const sheet = context.workbook.worksheets.getItem(sheetName);
-      const charts = sheet.charts;
-      charts.load("items");
-      await context.sync();
-      const chart = charts.items[Number(chartIndex)];
-      if (!chart) {
-        throw new Error(
-          `No chart at index ${chartIndex} on sheet ${sheetName}`,
-        );
-      }
+      const chart = await getChartByNameAndIndex(
+        context,
+        sheetName,
+        chartIndex,
+      );
       const axis = chartAxis(chart, normalizedAxisType);
       axis.load("visible");
       await context.sync();

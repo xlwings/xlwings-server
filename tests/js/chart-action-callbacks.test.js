@@ -13,6 +13,7 @@ import {
   createSetChartStyle,
   createSetChartTitle,
   createSetChartXAxisValues,
+  getChartByIndex,
 } from "../../xlwings_server/static/js/custom-scripts/chart-action-callbacks.js";
 
 function harness({ activeSheetName = "Dashboard" } = {}) {
@@ -59,6 +60,38 @@ const ACTION = {
   sheet_position: 0,
   args: ["MyChart", "Line", "Sheet1", "$A$1:$B$6", 300, 20, 450, 280],
 };
+
+describe("getChartByIndex", () => {
+  it("validates stale sheet and chart indexes", async () => {
+    const chart = {};
+    const charts = {
+      count: 1,
+      getItemAt: vi.fn(() => chart),
+      load: vi.fn(function () {
+        return this;
+      }),
+    };
+    const sheet = { charts };
+    const sheets = {
+      items: [sheet],
+      load: vi.fn(function () {
+        return this;
+      }),
+    };
+    const context = {
+      workbook: { worksheets: sheets },
+      sync: vi.fn(async () => {}),
+    };
+
+    await expect(getChartByIndex(context, 1, 0)).rejects.toThrow(
+      "No sheet at position 1",
+    );
+    await expect(getChartByIndex(context, 0, 1)).rejects.toThrow(
+      "No chart at index 1 on sheet position 0",
+    );
+    await expect(getChartByIndex(context, 0, 0)).resolves.toBe(chart);
+  });
+});
 
 describe("addChart action callback", () => {
   it("creates the chart from its type and source range", async () => {
@@ -432,6 +465,15 @@ describe("setChartAxis action callback", () => {
     expect(valueAxis.visible).toBe(false);
   });
 
+  it("temporarily shows an absent axis to format it before hiding", async () => {
+    const { valueAxis, context, getChart } = axisHarness({ visible: false });
+    await createSetChartAxis(getChart)(context, {
+      args: [0, "value", { minimum_scale: 0, visible: false }],
+    });
+    expect(valueAxis.minimum).toBe(0);
+    expect(valueAxis.visible).toBe(false);
+  });
+
   it("rejects formatting an absent axis unless the request shows it", async () => {
     const { context, getChart } = axisHarness({ visible: false });
     await expect(
@@ -520,7 +562,13 @@ function axisReadHarness({ visible = true, includeChart = true } = {}) {
   const chart = {
     axes: { categoryAxis: { ...axis }, valueAxis: axis },
   };
-  const charts = { items: includeChart ? [chart] : [], load: vi.fn() };
+  const charts = {
+    count: includeChart ? 1 : 0,
+    getItemAt: vi.fn(() => chart),
+    load: vi.fn(function () {
+      return this;
+    }),
+  };
   const sheet = { charts };
   const context = {
     workbook: { worksheets: { getItem: vi.fn(() => sheet) } },
@@ -619,14 +667,15 @@ function seriesHarness({ includeChart = true, includeSeries = true } = {}) {
   };
   const seriesCollection = {
     count: includeSeries ? 1 : 0,
-    items: includeSeries ? [series] : [],
+    getItemAt: vi.fn(() => series),
     load: vi.fn(function () {
       return this;
     }),
   };
   const chart = { series: seriesCollection };
   const charts = {
-    items: includeChart ? [chart] : [],
+    count: includeChart ? 1 : 0,
+    getItemAt: vi.fn(() => chart),
     load: vi.fn(function () {
       return this;
     }),
