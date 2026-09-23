@@ -114,6 +114,7 @@ const xlwings = {
   getChartImage,
   getNoteText,
   getExpandedAddress,
+  getUsedRangeAddress,
   getActiveSheetIndex,
   getSelection,
 };
@@ -356,6 +357,17 @@ async function getSelection() {
     const selectionAddress = await getSelectedRangeAddress(context);
     await context.sync();
     return { sheetIndex: activeSheet.position, address: selectionAddress };
+  });
+}
+
+async function getUsedRangeAddress(sheetName, valuesOnly = false) {
+  return await Excel.run(async (context) => {
+    const sheet = context.workbook.worksheets.getItem(sheetName);
+    const usedRange = sheet
+      .getUsedRangeOrNullObject(valuesOnly)
+      .load("address");
+    await context.sync();
+    return unqualifiedAddress(usedRange);
   });
 }
 
