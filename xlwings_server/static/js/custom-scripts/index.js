@@ -34,6 +34,7 @@ import {
   rangeReadProperties,
   unqualifiedAddress,
 } from "./workbook-metadata.js";
+import { checkColorsSupport, readRangeColors } from "./range-colors.js";
 import { readNamedItems } from "./named-items.js";
 import { dispatchActions } from "./action-dispatch.js";
 import { getActionSheet } from "./action-targets.js";
@@ -840,6 +841,7 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
   // Validate the public boundary before entering Excel.run() or creating
   // Office proxies so unsupported modes reject as a plain promise error.
   const readKeys = rangeReadKeys(keys);
+  if (readKeys.includes("colors")) checkColorsSupport();
   if (
     readKeys.includes("data_validation") &&
     !Office.context.requirements.isSetSupported("ExcelApi", "1.8")
@@ -904,6 +906,11 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
     ) {
       await context.sync();
     }
+    // Dimensions are available after the metadata sync. Check the bound before
+    // asking Office for per-cell properties, including on full-row/column reads.
+    const colors = readKeys.includes("colors")
+      ? await readRangeColors(context, range)
+      : null;
     const metadata = rangeMetadata(range);
     const result = {
       address: metadata.address,
@@ -942,6 +949,9 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
           // Office.js may report a named HTML color ("orange") rather than
           // #RRGGBB; normalize so the Python side only ever sees hex.
           result.color = normalizeFillColor(range.format.fill.color);
+          break;
+        case "colors":
+          result.colors = colors;
           break;
         case "wrap_text":
           result.wrap_text = range.format.wrapText;
