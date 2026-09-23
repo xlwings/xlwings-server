@@ -307,6 +307,7 @@ const RANGE_READ_KEYS = {
   formula_array: ["formulaArray"],
   number_format: ["numberFormat"],
   color: ["format/fill/color"],
+  colors: [],
   wrap_text: ["format/wrapText"],
   horizontal_alignment: ["format/horizontalAlignment"],
   vertical_alignment: ["format/verticalAlignment"],
