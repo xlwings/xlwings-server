@@ -3,7 +3,10 @@ import { describe, expect, it, vi } from "vitest";
 import {
   createAddChart,
   createGetChartAxisData,
+  createGetChartSeriesCount,
+  createGetChartSeriesData,
   createSetChartAxis,
+  createSetChartSeries,
   createSetChartLegend,
   createSetChartPlotBy,
   createSetChartSourceData,
@@ -594,6 +597,206 @@ describe("getChartAxisData", () => {
       createGetChartAxisData(runExcel)("Sheet1", 0, "value", ["log_base"]),
     ).rejects.toThrow("Unknown chart axis read key");
     expect(runExcel).not.toHaveBeenCalled();
+  });
+});
+
+function seriesHarness({ includeChart = true, includeSeries = true } = {}) {
+  const fillColor = { value: "#778899" };
+  const series = {
+    name: "Revenue",
+    markerStyle: "Circle",
+    markerSize: 8,
+    markerForegroundColor: "#112233",
+    markerBackgroundColor: "#445566",
+    load: vi.fn(),
+    format: {
+      line: { color: "#556677", load: vi.fn() },
+      fill: {
+        setSolidColor: vi.fn(),
+        getSolidColor: vi.fn(() => fillColor),
+      },
+    },
+  };
+  const seriesCollection = {
+    count: includeSeries ? 1 : 0,
+    items: includeSeries ? [series] : [],
+    load: vi.fn(function () {
+      return this;
+    }),
+  };
+  const chart = { series: seriesCollection };
+  const charts = {
+    items: includeChart ? [chart] : [],
+    load: vi.fn(function () {
+      return this;
+    }),
+  };
+  const sheet = { charts };
+  const context = {
+    workbook: { worksheets: { getItem: vi.fn(() => sheet) } },
+    sync: vi.fn(async () => {}),
+  };
+  const getChart = vi.fn(async () => chart);
+  const runExcel = vi.fn(async (callback) => await callback(context));
+  const supported = vi.fn(() => true);
+  return {
+    chart,
+    charts,
+    context,
+    fillColor,
+    getChart,
+    runExcel,
+    series,
+    seriesCollection,
+    supported,
+  };
+}
+
+describe("setChartSeries action callback", () => {
+  it("sets all requested attributes in one action", async () => {
+    const { context, getChart, series, supported } = seriesHarness();
+    await createSetChartSeries(getChart, supported)(context, {
+      args: [
+        0,
+        0,
+        {
+          name: "Forecast",
+          marker_style: "Diamond",
+          marker_size: 9,
+          marker_foreground_color: "#010203",
+          marker_background_color: "#040506",
+          line_color: "#070809",
+          fill_color: "#0A0B0C",
+        },
+      ],
+    });
+
+    expect(series).toMatchObject({
+      name: "Forecast",
+      markerStyle: "Diamond",
+      markerSize: 9,
+      markerForegroundColor: "#010203",
+      markerBackgroundColor: "#040506",
+    });
+    expect(series.format.line.color).toBe("#070809");
+    expect(series.format.fill.setSolidColor).toHaveBeenCalledWith("#0A0B0C");
+    expect(supported).toHaveBeenCalledWith("ExcelApi", "1.1");
+    expect(supported).toHaveBeenCalledWith("ExcelApi", "1.7");
+    expect(context.sync).toHaveBeenCalledTimes(2);
+  });
+
+  it.each([
+    ["attribute", { shadow: true }, "Unknown chart series attribute"],
+    ["name", { name: 1 }, "name must be a string"],
+    ["marker style", { marker_style: "Picture" }, "marker style"],
+    ["marker size", { marker_size: 73 }, "integer from 2 to 72"],
+    ["color", { line_color: "red" }, "#RRGGBB"],
+  ])("rejects an invalid %s", async (_label, values, message) => {
+    const { context, getChart } = seriesHarness();
+    await expect(
+      createSetChartSeries(getChart)(context, { args: [0, 0, values] }),
+    ).rejects.toThrow(message);
+    expect(getChart).not.toHaveBeenCalled();
+  });
+
+  it("rejects marker formatting on hosts below ExcelApi 1.7", async () => {
+    const { context, getChart } = seriesHarness();
+    const supported = vi.fn((_name, version) => version !== "1.7");
+    await expect(
+      createSetChartSeries(getChart, supported)(context, {
+        args: [0, 0, { marker_size: 8 }],
+      }),
+    ).rejects.toThrow("requires ExcelApi 1.7");
+    expect(getChart).not.toHaveBeenCalled();
+  });
+
+  it("reports a missing series", async () => {
+    const { context, getChart } = seriesHarness({ includeSeries: false });
+    await expect(
+      createSetChartSeries(getChart)(context, {
+        args: [0, 1, { name: "Forecast" }],
+      }),
+    ).rejects.toThrow("No chart series at index 1");
+  });
+
+  it("propagates a protected-chart failure from the mutation sync", async () => {
+    const { context, getChart } = seriesHarness();
+    context.sync
+      .mockResolvedValueOnce(undefined)
+      .mockRejectedValueOnce(new Error("The chart is protected"));
+    await expect(
+      createSetChartSeries(getChart)(context, {
+        args: [0, 0, { name: "Forecast" }],
+      }),
+    ).rejects.toThrow("The chart is protected");
+  });
+});
+
+describe("chart series reads", () => {
+  it("reads the collection count", async () => {
+    const { runExcel } = seriesHarness();
+    await expect(
+      createGetChartSeriesCount(runExcel)("Sheet1", 0),
+    ).resolves.toBe(1);
+  });
+
+  it("returns zero for an empty series collection", async () => {
+    const { runExcel } = seriesHarness({ includeSeries: false });
+    await expect(
+      createGetChartSeriesCount(runExcel)("Sheet1", 0),
+    ).resolves.toBe(0);
+  });
+
+  it("reads all host-backed values", async () => {
+    const { context, runExcel, series, supported } = seriesHarness();
+    await expect(
+      createGetChartSeriesData(runExcel, supported)("Sheet1", 0, 0),
+    ).resolves.toEqual({
+      name: "Revenue",
+      marker_style: "Circle",
+      marker_size: 8,
+      marker_foreground_color: "#112233",
+      marker_background_color: "#445566",
+      line_color: "#556677",
+      fill_color: "#778899",
+    });
+    expect(series.load).toHaveBeenCalledWith([
+      "name",
+      "markerStyle",
+      "markerSize",
+      "markerForegroundColor",
+      "markerBackgroundColor",
+    ]);
+    expect(series.format.line.load).toHaveBeenCalledWith("color");
+    expect(supported).toHaveBeenCalledWith("ExcelApi", "1.16");
+    expect(context.sync).toHaveBeenCalledTimes(3);
+  });
+
+  it("validates keys and fill-read support before entering Excel.run", async () => {
+    const { runExcel } = seriesHarness();
+    await expect(
+      createGetChartSeriesData(runExcel)("Sheet1", 0, 0, ["shadow"]),
+    ).rejects.toThrow("Unknown chart series read key");
+    const supported = vi.fn((_name, version) => version !== "1.16");
+    await expect(
+      createGetChartSeriesData(runExcel, supported)("Sheet1", 0, 0, [
+        "fill_color",
+      ]),
+    ).rejects.toThrow("requires ExcelApi 1.16");
+    expect(runExcel).not.toHaveBeenCalled();
+  });
+
+  it("reports missing charts and series", async () => {
+    const missingChart = seriesHarness({ includeChart: false });
+    await expect(
+      createGetChartSeriesCount(missingChart.runExcel)("Sheet1", 0),
+    ).rejects.toThrow("No chart at index 0 on sheet Sheet1");
+    const missingSeries = seriesHarness({ includeSeries: false });
+    await expect(
+      createGetChartSeriesData(missingSeries.runExcel)("Sheet1", 0, 0, [
+        "name",
+      ]),
+    ).rejects.toThrow("No chart series at index 0");
   });
 });
 

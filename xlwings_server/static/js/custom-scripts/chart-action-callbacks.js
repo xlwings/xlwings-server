@@ -88,6 +88,226 @@ const CHART_AXIS_KEYS = new Set([
   "visible",
 ]);
 
+const CHART_SERIES_KEYS = new Set([
+  "name",
+  "marker_style",
+  "marker_size",
+  "marker_foreground_color",
+  "marker_background_color",
+  "line_color",
+  "fill_color",
+]);
+const CHART_MARKER_STYLES = new Set([
+  "Automatic",
+  "None",
+  "Square",
+  "Diamond",
+  "Triangle",
+  "X",
+  "Star",
+  "Dot",
+  "Dash",
+  "Circle",
+  "Plus",
+]);
+
+function requireChartSeriesSupport(
+  isSetSupported,
+  keys,
+  { reading = false } = {},
+) {
+  if (!isSetSupported("ExcelApi", "1.1")) {
+    throw new Error(
+      "Chart series require ExcelApi 1.1 and aren't supported by this Excel host.",
+    );
+  }
+  if (
+    keys.some((key) => key.startsWith("marker_")) &&
+    !isSetSupported("ExcelApi", "1.7")
+  ) {
+    throw new Error(
+      "Chart series marker formatting requires ExcelApi 1.7 and isn't supported by this Excel host.",
+    );
+  }
+  if (
+    reading &&
+    keys.includes("fill_color") &&
+    !isSetSupported("ExcelApi", "1.16")
+  ) {
+    throw new Error(
+      "Reading a chart series fill color requires ExcelApi 1.16 and isn't supported by this Excel host.",
+    );
+  }
+}
+
+function chartSeriesValues(value) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error("Chart series values must be an object");
+  }
+  const values = {};
+  for (const [key, raw] of Object.entries(value)) {
+    if (!CHART_SERIES_KEYS.has(key)) {
+      throw new Error(`Unknown chart series attribute: ${key}`);
+    }
+    switch (key) {
+      case "name":
+        if (typeof raw !== "string" || raw.length > 255) {
+          throw new Error(
+            "Chart series name must be a string of at most 255 characters",
+          );
+        }
+        values.name = raw;
+        break;
+      case "marker_style":
+        if (!CHART_MARKER_STYLES.has(raw)) {
+          throw new Error(`Unknown chart marker style: ${raw}`);
+        }
+        values.marker_style = raw;
+        break;
+      case "marker_size":
+        if (!Number.isInteger(raw) || raw < 2 || raw > 72) {
+          throw new Error(
+            "Chart series marker_size must be an integer from 2 to 72",
+          );
+        }
+        values.marker_size = raw;
+        break;
+      default:
+        if (typeof raw !== "string" || !/^#[0-9a-f]{6}$/i.test(raw)) {
+          throw new Error(`Chart series ${key} must be a #RRGGBB color`);
+        }
+        values[key] = raw;
+        break;
+    }
+  }
+  return values;
+}
+
+async function seriesAt(context, chart, seriesIndex) {
+  const collection = chart.series.load("items");
+  await context.sync();
+  const series = collection.items[Number(seriesIndex)];
+  if (!series) {
+    throw new Error(`No chart series at index ${seriesIndex}`);
+  }
+  return series;
+}
+
+export function createSetChartSeries(getChart, isSetSupported = () => true) {
+  return async function setChartSeries(context, action) {
+    const values = chartSeriesValues(action.args[2]);
+    const keys = Object.keys(values);
+    requireChartSeriesSupport(isSetSupported, keys);
+    const chart = await getChart(context, action);
+    const series = await seriesAt(context, chart, action.args[1]);
+    if (Object.hasOwn(values, "name")) series.name = values.name;
+    // Excel may propagate series line/fill formatting to markers. Apply
+    // explicit marker overrides afterwards so one bulk set preserves
+    // independently requested colors.
+    if (Object.hasOwn(values, "line_color")) {
+      series.format.line.color = values.line_color;
+    }
+    if (Object.hasOwn(values, "fill_color")) {
+      series.format.fill.setSolidColor(values.fill_color);
+    }
+    if (Object.hasOwn(values, "marker_style")) {
+      series.markerStyle = values.marker_style;
+    }
+    if (Object.hasOwn(values, "marker_size")) {
+      series.markerSize = values.marker_size;
+    }
+    if (Object.hasOwn(values, "marker_foreground_color")) {
+      series.markerForegroundColor = values.marker_foreground_color;
+    }
+    if (Object.hasOwn(values, "marker_background_color")) {
+      series.markerBackgroundColor = values.marker_background_color;
+    }
+    await context.sync();
+  };
+}
+
+export function createGetChartSeriesCount(
+  runExcel,
+  isSetSupported = () => true,
+) {
+  return async function getChartSeriesCount(sheetName, chartIndex) {
+    requireChartSeriesSupport(isSetSupported, []);
+    return await runExcel(async (context) => {
+      const sheet = context.workbook.worksheets.getItem(sheetName);
+      const charts = sheet.charts.load("items");
+      await context.sync();
+      const chart = charts.items[Number(chartIndex)];
+      if (!chart) {
+        throw new Error(
+          `No chart at index ${chartIndex} on sheet ${sheetName}`,
+        );
+      }
+      const series = chart.series.load("count");
+      await context.sync();
+      return series.count;
+    });
+  };
+}
+
+export function createGetChartSeriesData(
+  runExcel,
+  isSetSupported = () => true,
+) {
+  return async function getChartSeriesData(
+    sheetName,
+    chartIndex,
+    seriesIndex,
+    keys = [...CHART_SERIES_KEYS],
+  ) {
+    const readKeys = Array.from(keys ?? []);
+    for (const key of readKeys) {
+      if (!CHART_SERIES_KEYS.has(key)) {
+        throw new Error(`Unknown chart series read key: ${key}`);
+      }
+    }
+    requireChartSeriesSupport(isSetSupported, readKeys, { reading: true });
+    return await runExcel(async (context) => {
+      const sheet = context.workbook.worksheets.getItem(sheetName);
+      const charts = sheet.charts.load("items");
+      await context.sync();
+      const chart = charts.items[Number(chartIndex)];
+      if (!chart) {
+        throw new Error(
+          `No chart at index ${chartIndex} on sheet ${sheetName}`,
+        );
+      }
+      const series = await seriesAt(context, chart, seriesIndex);
+      const propertyMap = {
+        name: "name",
+        marker_style: "markerStyle",
+        marker_size: "markerSize",
+        marker_foreground_color: "markerForegroundColor",
+        marker_background_color: "markerBackgroundColor",
+      };
+      const properties = readKeys
+        .filter((key) => propertyMap[key])
+        .map((key) => propertyMap[key]);
+      if (properties.length) series.load(properties);
+      if (readKeys.includes("line_color")) series.format.line.load("color");
+      const fillColor = readKeys.includes("fill_color")
+        ? series.format.fill.getSolidColor()
+        : null;
+      if (properties.length || readKeys.includes("line_color") || fillColor) {
+        await context.sync();
+      }
+      const result = {};
+      for (const [key, property] of Object.entries(propertyMap)) {
+        if (readKeys.includes(key)) result[key] = series[property];
+      }
+      if (readKeys.includes("line_color")) {
+        result.line_color = series.format.line.color || null;
+      }
+      if (fillColor) result.fill_color = fillColor.value || null;
+      return result;
+    });
+  };
+}
+
 function requireChartAxisSupport(isSetSupported) {
   if (!isSetSupported("ExcelApi", "1.8")) {
     throw new Error(
