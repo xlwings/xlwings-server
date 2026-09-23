@@ -3,6 +3,7 @@ import {
   BORDER_SIDES,
   BORDER_WEIGHTS,
   conditionalFormatMetadata,
+  isHexColor,
   loadConditionalFormatDetails,
 } from "./workbook-metadata.js";
 
@@ -392,7 +393,7 @@ export function createSetBorderProperty(getRange) {
         break;
       case "color":
         property = "color";
-        if (typeof value !== "string" || !/^#[0-9a-f]{6}$/i.test(value)) {
+        if (!isHexColor(value)) {
           throw new Error(`Border color must be #RRGGBB, not ${value}`);
         }
         officeValue = value;
@@ -468,10 +469,7 @@ const CONDITIONAL_FORMAT_ICON_SETS = new Set([
 ]);
 
 function validateConditionalFormatColor(value, name) {
-  if (
-    value != null &&
-    (typeof value !== "string" || !/^#[0-9a-f]{6}$/i.test(value))
-  ) {
+  if (value != null && !isHexColor(value)) {
     throw new Error(`${name} must be #RRGGBB.`);
   }
 }

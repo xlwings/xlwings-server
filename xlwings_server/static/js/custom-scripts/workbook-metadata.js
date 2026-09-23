@@ -445,12 +445,16 @@ export function normalizeBorders(items, resolveNamedColor = canvasColor) {
 // Office.js allows named HTML colors for a fill ("orange"); xlwings expects
 // #RRGGBB. Resolving a name needs a DOM round-trip, which only happens when a
 // color is actually read and isn't already hex.
+export function isHexColor(value) {
+  return typeof value === "string" && /^#[0-9a-f]{6}$/i.test(value);
+}
+
 export function normalizeFillColor(color, resolveNamedColor = canvasColor) {
   if (!color) return null;
-  if (/^#[0-9a-f]{6}$/i.test(color)) return color;
+  if (isHexColor(color)) return color;
   if (/^[0-9a-f]{6}$/i.test(color)) return `#${color}`;
   const resolved = resolveNamedColor(color);
-  return /^#[0-9a-f]{6}$/i.test(resolved) ? resolved : null;
+  return isHexColor(resolved) ? resolved : null;
 }
 
 // Named-color resolution is the one part that needs a DOM, so it's injected

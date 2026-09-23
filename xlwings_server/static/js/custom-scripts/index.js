@@ -64,6 +64,11 @@ import {
 import {
   chartFromAction,
   createAddChart,
+  createGetChartAxisData,
+  createGetChartSeriesCount,
+  createGetChartSeriesData,
+  createSetChartAxis,
+  createSetChartSeries,
   createSetChartLegend,
   createSetChartPlotBy,
   createSetChartSourceData,
@@ -111,6 +116,9 @@ const xlwings = {
   getAutoFilterCriteria,
   getRangeValues,
   getShapeData,
+  getChartAxisData,
+  getChartSeriesCount,
+  getChartSeriesData,
   getChartImage,
   getNoteText,
   getExpandedAddress,
@@ -1038,6 +1046,36 @@ async function getAutoFilterCriteria(sheetName, address, tableIndex = null) {
   return await readCriteria(sheetName, address, tableIndex);
 }
 
+async function getChartAxisData(sheetName, chartIndex, axisType, keys) {
+  const readAxis = createGetChartAxisData(
+    Excel.run.bind(Excel),
+    Office.context.requirements.isSetSupported.bind(
+      Office.context.requirements,
+    ),
+  );
+  return await readAxis(sheetName, chartIndex, axisType, keys);
+}
+
+async function getChartSeriesCount(sheetName, chartIndex) {
+  const readCount = createGetChartSeriesCount(
+    Excel.run.bind(Excel),
+    Office.context.requirements.isSetSupported.bind(
+      Office.context.requirements,
+    ),
+  );
+  return await readCount(sheetName, chartIndex);
+}
+
+async function getChartSeriesData(sheetName, chartIndex, seriesIndex, keys) {
+  const readSeries = createGetChartSeriesData(
+    Excel.run.bind(Excel),
+    Office.context.requirements.isSetSupported.bind(
+      Office.context.requirements,
+    ),
+  );
+  return await readSeries(sheetName, chartIndex, seriesIndex, keys);
+}
+
 // Office.js clips both the address and dimensions of a merged area to the range
 // used for the query. Starting with a single cell therefore reports G1 instead
 // of G1:H1. Expand one-dimensional probes from the merge's top-left cell until
@@ -1399,6 +1437,12 @@ const deleteConditionalFormat = createDeleteConditionalFormat(
 const setChartSourceData = createSetChartSourceData(chartFromAction);
 const setChartXAxisValues = createSetChartXAxisValues(chartFromAction);
 const setChartTitle = createSetChartTitle(chartFromAction);
+const setChartAxis = createSetChartAxis(chartFromAction, (name, version) =>
+  Office.context.requirements.isSetSupported(name, version),
+);
+const setChartSeries = createSetChartSeries(chartFromAction, (name, version) =>
+  Office.context.requirements.isSetSupported(name, version),
+);
 const setChartLegend = createSetChartLegend(chartFromAction);
 const setChartPlotBy = createSetChartPlotBy(chartFromAction);
 const setChartStyle = createSetChartStyle(chartFromAction);
@@ -1473,6 +1517,8 @@ let funcs = {
   setChartPosition: setChartPosition,
   deleteChart: deleteChart,
   setChartTitle: setChartTitle,
+  setChartAxis: setChartAxis,
+  setChartSeries: setChartSeries,
   setChartLegend: setChartLegend,
   setChartPlotBy: setChartPlotBy,
   setChartStyle: setChartStyle,
