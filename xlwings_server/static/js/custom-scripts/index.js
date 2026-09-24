@@ -43,6 +43,12 @@ import { readNamedItems } from "./named-items.js";
 import { dispatchActions } from "./action-dispatch.js";
 import { getActionSheet } from "./action-targets.js";
 import {
+  addCellNote,
+  readNoteAuthor,
+  readNoteLocation,
+  requireNotesSupport,
+} from "./note-operations.js";
+import {
   createAddConditionalFormat,
   createClearConditionalFormats,
   createDeleteDataValidation,
@@ -126,6 +132,8 @@ const xlwings = {
   getChartSeriesData,
   getChartImage,
   getNoteText,
+  getNoteAuthor,
+  getNoteLocation,
   getExpandedAddress,
   getUsedRangeAddress,
   getActiveSheetIndex,
@@ -697,6 +705,10 @@ async function getBookData(
       show_gridlines: item["sheet"].showGridlines,
       print_area: printAreaAddress(item["printArea"]),
       notes: notesArray(item),
+      notes_supported: Office.context.requirements.isSetSupported(
+        "ExcelApi",
+        "1.18",
+      ),
       used_range_address: usedRange.address,
       used_range_row_count: usedRange.row_count,
       used_range_column_count: usedRange.column_count,
@@ -814,6 +826,7 @@ function notesArray(item) {
 // request, since it can be arbitrarily long. The payload carries only which
 // cells have a note, which is all Range.note needs.
 async function getNoteText(sheetName, cellAddress) {
+  requireNotesSupport();
   return await Excel.run(async (context) => {
     const sheet = context.workbook.worksheets.getItem(sheetName);
     const note = sheet.notes.getItemOrNullObject(cellAddress);
@@ -821,6 +834,28 @@ async function getNoteText(sheetName, cellAddress) {
     await context.sync();
     return note.isNullObject ? null : note.content;
   });
+}
+
+async function getNoteAuthor(sheetName, cellAddress) {
+  requireNotesSupport();
+  return await Excel.run(async (context) =>
+    readNoteAuthor(
+      context,
+      context.workbook.worksheets.getItem(sheetName),
+      cellAddress,
+    ),
+  );
+}
+
+async function getNoteLocation(sheetName, cellAddress) {
+  requireNotesSupport();
+  return await Excel.run(async (context) =>
+    readNoteLocation(
+      context,
+      context.workbook.worksheets.getItem(sheetName),
+      cellAddress,
+    ),
+  );
 }
 
 // Chart.getImage() returns a base64 PNG, which is data rather than an action,
@@ -1548,6 +1583,7 @@ let funcs = {
   refreshPivotTable: refreshPivotTable,
   deletePivotTable: deletePivotTable,
   setNoteText: setNoteText,
+  addNote: addNote,
   deleteNote: deleteNote,
   setShapeName: setShapeName,
   setShapeLeft: setShapeLeft,
@@ -1873,6 +1909,17 @@ async function setNoteText(context, action) {
     throw new Error(`There's no note on ${address} to set the text of.`);
   }
   note.content = action.args[1].toString();
+}
+
+async function addNote(context, action) {
+  requireNotesSupport();
+  const sheet = await getSheet(context, action);
+  await addCellNote(
+    context,
+    sheet,
+    action.args[0].toString(),
+    action.args[1].toString(),
+  );
 }
 
 async function deleteNote(context, action) {
