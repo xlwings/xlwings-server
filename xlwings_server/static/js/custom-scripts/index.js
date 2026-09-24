@@ -34,7 +34,11 @@ import {
   rangeReadProperties,
   unqualifiedAddress,
 } from "./workbook-metadata.js";
-import { checkColorsSupport, readRangeColors } from "./range-colors.js";
+import {
+  checkColorsSupport,
+  createSetRangeColors,
+  readRangeColors,
+} from "./range-colors.js";
 import { readNamedItems } from "./named-items.js";
 import { dispatchActions } from "./action-dispatch.js";
 import { getActionSheet } from "./action-targets.js";
@@ -1510,6 +1514,7 @@ let funcs = {
   setPrintArea: setPrintArea,
   copySheet: copySheet,
   setRangeColor: setRangeColor,
+  setRangeColors: createSetRangeColors(getRange),
   activateSheet: activateSheet,
   calculate: calculate,
   save: save,

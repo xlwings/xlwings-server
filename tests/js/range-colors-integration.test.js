@@ -52,6 +52,48 @@ beforeEach(() => {
   Office.context.requirements.isSetSupported.mockReturnValue(true);
 });
 
+it("dispatches a bulk fill action through the registered Office.js callback", async () => {
+  const range = { setCellProperties: vi.fn() };
+  const sheet = { getRangeByIndexes: vi.fn(() => range) };
+  const worksheets = {
+    items: [sheet],
+    load: vi.fn(function () {
+      return this;
+    }),
+  };
+  const context = {
+    workbook: { worksheets },
+    sync: vi.fn(async () => {}),
+  };
+
+  await client.runActions(
+    {
+      actions: [
+        {
+          func: "setRangeColors",
+          sheet_position: 0,
+          start_row: 2,
+          start_column: 1,
+          row_count: 1,
+          column_count: 3,
+          args: [[["#008000", "keep", null]]],
+        },
+      ],
+    },
+    context,
+  );
+
+  expect(sheet.getRangeByIndexes).toHaveBeenCalledExactlyOnceWith(2, 1, 1, 3);
+  expect(range.setCellProperties).toHaveBeenCalledExactlyOnceWith([
+    [
+      { format: { fill: { color: "#008000" } } },
+      {},
+      { format: { fill: { pattern: "None" } } },
+    ],
+  ]);
+  expect(context.sync).toHaveBeenCalledTimes(2);
+});
+
 const cell = (color, pattern = "Solid") => ({
   format: { fill: { color, pattern } },
 });
