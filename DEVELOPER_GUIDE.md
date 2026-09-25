@@ -44,13 +44,13 @@ socket = io("https://127.0.0.1:8001", {
 
 ## Build docs
 
-From the root dir, run:
+From the repository root, run:
 
-```
-uv run sphinx-autobuild docs docs/_build/html  --port 9000 -E
+```bash
+make docs
 ```
 
-The requirements are currently under `docs/requirements.txt` and have not been included in `requirements-dev.txt` as there's an incompatibility with Python 3.9.
+To build against an editable checkout of `../xlwings`, run `make docs-dev`. Both commands serve the docs at `http://127.0.0.1:9000` and rebuild them when source files change.
 
 ## Upgrade npm dependencies
 

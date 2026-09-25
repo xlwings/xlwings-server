@@ -21,8 +21,8 @@ def mysum(x, y, z):
 
 
 @func
-@arg("x", np.array, ndim=2)
-@arg("y", np.array)
+@arg("x", np.ndarray, ndim=2)
+@arg("y", np.ndarray)
 def myarraysum(x, y, z):
     return x + y + z
 ```
@@ -44,22 +44,11 @@ The second example results in just a single function call:
 xlwings Server uses FastAPI, an async web framework. To improve performance, you should use async libraries wherever possible, specifically around IO operations such as querying Web APIs or databases. For example:
 
 - Use `httpx` or `aiohttp` instead of `requests`
-- Use `asyncpg` or `psycopg3` instead of `pscycopg2`
+- Use `asyncpg` or `psycopg` instead of `pscycopg2`
 
 ## Caching
 
-Caching means that a slow function is calculated only once. Its result is then stored in a cache, which will be used to serve the next request, avoiding the need to perform the same slow calculation again. You can use caching on the server and client side.
-
-- Client ("integration"): While the client side would be more attractive, as this would save you not only from running the function but also from waiting for the network call, it isn't available yet. It is tracked as [GitHub issue](https://github.com/xlwings/xlwings-server/issues/86).
-- Server: You can decorate your function with `functools.cache`. Note that this cache will be separate per [app worker](production.md#workers):
-
-  ```python
-  from functools import cache
-
-  @cache
-  def slow_funcion():
-      ...
-  ```
+If a custom function repeatedly performs an expensive calculation for the same arguments, [caching](custom_functions.md#caching) can reuse the earlier result and avoid recalculating it.
 
 ## Streaming functions
 

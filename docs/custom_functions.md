@@ -846,6 +846,58 @@ You can return the majority of Python data types such as simple lists, dictionar
 
 Each object handle is stored in the cache under a unique, randomly key. As a result, an object handle keeps working when you copy it to another cell or reference it via a formula such as `=A1`, and it can be resolved from any workbook or Excel installation for as long as the object is cached. If you run a shared backend for mutually untrusted users and want to prevent one user from resolving another user's cached objects, set `XLWINGS_OBJECT_CACHE_PARTITION_BY_USER=true`. This scopes object handles to the user who created them.
 
+## Caching
+
+When a custom function is slow and Excel calls it repeatedly with the same arguments, each call can spend time repeating the same calculation. Caching stores the first result so later calls can reuse it. You can cache results on the client or server.
+
+- Client (**requires xlwings-server 1.17.0+ and the Office.js client**): Set `cache=True` on a custom function when the same arguments should produce the same result. Repeated calls then return the cached result from the Excel add-in without a server round trip:
+
+  ```python
+  from xlwings import func
+
+  @func(cache=True)
+  def hello(name):
+      return f"Hello {name}!"
+  ```
+
+  The cache uses all argument values: calling `hello` again with the same name returns the cached result, while changing the name calls the server. This simple example shows the behavior; caching is most useful when the function is expensive to run.
+
+  If the underlying data can change while the arguments stay the same, add an argument that you change manually when you want a fresh result:
+
+  ```python
+  @func(cache=True)
+  def history(ticker, refresh_token):
+      return fetch_history(ticker)
+  ```
+
+  Here, `refresh_token` acts as the cache invalidator. In Excel, call the function like this: `=HISTORY("IBM", Control!B1)`---changing the ticker or the value in `Control!B1` calls the server again. Note that `refresh_token` is just an ordinary argument that can be called anything you want.
+
+  The cache is bounded and held in memory for the current add-in runtime; closing or reloading that runtime clears it. Matching calls in the same workbook share a result, except functions that use `Caller`, whose results are scoped to the calling cell. Authentication contexts are kept separate. Formatted dates can be used as arguments; object handles, errors, rich results, and functions that request a follow-up script are not cached. Streaming and volatile functions cannot set `cache=True`.
+
+  **Authorization and audit logging:** Client caching is disabled for functions with `required_roles`. Since a cache hit doesn't call the server, it would skip per-request authorization checks and server logs.
+
+- Server: You can decorate a synchronous function with `functools.cache`. Note that this cache will be separate per [app worker](production.md#workers), and `functools.cache` does not cache results of `async def` functions:
+
+  ```python
+  from functools import cache
+
+  @cache
+  def slow_function():
+      ...
+  ```
+
+  For an `async def` function, use `aiocache.cached`, which is already included in the dependencies:
+
+  ```python
+  from aiocache import cached
+
+  @cached()
+  async def slow_async_function(symbol):
+      return await fetch_data(symbol)
+  ```
+
+  By default, `aiocache` also stores results in memory per app worker without expiration or a size limit. Set `ttl` (in seconds) if results should expire. Configure a shared backend such as Redis if workers need to share cached results.
+
 ## Custom functions vs. classic UDFs
 
 While Office.js-based custom functions are mostly compatible with the VBA-based UDFs, there are a few differences, which you should be aware of when switching from UDFs to custom functions or vice versa:

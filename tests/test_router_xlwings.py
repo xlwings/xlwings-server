@@ -72,7 +72,71 @@ def test_custom_functions_code():
         'CustomFunctions.associate("HELLO_CUSTOM_NAME", hello_custom_name);'
         in response.text
     )
-    assert '["hello_custom_name", false]' in response.text
+    assert 'funcName: "hello_custom_name"' in response.text
+    assert "isCached: false" in response.text
+
+
+def test_custom_functions_code_cache_flag(mocker):
+    hello = xlwings_router.custom_functions.hello
+    mocker.patch.dict(hello.__xlfunc__, {"cache": True})
+
+    response = client.get(f"{settings.app_path}/xlwings/custom-functions-code")
+
+    assert response.status_code == 200
+    wrapper = response.text.split("async function hello() {", 1)[1].split(
+        'CustomFunctions.associate("HELLO"', 1
+    )[0]
+    assert "isCached: true" in wrapper
+    assert "callerScoped: false" in wrapper
+
+
+@pytest.mark.parametrize(
+    ("hint", "caller_scoped"),
+    [
+        (xw.server.Caller, True),
+        (xw.server.Caller | None, True),
+        (list[xw.server.Caller], False),
+    ],
+)
+def test_custom_functions_code_caller_scope(mocker, hint, caller_scoped):
+    hello = xlwings_router.custom_functions.hello
+    mocker.patch.dict(hello.__xlfunc__, {"cache": True})
+    mocker.patch.object(hello, "__annotations__", {"name": hint})
+
+    response = client.get(f"{settings.app_path}/xlwings/custom-functions-code")
+
+    assert response.status_code == 200
+    wrapper = response.text.split("async function hello() {", 1)[1].split(
+        'CustomFunctions.associate("HELLO"', 1
+    )[0]
+    assert f"callerScoped: {str(caller_scoped).lower()}" in wrapper
+
+
+def test_custom_functions_code_unresolvable_annotation_disables_cache(mocker):
+    hello = xlwings_router.custom_functions.hello
+    mocker.patch.dict(hello.__xlfunc__, {"cache": True})
+    mocker.patch.object(hello, "__annotations__", {"name": "MissingType"})
+
+    response = client.get(f"{settings.app_path}/xlwings/custom-functions-code")
+
+    assert response.status_code == 200
+    wrapper = response.text.split("async function hello() {", 1)[1].split(
+        'CustomFunctions.associate("HELLO"', 1
+    )[0]
+    assert "isCached: false" in wrapper
+
+
+def test_custom_functions_code_required_roles_disables_cache(mocker):
+    hello = xlwings_router.custom_functions.hello
+    mocker.patch.dict(hello.__xlfunc__, {"cache": True, "required_roles": ["admin"]})
+
+    response = client.get(f"{settings.app_path}/xlwings/custom-functions-code")
+
+    assert response.status_code == 200
+    wrapper = response.text.split("async function hello() {", 1)[1].split(
+        'CustomFunctions.associate("HELLO"', 1
+    )[0]
+    assert "isCached: false" in wrapper
 
 
 @pytest.mark.skipif(

@@ -198,14 +198,191 @@ class Semaphore {
 
 const semaphore = new Semaphore(1000);
 
-async function base() {
+// Cached custom functions use a bounded, runtime-local LRU. Entries are scoped to
+// the current workbook and credentials; functions using Caller are also scoped to
+// the calling cell. Plain values and formatted-number arguments are eligible;
+// object handles and rich results need a fresh server call.
+const resultCache = new Map();
+const inFlightResults = new Map();
+const previousDebugKeys = new Map();
+const MAX_CACHE_ENTRIES = 128;
+const MAX_CACHE_BYTES = 16 * 1024 * 1024;
+const MAX_ENTRY_BYTES = 1024 * 1024;
+let cacheBytes = 0;
+
+// Enable from the shared-runtime console with globalThis.xlwingsCacheDebug = true.
+function cacheLog(funcName, event, details = {}) {
+  if (globalThis.xlwingsCacheDebug === true) {
+    console.info("[xlwings cache]", funcName, event, details);
+  }
+}
+
+function logCacheKeyChanges(funcName, key) {
+  if (globalThis.xlwingsCacheDebug !== true) {
+    return;
+  }
+  const fields = [
+    "version",
+    "function",
+    "workbook",
+    "caller",
+    "arguments",
+    "culture",
+    "date format",
+    "auth provider",
+    "auth token",
+  ];
+  const parts = JSON.parse(key);
+  const previous = previousDebugKeys.get(funcName);
+  const changed = previous
+    ? fields.filter(
+        (_, index) =>
+          JSON.stringify(parts[index]) !== JSON.stringify(previous[index]),
+      )
+    : ["first observed call"];
+  cacheLog(funcName, "key comparison", { changed });
+  previousDebugKeys.delete(funcName);
+  previousDebugKeys.set(funcName, parts);
+  if (previousDebugKeys.size > MAX_CACHE_ENTRIES) {
+    previousDebugKeys.delete(previousDebugKeys.keys().next().value);
+  }
+}
+
+function isPlainCacheValue(value) {
+  if (Array.isArray(value)) {
+    return value.every(isPlainCacheValue);
+  }
+  return (
+    value === null ||
+    typeof value === "string" ||
+    typeof value === "boolean" ||
+    (typeof value === "number" && Number.isFinite(value))
+  );
+}
+
+function isCacheableArgument(value) {
+  if (Array.isArray(value)) {
+    return value.every(isCacheableArgument);
+  }
+  if (isPlainCacheValue(value)) {
+    return true;
+  }
+  // xlwings writes dates as FormattedNumber; Excel passes them back as Double.
+  // The server reads basicValue, and these simple numeric objects are safe keys.
+  if (value?.type === "FormattedNumber" || value?.type === "Double") {
+    const keys = Object.keys(value);
+    return (
+      keys.includes("type") &&
+      keys.includes("basicValue") &&
+      keys.every((key) =>
+        ["type", "basicValue", "numberFormat", "basicType"].includes(key),
+      ) &&
+      typeof value.basicValue === "number" &&
+      Number.isFinite(value.basicValue) &&
+      (!keys.includes("numberFormat") ||
+        typeof value.numberFormat === "string") &&
+      (!keys.includes("basicType") || value.basicType === "Double")
+    );
+  }
+  return false;
+}
+
+function firstUnsupportedArgument(value, path = "args") {
+  if (Array.isArray(value)) {
+    for (let index = 0; index < value.length; index++) {
+      const issue = firstUnsupportedArgument(value[index], `${path}[${index}]`);
+      if (issue) {
+        return issue;
+      }
+    }
+    return null;
+  }
+  if (isCacheableArgument(value)) {
+    return null;
+  }
+  const knownType = [
+    "FormattedNumber",
+    "Double",
+    "String",
+    "Boolean",
+    "Entity",
+    "LinkedEntity",
+    "Error",
+  ].includes(value?.type)
+    ? value.type
+    : typeof value;
+  return {
+    path,
+    type: knownType,
+    ...(knownType !== typeof value ? { keys: Object.keys(value) } : {}),
+  };
+}
+
+function cacheKeyFor(
+  body,
+  workbookName,
+  authResult,
+  hasObjectHandleArg,
+  callerScoped,
+) {
+  if (hasObjectHandleArg || !isCacheableArgument(body.args)) {
+    return null;
+  }
+  if (callerScoped && !body.caller_address) {
+    return null;
+  }
+  return JSON.stringify([
+    body.version,
+    body.func_name,
+    workbookName,
+    callerScoped ? body.caller_address : null,
+    body.args,
+    body.culture_info_name,
+    body.date_format,
+    authResult.provider,
+    authResult.token,
+  ]);
+}
+
+function cachedResult(key) {
+  const entry = resultCache.get(key);
+  if (!entry) {
+    return null;
+  }
+  resultCache.delete(key);
+  resultCache.set(key, entry);
+  return entry;
+}
+
+function rememberResult(key, result) {
+  if (!isPlainCacheValue(result)) {
+    return "result contains an unsupported value";
+  }
+  const size = JSON.stringify(result).length * 2;
+  if (size > MAX_ENTRY_BYTES) {
+    return "result exceeds the per-entry size limit";
+  }
+  const previous = resultCache.get(key);
+  if (previous) {
+    cacheBytes -= previous.size;
+    resultCache.delete(key);
+  }
+  resultCache.set(key, { result, size });
+  cacheBytes += size;
+  while (resultCache.size > MAX_CACHE_ENTRIES || cacheBytes > MAX_CACHE_BYTES) {
+    const oldestKey = resultCache.keys().next().value;
+    cacheBytes -= resultCache.get(oldestKey).size;
+    resultCache.delete(oldestKey);
+  }
+  return null;
+}
+
+async function base(options, ...argsWithInvocation) {
   await Office.onReady(); // Block execution until office.js is ready
   // Arguments
-  let argsArr = Array.prototype.slice.call(arguments);
-  let funcName = argsArr[0];
-  let isStreaming = argsArr[1];
-  let args = argsArr.slice(2, -1);
-  let invocation = argsArr[argsArr.length - 1];
+  const { funcName, isStreaming, isCached, callerScoped } = options;
+  const invocation = argsWithInvocation.pop();
+  const args = argsWithInvocation;
 
   const workbookName = await getWorkbookName();
 
@@ -216,6 +393,7 @@ async function base() {
   // USE(MAKE())). The issue is that args contains a nested array for varargs (in Office.js
   // called 'repeating'), so we flatten first and write back via each item's path.
   const { result: flatArgs, indices } = flattenVarargsArray(args);
+  let hasObjectHandleArg = false;
 
   // Process each flattened item with respect to its path
   flatArgs.forEach((item, index) => {
@@ -228,6 +406,7 @@ async function base() {
     if (type !== "Entity" && type !== "LinkedEntity") {
       return;
     }
+    hasObjectHandleArg = true;
 
     // Our object handles are Entities carrying the hidden cache key.
     const cacheKey =
@@ -359,7 +538,77 @@ async function base() {
   if (config.onWasm) {
     return await makeWasmCall(body);
   } else {
-    return await makeServerCall(body);
+    if (!isCached) {
+      cacheLog(funcName, "bypass", { reason: "cache flag is off" });
+      return await makeServerCall(body);
+    }
+
+    const authResult =
+      typeof globalThis.getAuth === "function"
+        ? await globalThis.getAuth()
+        : { token: "", provider: "" };
+    const key = cacheKeyFor(
+      body,
+      workbookName,
+      authResult,
+      hasObjectHandleArg,
+      callerScoped,
+    );
+    if (key === null) {
+      const issue =
+        globalThis.xlwingsCacheDebug === true && !hasObjectHandleArg
+          ? firstUnsupportedArgument(body.args)
+          : null;
+      cacheLog(funcName, "bypass", {
+        reason: hasObjectHandleArg
+          ? "object handle argument"
+          : callerScoped && !body.caller_address
+            ? "missing caller address"
+            : "unsupported argument",
+        ...(issue || {}),
+      });
+      return await makeServerCall(body, null, authResult);
+    }
+    logCacheKeyChanges(funcName, key);
+    const cached = cachedResult(key);
+    if (cached) {
+      cacheLog(funcName, "hit");
+      return cached.result;
+    }
+    if (inFlightResults.has(key)) {
+      cacheLog(funcName, "joined in-flight call");
+      return await inFlightResults.get(key);
+    }
+    cacheLog(funcName, "miss");
+
+    const call = makeServerCall(
+      body,
+      (result, requestAuth) => {
+        // A retry may have refreshed credentials or switched accounts.
+        if (
+          requestAuth.token === authResult.token &&
+          requestAuth.provider === authResult.provider
+        ) {
+          const reason = rememberResult(key, result);
+          cacheLog(
+            funcName,
+            reason ? "not stored" : "stored",
+            reason ? { reason } : {},
+          );
+        } else {
+          cacheLog(funcName, "not stored", {
+            reason: "authentication changed during retry",
+          });
+        }
+      },
+      authResult,
+    );
+    inFlightResults.set(key, call);
+    try {
+      return await call;
+    } finally {
+      inFlightResults.delete(key);
+    }
   }
 }
 
@@ -469,7 +718,7 @@ async function dispatchFollowUpScript(script) {
   });
 }
 
-async function makeServerCall(body) {
+async function makeServerCall(body, onSuccess = null, firstAuth = null) {
   const MAX_RETRIES = config.customFunctionsMaxRetries;
   const RETRY_CODES = config.customFunctionsRetryCodes;
   let attempt = 0;
@@ -477,9 +726,11 @@ async function makeServerCall(body) {
   while (attempt < MAX_RETRIES) {
     attempt++;
     let authResult =
-      typeof globalThis.getAuth === "function"
-        ? await globalThis.getAuth()
-        : { token: "", provider: "" };
+      attempt === 1 && firstAuth
+        ? firstAuth
+        : typeof globalThis.getAuth === "function"
+          ? await globalThis.getAuth()
+          : { token: "", provider: "" };
     let headers = {
       "Content-Type": "application/json",
       Authorization: authResult.token,
@@ -495,11 +746,18 @@ async function makeServerCall(body) {
       );
       const { result, script } = response.data;
       if (script) {
+        if (onSuccess) {
+          cacheLog(body.func_name, "not stored", {
+            reason: "follow-up script",
+          });
+        }
         // Register before returning the value: the custom function stays pending until
         // we return, so its calculation boundary can't precede registration. Doing this
         // lazily afterwards would race the very event we're waiting for.
         await ensureCalculatedHandler();
         enqueueFollowUpScript(script);
+      } else if (onSuccess) {
+        onSuccess(result, authResult);
       }
       return result;
     } catch (error) {
