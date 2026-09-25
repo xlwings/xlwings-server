@@ -42,6 +42,7 @@ import {
 import { readNamedItems } from "./named-items.js";
 import { dispatchActions } from "./action-dispatch.js";
 import { getActionSheet } from "./action-targets.js";
+import { createRangeSort } from "./range-sort.js";
 import {
   addCellNote,
   readNoteAuthor,
@@ -1508,6 +1509,7 @@ export function registerCallback(callback) {
 
 // Functions map
 const setValues = createSetValues(getRange);
+const rangeSort = createRangeSort(getSheet);
 const setFormula = createSetFormula(getRange);
 const setFormulaArray = createSetFormulaArray(
   getRange,
@@ -1691,6 +1693,7 @@ let funcs = {
   rangeGroup: rangeGroup,
   rangeUngroup: rangeUngroup,
   rangeClear: rangeClear,
+  rangeSort: rangeSort,
   rangeAdjustIndent: rangeAdjustIndent,
   addTable: addTable,
   applyAutoFilterRange: applyAutoFilterRange,
