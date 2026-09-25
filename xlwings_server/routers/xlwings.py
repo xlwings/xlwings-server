@@ -3,6 +3,7 @@ import inspect
 import logging
 from pathlib import Path
 from textwrap import dedent
+from typing import get_args, get_type_hints
 
 import xlwings as xw
 import xlwings.server
@@ -81,10 +82,19 @@ async def custom_functions_code():
             xlfunc = obj.__xlfunc__
             func_name = xlfunc["name"]
             streaming = "true" if inspect.isasyncgenfunction(obj) else "false"
+            cached = "true" if xlfunc.get("cache", False) else "false"
+            caller_scoped = (
+                "true"
+                if any(
+                    hint is Caller or Caller in get_args(hint)
+                    for hint in get_type_hints(obj).values()
+                )
+                else "false"
+            )
             js += dedent(
                 f"""\
             async function {func_name}() {{
-                let args = ["{func_name}", {streaming}]
+                let args = ["{func_name}", {streaming}, {cached}, {caller_scoped}]
                 args.push.apply(args, arguments);
                 return await base.apply(null, args);
             }}

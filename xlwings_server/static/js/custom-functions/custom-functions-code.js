@@ -198,13 +198,96 @@ class Semaphore {
 
 const semaphore = new Semaphore(1000);
 
+// Cached custom functions use a bounded, runtime-local LRU. Entries are scoped to
+// the current workbook and credentials; functions using Caller are also scoped to
+// the calling cell. Only plain JSON values are eligible; rich data and object
+// handles need a fresh server call.
+const resultCache = new Map();
+const inFlightResults = new Map();
+const MAX_CACHE_ENTRIES = 128;
+const MAX_CACHE_BYTES = 16 * 1024 * 1024;
+const MAX_ENTRY_BYTES = 1024 * 1024;
+let cacheBytes = 0;
+
+function isPlainCacheValue(value) {
+  if (Array.isArray(value)) {
+    return value.every(isPlainCacheValue);
+  }
+  return (
+    value === null ||
+    typeof value === "string" ||
+    typeof value === "boolean" ||
+    (typeof value === "number" && Number.isFinite(value))
+  );
+}
+
+function cacheKeyFor(
+  body,
+  workbookName,
+  authResult,
+  hasObjectHandleArg,
+  callerScoped,
+) {
+  if (hasObjectHandleArg || !isPlainCacheValue(body.args)) {
+    return null;
+  }
+  if (callerScoped && !body.caller_address) {
+    return null;
+  }
+  return JSON.stringify([
+    body.version,
+    body.func_name,
+    workbookName,
+    callerScoped ? body.caller_address : null,
+    body.args,
+    body.culture_info_name,
+    body.date_format,
+    authResult.provider,
+    authResult.token,
+  ]);
+}
+
+function cachedResult(key) {
+  const entry = resultCache.get(key);
+  if (!entry) {
+    return null;
+  }
+  resultCache.delete(key);
+  resultCache.set(key, entry);
+  return entry;
+}
+
+function rememberResult(key, result) {
+  if (!isPlainCacheValue(result)) {
+    return;
+  }
+  const size = JSON.stringify(result).length * 2;
+  if (size > MAX_ENTRY_BYTES) {
+    return;
+  }
+  const previous = resultCache.get(key);
+  if (previous) {
+    cacheBytes -= previous.size;
+    resultCache.delete(key);
+  }
+  resultCache.set(key, { result, size });
+  cacheBytes += size;
+  while (resultCache.size > MAX_CACHE_ENTRIES || cacheBytes > MAX_CACHE_BYTES) {
+    const oldestKey = resultCache.keys().next().value;
+    cacheBytes -= resultCache.get(oldestKey).size;
+    resultCache.delete(oldestKey);
+  }
+}
+
 async function base() {
   await Office.onReady(); // Block execution until office.js is ready
   // Arguments
   let argsArr = Array.prototype.slice.call(arguments);
   let funcName = argsArr[0];
   let isStreaming = argsArr[1];
-  let args = argsArr.slice(2, -1);
+  let isCached = argsArr[2];
+  let callerScoped = argsArr[3];
+  let args = argsArr.slice(4, -1);
   let invocation = argsArr[argsArr.length - 1];
 
   const workbookName = await getWorkbookName();
@@ -216,6 +299,7 @@ async function base() {
   // USE(MAKE())). The issue is that args contains a nested array for varargs (in Office.js
   // called 'repeating'), so we flatten first and write back via each item's path.
   const { result: flatArgs, indices } = flattenVarargsArray(args);
+  let hasObjectHandleArg = false;
 
   // Process each flattened item with respect to its path
   flatArgs.forEach((item, index) => {
@@ -228,6 +312,7 @@ async function base() {
     if (type !== "Entity" && type !== "LinkedEntity") {
       return;
     }
+    hasObjectHandleArg = true;
 
     // Our object handles are Entities carrying the hidden cache key.
     const cacheKey =
@@ -359,7 +444,51 @@ async function base() {
   if (config.onWasm) {
     return await makeWasmCall(body);
   } else {
-    return await makeServerCall(body);
+    if (!isCached) {
+      return await makeServerCall(body);
+    }
+
+    const authResult =
+      typeof globalThis.getAuth === "function"
+        ? await globalThis.getAuth()
+        : { token: "", provider: "" };
+    const key = cacheKeyFor(
+      body,
+      workbookName,
+      authResult,
+      hasObjectHandleArg,
+      callerScoped,
+    );
+    if (key === null) {
+      return await makeServerCall(body, null, authResult);
+    }
+    const cached = cachedResult(key);
+    if (cached) {
+      return cached.result;
+    }
+    if (inFlightResults.has(key)) {
+      return await inFlightResults.get(key);
+    }
+
+    const call = makeServerCall(
+      body,
+      (result, requestAuth) => {
+        // A retry may have refreshed credentials or switched accounts.
+        if (
+          requestAuth.token === authResult.token &&
+          requestAuth.provider === authResult.provider
+        ) {
+          rememberResult(key, result);
+        }
+      },
+      authResult,
+    );
+    inFlightResults.set(key, call);
+    try {
+      return await call;
+    } finally {
+      inFlightResults.delete(key);
+    }
   }
 }
 
@@ -469,7 +598,7 @@ async function dispatchFollowUpScript(script) {
   });
 }
 
-async function makeServerCall(body) {
+async function makeServerCall(body, onSuccess = null, firstAuth = null) {
   const MAX_RETRIES = config.customFunctionsMaxRetries;
   const RETRY_CODES = config.customFunctionsRetryCodes;
   let attempt = 0;
@@ -477,9 +606,11 @@ async function makeServerCall(body) {
   while (attempt < MAX_RETRIES) {
     attempt++;
     let authResult =
-      typeof globalThis.getAuth === "function"
-        ? await globalThis.getAuth()
-        : { token: "", provider: "" };
+      attempt === 1 && firstAuth
+        ? firstAuth
+        : typeof globalThis.getAuth === "function"
+          ? await globalThis.getAuth()
+          : { token: "", provider: "" };
     let headers = {
       "Content-Type": "application/json",
       Authorization: authResult.token,
@@ -500,6 +631,8 @@ async function makeServerCall(body) {
         // lazily afterwards would race the very event we're waiting for.
         await ensureCalculatedHandler();
         enqueueFollowUpScript(script);
+      } else if (onSuccess) {
+        onSuccess(result, authResult);
       }
       return result;
     } catch (error) {

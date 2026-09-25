@@ -50,8 +50,19 @@ xlwings Server uses FastAPI, an async web framework. To improve performance, you
 
 Caching means that a slow function is calculated only once. Its result is then stored in a cache, which will be used to serve the next request, avoiding the need to perform the same slow calculation again. You can use caching on the server and client side.
 
-- Client ("integration"): While the client side would be more attractive, as this would save you not only from running the function but also from waiting for the network call, it isn't available yet. It is tracked as [GitHub issue](https://github.com/xlwings/xlwings-server/issues/86).
-- Server: You can decorate your function with `functools.cache`. Note that this cache will be separate per [app worker](production.md#workers):
+- Client (Office.js): Set `cache=True` on a custom function to return repeated results from the Excel add-in without a server request:
+
+  ```python
+  from xlwings.server import func
+
+  @func(cache=True)
+  def history(ticker, refresh_token):
+      return fetch_history(ticker)
+  ```
+
+  The cache uses all argument values, so changing the ticker or a button-controlled refresh token calls the server again. It is a bounded, memory-only cache for the current add-in runtime; closing or reloading that runtime clears it. Matching calls in the same workbook share a result, except functions that use `Caller`, whose results are scoped to the calling cell. Authentication contexts are kept separate. Rich data, object handles, errors, and functions that request a follow-up script are not cached. Use this only for functions without side effects or authorization-sensitive results: cache hits skip the server, including its authorization checks. Streaming and volatile functions cannot set `cache=True`.
+
+- Server: You can decorate a synchronous function with `functools.cache`. Note that this cache will be separate per [app worker](production.md#workers), and `functools.cache` does not cache results of `async def` functions:
 
   ```python
   from functools import cache

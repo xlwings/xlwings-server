@@ -72,7 +72,18 @@ def test_custom_functions_code():
         'CustomFunctions.associate("HELLO_CUSTOM_NAME", hello_custom_name);'
         in response.text
     )
-    assert '["hello_custom_name", false]' in response.text
+    assert '["hello_custom_name", false, false, false]' in response.text
+    assert '["get_caller", false, false, true]' in response.text
+
+
+def test_custom_functions_code_cache_flag(mocker):
+    hello = xlwings_router.custom_functions.hello
+    mocker.patch.dict(hello.__xlfunc__, {"cache": True})
+
+    response = client.get(f"{settings.app_path}/xlwings/custom-functions-code")
+
+    assert response.status_code == 200
+    assert '["hello", false, true, false]' in response.text
 
 
 @pytest.mark.skipif(

@@ -81,7 +81,11 @@ export function loadCustomFunctionsCode({
   const sandbox = {
     Office,
     Excel,
-    CustomFunctions: { associate: () => {}, Error: class {}, ErrorCode: {} },
+    CustomFunctions: {
+      associate: () => {},
+      Error: class extends Error {},
+      ErrorCode: {},
+    },
     console,
     setTimeout,
     clearTimeout,
@@ -126,12 +130,14 @@ export function loadCustomFunctionsCode({
   // an accessor rather than restructuring the shipped code for the benefit of tests.
   source += `
   ;return {
+    base,
     scheduleFlush,
     ensureCalculatedHandler,
     enqueueFollowUpScript,
     dispatchFollowUpScript,
     makeServerCall,
     makeWasmCall,
+    getCacheSize: () => resultCache.size,
     getPending: () => pendingScripts,
     usesTimerFallback: () => useTimerFallback,
   };`;
