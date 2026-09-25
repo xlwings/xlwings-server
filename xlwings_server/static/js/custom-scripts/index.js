@@ -49,6 +49,16 @@ import {
   requireNotesSupport,
 } from "./note-operations.js";
 import {
+  addCellComment,
+  findComment,
+  listCommentReplies,
+  listComments,
+  mutateComment,
+  readCommentData,
+  readCommentReplyText,
+  requireCommentsSupport,
+} from "./comment-operations.js";
+import {
   createAddConditionalFormat,
   createClearConditionalFormats,
   createDeleteDataValidation,
@@ -134,6 +144,11 @@ const xlwings = {
   getNoteText,
   getNoteAuthor,
   getNoteLocation,
+  getComments,
+  getCommentAt,
+  getCommentData,
+  getCommentReplies,
+  getCommentReplyText,
   getExpandedAddress,
   getUsedRangeAddress,
   getActiveSheetIndex,
@@ -854,6 +869,59 @@ async function getNoteLocation(sheetName, cellAddress) {
       context,
       context.workbook.worksheets.getItem(sheetName),
       cellAddress,
+    ),
+  );
+}
+
+async function getComments(sheetName = null) {
+  return await Excel.run(async (context) => {
+    const collection = sheetName
+      ? context.workbook.worksheets.getItem(sheetName).comments
+      : context.workbook.comments;
+    return await listComments(context, collection);
+  });
+}
+
+async function getCommentAt(sheetName, cellAddress) {
+  requireCommentsSupport();
+  return await Excel.run(async (context) => {
+    const sheet = context.workbook.worksheets.getItem(sheetName);
+    const comment = await findComment(context, sheet, null, cellAddress);
+    return comment ? { id: comment.id } : null;
+  });
+}
+
+async function getCommentData(sheetName, commentId, address, key) {
+  return await Excel.run(async (context) =>
+    readCommentData(
+      context,
+      context.workbook.worksheets.getItem(sheetName),
+      commentId,
+      address,
+      key,
+    ),
+  );
+}
+
+async function getCommentReplies(sheetName, commentId, address) {
+  return await Excel.run(async (context) =>
+    listCommentReplies(
+      context,
+      context.workbook.worksheets.getItem(sheetName),
+      commentId,
+      address,
+    ),
+  );
+}
+
+async function getCommentReplyText(sheetName, commentId, address, replyId) {
+  return await Excel.run(async (context) =>
+    readCommentReplyText(
+      context,
+      context.workbook.worksheets.getItem(sheetName),
+      commentId,
+      address,
+      replyId,
     ),
   );
 }
@@ -1585,6 +1653,11 @@ let funcs = {
   setNoteText: setNoteText,
   addNote: addNote,
   deleteNote: deleteNote,
+  addComment: addComment,
+  setCommentText: setCommentText,
+  setCommentResolved: setCommentResolved,
+  addCommentReply: addCommentReply,
+  deleteComment: deleteComment,
   setShapeName: setShapeName,
   setShapeLeft: setShapeLeft,
   setShapeTop: setShapeTop,
@@ -1929,6 +2002,64 @@ async function deleteNote(context, action) {
   if (!note.isNullObject) {
     note.delete();
   }
+}
+
+async function addComment(context, action) {
+  const sheet = await getSheet(context, action);
+  await addCellComment(
+    context,
+    sheet,
+    String(action.args[0]),
+    String(action.args[1]),
+  );
+}
+
+async function setCommentText(context, action) {
+  const sheet = await getSheet(context, action);
+  await mutateComment(
+    context,
+    sheet,
+    action.args[0] || null,
+    String(action.args[1]),
+    "text",
+    String(action.args[2]),
+  );
+}
+
+async function setCommentResolved(context, action) {
+  const sheet = await getSheet(context, action);
+  await mutateComment(
+    context,
+    sheet,
+    action.args[0] || null,
+    String(action.args[1]),
+    "resolved",
+    Boolean(action.args[2]),
+  );
+}
+
+async function addCommentReply(context, action) {
+  const sheet = await getSheet(context, action);
+  await mutateComment(
+    context,
+    sheet,
+    action.args[0] || null,
+    String(action.args[1]),
+    "reply",
+    String(action.args[2]),
+  );
+}
+
+async function deleteComment(context, action) {
+  const sheet = await getSheet(context, action);
+  await mutateComment(
+    context,
+    sheet,
+    action.args[0] || null,
+    String(action.args[1]),
+    "delete",
+    null,
+  );
 }
 
 async function setShapeName(context, action) {
