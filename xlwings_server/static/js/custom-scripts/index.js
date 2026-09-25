@@ -44,6 +44,10 @@ import { dispatchActions } from "./action-dispatch.js";
 import { getActionSheet } from "./action-targets.js";
 import { createRangeSort } from "./range-sort.js";
 import {
+  createFindRange,
+  createRangeReplaceAll,
+} from "./range-find-replace.js";
+import {
   addCellNote,
   readNoteAuthor,
   readNoteLocation,
@@ -135,6 +139,7 @@ const xlwings = {
   hideGlobalStatus,
   registerCallback,
   getRangeData,
+  findRange,
   getAutoFilterCriteria,
   getRangeValues,
   getShapeData,
@@ -945,6 +950,12 @@ async function getChartImage(sheetName, chartIndex) {
 }
 
 // On-demand data fetching for lazy loading
+async function findRange(...args) {
+  return createFindRange(Excel.run.bind(Excel), (name, version) =>
+    Office.context.requirements.isSetSupported(name, version),
+  )(...args);
+}
+
 async function getRangeData(sheetName, address, keys = ["values"]) {
   // Validate the public boundary before entering Excel.run() or creating
   // Office proxies so unsupported modes reject as a plain promise error.
@@ -1510,6 +1521,9 @@ export function registerCallback(callback) {
 // Functions map
 const setValues = createSetValues(getRange);
 const rangeSort = createRangeSort(getSheet);
+const rangeReplaceAll = createRangeReplaceAll(getRange, (name, version) =>
+  Office.context.requirements.isSetSupported(name, version),
+);
 const setFormula = createSetFormula(getRange);
 const setFormulaArray = createSetFormulaArray(
   getRange,
@@ -1694,6 +1708,7 @@ let funcs = {
   rangeUngroup: rangeUngroup,
   rangeClear: rangeClear,
   rangeSort: rangeSort,
+  rangeReplaceAll: rangeReplaceAll,
   rangeAdjustIndent: rangeAdjustIndent,
   addTable: addTable,
   applyAutoFilterRange: applyAutoFilterRange,
