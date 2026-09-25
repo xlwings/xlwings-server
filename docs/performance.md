@@ -21,8 +21,8 @@ def mysum(x, y, z):
 
 
 @func
-@arg("x", np.array, ndim=2)
-@arg("y", np.array)
+@arg("x", np.ndarray, ndim=2)
+@arg("y", np.ndarray)
 def myarraysum(x, y, z):
     return x + y + z
 ```
@@ -44,33 +44,11 @@ The second example results in just a single function call:
 xlwings Server uses FastAPI, an async web framework. To improve performance, you should use async libraries wherever possible, specifically around IO operations such as querying Web APIs or databases. For example:
 
 - Use `httpx` or `aiohttp` instead of `requests`
-- Use `asyncpg` or `psycopg3` instead of `pscycopg2`
+- Use `asyncpg` or `psycopg` instead of `pscycopg2`
 
 ## Caching
 
-Caching means that a slow function is calculated only once. Its result is then stored in a cache, which will be used to serve the next request, avoiding the need to perform the same slow calculation again. You can use caching on the server and client side.
-
-- Client (Office.js): Set `cache=True` on a custom function to return repeated results from the Excel add-in without a server request:
-
-  ```python
-  from xlwings.server import func
-
-  @func(cache=True)
-  def history(ticker, refresh_token):
-      return fetch_history(ticker)
-  ```
-
-  The cache uses all argument values, so changing the ticker or a button-controlled refresh token calls the server again. It is a bounded, memory-only cache for the current add-in runtime; closing or reloading that runtime clears it. Matching calls in the same workbook share a result, except functions that use `Caller`, whose results are scoped to the calling cell. Authentication contexts are kept separate. Rich data, object handles, errors, and functions that request a follow-up script are not cached. Use this only for functions without side effects or authorization-sensitive results: cache hits skip the server, including its authorization checks. Streaming and volatile functions cannot set `cache=True`.
-
-- Server: You can decorate a synchronous function with `functools.cache`. Note that this cache will be separate per [app worker](production.md#workers), and `functools.cache` does not cache results of `async def` functions:
-
-  ```python
-  from functools import cache
-
-  @cache
-  def slow_funcion():
-      ...
-  ```
+If a custom function repeatedly performs an expensive calculation for the same arguments, [caching](custom_functions.md#caching) can reuse the earlier result and avoid recalculating it.
 
 ## Streaming functions
 

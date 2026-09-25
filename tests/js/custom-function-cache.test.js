@@ -9,11 +9,15 @@ function invoke(
     token = 1,
     address = "Sheet1!A1",
     callerScoped = false,
+    isCached = true,
   } = {},
 ) {
-  return api.base("history", false, true, callerScoped, [[ticker]], [[token]], {
-    address,
-  });
+  return api.base(
+    { funcName: "history", isStreaming: false, isCached, callerScoped },
+    [[ticker]],
+    [[token]],
+    { address },
+  );
 }
 
 describe("custom function client cache", () => {
@@ -58,6 +62,95 @@ describe("custom function client cache", () => {
     await invoke(api, { address: "Sheet1!B1" });
 
     expect(post).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(["FormattedNumber", "Double"])(
+    "caches a DataFrame argument with a %s date index",
+    async (dateType) => {
+      const api = loadCustomFunctionsCode();
+      const post = vi.fn(async () => ({
+        data: {
+          result: [
+            ["", "col1"],
+            ["col1", 1],
+          ],
+        },
+      }));
+      api.globalThisStub.xwRequest.post = post;
+      const options = {
+        funcName: "correl",
+        isStreaming: false,
+        isCached: true,
+        callerScoped: false,
+      };
+      const df = [
+        ["", "col1"],
+        [
+          {
+            type: dateType,
+            basicValue: 45823,
+            numberFormat: "m/d/yyyy",
+          },
+          1.5,
+        ],
+      ];
+
+      await api.base(options, df, { address: "Sheet1!A1" });
+      await api.base(options, df, { address: "Sheet1!B1" });
+
+      expect(post).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it("does not cache a Double value with rich properties", async () => {
+    const api = loadCustomFunctionsCode();
+    const post = vi.fn(async () => ({ data: { result: [["ok"]] } }));
+    api.globalThisStub.xwRequest.post = post;
+    const options = {
+      funcName: "correl",
+      isStreaming: false,
+      isCached: true,
+      callerScoped: false,
+    };
+    const df = [[{ type: "Double", basicValue: 1, properties: { x: 2 } }]];
+
+    await api.base(options, df, { address: "Sheet1!A1" });
+    await api.base(options, df, { address: "Sheet1!A1" });
+
+    expect(post).toHaveBeenCalledTimes(2);
+  });
+
+  it("logs cache decisions without exposing argument values or auth tokens", async () => {
+    const api = loadCustomFunctionsCode();
+    api.globalThisStub.xlwingsCacheDebug = true;
+    const post = vi.fn(async () => ({ data: { result: [["ok"]] } }));
+    api.globalThisStub.xwRequest.post = post;
+    const info = vi.spyOn(console, "info").mockImplementation(() => {});
+    try {
+      await invoke(api, { ticker: "SECRET_VALUE" });
+      await invoke(api, { ticker: "SECRET_VALUE" });
+
+      expect(info.mock.calls.some((call) => call[2] === "miss")).toBe(true);
+      expect(info.mock.calls.some((call) => call[2] === "stored")).toBe(true);
+      expect(info.mock.calls.some((call) => call[2] === "hit")).toBe(true);
+      expect(JSON.stringify(info.mock.calls)).not.toContain("SECRET_VALUE");
+      expect(JSON.stringify(info.mock.calls)).not.toContain("tok");
+    } finally {
+      info.mockRestore();
+    }
+  });
+
+  it("forwards all arguments when caching is disabled", async () => {
+    const api = loadCustomFunctionsCode();
+    const post = vi.fn(async (_url, body) => ({ data: { result: body.args } }));
+    api.globalThisStub.xwRequest.post = post;
+
+    expect(await invoke(api, { isCached: false })).toEqual([[["IBM"]], [[1]]]);
+    expect(post).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ args: [[["IBM"]], [[1]]] }),
+      expect.anything(),
+    );
   });
 
   it("shares an in-flight request for the same key", async () => {

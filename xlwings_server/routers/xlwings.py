@@ -3,11 +3,12 @@ import inspect
 import logging
 from pathlib import Path
 from textwrap import dedent
-from typing import get_args, get_type_hints
+from typing import get_type_hints
 
 import xlwings as xw
 import xlwings.server
 from fastapi import APIRouter, Body, HTTPException, Request, Response
+from xlwings.pro.udfs_officejs import _unwrap_optional_hint
 from xlwings.server import Caller, caller_from_address
 
 # Try to import custom modules from project directory first (CLI/Azure mode)
@@ -82,21 +83,41 @@ async def custom_functions_code():
             xlfunc = obj.__xlfunc__
             func_name = xlfunc["name"]
             streaming = "true" if inspect.isasyncgenfunction(obj) else "false"
-            cached = "true" if xlfunc.get("cache", False) else "false"
-            caller_scoped = (
-                "true"
-                if any(
-                    hint is Caller or Caller in get_args(hint)
-                    for hint in get_type_hints(obj).values()
+            cached = bool(xlfunc.get("cache", False))
+            if cached and xlfunc.get("required_roles"):
+                # A client hit would skip core's per-call required_roles check.
+                logger.warning(
+                    "Client caching disabled for custom function %r: "
+                    "required_roles needs a server check on every call",
+                    sanitize_log_input(func_name),
                 )
-                else "false"
-            )
+                cached = False
+            caller_scoped = False
+            if cached:
+                try:
+                    # Use the same Optional[Caller] handling as core's Caller injection.
+                    caller_scoped = any(
+                        name != "return" and _unwrap_optional_hint(hint) is Caller
+                        for name, hint in get_type_hints(obj).items()
+                    )
+                except Exception:
+                    # An unresolvable annotation must not break every function's JS.
+                    # If Caller use is unknown, skip client caching for this function.
+                    logger.warning(
+                        "Client caching disabled for custom function %r: "
+                        "annotations could not be resolved",
+                        sanitize_log_input(func_name),
+                    )
+                    cached = False
             js += dedent(
                 f"""\
             async function {func_name}() {{
-                let args = ["{func_name}", {streaming}, {cached}, {caller_scoped}]
-                args.push.apply(args, arguments);
-                return await base.apply(null, args);
+                return await base({{
+                    funcName: "{func_name}",
+                    isStreaming: {streaming},
+                    isCached: {str(cached).lower()},
+                    callerScoped: {str(caller_scoped).lower()},
+                }}, ...arguments);
             }}
             CustomFunctions.associate("{func_name.upper()}", {func_name});
             """

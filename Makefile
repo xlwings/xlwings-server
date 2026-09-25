@@ -51,11 +51,10 @@ officejs-check:
 
 .PHONY: docs
 docs:
-	uv sync --group all
-	uv run sphinx-autobuild docs docs/_build/html --port 9000 -E
+	uv run --group all sphinx-autobuild docs docs/_build/html --port 9000 -a -D llms_txt_enabled=0 --watch xlwings_server
 
 .PHONY: docs-dev
 docs-dev:
 	uv sync --group all
 	uv pip install -e ../xlwings
-	uv run --no-sync sphinx-autobuild docs docs/_build/html --port 9000 -E
+	uv run --no-sync sphinx-autobuild docs docs/_build/html --port 9000 -a -D llms_txt_enabled=0 --watch xlwings_server --watch ../xlwings/xlwings
