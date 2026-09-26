@@ -40,6 +40,30 @@ describe("dispatchActions", () => {
     expect(context.sync).toHaveBeenCalledOnce();
   });
 
+  it("reports a table-row preflight refusal after earlier actions as possible partial", async () => {
+    const addTable = vi.fn(async () => {});
+    const addTableRow = vi.fn(async () => {
+      const error = new Error("Cells below the table would move");
+      error.code = "table_row_neighbor_cells";
+      throw error;
+    });
+    await expect(
+      dispatchActions(
+        [{ func: "addTable" }, { func: "addTableRow" }],
+        { sync: vi.fn(async () => {}) },
+        { addTable, addTableRow },
+      ),
+    ).rejects.toMatchObject({
+      code: "action_failed",
+      actionIndex: 1,
+      appliedActionCount: 2,
+      actionFunc: "addTableRow",
+      cause: { code: "table_row_neighbor_cells" },
+    });
+    expect(addTable).toHaveBeenCalledOnce();
+    expect(addTableRow).toHaveBeenCalledOnce();
+  });
+
   it("reports an unknown action with its batch position", async () => {
     await expect(
       dispatchActions([{ func: "missing" }], { sync: vi.fn() }, {}),
