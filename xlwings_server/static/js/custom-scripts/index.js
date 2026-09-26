@@ -121,6 +121,7 @@ import {
   createSetPivotValueField,
   pivotTableFromAction,
 } from "./pivot-action-callbacks.js";
+import { createGetPivotTableRangeAddress } from "./pivot-range-read.js";
 
 // Prints the supported API versions into the Console
 printSupportedApiVersions();
@@ -163,6 +164,7 @@ const xlwings = {
   getCommentReplyText,
   getExpandedAddress,
   getUsedRangeAddress,
+  getPivotTableRangeAddress,
   getActiveSheetIndex,
   getSelection,
 };
@@ -417,6 +419,14 @@ async function getUsedRangeAddress(sheetName, valuesOnly = false) {
     await context.sync();
     return unqualifiedAddress(usedRange);
   });
+}
+
+async function getPivotTableRangeAddress(sheetName, pivotIndex, pivotId, kind) {
+  return createGetPivotTableRangeAddress(
+    Excel.run.bind(Excel),
+    (name, version) =>
+      Office.context.requirements.isSetSupported(name, version),
+  )(sheetName, pivotIndex, pivotId, kind);
 }
 
 async function getBookData(
