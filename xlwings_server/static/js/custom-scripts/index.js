@@ -83,7 +83,13 @@ import {
   readDataValidation,
 } from "./range-action-callbacks.js";
 import { unsupportedRangeExpansion } from "./range-expansion.js";
-import { createAddTable } from "./table-action-callbacks.js";
+import {
+  createAddTable,
+  createAddTableRow,
+  createDeleteTableRow,
+  createGetTableRowCount,
+  createGetTableRowRangeAddress,
+} from "./table-action-callbacks.js";
 import {
   createApplyAutoFilterRange,
   createApplyAutoFilterTable,
@@ -162,6 +168,8 @@ const xlwings = {
   getCommentReplyText,
   getExpandedAddress,
   getUsedRangeAddress,
+  getTableRowCount,
+  getTableRowRangeAddress,
   getActiveSheetIndex,
   getSelection,
 };
@@ -1506,6 +1514,18 @@ async function getTable(context, action) {
   return tables.items[parseInt(action.args[0].toString())];
 }
 
+async function getTableRowCount(sheetName, tableIndex) {
+  return createGetTableRowCount(Excel.run.bind(Excel))(sheetName, tableIndex);
+}
+
+async function getTableRowRangeAddress(sheetName, tableIndex, index) {
+  return createGetTableRowRangeAddress(Excel.run.bind(Excel))(
+    sheetName,
+    tableIndex,
+    index,
+  );
+}
+
 async function getShapeByType(context, sheetPosition, shapeIndex, shapeType) {
   let sheets = context.workbook.worksheets.load("items");
   await context.sync();
@@ -1595,6 +1615,16 @@ const setChartLegend = createSetChartLegend(chartFromAction);
 const setChartPlotBy = createSetChartPlotBy(chartFromAction);
 const setChartStyle = createSetChartStyle(chartFromAction);
 const addTable = createAddTable(getSheet);
+const addTableRow = createAddTableRow(
+  getSheet,
+  getTable,
+  Office.context.requirements.isSetSupported.bind(Office.context.requirements),
+);
+const deleteTableRow = createDeleteTableRow(
+  getSheet,
+  getTable,
+  Office.context.requirements.isSetSupported.bind(Office.context.requirements),
+);
 const autoFilterCriteriaCache = new Map();
 const autoFilterSupport = (name, version) =>
   Office.context.requirements.isSetSupported(name, version);
@@ -1727,6 +1757,8 @@ let funcs = {
   rangeReplaceAll: rangeReplaceAll,
   rangeAdjustIndent: rangeAdjustIndent,
   addTable: addTable,
+  addTableRow: addTableRow,
+  deleteTableRow: deleteTableRow,
   applyAutoFilterRange: applyAutoFilterRange,
   clearAutoFilterRange: clearAutoFilterRange,
   applyAutoFilterTable: applyAutoFilterTable,
