@@ -31,43 +31,13 @@ function requireTableRows(isSupported, version) {
   }
 }
 
-async function requireSafeBelow(context, sheet, table, checkAllBelow) {
-  const tableRange = table
-    .getRange()
-    .load("rowIndex,columnIndex,rowCount,columnCount");
-  const used = sheet.getUsedRangeOrNullObject(false).load("rowIndex,rowCount");
+async function requireUnprotectedSheet(context, sheet) {
   sheet.protection.load("protected");
   await context.sync();
   if (sheet.protection.protected) {
     throw tableRowError(
       "protected_table_sheet",
       "The table's worksheet is protected.",
-    );
-  }
-  const bottom = tableRange.rowIndex + tableRange.rowCount;
-  if (bottom >= 1048576) {
-    if (checkAllBelow) return;
-    throw tableRowError(
-      "table_row_no_space",
-      "The table reaches the last worksheet row.",
-    );
-  }
-  if (used.isNullObject || used.rowIndex + used.rowCount <= bottom) return;
-  const last = checkAllBelow ? used.rowIndex + used.rowCount : bottom + 1;
-  const below = sheet
-    .getRangeByIndexes(
-      bottom,
-      tableRange.columnIndex,
-      last - bottom,
-      tableRange.columnCount,
-    )
-    .getUsedRangeOrNullObject(false);
-  below.load("address");
-  await context.sync();
-  if (!below.isNullObject) {
-    throw tableRowError(
-      "table_row_neighbor_cells",
-      "Cells or formatting below the table would move or be consumed.",
     );
   }
 }
@@ -87,7 +57,7 @@ function checkedIndex(value, count, allowEnd) {
 
 export function createAddTableRow(getSheet, getTable, isSupported) {
   return async function addTableRow(context, action) {
-    requireTableRows(isSupported, "1.15");
+    requireTableRows(isSupported, "1.2");
     const [tableIndex, index, values] = action?.args ?? [];
     if (!Number.isSafeInteger(tableIndex) || tableIndex < 0) {
       throw tableRowError("invalid_table_row", "Invalid table index.");
@@ -116,15 +86,15 @@ export function createAddTableRow(getSheet, getTable, isSupported) {
         "Invalid table row values.",
       );
     }
-    await requireSafeBelow(context, sheet, table, false);
-    rows.add(index, values === null ? undefined : [values], false);
+    await requireUnprotectedSheet(context, sheet);
+    rows.add(index, values === null ? undefined : [values]);
     await context.sync();
   };
 }
 
 export function createDeleteTableRow(getSheet, getTable, isSupported) {
   return async function deleteTableRow(context, action) {
-    requireTableRows(isSupported, "1.4");
+    requireTableRows(isSupported, "1.2");
     const [tableIndex, index] = action?.args ?? [];
     if (!Number.isSafeInteger(tableIndex) || tableIndex < 0) {
       throw tableRowError("invalid_table_row", "Invalid table index.");
@@ -135,7 +105,7 @@ export function createDeleteTableRow(getSheet, getTable, isSupported) {
     const rows = table.rows.load("count");
     await context.sync();
     checkedIndex(index, rows.count, false);
-    await requireSafeBelow(context, sheet, table, true);
+    await requireUnprotectedSheet(context, sheet);
     rows.getItemAt(index).delete();
     await context.sync();
   };

@@ -118,11 +118,11 @@ describe("table row actions", () => {
     );
     await add(fixture.context, { args: [0, 2, ["new", 7]] });
     await add(fixture.context, { args: [0, 0, null] });
-    expect(fixture.rows.add).toHaveBeenNthCalledWith(1, 2, [["new", 7]], false);
-    expect(fixture.rows.add).toHaveBeenNthCalledWith(2, 0, undefined, false);
+    expect(fixture.rows.add).toHaveBeenNthCalledWith(1, 2, [["new", 7]]);
+    expect(fixture.rows.add).toHaveBeenNthCalledWith(2, 0, undefined);
   });
 
-  it("rejects occupied or formatted cells below before changing the table", async () => {
+  it("lets Excel handle occupied or formatted cells below the table", async () => {
     const fixture = rowFixture({ occupiedBelow: true });
     const add = createAddTableRow(
       async () => fixture.sheet,
@@ -134,14 +134,11 @@ describe("table row actions", () => {
       async () => fixture.table,
       supported,
     );
-    await expect(
-      add(fixture.context, { args: [0, 2, null] }),
-    ).rejects.toMatchObject({ code: "table_row_neighbor_cells" });
-    await expect(
-      remove(fixture.context, { args: [0, 0] }),
-    ).rejects.toMatchObject({ code: "table_row_neighbor_cells" });
-    expect(fixture.rows.add).not.toHaveBeenCalled();
-    expect(fixture.row.delete).not.toHaveBeenCalled();
+    await add(fixture.context, { args: [0, 2, null] });
+    await remove(fixture.context, { args: [0, 0] });
+    expect(fixture.rows.add).toHaveBeenCalledWith(2, undefined);
+    expect(fixture.row.delete).toHaveBeenCalledOnce();
+    expect(fixture.sheet.getUsedRangeOrNullObject).not.toHaveBeenCalled();
   });
 
   it("rejects protected sheets, invalid shape, and unsupported hosts before mutation", async () => {
@@ -193,7 +190,7 @@ describe("table row actions", () => {
       supported,
     );
     await add(fixture.context, { args: [0, 0, ["only", 1]] });
-    expect(fixture.rows.add).toHaveBeenCalledWith(0, [["only", 1]], false);
+    expect(fixture.rows.add).toHaveBeenCalledWith(0, [["only", 1]]);
     await expect(
       remove(fixture.context, { args: [0, 0] }),
     ).rejects.toMatchObject({
