@@ -313,6 +313,8 @@ const RANGE_READ_KEYS = {
   vertical_alignment: ["format/verticalAlignment"],
   column_width: ["format/columnWidth"],
   row_height: ["format/rowHeight"],
+  row_hidden: ["rowHidden"],
+  column_hidden: ["columnHidden"],
   left: ["left"],
   top: ["top"],
   width: ["width"],
