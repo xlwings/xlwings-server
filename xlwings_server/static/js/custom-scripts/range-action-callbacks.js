@@ -52,6 +52,29 @@ export function createSetColumnWidth(getRange) {
   };
 }
 
+export function createSetVisibility(getRange, axis, isSetSupported) {
+  if (axis !== "rows" && axis !== "columns") {
+    throw new Error(`Invalid visibility axis: ${axis}`);
+  }
+  return async function setVisibility(context, action) {
+    const value = action.args?.[0];
+    if (typeof value !== "boolean") {
+      throw new Error("hidden must be a boolean.");
+    }
+    if (!isSetSupported("ExcelApi", "1.2")) {
+      throw new Error(
+        "Row and column visibility requires ExcelApi 1.2 and isn't supported by this Excel host.",
+      );
+    }
+    const range = await getRange(context, action);
+    const target =
+      axis === "rows" ? range.getEntireRow() : range.getEntireColumn();
+    if (axis === "rows") target.rowHidden = value;
+    else target.columnHidden = value;
+    await context.sync();
+  };
+}
+
 function requireDataValidationApi(isSetSupported) {
   if (!isSetSupported("ExcelApi", "1.8")) {
     throw new Error(

@@ -75,6 +75,7 @@ import {
   createSetConditionalFormat,
   createSetBorderProperty,
   createSetColumnWidth,
+  createSetVisibility,
   createSetDataValidationList,
   createSetDataValidationRule,
   createSetFormula,
@@ -973,6 +974,14 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
   const readKeys = rangeReadKeys(keys);
   if (readKeys.includes("colors")) checkColorsSupport();
   if (
+    readKeys.some((key) => key === "row_hidden" || key === "column_hidden") &&
+    !Office.context.requirements.isSetSupported("ExcelApi", "1.2")
+  ) {
+    throw new Error(
+      "Row and column visibility requires ExcelApi 1.2 and isn't supported by this Excel host.",
+    );
+  }
+  if (
     readKeys.includes("data_validation") &&
     !Office.context.requirements.isSetSupported("ExcelApi", "1.8")
   ) {
@@ -1100,6 +1109,12 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
           break;
         case "row_height":
           result.row_height = range.format.rowHeight;
+          break;
+        case "row_hidden":
+          result.row_hidden = range.rowHidden;
+          break;
+        case "column_hidden":
+          result.column_hidden = range.columnHidden;
           break;
         case "left":
           result.left = range.left;
@@ -1547,6 +1562,14 @@ const setFormulaArray = createSetFormulaArray(
   (name, version) => Office.context.requirements.isSetSupported(name, version),
 );
 const setColumnWidth = createSetColumnWidth(getRange);
+const visibilitySupport = (name, version) =>
+  Office.context.requirements.isSetSupported(name, version);
+const setRowHidden = createSetVisibility(getRange, "rows", visibilitySupport);
+const setColumnHidden = createSetVisibility(
+  getRange,
+  "columns",
+  visibilitySupport,
+);
 const setBorderProperty = createSetBorderProperty(getRange);
 const setDataValidationList = createSetDataValidationList(
   getRange,
@@ -1636,6 +1659,8 @@ let funcs = {
   setFormula: setFormula,
   setFormulaArray: setFormulaArray,
   setColumnWidth: setColumnWidth,
+  setRowHidden: setRowHidden,
+  setColumnHidden: setColumnHidden,
   setRowHeight: setRowHeight,
   setWrapText: setWrapText,
   addSheet: addSheet,
