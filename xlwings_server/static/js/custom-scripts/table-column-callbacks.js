@@ -15,43 +15,13 @@ function requireVersion(isSupported, version) {
   }
 }
 
-async function requireSafeRight(context, sheet, table, adding) {
-  const tableRange = table
-    .getRange()
-    .load("rowIndex,rowCount,columnIndex,columnCount");
-  const used = sheet
-    .getUsedRangeOrNullObject(false)
-    .load("columnIndex,columnCount");
+async function requireUnprotectedSheet(context, sheet) {
   sheet.protection.load("protected");
   await context.sync();
   if (sheet.protection.protected) {
     throw columnError(
       "protected_table_sheet",
       "The table's worksheet is protected.",
-    );
-  }
-  const right = tableRange.columnIndex + tableRange.columnCount;
-  if (adding && right >= 16384) {
-    throw columnError(
-      "table_column_no_space",
-      "The table reaches the last worksheet column.",
-    );
-  }
-  if (used.isNullObject || used.columnIndex + used.columnCount <= right) return;
-  const neighbor = sheet
-    .getRangeByIndexes(
-      tableRange.rowIndex,
-      right,
-      tableRange.rowCount,
-      used.columnIndex + used.columnCount - right,
-    )
-    .getUsedRangeOrNullObject(false);
-  neighbor.load("address");
-  await context.sync();
-  if (!neighbor.isNullObject) {
-    throw columnError(
-      "table_column_neighbor_cells",
-      "Cells or formatting beside the table would move or be consumed.",
     );
   }
 }
@@ -110,7 +80,7 @@ export function createAddTableColumn(getSheet, getTable, isSupported) {
         `Table column ${name} already exists.`,
       );
     }
-    await requireSafeRight(context, sheet, table, true);
+    await requireUnprotectedSheet(context, sheet);
     columns.add(index, null, name);
     await context.sync();
   };
@@ -118,7 +88,7 @@ export function createAddTableColumn(getSheet, getTable, isSupported) {
 
 export function createDeleteTableColumn(getSheet, getTable, isSupported) {
   return async function deleteTableColumn(context, action) {
-    requireVersion(isSupported, "1.1");
+    requireVersion(isSupported, "1.2");
     const [tableIndex, name] = action?.args ?? [];
     if (!Number.isSafeInteger(tableIndex) || tableIndex < 0) {
       throw columnError("missing_table", "Invalid table index.");
@@ -140,7 +110,7 @@ export function createDeleteTableColumn(getSheet, getTable, isSupported) {
         `Table column ${name} no longer exists.`,
       );
     }
-    await requireSafeRight(context, sheet, table, false);
+    await requireUnprotectedSheet(context, sheet);
     columns.getItem(name).delete();
     await context.sync();
   };

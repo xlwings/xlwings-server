@@ -106,19 +106,23 @@ describe("table column actions", () => {
     expect(f.context.sync).toHaveBeenCalled();
   });
 
-  it("rejects occupied or formatted cells to the right before changing the table", async () => {
+  it("lets Excel handle occupied or formatted cells to the right", async () => {
     const f = fixture({ occupiedRight: true });
     const add = createAddTableColumn(
       async () => f.sheet,
       async () => f.table,
       () => true,
     );
-    await expect(
-      add(f.context, { args: [0, 2, "Margin"] }),
-    ).rejects.toMatchObject({
-      code: "table_column_neighbor_cells",
-    });
-    expect(f.columns.add).not.toHaveBeenCalled();
+    const remove = createDeleteTableColumn(
+      async () => f.sheet,
+      async () => f.table,
+      () => true,
+    );
+    await add(f.context, { args: [0, 2, "Margin"] });
+    await remove(f.context, { args: [0, "Amount"] });
+    expect(f.columns.add).toHaveBeenCalledWith(2, null, "Margin");
+    expect(f.column.delete).toHaveBeenCalledOnce();
+    expect(f.sheet.getUsedRangeOrNullObject).not.toHaveBeenCalled();
   });
 
   it("rejects protected sheets, invalid positions and unsupported hosts", async () => {
