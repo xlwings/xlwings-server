@@ -421,12 +421,18 @@ async function getUsedRangeAddress(sheetName, valuesOnly = false) {
   });
 }
 
-async function getPivotTableRangeAddress(sheetName, pivotIndex, pivotId, kind) {
+async function getPivotTableRangeAddress(
+  sheetName,
+  pivotIndex,
+  pivotId,
+  pivotName,
+  kind,
+) {
   return createGetPivotTableRangeAddress(
     Excel.run.bind(Excel),
     (name, version) =>
       Office.context.requirements.isSetSupported(name, version),
-  )(sheetName, pivotIndex, pivotId, kind);
+  )(sheetName, pivotIndex, pivotId, pivotName, kind);
 }
 
 async function getBookData(

@@ -1,4 +1,5 @@
 import { unqualifiedAddress } from "./workbook-metadata.js";
+import { selectPivotTable } from "./pivot-identity.js";
 
 function pivotReadError(code, message) {
   const error = new Error(message);
@@ -11,6 +12,7 @@ export function createGetPivotTableRangeAddress(run, isSupported) {
     sheetName,
     pivotIndex,
     pivotId,
+    pivotName,
     kind,
   ) {
     if (
@@ -18,6 +20,7 @@ export function createGetPivotTableRangeAddress(run, isSupported) {
       !sheetName ||
       !Number.isInteger(pivotIndex) ||
       pivotIndex < 0 ||
+      (pivotId == null && (typeof pivotName !== "string" || !pivotName)) ||
       !["report", "data_body"].includes(kind)
     ) {
       throw pivotReadError(
@@ -34,20 +37,14 @@ export function createGetPivotTableRangeAddress(run, isSupported) {
 
     return run(async (context) => {
       const sheet = context.workbook.worksheets.getItem(sheetName);
-      const pivots = sheet.pivotTables.load("items/id");
+      const pivots = sheet.pivotTables.load("items/id,items/name");
       await context.sync();
-      // The ID guards against selecting a different PivotTable when Excel's
-      // collection order changes after the Python metadata was loaded.
-      const pivot =
-        pivotId == null
-          ? pivots.items[pivotIndex]
-          : pivots.items.find((item) => item.id === pivotId);
-      if (!pivot) {
-        throw pivotReadError(
-          "pivot_table_not_found",
-          `PivotTable at index ${pivotIndex} on sheet ${sheetName} no longer exists.`,
-        );
-      }
+      const pivot = selectPivotTable(
+        pivots.items,
+        pivotIndex,
+        pivotId,
+        pivotName,
+      );
 
       if (kind === "data_body") {
         const values = pivot.dataHierarchies.load("items");

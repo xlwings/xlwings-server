@@ -14,13 +14,14 @@ function harness({ values = 1, protectedSheet = false } = {}) {
   dataHierarchies.load.mockReturnValue(dataHierarchies);
   const pivot = {
     id: "pivot-1",
+    name: "Sales",
     dataHierarchies,
     layout: {
       getRange: vi.fn(() => report),
       getDataBodyRange: vi.fn(() => body),
     },
   };
-  const other = { id: "other" };
+  const other = { id: "other", name: "Other" };
   const pivots = { items: [other, pivot], load: vi.fn() };
   pivots.load.mockReturnValue(pivots);
   const sheet = {
@@ -41,8 +42,10 @@ describe("PivotTable range reads", () => {
   it("reads the report range without the filters area and selects by stable ID", async () => {
     const { read, pivot, pivots, context } = harness();
 
-    expect(await read("Pivot Sheet", 0, "pivot-1", "report")).toBe("$A$3:$C$8");
-    expect(pivots.load).toHaveBeenCalledWith("items/id");
+    expect(await read("Pivot Sheet", 0, "pivot-1", "Sales", "report")).toBe(
+      "$A$3:$C$8",
+    );
+    expect(pivots.load).toHaveBeenCalledWith("items/id,items/name");
     expect(pivot.layout.getRange).toHaveBeenCalledOnce();
     expect(pivot.layout.getDataBodyRange).not.toHaveBeenCalled();
     expect(context.sync).toHaveBeenCalledTimes(2);
@@ -51,7 +54,7 @@ describe("PivotTable range reads", () => {
   it("reads the values area on a protected sheet", async () => {
     const { read, pivot, context } = harness({ protectedSheet: true });
 
-    expect(await read("Pivot Sheet", 1, "pivot-1", "data_body")).toBe(
+    expect(await read("Pivot Sheet", 1, "pivot-1", "Sales", "data_body")).toBe(
       "$B$4:$C$8",
     );
     expect(pivot.dataHierarchies.load).toHaveBeenCalledWith("items");
@@ -62,33 +65,41 @@ describe("PivotTable range reads", () => {
   it("returns null when Excel has no value fields, despite stale metadata", async () => {
     const { read, pivot } = harness({ values: 0 });
 
-    expect(await read("Pivot Sheet", 1, "pivot-1", "data_body")).toBeNull();
+    expect(
+      await read("Pivot Sheet", 1, "pivot-1", "Sales", "data_body"),
+    ).toBeNull();
     expect(pivot.layout.getDataBodyRange).not.toHaveBeenCalled();
   });
 
-  it("uses the index for a new PivotTable without a loaded ID", async () => {
+  it("uses the name for a new PivotTable without a loaded ID", async () => {
     const { read } = harness();
-    expect(await read("Pivot Sheet", 1, null, "report")).toBe("$A$3:$C$8");
+    expect(await read("Pivot Sheet", 0, null, "Sales", "report")).toBe(
+      "$A$3:$C$8",
+    );
   });
 
   it("rejects a missing PivotTable without reading a different one", async () => {
     const { read } = harness();
     await expect(
-      read("Pivot Sheet", 0, "deleted", "report"),
+      read("Pivot Sheet", 0, "deleted", "Sales", "report"),
     ).rejects.toMatchObject({ code: "pivot_table_not_found" });
-    await expect(read("Pivot Sheet", 4, null, "report")).rejects.toMatchObject({
+    await expect(
+      read("Pivot Sheet", 1, null, "deleted", "report"),
+    ).rejects.toMatchObject({
       code: "pivot_table_not_found",
     });
   });
 
   it("rejects invalid arguments and unsupported hosts before Excel.run", async () => {
     const { read, run, isSupported } = harness();
-    await expect(read("Pivot Sheet", -1, null, "report")).rejects.toMatchObject(
-      { code: "invalid_pivot_table_read" },
-    );
+    await expect(
+      read("Pivot Sheet", -1, null, "Sales", "report"),
+    ).rejects.toMatchObject({ code: "invalid_pivot_table_read" });
     expect(run).not.toHaveBeenCalled();
     isSupported.mockReturnValue(false);
-    await expect(read("Pivot Sheet", 0, null, "report")).rejects.toMatchObject({
+    await expect(
+      read("Pivot Sheet", 0, null, "Sales", "report"),
+    ).rejects.toMatchObject({
       code: "unsupported_pivot_table",
     });
     expect(run).not.toHaveBeenCalled();
@@ -102,8 +113,8 @@ describe("PivotTable range reads", () => {
     pivot.layout.getRange.mockImplementation(() => {
       throw error;
     });
-    await expect(read("Pivot Sheet", 1, "pivot-1", "report")).rejects.toBe(
-      error,
-    );
+    await expect(
+      read("Pivot Sheet", 1, "pivot-1", "Sales", "report"),
+    ).rejects.toBe(error);
   });
 });
