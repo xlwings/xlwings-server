@@ -149,6 +149,11 @@ describe("rangeAddressFromDimensions", () => {
 });
 
 describe("rangeReadProperties", () => {
+  it("loads row and column visibility without loading cell contents", () => {
+    expect(rangeReadProperties(["row_hidden", "column_hidden"], false)).toEqual(
+      ["address", "rowCount", "columnCount", "rowHidden", "columnHidden"],
+    );
+  });
   it("loads only the requested cell representation", () => {
     expect(rangeReadProperties(["values"], false)).toEqual([
       "address",

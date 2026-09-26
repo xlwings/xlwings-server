@@ -75,6 +75,7 @@ import {
   createSetConditionalFormat,
   createSetBorderProperty,
   createSetColumnWidth,
+  createSetVisibility,
   createSetDataValidationList,
   createSetDataValidationRule,
   createSetFormula,
@@ -90,6 +91,12 @@ import {
   createGetTableRowCount,
   createGetTableRowRangeAddress,
 } from "./table-action-callbacks.js";
+import {
+  createAddTableColumn,
+  createDeleteTableColumn,
+  createGetTableColumnCount,
+  createGetTableColumnRangeAddress,
+} from "./table-column-callbacks.js";
 import {
   createApplyAutoFilterRange,
   createApplyAutoFilterTable,
@@ -152,6 +159,8 @@ const xlwings = {
   findRange,
   getSpecialCells,
   getAutoFilterCriteria,
+  getTableColumnCount,
+  getTableColumnRangeAddress,
   getRangeValues,
   getShapeData,
   getChartAxisData,
@@ -656,6 +665,7 @@ async function getBookData(
           totalRowRange: table.showTotals
             ? table.getTotalRowRange().load("address")
             : null,
+          columns: table.columns.load("items/name"),
         });
       }
       await context.sync();
@@ -666,6 +676,7 @@ async function getBookData(
           range_address: tableRange.address,
           row_count: tableRange.row_count,
           column_count: tableRange.column_count,
+          columns: table.columns.items.map((column) => column.name),
           header_row_range_address: table.showHeaders
             ? unqualifiedAddress(table.headerRowRange)
             : null,
@@ -981,6 +992,14 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
   const readKeys = rangeReadKeys(keys);
   if (readKeys.includes("colors")) checkColorsSupport();
   if (
+    readKeys.some((key) => key === "row_hidden" || key === "column_hidden") &&
+    !Office.context.requirements.isSetSupported("ExcelApi", "1.2")
+  ) {
+    throw new Error(
+      "Row and column visibility requires ExcelApi 1.2 and isn't supported by this Excel host.",
+    );
+  }
+  if (
     readKeys.includes("data_validation") &&
     !Office.context.requirements.isSetSupported("ExcelApi", "1.8")
   ) {
@@ -1108,6 +1127,12 @@ async function getRangeData(sheetName, address, keys = ["values"]) {
           break;
         case "row_height":
           result.row_height = range.format.rowHeight;
+          break;
+        case "row_hidden":
+          result.row_hidden = range.rowHidden;
+          break;
+        case "column_hidden":
+          result.column_hidden = range.columnHidden;
           break;
         case "left":
           result.left = range.left;
@@ -1526,6 +1551,27 @@ async function getTableRowRangeAddress(sheetName, tableIndex, index) {
   );
 }
 
+async function getTableColumnCount(sheetName, tableIndex) {
+  return createGetTableColumnCount(Excel.run.bind(Excel))(
+    sheetName,
+    tableIndex,
+  );
+}
+
+async function getTableColumnRangeAddress(
+  sheetName,
+  tableIndex,
+  name,
+  dataBody,
+) {
+  return createGetTableColumnRangeAddress(Excel.run.bind(Excel))(
+    sheetName,
+    tableIndex,
+    name,
+    dataBody,
+  );
+}
+
 async function getShapeByType(context, sheetPosition, shapeIndex, shapeType) {
   let sheets = context.workbook.worksheets.load("items");
   await context.sync();
@@ -1567,6 +1613,14 @@ const setFormulaArray = createSetFormulaArray(
   (name, version) => Office.context.requirements.isSetSupported(name, version),
 );
 const setColumnWidth = createSetColumnWidth(getRange);
+const visibilitySupport = (name, version) =>
+  Office.context.requirements.isSetSupported(name, version);
+const setRowHidden = createSetVisibility(getRange, "rows", visibilitySupport);
+const setColumnHidden = createSetVisibility(
+  getRange,
+  "columns",
+  visibilitySupport,
+);
 const setBorderProperty = createSetBorderProperty(getRange);
 const setDataValidationList = createSetDataValidationList(
   getRange,
@@ -1625,6 +1679,18 @@ const deleteTableRow = createDeleteTableRow(
   getTable,
   Office.context.requirements.isSetSupported.bind(Office.context.requirements),
 );
+const tableColumnSupport = (name, version) =>
+  Office.context.requirements.isSetSupported(name, version);
+const addTableColumn = createAddTableColumn(
+  getSheet,
+  getTable,
+  tableColumnSupport,
+);
+const deleteTableColumn = createDeleteTableColumn(
+  getSheet,
+  getTable,
+  tableColumnSupport,
+);
 const autoFilterCriteriaCache = new Map();
 const autoFilterSupport = (name, version) =>
   Office.context.requirements.isSetSupported(name, version);
@@ -1666,6 +1732,8 @@ let funcs = {
   setFormula: setFormula,
   setFormulaArray: setFormulaArray,
   setColumnWidth: setColumnWidth,
+  setRowHidden: setRowHidden,
+  setColumnHidden: setColumnHidden,
   setRowHeight: setRowHeight,
   setWrapText: setWrapText,
   addSheet: addSheet,
@@ -1759,6 +1827,8 @@ let funcs = {
   addTable: addTable,
   addTableRow: addTableRow,
   deleteTableRow: deleteTableRow,
+  addTableColumn: addTableColumn,
+  deleteTableColumn: deleteTableColumn,
   applyAutoFilterRange: applyAutoFilterRange,
   clearAutoFilterRange: clearAutoFilterRange,
   applyAutoFilterTable: applyAutoFilterTable,

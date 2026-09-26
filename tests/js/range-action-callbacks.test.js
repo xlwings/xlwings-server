@@ -4,6 +4,7 @@ import {
   createDeleteDataValidation,
   createSetBorderProperty,
   createSetColumnWidth,
+  createSetVisibility,
   createSetDataValidationList,
   createSetDataValidationRule,
   createSetFormula,
@@ -134,6 +135,43 @@ describe("setColumnWidth action callback", () => {
       expect(format.columnWidth).toBeUndefined();
     }
   });
+});
+
+describe("row and column visibility callbacks", () => {
+  for (const [axis, method, property] of [
+    ["rows", "getEntireRow", "rowHidden"],
+    ["columns", "getEntireColumn", "columnHidden"],
+  ]) {
+    it(`changes entire ${axis} and synchronizes`, async () => {
+      const target = {};
+      const range = { [method]: vi.fn(() => target) };
+      const getRange = vi.fn(async () => range);
+      const context = { sync: vi.fn(async () => {}) };
+      const callback = createSetVisibility(getRange, axis, () => true);
+      await callback(context, { args: [true] });
+      expect(range[method]).toHaveBeenCalledOnce();
+      expect(target[property]).toBe(true);
+      expect(context.sync).toHaveBeenCalledOnce();
+    });
+
+    it(`rejects invalid ${axis} visibility before accessing Excel`, async () => {
+      const getRange = vi.fn();
+      const callback = createSetVisibility(getRange, axis, () => true);
+      await expect(callback({}, { args: [1] })).rejects.toThrow(
+        "hidden must be a boolean",
+      );
+      expect(getRange).not.toHaveBeenCalled();
+    });
+
+    it(`reports unsupported Excel hosts for ${axis}`, async () => {
+      const getRange = vi.fn();
+      const callback = createSetVisibility(getRange, axis, () => false);
+      await expect(callback({}, { args: [false] })).rejects.toThrow(
+        "ExcelApi 1.2",
+      );
+      expect(getRange).not.toHaveBeenCalled();
+    });
+  }
 });
 
 describe("data validation action callbacks", () => {
