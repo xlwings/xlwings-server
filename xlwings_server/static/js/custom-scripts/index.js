@@ -86,6 +86,12 @@ import {
 import { unsupportedRangeExpansion } from "./range-expansion.js";
 import { createAddTable } from "./table-action-callbacks.js";
 import {
+  createAddTableColumn,
+  createDeleteTableColumn,
+  createGetTableColumnCount,
+  createGetTableColumnRangeAddress,
+} from "./table-column-callbacks.js";
+import {
   createApplyAutoFilterRange,
   createApplyAutoFilterTable,
   createClearAutoFilterRange,
@@ -147,6 +153,8 @@ const xlwings = {
   findRange,
   getSpecialCells,
   getAutoFilterCriteria,
+  getTableColumnCount,
+  getTableColumnRangeAddress,
   getRangeValues,
   getShapeData,
   getChartAxisData,
@@ -649,6 +657,7 @@ async function getBookData(
           totalRowRange: table.showTotals
             ? table.getTotalRowRange().load("address")
             : null,
+          columns: table.columns.load("items/name"),
         });
       }
       await context.sync();
@@ -659,6 +668,7 @@ async function getBookData(
           range_address: tableRange.address,
           row_count: tableRange.row_count,
           column_count: tableRange.column_count,
+          columns: table.columns.items.map((column) => column.name),
           header_row_range_address: table.showHeaders
             ? unqualifiedAddress(table.headerRowRange)
             : null,
@@ -1521,6 +1531,27 @@ async function getTable(context, action) {
   return tables.items[parseInt(action.args[0].toString())];
 }
 
+async function getTableColumnCount(sheetName, tableIndex) {
+  return createGetTableColumnCount(Excel.run.bind(Excel))(
+    sheetName,
+    tableIndex,
+  );
+}
+
+async function getTableColumnRangeAddress(
+  sheetName,
+  tableIndex,
+  name,
+  dataBody,
+) {
+  return createGetTableColumnRangeAddress(Excel.run.bind(Excel))(
+    sheetName,
+    tableIndex,
+    name,
+    dataBody,
+  );
+}
+
 async function getShapeByType(context, sheetPosition, shapeIndex, shapeType) {
   let sheets = context.workbook.worksheets.load("items");
   await context.sync();
@@ -1618,6 +1649,18 @@ const setChartLegend = createSetChartLegend(chartFromAction);
 const setChartPlotBy = createSetChartPlotBy(chartFromAction);
 const setChartStyle = createSetChartStyle(chartFromAction);
 const addTable = createAddTable(getSheet);
+const tableColumnSupport = (name, version) =>
+  Office.context.requirements.isSetSupported(name, version);
+const addTableColumn = createAddTableColumn(
+  getSheet,
+  getTable,
+  tableColumnSupport,
+);
+const deleteTableColumn = createDeleteTableColumn(
+  getSheet,
+  getTable,
+  tableColumnSupport,
+);
 const autoFilterCriteriaCache = new Map();
 const autoFilterSupport = (name, version) =>
   Office.context.requirements.isSetSupported(name, version);
@@ -1752,6 +1795,8 @@ let funcs = {
   rangeReplaceAll: rangeReplaceAll,
   rangeAdjustIndent: rangeAdjustIndent,
   addTable: addTable,
+  addTableColumn: addTableColumn,
+  deleteTableColumn: deleteTableColumn,
   applyAutoFilterRange: applyAutoFilterRange,
   clearAutoFilterRange: clearAutoFilterRange,
   applyAutoFilterTable: applyAutoFilterTable,
