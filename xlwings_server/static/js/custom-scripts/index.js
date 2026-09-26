@@ -44,6 +44,10 @@ import { dispatchActions } from "./action-dispatch.js";
 import { getActionSheet } from "./action-targets.js";
 import { createRangeSort } from "./range-sort.js";
 import {
+  createGetSpecialCells,
+  createRangeRemoveDuplicates,
+} from "./range-duplicates-special.js";
+import {
   createFindRange,
   createRangeReplaceAll,
 } from "./range-find-replace.js";
@@ -140,6 +144,7 @@ const xlwings = {
   registerCallback,
   getRangeData,
   findRange,
+  getSpecialCells,
   getAutoFilterCriteria,
   getRangeValues,
   getShapeData,
@@ -956,6 +961,12 @@ async function findRange(...args) {
   )(...args);
 }
 
+async function getSpecialCells(...args) {
+  return createGetSpecialCells(Excel.run.bind(Excel), (name, version) =>
+    Office.context.requirements.isSetSupported(name, version),
+  )(...args);
+}
+
 async function getRangeData(sheetName, address, keys = ["values"]) {
   // Validate the public boundary before entering Excel.run() or creating
   // Office proxies so unsupported modes reject as a plain promise error.
@@ -1521,6 +1532,10 @@ export function registerCallback(callback) {
 // Functions map
 const setValues = createSetValues(getRange);
 const rangeSort = createRangeSort(getSheet);
+const rangeRemoveDuplicates = createRangeRemoveDuplicates(
+  getSheet,
+  (name, version) => Office.context.requirements.isSetSupported(name, version),
+);
 const rangeReplaceAll = createRangeReplaceAll(getRange, (name, version) =>
   Office.context.requirements.isSetSupported(name, version),
 );
@@ -1708,6 +1723,7 @@ let funcs = {
   rangeUngroup: rangeUngroup,
   rangeClear: rangeClear,
   rangeSort: rangeSort,
+  rangeRemoveDuplicates: rangeRemoveDuplicates,
   rangeReplaceAll: rangeReplaceAll,
   rangeAdjustIndent: rangeAdjustIndent,
   addTable: addTable,
