@@ -1,20 +1,20 @@
 {
   "dependencies": {
-    "@alpinejs/csp": "3.17.3",
+    "@alpinejs/csp": "3.17.4",
     "bootstrap": "5.3.8",
     "bootstrap-xlwings": "github:xlwings/bootstrap-xlwings#5.3.3-2",
     "htmx-ext-head-support": "2.0.5",
     "htmx-ext-loading-states": "2.0.2",
-    "htmx.org": "2.0.10",
-    "socket.io": "4.8.3"
+    "htmx.org": "2.0.11",
+    "socket.io": "4.8.4"
   },
   "devDependencies": {
-    "@types/alpinejs": "3.13.11",
-    "@types/office-js": "1.0.609",
-    "office-addin-lint": "4.0.0",
-    "prettier": "3.9.6",
+    "@types/alpinejs": "3.17.0",
+    "@types/office-js": "1.0.610",
+    "office-addin-lint": "4.0.1",
+    "prettier": "3.9.9",
     "prettier-plugin-jinja-template": "2.2.0",
-    "vitest": "5.0.0"
+    "vitest": "5.0.2"
   },
   "scripts": {
     "postinstall": "uv run scripts/postinstall.py",
