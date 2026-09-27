@@ -14,7 +14,7 @@
       <script type="module" src="{{ url_for('static', path='/js/config.js') }}"></script>
       {# htmx #}
       {% if settings.enable_htmx %}
-        <script src="{{ url_for('static', path='/vendor/htmx.org/2.0.10/dist/htmx.min.js') }}"></script>
+        <script src="{{ url_for('static', path='/vendor/htmx.org/2.0.11/dist/htmx.min.js') }}"></script>
         <script src="{{ url_for('static', path='/vendor/htmx-ext-head-support/2.0.5/head-support.js') }}"></script>
         <script src="{{ url_for('static', path='/vendor/htmx-ext-loading-states/2.0.2/loading-states.js') }}"></script>
         <script type="module" src="{{ url_for('static', path='/js/integrations/htmx.js') }}"></script>
@@ -30,7 +30,7 @@
       {# Socket.io (must come before custom-scripts) #}
       {% block socketio %}
         {% if settings.enable_socketio %}
-          <script src="{{ url_for('static', path='/vendor/socket.io/4.8.3/client-dist/socket.io.min.js') }}"></script>
+          <script src="{{ url_for('static', path='/vendor/socket.io/4.8.4/client-dist/socket.io.min.js') }}"></script>
         {% endif %}
       {% endblock socketio %}
       {# xlwings.js (must come before custom-function-code) #}
