@@ -12,6 +12,7 @@ import {
   createSetPivotTableName,
   createSetPivotValueField,
   getValueFieldByIndex,
+  pivotTableFromAction,
 } from "../../xlwings_server/static/js/custom-scripts/pivot-action-callbacks.js";
 
 function addHarness({ activeSheetName = "Report" } = {}) {
@@ -480,5 +481,106 @@ describe("refreshPivotTable and deletePivotTable action callbacks", () => {
 
     expect(pivotTable.delete).toHaveBeenCalled();
     expect(context.sync).toHaveBeenCalled();
+  });
+});
+
+describe("PivotTable action identity", () => {
+  function liveContext() {
+    const other = {
+      id: "other",
+      name: "Other",
+      delete: vi.fn(),
+      refresh: vi.fn(),
+    };
+    const target = {
+      id: "target",
+      name: "Sales",
+      delete: vi.fn(),
+      refresh: vi.fn(),
+    };
+    const pivots = {
+      items: [other, target],
+      load: vi.fn(function () {
+        return this;
+      }),
+    };
+    const sheets = {
+      items: [{ pivotTables: pivots }],
+      load: vi.fn(function () {
+        return this;
+      }),
+    };
+    const context = {
+      workbook: { worksheets: sheets },
+      sync: vi.fn(async () => {}),
+    };
+    return { context, other, target, pivots };
+  }
+
+  it("deletes by stable ID when the cached index points to another pivot", async () => {
+    const { context, other, target, pivots } = liveContext();
+    await createDeletePivotTable(pivotTableFromAction)(context, {
+      sheet_position: 0,
+      args: [0],
+      pivot_id: "target",
+      pivot_name: "Sales",
+    });
+    expect(target.delete).toHaveBeenCalledOnce();
+    expect(other.delete).not.toHaveBeenCalled();
+    expect(pivots.load).toHaveBeenCalledWith("items/id,items/name");
+  });
+
+  it("refreshes a newly created pivot by name when it has no ID", async () => {
+    const { context, other, target } = liveContext();
+    await createRefreshPivotTable(pivotTableFromAction)(context, {
+      sheet_position: 0,
+      args: [0],
+      pivot_id: null,
+      pivot_name: "Sales",
+    });
+    expect(target.refresh).toHaveBeenCalledOnce();
+    expect(other.refresh).not.toHaveBeenCalled();
+  });
+
+  it("resolves a rename followed by another action using the new name", async () => {
+    const { context, target } = liveContext();
+    await createSetPivotTableName(pivotTableFromAction)(context, {
+      sheet_position: 0,
+      args: [0, "Renamed Sales"],
+      pivot_id: null,
+      pivot_name: "Sales",
+    });
+    await createRefreshPivotTable(pivotTableFromAction)(context, {
+      sheet_position: 0,
+      args: [0],
+      pivot_id: null,
+      pivot_name: "Renamed Sales",
+    });
+    expect(target.name).toBe("Renamed Sales");
+    expect(target.refresh).toHaveBeenCalledOnce();
+  });
+
+  it("fails before mutation when neither ID nor name matches", async () => {
+    const { context, other, target } = liveContext();
+    await expect(
+      createDeletePivotTable(pivotTableFromAction)(context, {
+        sheet_position: 0,
+        args: [0],
+        pivot_id: "missing",
+        pivot_name: "Sales",
+      }),
+    ).rejects.toMatchObject({ code: "pivot_table_not_found" });
+    expect(other.delete).not.toHaveBeenCalled();
+    expect(target.delete).not.toHaveBeenCalled();
+  });
+
+  it("accepts an older action with only a positional index", async () => {
+    const { context, other, target } = liveContext();
+    await createRefreshPivotTable(pivotTableFromAction)(context, {
+      sheet_position: 0,
+      args: [1],
+    });
+    expect(target.refresh).toHaveBeenCalledOnce();
+    expect(other.refresh).not.toHaveBeenCalled();
   });
 });

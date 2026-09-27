@@ -1,23 +1,33 @@
 // PivotTable action callbacks, built the same way as the chart ones: each
 // factory takes the resolver it needs and returns the `(context, action)`
 // callback that index.js registers under the action's func name.
+import { selectPivotTable } from "./pivot-identity.js";
 
-export async function getPivotTableByIndex(context, sheetPosition, index) {
+export async function getPivotTableByIdentity(
+  context,
+  sheetPosition,
+  index,
+  id,
+  name,
+) {
   const sheets = context.workbook.worksheets.load("items");
   await context.sync();
-  const pivotTables = sheets.items[sheetPosition].pivotTables.load("items");
+  const pivotTables = sheets.items[sheetPosition].pivotTables.load(
+    "items/id,items/name",
+  );
   await context.sync();
-  return pivotTables.items[index];
+  return selectPivotTable(pivotTables.items, index, id, name);
 }
 
-// The pivot table actions all carry the pivot table's index as their first
-// arg: its position within the sheet's pivotTables collection, which is the
-// order the payload's pivot_tables array is built in.
+// Current actions carry an ID or a name to guard against collection changes.
+// The index remains in args[0] for older action payloads.
 export function pivotTableFromAction(context, action) {
-  return getPivotTableByIndex(
+  return getPivotTableByIdentity(
     context,
     action.sheet_position,
     Number(action.args[0]),
+    action.pivot_id,
+    action.pivot_name,
   );
 }
 
