@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.17.0 (Sep 27, 2026)
+
+- Scripts: recognize all date/time formatted cells, not just those formatted as Short Date or Long Date.
+- Custom functions: implemented a client-side cache, see [](custom_functions.md#caching).
+- Added support for the latest xlwings features.
+
 ## 1.16.0 (Sep 16, 2026)
 
 - Added support for the latest xlwings features.
