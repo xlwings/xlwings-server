@@ -107,8 +107,24 @@ def deps_compile(upgrade=False):
     # The order of how these files matters because they are all interdependent
     file_names = ["requirements-core", "requirements", "requirements-dev"]
     for file_name in file_names:
-        cmd_linux = f"uv pip compile {file_name}.in --universal -o {file_name}.txt --unsafe-package pywin32 --unsafe-package appscript --unsafe-package psutil {'--upgrade' if upgrade else ''}"
-        subprocess.run(cmd_linux, shell=True, check=True, cwd=this_dir)
+        cmd_linux = [
+            "uv",
+            "pip",
+            "compile",
+            f"{file_name}.in",
+            "--universal",
+            "-o",
+            f"{file_name}.txt",
+            "--unsafe-package",
+            "pywin32",
+            "--unsafe-package",
+            "appscript",
+            "--unsafe-package",
+            "psutil",
+        ]
+        if upgrade:
+            cmd_linux.append("--upgrade")
+        subprocess.run(cmd_linux, shell=False, check=True, cwd=this_dir)
     print(
         f"Success! Requirements files {'upgraded' if upgrade else 'compiled'} successfully. Now commit the requirements.txt files!"
     )
