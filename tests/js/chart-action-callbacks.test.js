@@ -467,6 +467,17 @@ describe("setChartAxis action callback", () => {
     expect(context.sync).toHaveBeenCalledTimes(2);
   });
 
+  it("maps reverse_order and crosses to Office.js properties", async () => {
+    const { categoryAxis, context, getChart } = axisHarness();
+    await createSetChartAxis(getChart)(context, {
+      args: [0, "category", { reverse_order: true, crosses: "maximum" }],
+    });
+    expect(categoryAxis).toMatchObject({
+      reversePlotOrder: true,
+      position: "Maximum",
+    });
+  });
+
   it("maps null scales to Office.js automatic values", async () => {
     const { categoryAxis, context, getChart } = axisHarness();
     await createSetChartAxis(getChart)(context, {
@@ -530,6 +541,16 @@ describe("setChartAxis action callback", () => {
       "number format",
       [0, "value", { number_format: null }],
       "must be a string",
+    ],
+    [
+      "reverse order",
+      [0, "category", { reverse_order: "yes" }],
+      "reverse_order must be a boolean",
+    ],
+    [
+      "crosses",
+      [0, "category", { crosses: "custom" }],
+      "Unknown chart axis crosses",
     ],
     ["values payload", [0, "value", null], "values must be an object"],
   ])("rejects an invalid %s", async (_label, args, message) => {
@@ -632,6 +653,8 @@ function axisReadHarness({
     maximum: 100,
     majorUnit: 20,
     numberFormat: "$#,##0",
+    reversePlotOrder: false,
+    position: "Automatic",
     load: vi.fn(),
     title: { visible: true, text: "Revenue", load: vi.fn() },
   };
@@ -695,6 +718,22 @@ describe("getChartAxisData", () => {
       "numberFormat",
     ]);
     expect(context.sync).toHaveBeenCalledTimes(3);
+  });
+
+  it("reads reverse_order and maps crosses to Python names", async () => {
+    const { axis, runExcel } = axisReadHarness();
+    axis.reversePlotOrder = true;
+    axis.position = "Custom";
+    await expect(
+      createGetChartAxisData(runExcel)("Sheet1", 0, "value", [
+        "reverse_order",
+        "crosses",
+      ]),
+    ).resolves.toEqual({ reverse_order: true, crosses: "custom" });
+    expect(axis.load).toHaveBeenNthCalledWith(2, [
+      "reversePlotOrder",
+      "position",
+    ]);
   });
 
   it("reads the secondary value axis", async () => {
