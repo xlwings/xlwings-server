@@ -50,7 +50,7 @@ export function createRangeSort(getSheet) {
       )
     ) {
       throw sortError(
-        "Range.sort() does not support ranges intersecting a table",
+        "Range.sort() does not support ranges intersecting a table; use Table.sort() instead",
         "sort_table_range",
       );
     }
