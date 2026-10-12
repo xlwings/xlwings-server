@@ -389,24 +389,49 @@ describe("setChartTitle action callback", () => {
   });
 });
 
-function axisHarness({ visible = true } = {}) {
-  const categoryAxis = {
-    visible,
-    title: { visible: false, text: "" },
-    load: vi.fn(),
+function axisHarness({
+  visible = true,
+  secondaryVisible = true,
+  axisGroups = ["Primary", "Secondary"],
+} = {}) {
+  const makeAxis = (axisVisible) => {
+    const axis = {
+      visible: axisVisible,
+      title: { visible: false, text: "" },
+      load: vi.fn(),
+    };
+    axis.title.load = vi.fn();
+    return axis;
   };
-  categoryAxis.title.load = vi.fn();
-  const valueAxis = {
-    visible,
-    title: { visible: false, text: "" },
-    load: vi.fn(),
+  const categoryAxis = makeAxis(visible);
+  const valueAxis = makeAxis(visible);
+  const secondaryCategoryAxis = makeAxis(secondaryVisible);
+  const secondaryValueAxis = makeAxis(secondaryVisible);
+  const getItem = vi.fn((type, group) => {
+    expect(group).toBe("Secondary");
+    return type === "Value" ? secondaryValueAxis : secondaryCategoryAxis;
+  });
+  const series = {
+    items: axisGroups.map((axisGroup) => ({ axisGroup })),
+    load: vi.fn(function () {
+      return this;
+    }),
   };
-  valueAxis.title.load = vi.fn();
-  const chart = { axes: { categoryAxis, valueAxis } };
+  const chart = { axes: { categoryAxis, valueAxis, getItem }, series };
   const context = { sync: vi.fn(async () => {}) };
   const getChart = vi.fn(async () => chart);
   const supported = vi.fn(() => true);
-  return { chart, categoryAxis, valueAxis, context, getChart, supported };
+  return {
+    chart,
+    categoryAxis,
+    valueAxis,
+    secondaryCategoryAxis,
+    secondaryValueAxis,
+    getItem,
+    context,
+    getChart,
+    supported,
+  };
 }
 
 describe("setChartAxis action callback", () => {
@@ -536,6 +561,53 @@ describe("setChartAxis action callback", () => {
     ).rejects.toThrow("The chart is protected");
   });
 
+  it("formats the secondary value axis without touching the primary one", async () => {
+    const { chart, valueAxis, secondaryValueAxis, getItem, context, getChart } =
+      axisHarness();
+    await createSetChartAxis(getChart)(context, {
+      args: [0, "secondary_value", { title: "Margin", minimum_scale: 0 }],
+    });
+    expect(chart.series.load).toHaveBeenCalledWith("items/axisGroup");
+    expect(getItem).toHaveBeenCalledWith("Value", "Secondary");
+    expect(secondaryValueAxis.minimum).toBe(0);
+    expect(secondaryValueAxis.title).toMatchObject({
+      visible: true,
+      text: "Margin",
+    });
+    expect(valueAxis.minimum).toBeUndefined();
+    expect(valueAxis.title).toMatchObject({ visible: false, text: "" });
+  });
+
+  it("rejects secondary axes while no series uses the secondary group", async () => {
+    const { getItem, context, getChart } = axisHarness({
+      axisGroups: ["Primary", "Primary"],
+    });
+    await expect(
+      createSetChartAxis(getChart)(context, {
+        args: [0, "secondary_value", { visible: true }],
+      }),
+    ).rejects.toThrow("no secondary axis group");
+    expect(getItem).not.toHaveBeenCalled();
+  });
+
+  it("requires showing a hidden secondary category axis before formatting", async () => {
+    const { secondaryCategoryAxis, context, getChart } = axisHarness({
+      secondaryVisible: false,
+    });
+    await expect(
+      createSetChartAxis(getChart)(context, {
+        args: [0, "secondary_category", { number_format: "0" }],
+      }),
+    ).rejects.toThrow("no visible secondary category axis");
+    await createSetChartAxis(getChart)(context, {
+      args: [0, "secondary_category", { visible: true, number_format: "0" }],
+    });
+    expect(secondaryCategoryAxis).toMatchObject({
+      visible: true,
+      numberFormat: "0",
+    });
+  });
+
   it("propagates a missing-chart failure before touching an axis", async () => {
     const { context } = axisHarness();
     const getChart = vi.fn(async () => {
@@ -549,7 +621,11 @@ describe("setChartAxis action callback", () => {
   });
 });
 
-function axisReadHarness({ visible = true, includeChart = true } = {}) {
+function axisReadHarness({
+  visible = true,
+  includeChart = true,
+  axisGroups = ["Primary", "Secondary"],
+} = {}) {
   const axis = {
     visible,
     minimum: 0,
@@ -559,8 +635,19 @@ function axisReadHarness({ visible = true, includeChart = true } = {}) {
     load: vi.fn(),
     title: { visible: true, text: "Revenue", load: vi.fn() },
   };
+  const secondaryAxis = { ...axis, numberFormat: "0%", load: vi.fn() };
   const chart = {
-    axes: { categoryAxis: { ...axis }, valueAxis: axis },
+    axes: {
+      categoryAxis: { ...axis },
+      valueAxis: axis,
+      getItem: vi.fn(() => secondaryAxis),
+    },
+    series: {
+      items: axisGroups.map((axisGroup) => ({ axisGroup })),
+      load: vi.fn(function () {
+        return this;
+      }),
+    },
   };
   const charts = {
     count: includeChart ? 1 : 0,
@@ -610,6 +697,27 @@ describe("getChartAxisData", () => {
     expect(context.sync).toHaveBeenCalledTimes(3);
   });
 
+  it("reads the secondary value axis", async () => {
+    const { chart, runExcel } = axisReadHarness();
+    await expect(
+      createGetChartAxisData(runExcel)("Sheet1", 0, "secondary_value", [
+        "number_format",
+        "visible",
+      ]),
+    ).resolves.toEqual({ number_format: "0%", visible: true });
+    expect(chart.axes.getItem).toHaveBeenCalledWith("Value", "Secondary");
+  });
+
+  it("rejects secondary reads while no series uses the secondary group", async () => {
+    const { chart, runExcel } = axisReadHarness({ axisGroups: ["Primary"] });
+    await expect(
+      createGetChartAxisData(runExcel)("Sheet1", 0, "secondary_category", [
+        "visible",
+      ]),
+    ).rejects.toThrow("no secondary axis group");
+    expect(chart.axes.getItem).not.toHaveBeenCalled();
+  });
+
   it("returns false and no title for an absent axis", async () => {
     const { runExcel } = axisReadHarness({ visible: false });
     await expect(
@@ -656,6 +764,8 @@ function seriesHarness({ includeChart = true, includeSeries = true } = {}) {
     markerSize: 8,
     markerForegroundColor: "#112233",
     markerBackgroundColor: "#445566",
+    chartType: "ColumnClustered",
+    axisGroup: "Primary",
     load: vi.fn(),
     format: {
       line: { color: "#556677", load: vi.fn() },
@@ -740,11 +850,65 @@ describe("setChartSeries action callback", () => {
     ["marker style", { marker_style: "Picture" }, "marker style"],
     ["marker size", { marker_size: 73 }, "integer from 2 to 72"],
     ["color", { line_color: "red" }, "#RRGGBB"],
+    ["axis group", { axis_group: "secondary" }, "Unknown chart axis group"],
+    ["chart type", { chart_type: "" }, "chart_type must be a non-empty string"],
   ])("rejects an invalid %s", async (_label, values, message) => {
     const { context, getChart } = seriesHarness();
     await expect(
       createSetChartSeries(getChart)(context, { args: [0, 0, values] }),
     ).rejects.toThrow(message);
+    expect(getChart).not.toHaveBeenCalled();
+  });
+
+  it("applies chart type and axis group before formatting, whatever the key order", async () => {
+    const { context, getChart, series } = seriesHarness();
+    const writes = [];
+    for (const property of ["chartType", "axisGroup", "name", "markerSize"]) {
+      Object.defineProperty(series, property, {
+        set: (value) => writes.push([property, value]),
+      });
+    }
+    series.format.line = {
+      set color(value) {
+        writes.push(["lineColor", value]);
+      },
+    };
+    await createSetChartSeries(getChart)(context, {
+      args: [
+        0,
+        0,
+        {
+          name: "Margin",
+          line_color: "#010203",
+          marker_size: 6,
+          axis_group: "Secondary",
+          chart_type: "LineMarkers",
+        },
+      ],
+    });
+    expect(writes).toEqual([
+      ["chartType", "LineMarkers"],
+      ["axisGroup", "Secondary"],
+      ["name", "Margin"],
+      ["lineColor", "#010203"],
+      ["markerSize", 6],
+    ]);
+  });
+
+  it("rejects axis groups below ExcelApi 1.8 and chart types below 1.7", async () => {
+    const { context, getChart } = seriesHarness();
+    await expect(
+      createSetChartSeries(getChart, (_name, version) => version !== "1.8")(
+        context,
+        { args: [0, 0, { axis_group: "Secondary" }] },
+      ),
+    ).rejects.toThrow("axis groups require ExcelApi 1.8");
+    await expect(
+      createSetChartSeries(getChart, (_name, version) => version !== "1.7")(
+        context,
+        { args: [0, 0, { chart_type: "Line" }] },
+      ),
+    ).rejects.toThrow("chart types require ExcelApi 1.7");
     expect(getChart).not.toHaveBeenCalled();
   });
 
@@ -808,6 +972,8 @@ describe("chart series reads", () => {
       marker_background_color: "#445566",
       line_color: "#556677",
       fill_color: "#778899",
+      chart_type: "ColumnClustered",
+      axis_group: "Primary",
     });
     expect(series.load).toHaveBeenCalledWith([
       "name",
@@ -815,6 +981,8 @@ describe("chart series reads", () => {
       "markerSize",
       "markerForegroundColor",
       "markerBackgroundColor",
+      "chartType",
+      "axisGroup",
     ]);
     expect(series.format.line.load).toHaveBeenCalledWith("color");
     expect(supported).toHaveBeenCalledWith("ExcelApi", "1.16");

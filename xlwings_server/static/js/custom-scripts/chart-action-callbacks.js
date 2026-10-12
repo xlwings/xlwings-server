@@ -131,7 +131,10 @@ const CHART_SERIES_KEYS = new Set([
   "marker_background_color",
   "line_color",
   "fill_color",
+  "chart_type",
+  "axis_group",
 ]);
+const CHART_AXIS_GROUPS = new Set(["Primary", "Secondary"]);
 const CHART_MARKER_STYLES = new Set([
   "Automatic",
   "None",
@@ -162,6 +165,16 @@ function requireChartSeriesSupport(
   ) {
     throw new Error(
       "Chart series marker formatting requires ExcelApi 1.7 and isn't supported by this Excel host.",
+    );
+  }
+  if (keys.includes("chart_type") && !isSetSupported("ExcelApi", "1.7")) {
+    throw new Error(
+      "Chart series chart types require ExcelApi 1.7 and aren't supported by this Excel host.",
+    );
+  }
+  if (keys.includes("axis_group") && !isSetSupported("ExcelApi", "1.8")) {
+    throw new Error(
+      "Chart series axis groups require ExcelApi 1.8 and aren't supported by this Excel host.",
     );
   }
   if (
@@ -207,6 +220,18 @@ function chartSeriesValues(value) {
         }
         values.marker_size = raw;
         break;
+      case "chart_type":
+        if (typeof raw !== "string" || !raw) {
+          throw new Error("Chart series chart_type must be a non-empty string");
+        }
+        values.chart_type = raw;
+        break;
+      case "axis_group":
+        if (!CHART_AXIS_GROUPS.has(raw)) {
+          throw new Error(`Unknown chart axis group: ${raw}`);
+        }
+        values.axis_group = raw;
+        break;
       default:
         if (!isHexColor(raw)) {
           throw new Error(`Chart series ${key} must be a #RRGGBB color`);
@@ -239,6 +264,15 @@ export function createSetChartSeries(getChart, isSetSupported = () => true) {
     requireChartSeriesSupport(isSetSupported, keys);
     const chart = await getChart(context, action);
     const series = await seriesAt(context, chart, action.args[1]);
+    // Changing the chart type or axis group can make Excel create, delete or
+    // reformat axes and series formatting, so apply them before everything
+    // else regardless of the order Python sent them in.
+    if (Object.hasOwn(values, "chart_type")) {
+      series.chartType = values.chart_type;
+    }
+    if (Object.hasOwn(values, "axis_group")) {
+      series.axisGroup = values.axis_group;
+    }
     if (Object.hasOwn(values, "name")) series.name = values.name;
     // Excel may propagate series line/fill formatting to markers. Apply
     // explicit marker overrides afterwards so one bulk set preserves
@@ -314,6 +348,8 @@ export function createGetChartSeriesData(
         marker_size: "markerSize",
         marker_foreground_color: "markerForegroundColor",
         marker_background_color: "markerBackgroundColor",
+        chart_type: "chartType",
+        axis_group: "axisGroup",
       };
       const properties = readKeys
         .filter((key) => propertyMap[key])
@@ -347,20 +383,57 @@ function requireChartAxisSupport(isSetSupported) {
   }
 }
 
+// The axis type names the axis group too, so JavaScript that predates
+// secondary axes rejects them instead of formatting a primary axis.
+const CHART_AXIS_TYPES = new Set([
+  "category",
+  "value",
+  "secondary_category",
+  "secondary_value",
+]);
+
 function chartAxisType(value) {
   const axisType = value?.toString();
-  if (axisType !== "category" && axisType !== "value") {
+  if (!CHART_AXIS_TYPES.has(axisType)) {
     throw new Error(`Unknown chart axis type: ${axisType}`);
   }
   return axisType;
 }
 
-function chartAxis(chart, axisType) {
+function isSecondaryAxis(axisType) {
+  return axisType.startsWith("secondary_");
+}
+
+function chartAxisLabel(axisType) {
+  return isSecondaryAxis(axisType)
+    ? `secondary ${axisType.slice("secondary_".length)}`
+    : `primary ${axisType}`;
+}
+
+// Excel only has secondary axes while at least one series is plotted on the
+// secondary axis group.
+async function requireSecondaryAxisGroup(context, chart) {
+  const series = chart.series.load("items/axisGroup");
+  await context.sync();
+  if (!series.items.some((item) => item.axisGroup === "Secondary")) {
+    throw new Error(
+      "The chart has no secondary axis group. Move a series to it first with series.axis_group = 'secondary'.",
+    );
+  }
+}
+
+async function chartAxis(context, chart, axisType) {
   switch (axisType) {
     case "category":
       return chart.axes.categoryAxis;
     case "value":
       return chart.axes.valueAxis;
+    case "secondary_category":
+      await requireSecondaryAxisGroup(context, chart);
+      return chart.axes.getItem("Category", "Secondary");
+    case "secondary_value":
+      await requireSecondaryAxisGroup(context, chart);
+      return chart.axes.getItem("Value", "Secondary");
     default:
       throw new Error(`Unknown chart axis type: ${axisType}`);
   }
@@ -423,7 +496,7 @@ export function createSetChartAxis(getChart, isSetSupported = () => true) {
     const axisType = chartAxisType(action.args[1]);
     const values = chartAxisValues(action.args[2]);
     const chart = await getChart(context, action);
-    const axis = chartAxis(chart, axisType);
+    const axis = await chartAxis(context, chart, axisType);
     axis.load("visible");
     await context.sync();
 
@@ -439,7 +512,7 @@ export function createSetChartAxis(getChart, isSetSupported = () => true) {
       attributes.some((key) => key !== "title")
     ) {
       throw new Error(
-        `The chart has no visible primary ${axisType} axis. Set visible=True first.`,
+        `The chart has no visible ${chartAxisLabel(axisType)} axis. Set visible=True first.`,
       );
     }
 
@@ -492,7 +565,7 @@ export function createGetChartAxisData(runExcel, isSetSupported = () => true) {
         sheetName,
         chartIndex,
       );
-      const axis = chartAxis(chart, normalizedAxisType);
+      const axis = await chartAxis(context, chart, normalizedAxisType);
       axis.load("visible");
       await context.sync();
 
@@ -505,7 +578,7 @@ export function createGetChartAxisData(runExcel, isSetSupported = () => true) {
         );
         if (unavailable) {
           throw new Error(
-            `The chart has no visible primary ${normalizedAxisType} axis; ${unavailable} is unavailable.`,
+            `The chart has no visible ${chartAxisLabel(normalizedAxisType)} axis; ${unavailable} is unavailable.`,
           );
         }
         return result;
