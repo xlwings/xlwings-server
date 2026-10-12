@@ -43,6 +43,7 @@ import { readNamedItems } from "./named-items.js";
 import { dispatchActions } from "./action-dispatch.js";
 import { getActionSheet } from "./action-targets.js";
 import { createRangeSort } from "./range-sort.js";
+import { createTableSort } from "./table-sort.js";
 import {
   createGetSpecialCells,
   createRangeRemoveDuplicates,
@@ -1685,6 +1686,7 @@ const setChartLegend = createSetChartLegend(chartFromAction);
 const setChartPlotBy = createSetChartPlotBy(chartFromAction);
 const setChartStyle = createSetChartStyle(chartFromAction);
 const addTable = createAddTable(getSheet);
+const tableSort = createTableSort(getTable);
 const addTableRow = createAddTableRow(
   getSheet,
   getTable,
@@ -1851,6 +1853,7 @@ let funcs = {
   clearAutoFilterTable: clearAutoFilterTable,
   setTableName: setTableName,
   resizeTable: resizeTable,
+  tableSort: tableSort,
   showAutofilterTable: showAutofilterTable,
   showHeadersTable: showHeadersTable,
   showTotalsTable: showTotalsTable,
