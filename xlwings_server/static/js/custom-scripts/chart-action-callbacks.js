@@ -121,7 +121,23 @@ const CHART_AXIS_KEYS = new Set([
   "major_unit",
   "number_format",
   "visible",
+  "reverse_order",
+  "crosses",
 ]);
+
+// Python name to Office.js ChartAxisPosition. Excel reports "Custom" when the
+// crossing point was set to a specific value, which can't be set from Python.
+const CHART_AXIS_CROSSES = {
+  automatic: "Automatic",
+  minimum: "Minimum",
+  maximum: "Maximum",
+};
+const CHART_AXIS_CROSSES_FROM_EXCEL = {
+  Automatic: "automatic",
+  Minimum: "minimum",
+  Maximum: "maximum",
+  Custom: "custom",
+};
 
 const CHART_SERIES_KEYS = new Set([
   "name",
@@ -480,10 +496,20 @@ function chartAxisValues(value) {
         values.number_format = raw;
         break;
       case "visible":
+      case "reverse_order":
         if (typeof raw !== "boolean") {
-          throw new Error("Chart axis visible must be a boolean");
+          throw new Error(`Chart axis ${key} must be a boolean`);
         }
-        values.visible = raw;
+        values[key] = raw;
+        break;
+      case "crosses":
+        if (
+          typeof raw !== "string" ||
+          !Object.hasOwn(CHART_AXIS_CROSSES, raw)
+        ) {
+          throw new Error(`Unknown chart axis crosses: ${raw}`);
+        }
+        values.crosses = raw;
         break;
     }
   }
@@ -539,6 +565,12 @@ export function createSetChartAxis(getChart, isSetSupported = () => true) {
     if (Object.hasOwn(values, "number_format")) {
       axis.numberFormat = values.number_format;
     }
+    if (Object.hasOwn(values, "reverse_order")) {
+      axis.reversePlotOrder = values.reverse_order;
+    }
+    if (Object.hasOwn(values, "crosses")) {
+      axis.position = CHART_AXIS_CROSSES[values.crosses];
+    }
     if (values.visible === false) axis.visible = false;
     await context.sync();
   };
@@ -589,6 +621,8 @@ export function createGetChartAxisData(runExcel, isSetSupported = () => true) {
         maximum_scale: "maximum",
         major_unit: "majorUnit",
         number_format: "numberFormat",
+        reverse_order: "reversePlotOrder",
+        crosses: "position",
       };
       const properties = readKeys
         .filter((key) => propertyMap[key])
@@ -604,6 +638,9 @@ export function createGetChartAxisData(runExcel, isSetSupported = () => true) {
       }
       for (const [key, property] of Object.entries(propertyMap)) {
         if (readKeys.includes(key)) result[key] = axis[property];
+      }
+      if (readKeys.includes("crosses")) {
+        result.crosses = CHART_AXIS_CROSSES_FROM_EXCEL[axis.position];
       }
       return result;
     });
