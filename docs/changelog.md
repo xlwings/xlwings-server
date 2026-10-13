@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.18.0 (Oct 13, 2026)
+
+- Added support for the latest xlwings features.
+
 ## 1.17.0 (Sep 27, 2026)
 
 - Scripts: recognize all date/time formatted cells, not just those formatted as Short Date or Long Date.
