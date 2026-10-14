@@ -4,6 +4,24 @@ import { dispatchActions } from "../../xlwings_server/static/js/custom-scripts/a
 import { createSetValues } from "../../xlwings_server/static/js/custom-scripts/range-action-callbacks.js";
 
 describe("dispatchActions", () => {
+  it("normalizes nested Pyodide blanks without changing empty strings or input data", async () => {
+    const action = {
+      func: "nullableAction",
+      args: [
+        undefined,
+        { blank: undefined, cells: [[undefined, "", null, 0, false]] },
+      ],
+    };
+    const callback = vi.fn(async () => {});
+    await dispatchActions([action], {}, { nullableAction: callback });
+    expect(callback.mock.calls[0][1]).toStrictEqual({
+      func: "nullableAction",
+      args: [null, { blank: null, cells: [[null, "", null, 0, false]] }],
+    });
+    expect(action.args[0]).toBeUndefined();
+    expect(action.args[1].blank).toBeUndefined();
+  });
+
   it("dispatches actions in order and preserves sheet sync behavior", async () => {
     const seen = [];
     const context = { sync: vi.fn(async () => seen.push("sync")) };

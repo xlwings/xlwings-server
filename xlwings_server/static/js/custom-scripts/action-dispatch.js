@@ -22,7 +22,25 @@ function requiresFollowUpSync(actionFunc) {
   return FORCE_SYNC_TERMS.some((term) => normalized.includes(term));
 }
 
+// Pyodide's to_js() represents Python None as undefined, whereas the Server
+// JSON transport represents it as null. Normalize the action protocol once so
+// every callback receives the same nullable arguments on both transports.
+function normalizeActionData(value) {
+  if (value === undefined) return null;
+  if (Array.isArray(value)) return Array.from(value, normalizeActionData);
+  if (value !== null && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, item]) => [
+        key,
+        normalizeActionData(item),
+      ]),
+    );
+  }
+  return value;
+}
+
 export async function dispatchActions(actions, context, callbacks) {
+  actions = normalizeActionData(actions);
   if (!Array.isArray(actions)) {
     throw actionError("Action payload must contain an actions array", {
       code: "invalid_actions",
