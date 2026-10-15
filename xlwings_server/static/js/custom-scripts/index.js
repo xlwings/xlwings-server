@@ -1967,13 +1967,93 @@ async function setShowGridlines(context, action) {
   sheet.showGridlines = Boolean(action.args[0]);
 }
 
+// Above this many cells outside the range, reading and restoring their number
+// formats costs more than it's worth: autofit the entire columns instead.
+const MAX_AUTOFIT_MASKED_CELLS = 100000;
+
 async function setAutofit(context, action) {
   if (action.args[0] === "columns") {
     let range = await getRange(context, action);
-    range.format.autofitColumns();
+    await autofitColumnsWithinRange(context, action, range);
   } else {
     let range = await getRange(context, action);
     range.format.autofitRows();
+  }
+}
+
+// Office.js autofits against all content in the affected columns, whereas
+// desktop Excel only considers the cells of the range. To match desktop Excel,
+// the cells above and below the range temporarily get the ";;;" number format,
+// which displays nothing, and get their own formats back right after. Only
+// number formats change, so contents and the last cell stay untouched, and the
+// whole operation stays in the same undo group. Error values and booleans
+// still display under ";;;", so they keep counting towards the width.
+async function autofitColumnsWithinRange(context, action, range) {
+  const sheet = await getActionSheet(context, action);
+  const used = sheet.getUsedRangeOrNullObject(true);
+  used.load("rowIndex,rowCount,columnIndex,columnCount");
+  sheet.protection.load("protected");
+  await context.sync();
+
+  const masks = [];
+  if (!used.isNullObject && !sheet.protection.protected) {
+    const firstColumn = Math.max(action.start_column, used.columnIndex);
+    const endColumn = Math.min(
+      action.start_column + action.column_count,
+      used.columnIndex + used.columnCount,
+    );
+    const usedEndRow = used.rowIndex + used.rowCount;
+    const outsideRows = [
+      [used.rowIndex, Math.min(action.start_row, usedEndRow)],
+      [
+        Math.max(action.start_row + action.row_count, used.rowIndex),
+        usedEndRow,
+      ],
+    ].filter(([start, end]) => end > start);
+    const cellCount = outsideRows.reduce(
+      (count, [start, end]) =>
+        count + (end - start) * (endColumn - firstColumn),
+      0,
+    );
+    if (endColumn > firstColumn && cellCount <= MAX_AUTOFIT_MASKED_CELLS) {
+      for (const [start, end] of outsideRows) {
+        masks.push(
+          sheet
+            .getRangeByIndexes(
+              start,
+              firstColumn,
+              end - start,
+              endColumn - firstColumn,
+            )
+            .load("numberFormat"),
+        );
+      }
+    }
+  }
+  if (masks.length === 0) {
+    range.format.autofitColumns();
+    return;
+  }
+  await context.sync();
+
+  const savedFormats = masks.map((mask) => mask.numberFormat);
+  const restoreFormats = () =>
+    masks.forEach((mask, i) => {
+      mask.numberFormat = savedFormats[i];
+    });
+  masks.forEach((mask, i) => {
+    mask.numberFormat = savedFormats[i].map((row) => row.map(() => ";;;"));
+  });
+  range.format.autofitColumns();
+  restoreFormats();
+  try {
+    await context.sync();
+  } catch (error) {
+    // A failed sync keeps the operations before the failing one, which may
+    // include the masks but not their restore.
+    restoreFormats();
+    await context.sync();
+    throw error;
   }
 }
 
