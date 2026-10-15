@@ -100,7 +100,12 @@ async function getChartByNameAndIndex(context, sheetName, chartIndex) {
     normalizedChartIndex < 0 ||
     normalizedChartIndex >= charts.count
   ) {
-    throw new Error(`No chart at index ${chartIndex} on sheet ${sheetName}`);
+    const error = new Error(
+      `No chart at index ${chartIndex} on sheet ${sheetName}`,
+    );
+    error.name = "ItemNotFound";
+    error.code = "ItemNotFound";
+    throw error;
   }
   return charts.getItemAt(normalizedChartIndex);
 }

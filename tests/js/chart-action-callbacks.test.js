@@ -1046,7 +1046,18 @@ describe("chart series reads", () => {
     const missingChart = seriesHarness({ includeChart: false });
     await expect(
       createGetChartSeriesCount(missingChart.runExcel)("Sheet1", 0),
-    ).rejects.toThrow("No chart at index 0 on sheet Sheet1");
+    ).rejects.toMatchObject({
+      name: "ItemNotFound",
+      code: "ItemNotFound",
+      message: "No chart at index 0 on sheet Sheet1",
+    });
+    try {
+      await createGetChartSeriesCount(missingChart.runExcel)("Sheet1", 0);
+    } catch (error) {
+      expect(String(error)).toBe(
+        "ItemNotFound: No chart at index 0 on sheet Sheet1",
+      );
+    }
     const missingSeries = seriesHarness({ includeSeries: false });
     await expect(
       createGetChartSeriesData(missingSeries.runExcel)("Sheet1", 0, 0, [
