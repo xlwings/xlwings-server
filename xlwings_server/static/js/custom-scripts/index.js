@@ -1864,6 +1864,7 @@ let funcs = {
   setTableStyle: setTableStyle,
   copyRange: copyRange,
   copyFromRange: copyFromRange,
+  moveRange: moveRange,
   sheetDelete: sheetDelete,
   sheetClear: sheetClear,
   sheetClearFormats: sheetClearFormats,
@@ -2643,10 +2644,15 @@ async function showTableStyleColumnStripes(context, action) {
   mytable.showBandedColumns = Boolean(action.args[1]);
 }
 
+async function getDestinationRange(context, action) {
+  const sheet = await getActionSheet(context, {
+    sheet_position: parseInt(action.args[0].toString()),
+  });
+  return sheet.getRange(action.args[1].toString());
+}
+
 async function copyRange(context, action) {
-  const destination = context.workbook.worksheets.items[
-    parseInt(action.args[0].toString())
-  ].getRange(action.args[1].toString());
+  const destination = await getDestinationRange(context, action);
   destination.copyFrom(await getRange(context, action));
 }
 
@@ -2659,6 +2665,16 @@ async function copyFromRange(context, action) {
   const skipBlanks = Boolean(action.args[3]);
   const transpose = Boolean(action.args[4]);
   myRange.copyFrom(sourceRange, copyType, skipBlanks, transpose);
+}
+
+async function moveRange(context, action) {
+  if (!Office.context.requirements.isSetSupported("ExcelApi", "1.11")) {
+    throw new Error(
+      "Range.move() requires ExcelApi 1.11 and isn't supported by this Excel host.",
+    );
+  }
+  const destination = await getDestinationRange(context, action);
+  (await getRange(context, action)).moveTo(destination);
 }
 
 async function sheetDelete(context, action) {
