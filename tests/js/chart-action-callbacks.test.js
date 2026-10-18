@@ -1025,7 +1025,38 @@ describe("chart series reads", () => {
     ]);
     expect(series.format.line.load).toHaveBeenCalledWith("color");
     expect(supported).toHaveBeenCalledWith("ExcelApi", "1.16");
-    expect(context.sync).toHaveBeenCalledTimes(3);
+    expect(context.sync).toHaveBeenCalledTimes(4);
+  });
+
+  it("reads no fill color for a series without a solid fill", async () => {
+    const { context, runExcel, supported } = seriesHarness();
+    // Office.js rejects the fill read at sync, e.g. for a line series.
+    let syncs = 0;
+    context.sync.mockImplementation(async () => {
+      syncs += 1;
+      if (syncs === 4) {
+        throw Object.assign(new Error("Not permitted"), {
+          code: "InvalidOperation",
+        });
+      }
+    });
+    await expect(
+      createGetChartSeriesData(runExcel, supported)("Sheet1", 0, 0),
+    ).resolves.toMatchObject({ name: "Revenue", fill_color: null });
+  });
+
+  it("keeps other fill read failures", async () => {
+    const { context, runExcel, supported } = seriesHarness();
+    let syncs = 0;
+    context.sync.mockImplementation(async () => {
+      syncs += 1;
+      if (syncs === 4) {
+        throw Object.assign(new Error("Busy"), { code: "GeneralException" });
+      }
+    });
+    await expect(
+      createGetChartSeriesData(runExcel, supported)("Sheet1", 0, 0),
+    ).rejects.toMatchObject({ code: "GeneralException" });
   });
 
   it("validates keys and fill-read support before entering Excel.run", async () => {
