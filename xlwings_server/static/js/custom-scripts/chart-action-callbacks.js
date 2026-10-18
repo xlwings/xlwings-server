@@ -377,10 +377,7 @@ export function createGetChartSeriesData(
         .map((key) => propertyMap[key]);
       if (properties.length) series.load(properties);
       if (readKeys.includes("line_color")) series.format.line.load("color");
-      const fillColor = readKeys.includes("fill_color")
-        ? series.format.fill.getSolidColor()
-        : null;
-      if (properties.length || readKeys.includes("line_color") || fillColor) {
+      if (properties.length || readKeys.includes("line_color")) {
         await context.sync();
       }
       const result = {};
@@ -390,10 +387,26 @@ export function createGetChartSeriesData(
       if (readKeys.includes("line_color")) {
         result.line_color = series.format.line.color || null;
       }
-      if (fillColor) result.fill_color = fillColor.value || null;
+      if (readKeys.includes("fill_color")) {
+        result.fill_color = await readSolidFillColor(context, series);
+      }
       return result;
     });
   };
+}
+
+// A series without a solid fill, such as a line series, rejects the read at
+// sync with InvalidOperation. Its own sync keeps that from masking failures of
+// the other reads; any other error is real.
+async function readSolidFillColor(context, series) {
+  const fillColor = series.format.fill.getSolidColor();
+  try {
+    await context.sync();
+  } catch (error) {
+    if (error?.code === "InvalidOperation") return null;
+    throw error;
+  }
+  return fillColor.value || null;
 }
 
 function requireChartAxisSupport(isSetSupported) {
