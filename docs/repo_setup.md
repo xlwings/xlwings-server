@@ -59,37 +59,31 @@
    git push -u origin main
    ```
 
-7. To reduce future merge conflicts with the help of `.gitattributes`, run:
-
-   ```text
-   git config --local merge.ours.driver true
-   ```
-
-8. Install the `uv` package manager:
+7. Install the `uv` package manager:
 
    ```text
    pip install uv
    ```
 
-9. In the desired Python environment, install the development dependencies:
+8. Install the dependencies (including the development dependencies):
 
    ```text
-   uv pip sync requirements-dev.txt
+   uv sync --group all
    ```
 
-10. Initialize the repo. This will create an `.env` file for configuration and will create unique UUIDs in the `app/config.py` file.
+9. Initialize the repo. This will create an `.env` file for configuration and will create unique UUIDs in the `xlwings_server/config.py` file.
 
-    ```text
-    python run.py init
-    ```
+   ```text
+   uv run run.py init
+   ```
 
-11. Open the `.env` file and add your xlwings license key under `XLWINGS_LICENSE_KEY` (top of the file).
+10. Open the `.env` file and add your xlwings license key under `XLWINGS_LICENSE_KEY` (top of the file).
 
     ```{note}
     The `.env` file is ignored by Git as it may contain sensitive credentials. You should therefore back it up in a secure location such as a password manager.
     ```
 
-12. Commit the changes and push everything to your own repo (feel free to use a Git UI instead of the following commands). If you just want to play around with xlwings Server, you can skip this step.
+11. Commit the changes and push everything to your own repo (feel free to use a Git UI instead of the following commands). If you just want to play around with xlwings Server, you can skip this step.
 
     ```text
     git add .
