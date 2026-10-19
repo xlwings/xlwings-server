@@ -3,7 +3,6 @@ import logging
 import os
 import re
 import shutil
-import subprocess
 import uuid
 import zipfile
 from datetime import datetime
@@ -101,17 +100,6 @@ def init():
     replace_uuids()
     create_dotenv()
     print("Success! Now open the .env file and add a license key")
-
-
-def deps_compile(upgrade=False):
-    # The order of how these files matters because they are all interdependent
-    file_names = ["requirements-core", "requirements", "requirements-dev"]
-    for file_name in file_names:
-        cmd_linux = f"uv pip compile {file_name}.in --universal -o {file_name}.txt --unsafe-package pywin32 --unsafe-package appscript --unsafe-package psutil {'--upgrade' if upgrade else ''}"
-        subprocess.run(cmd_linux, shell=True, check=True, cwd=this_dir)
-    print(
-        f"Success! Requirements files {'upgraded' if upgrade else 'compiled'} successfully. Now commit the requirements.txt files!"
-    )
 
 
 def wasm_build(url, output_dir, create_zip=False, clean=False, environment=None):
@@ -288,21 +276,6 @@ if __name__ == "__main__":
     subparsers = parser.add_subparsers(dest="subcommand")
     init_parser = subparsers.add_parser("init", help="Initialize the application.")
 
-    # Deps command
-    deps_parser = subparsers.add_parser("deps", help="Manage dependencies.")
-    deps_subparsers = deps_parser.add_subparsers(
-        dest="deps_command",
-        required=True,
-        help="Use either 'deps sync' or 'deps upgrade'",
-    )
-
-    # Sync subcommand under deps
-    compile_parser = deps_subparsers.add_parser(
-        "compile", help="Synchronize dependencies."
-    )
-    upgrade_parser = deps_subparsers.add_parser("upgrade", help="Upgrade dependencies.")
-    update_parser = deps_subparsers.add_parser("update", help="Upgrade dependencies.")
-
     # Wasm command
     wasm_parser = subparsers.add_parser("wasm", help="Build xlwings Wasm distribution")
     wasm_parser.add_argument(
@@ -338,11 +311,6 @@ if __name__ == "__main__":
 
     if args.subcommand == "init":
         init()
-    elif args.subcommand == "deps":
-        if args.deps_command == "compile":
-            deps_compile()
-        elif args.deps_command in ("upgrade", "update"):
-            deps_compile(upgrade=True)
     elif args.subcommand == "wasm":
         wasm_build(
             url=args.url,
