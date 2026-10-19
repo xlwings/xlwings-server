@@ -23,7 +23,7 @@ This page hasn't been updated to xlwings Server v1.0 yet.
 
 ## Deploy from a Git repository
 
-1. [Set up your own repo](repo_setup.md)
+1. Create a project as described in [](quickstart.md) and push it to your own Git repository.
 2. On the [Render dashboard](https://dashboard.render.com/), click on `+ New` on the top right and select `Web Service` in the dropdown.
 3. Under `Git Provider`, select your repo, then `Connect`. If you haven't connected with your Git provider previously, you'll need to do that first.
 4. Select a `Region` that's close to you (optional).
