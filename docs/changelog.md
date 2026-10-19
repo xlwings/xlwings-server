@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.19.0 (Oct 19, 2026)
+
+- Bug fix: autofitting columns now only considers the cells of the given range instead of the whole column, matching desktop Excel.
+- Bug fix: improved error handling for charts, including a proper error for charts that don't exist.
+- Added support for the latest xlwings features.
+
 ## 1.18.0 (Oct 13, 2026)
 
 - Added support for the latest xlwings features.
