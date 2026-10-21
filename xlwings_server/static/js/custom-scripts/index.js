@@ -111,6 +111,7 @@ import {
   createGetChartAxisData,
   createGetChartSeriesCount,
   createGetChartSeriesData,
+  createGetChartTitle,
   createSetChartAxis,
   createSetChartSeries,
   createSetChartLegend,
@@ -168,6 +169,7 @@ const xlwings = {
   getChartAxisData,
   getChartSeriesCount,
   getChartSeriesData,
+  getChartTitle,
   getChartImage,
   getNoteText,
   getNoteAuthor,
@@ -1272,6 +1274,11 @@ async function getChartSeriesData(sheetName, chartIndex, seriesIndex, keys) {
     ),
   );
   return await readSeries(sheetName, chartIndex, seriesIndex, keys);
+}
+
+async function getChartTitle(sheetName, chartIndex) {
+  const readTitle = createGetChartTitle(Excel.run.bind(Excel));
+  return await readTitle(sheetName, chartIndex);
 }
 
 // Office.js clips both the address and dimensions of a merged area to the range

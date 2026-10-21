@@ -5,6 +5,7 @@ import {
   createGetChartAxisData,
   createGetChartSeriesCount,
   createGetChartSeriesData,
+  createGetChartTitle,
   createSetChartAxis,
   createSetChartSeries,
   createSetChartLegend,
@@ -1163,5 +1164,48 @@ describe("setChartPlotBy and setChartStyle action callbacks", () => {
       args: [0, "12"],
     });
     expect(chart.style).toBe(12);
+  });
+});
+
+describe("getChartTitle", () => {
+  function titleHarness(title) {
+    const chart = { title: { ...title, load: vi.fn() } };
+    const charts = {
+      count: 1,
+      load: vi.fn(() => charts),
+      getItemAt: vi.fn(() => chart),
+    };
+    const context = {
+      workbook: { worksheets: { getItem: vi.fn(() => ({ charts })) } },
+      sync: vi.fn(async () => {}),
+    };
+    const runExcel = vi.fn(async (callback) => await callback(context));
+    return { chart, charts, runExcel };
+  }
+
+  it("reads the visible title text", async () => {
+    const { chart, charts, runExcel } = titleHarness({
+      visible: true,
+      text: "Revenue by month",
+    });
+    await expect(createGetChartTitle(runExcel)("Sheet1", 0)).resolves.toBe(
+      "Revenue by month",
+    );
+    expect(charts.getItemAt).toHaveBeenCalledWith(0);
+    expect(chart.title.load).toHaveBeenCalledWith(["visible", "text"]);
+  });
+
+  it("returns null for a hidden title", async () => {
+    const { runExcel } = titleHarness({ visible: false, text: "Chart Title" });
+    await expect(createGetChartTitle(runExcel)("Sheet1", 0)).resolves.toBe(
+      null,
+    );
+  });
+
+  it("rejects an out-of-range chart index", async () => {
+    const { runExcel } = titleHarness({ visible: true, text: "x" });
+    await expect(createGetChartTitle(runExcel)("Sheet1", 1)).rejects.toThrow(
+      "No chart at index 1 on sheet Sheet1",
+    );
   });
 });
