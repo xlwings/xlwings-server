@@ -594,6 +594,22 @@ export function createSetChartAxis(getChart, isSetSupported = () => true) {
   };
 }
 
+export function createGetChartTitle(runExcel) {
+  // Returns null for a hidden title, matching how setChartTitle hides one.
+  return async function getChartTitle(sheetName, chartIndex) {
+    return await runExcel(async (context) => {
+      const chart = await getChartByNameAndIndex(
+        context,
+        sheetName,
+        chartIndex,
+      );
+      chart.title.load(["visible", "text"]);
+      await context.sync();
+      return chart.title.visible ? chart.title.text : null;
+    });
+  };
+}
+
 export function createGetChartAxisData(runExcel, isSetSupported = () => true) {
   return async function getChartAxisData(
     sheetName,
