@@ -832,10 +832,18 @@ async function getShapeData(sheetName, shapeIndex, keys = ["text"], options) {
     const length = options ? options.length : null;
     const result = {};
     // hasText first: reading textRange.text on a shape without text throws,
-    // and the desktop engines report None in that case.
-    shape.textFrame.load("hasText");
-    await context.sync();
-    const hasText = shape.textFrame.hasText;
+    // and the desktop engines report None in that case. A shape without a
+    // text frame, such as a picture, rejects even this read with
+    // InvalidOperation, so it holds no text either; any other error is real.
+    let hasText;
+    try {
+      shape.textFrame.load("hasText");
+      await context.sync();
+      hasText = shape.textFrame.hasText;
+    } catch (error) {
+      if (error?.code !== "InvalidOperation") throw error;
+      hasText = false;
+    }
     if (keys.includes("text")) {
       if (hasText) {
         shape.textFrame.textRange.load("text");
