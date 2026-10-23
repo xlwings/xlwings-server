@@ -1702,27 +1702,15 @@ const setChartPlotBy = createSetChartPlotBy(chartFromAction);
 const setChartStyle = createSetChartStyle(chartFromAction);
 const addTable = createAddTable(getSheet);
 const tableSort = createTableSort(getTable);
-const addTableRow = createAddTableRow(
-  getSheet,
-  getTable,
-  Office.context.requirements.isSetSupported.bind(Office.context.requirements),
-);
-const deleteTableRow = createDeleteTableRow(
-  getSheet,
-  getTable,
-  Office.context.requirements.isSetSupported.bind(Office.context.requirements),
-);
-const tableColumnSupport = (name, version) =>
+const tableSupport = (name, version) =>
   Office.context.requirements.isSetSupported(name, version);
-const addTableColumn = createAddTableColumn(
-  getSheet,
-  getTable,
-  tableColumnSupport,
-);
+const addTableRow = createAddTableRow(getSheet, getTable, tableSupport);
+const deleteTableRow = createDeleteTableRow(getSheet, getTable, tableSupport);
+const addTableColumn = createAddTableColumn(getSheet, getTable, tableSupport);
 const deleteTableColumn = createDeleteTableColumn(
   getSheet,
   getTable,
-  tableColumnSupport,
+  tableSupport,
 );
 const autoFilterCriteriaCache = new Map();
 const autoFilterSupport = (name, version) =>
