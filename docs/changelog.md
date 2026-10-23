@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.20.0 (Oct 23, 2026)
+
+- Bug fixes.
+- Updated dependencies and added support for the latest xlwings features.
+
 ## 1.19.0 (Oct 19, 2026)
 
 - Bug fix: autofitting columns now only considers the cells of the given range instead of the whole column, matching desktop Excel.
