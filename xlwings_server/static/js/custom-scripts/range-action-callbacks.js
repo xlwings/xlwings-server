@@ -15,11 +15,71 @@ export function createSetValues(getRange) {
   };
 }
 
+// Office.js rejects the current-row shorthand `[@Column]`, while Excel's UI
+// accepts it. `[@[Column]]` means the same, so write that. The shorthand only
+// exists for names without the characters that require brackets.
+const SHORTHAND_COLUMN = /^\[@([^\s,:.[\]#'"{}$^&*+=\-<>/]+)\]$/;
+
+// End index (exclusive) of the token quoted by `quote` that starts at `start`,
+// where a doubled quote is an escaped one.
+function quotedEnd(formula, start, quote) {
+  let index = start + 1;
+  while (index < formula.length) {
+    if (formula[index] === quote) {
+      if (formula[index + 1] !== quote) return index + 1;
+      index += 1;
+    }
+    index += 1;
+  }
+  return formula.length;
+}
+
+// End index (exclusive) of the bracket group that starts at `start`. Inside
+// structured references, `'` escapes the next character.
+function bracketEnd(formula, start) {
+  let depth = 0;
+  for (let index = start; index < formula.length; index += 1) {
+    const char = formula[index];
+    if (char === "'") index += 1;
+    else if (char === "[") depth += 1;
+    else if (char === "]" && --depth === 0) return index + 1;
+  }
+  return formula.length;
+}
+
+export function bracketCurrentRowReferences(formula) {
+  if (typeof formula !== "string" || !formula.startsWith("=")) return formula;
+  let result = "";
+  let index = 0;
+  while (index < formula.length) {
+    const char = formula[index];
+    // String literals and quoted sheet or workbook names pass through as is.
+    if (char === '"' || char === "'" || char === "[") {
+      const end =
+        char === "["
+          ? bracketEnd(formula, index)
+          : quotedEnd(formula, index, char);
+      const token = formula.slice(index, end);
+      const column = char === "[" && token.match(SHORTHAND_COLUMN)?.[1];
+      result += column ? `[@[${column}]]` : token;
+      index = end;
+    } else {
+      result += char;
+      index += 1;
+    }
+  }
+  return result;
+}
+
 export function createSetFormula(getRange) {
   return async function setFormula(context, action) {
     const range = await getRange(context, action);
     // The remote Python protocol has always named the formula matrix `values`.
-    range.formulas = action.values;
+    range.formulas = Array.isArray(action.values)
+      ? action.values.map((row) =>
+          Array.isArray(row) ? row.map(bracketCurrentRowReferences) : row,
+        )
+      : bracketCurrentRowReferences(action.values);
     await context.sync();
   };
 }

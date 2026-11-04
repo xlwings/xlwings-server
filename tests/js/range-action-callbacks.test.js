@@ -6,6 +6,7 @@ import {
   createSetColumnWidth,
   createSetVisibility,
   createSetDataValidationList,
+  bracketCurrentRowReferences,
   createSetDataValidationRule,
   createSetFormula,
   createSetFormulaArray,
@@ -67,6 +68,42 @@ describe("setFormula action callback", () => {
     expect(getRange).toHaveBeenCalledWith(context, action);
     expect(range.formulas).toEqual([["=SUM(A1:A2)"]]);
     expect(context.sync).toHaveBeenCalledOnce();
+  });
+
+  it("brackets current-row shorthand, which Office.js rejects", async () => {
+    const range = {};
+    const setFormula = createSetFormula(async () => range);
+    const context = { sync: vi.fn(async () => {}) };
+
+    await setFormula(context, {
+      values: [["=[@Quantity]*Sales[@Unit_Price]"], [5]],
+    });
+    expect(range.formulas).toEqual([
+      ["=[@[Quantity]]*Sales[@[Unit_Price]]"],
+      [5],
+    ]);
+
+    // A single formula for a bigger range is sent as a scalar.
+    await setFormula(context, { values: "=[@Qty]*2" });
+    expect(range.formulas).toBe("=[@[Qty]]*2");
+  });
+
+  it.each([
+    ["=[@[Quantity]]*[@[Unit Price]]", "=[@[Quantity]]*[@[Unit Price]]"],
+    ["=Sales[[#This Row],[Qty]]", "=Sales[[#This Row],[Qty]]"],
+    ['=IF([@Qty]="[@Qty]","",[@Qty])', '=IF([@[Qty]]="[@Qty]","",[@[Qty]])'],
+    ['="say ""[@Qty]"""&[@Qty]', '="say ""[@Qty]"""&[@[Qty]]'],
+    ["[@Qty]", "[@Qty]"],
+    [
+      "='[@Budget.xlsx]Sheet1'!A1+[@Qty]",
+      "='[@Budget.xlsx]Sheet1'!A1+[@[Qty]]",
+    ],
+    ["='It''s [@Qty]'!A1", "='It''s [@Qty]'!A1"],
+    ['=[@[Size"]]+[@Qty]+LEN("x")', '=[@[Size"]]+[@[Qty]]+LEN("x")'],
+    ["=[@['[Code']]]+[@Qty]", "=[@['[Code']]]+[@[Qty]]"],
+    ["=[@Budget.xlsx]+[@Unit Price]", "=[@Budget.xlsx]+[@Unit Price]"],
+  ])("leaves explicit references and text alone: %s", (formula, expected) => {
+    expect(bracketCurrentRowReferences(formula)).toBe(expected);
   });
 });
 
