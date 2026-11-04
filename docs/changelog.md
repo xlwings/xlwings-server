@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.20.1 (Nov 4, 2026)
+
+- Fixed a bug when using the current-row shorthand for Excel tables `[@Column]` in formulas.
+
 ## 1.20.0 (Oct 23, 2026)
 
 - Bug fixes.
