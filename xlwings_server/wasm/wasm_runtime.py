@@ -58,9 +58,33 @@ async def custom_functions_call(data):
     return to_js(result, dict_converter=js.Object.fromEntries)
 
 
+def _args_without_jsnull(args):
+    """Turn every JS `null` in script arguments into `None`.
+
+    Since Pyodide 0.28, `to_py()` converts `null` into the `JsNull` sentinel,
+    at any nesting level, so `arg is None` fails in the script. Done here
+    rather than in core so it works with every xlwings version.
+    """
+    try:
+        from pyodide.ffi import JsNull
+    except ImportError:
+        return args
+    return _replace_jsnull(args, JsNull)
+
+
+def _replace_jsnull(value, jsnull_type):
+    if isinstance(value, jsnull_type):
+        return None
+    if isinstance(value, list):
+        return [_replace_jsnull(item, jsnull_type) for item in value]
+    if isinstance(value, dict):
+        return {key: _replace_jsnull(item, jsnull_type) for key, item in value.items()}
+    return value
+
+
 async def custom_scripts_call(data, script_name):
     payload = data.to_py()
-    script_args = payload.pop("args", None)
+    script_args = _args_without_jsnull(payload.pop("args", None))
     if script_args is None:
         script_args = []
     if not isinstance(script_args, list):

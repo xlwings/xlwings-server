@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Bug fix: with Pyodide >= 0.28, a `null` in the arguments of a script now arrives as `None` instead of `JsNull` in the WASM version.
+
 ## 1.20.1 (Nov 4, 2026)
 
 - Fixed a bug when using the current-row shorthand for Excel tables `[@Column]` in formulas.
