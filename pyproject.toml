@@ -133,7 +133,10 @@ known-first-party = ["xlwings_server"]
 addopts = ["--import-mode=importlib"]
 
 [dependency-groups]
-dev = ["watchfiles>=1.1.1"]
+dev = [
+    "ruff>=0.17.5",
+    "watchfiles>=1.1.1",
+]
 
 test = [
     "azure-functions>=1.24.0; sys_platform != 'win32'",

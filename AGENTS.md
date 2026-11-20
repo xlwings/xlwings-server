@@ -74,7 +74,7 @@ uv run pytest -v
 
 ```bash
 # Pre-commit hooks (ruff + prettier for JS/HTML/Jinja)
-uv pre-commit run --all-files
+uv run pre-commit run --all-files
 ```
 
 ### Wasm Build

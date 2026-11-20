@@ -9,7 +9,7 @@ export function unqualifiedAddress(range) {
 export function isDateNumberFormat(format) {
   if (typeof format !== "string") return false;
 
-  for (let i = 0; i < format.length; ) {
+  for (let i = 0; i < format.length;) {
     const char = format[i];
 
     // Quoted text is literal. Excel represents a literal quote inside it as
