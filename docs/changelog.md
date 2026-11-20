@@ -1,7 +1,8 @@
 # Changelog
 
-## Unreleased
+## 1.20.2 (Nov 20, 2026)
 
+- Bug fix: appending a row to a new, empty Excel table no longer fails with `Table row index is out of range`.
 - Bug fix: with Pyodide >= 0.28, a `null` in the arguments of a script now arrives as `None` instead of `JsNull` in the WASM version.
 
 ## 1.20.1 (Nov 4, 2026)

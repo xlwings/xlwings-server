@@ -191,6 +191,13 @@ describe("table row actions", () => {
     );
     await add(fixture.context, { args: [0, 0, ["only", 1]] });
     expect(fixture.rows.add).toHaveBeenCalledWith(0, [["only", 1]]);
+    // A new table's placeholder row made Python's index 1 while Excel counts
+    // no rows: an append ignores the index.
+    await add(fixture.context, { args: [0, 1, ["next", 2], true] });
+    expect(fixture.rows.add).toHaveBeenLastCalledWith(null, [["next", 2]]);
+    await expect(
+      add(fixture.context, { args: [0, 1, ["next", 2]] }),
+    ).rejects.toMatchObject({ code: "invalid_table_row_index" });
     await expect(
       remove(fixture.context, { args: [0, 0] }),
     ).rejects.toMatchObject({

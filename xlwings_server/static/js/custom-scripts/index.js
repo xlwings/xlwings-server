@@ -677,6 +677,9 @@ async function getBookData(
           showBandedRows: table.showBandedRows,
           showBandedColumns: table.showBandedColumns,
           range: table.getRange().load("address, rowCount, columnCount"),
+          // The range also covers the empty placeholder row of a table
+          // without data rows, so send Excel's data row count too.
+          rows: table.rows.load("count"),
           dataBodyRange: table.getDataBodyRange().load("address"),
           headerRowRange: table.showHeaders
             ? table.getHeaderRowRange().load("address")
@@ -694,6 +697,7 @@ async function getBookData(
           name: table.name,
           range_address: tableRange.address,
           row_count: tableRange.row_count,
+          data_row_count: table.rows.count,
           column_count: tableRange.column_count,
           columns: table.columns.items.map((column) => column.name),
           header_row_range_address: table.showHeaders
