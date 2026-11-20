@@ -46,7 +46,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          uv sync --group all
+          uv sync --locked --group all
 
       - name: Run tests with xlwings Server and .env.test
         run: uv run pytest -v

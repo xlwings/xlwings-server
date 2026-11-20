@@ -38,7 +38,7 @@ jobs:
         env:
           XLWINGS_LICENSE_KEY: ${{ secrets.XLWINGS_LICENSE_KEY }}
         run: |
-          uv sync --group all
+          uv sync --locked --group all
           uv run pytest
 
       - name: Build package
