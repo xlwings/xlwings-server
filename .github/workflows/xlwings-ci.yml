@@ -22,6 +22,19 @@ jobs:
       - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
+
+      # The ruff and Prettier hooks run the project's own tools via uv and npx
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.3.3
+
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: "22"
+
+      # --ignore-scripts skips the postinstall hook that vendors the npm packages
+      - name: Install npm dependencies
+        run: npm ci --ignore-scripts
+
       - uses: j178/prek-action@v3.1.0
 
   test:
