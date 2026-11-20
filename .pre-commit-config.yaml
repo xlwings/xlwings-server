@@ -7,9 +7,6 @@
 # To run all files manually: pre-commit run --all-files
 #
 # See also: https://pre-commit.com
-default_language_version:
-  python: python3.12
-
 exclude: |
   (?x)^(
   xlwings_server/static/vendor/.*
@@ -17,27 +14,29 @@ exclude: |
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v6.0.0
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
 
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.5
+  - repo: local
     hooks:
-      - id: ruff
-        args:
-          - --config=./pyproject.toml
-      - id: ruff-format
+      # Run the ruff locked in uv.lock and the Prettier in node_modules, so
+      # one version applies to the hooks, the editor, and the command line
+      - id: ruff-check
+        name: ruff check
+        entry: uv run --frozen ruff check --force-exclude
+        language: system
+        types_or: [python, pyi]
 
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    # According to mirrors-prettier, prettier 4.0 doesn't support plugins
-    # See also: https://github.com/prettier/prettier/issues/15742
-    rev: v3.1.0
-    hooks:
+      - id: ruff-format
+        name: ruff format
+        entry: uv run --frozen ruff format --force-exclude
+        language: system
+        types_or: [python, pyi]
+
       - id: prettier
+        name: prettier
+        entry: npx --no-install prettier --write --ignore-unknown
+        language: system
         types_or: [html, javascript, css, markdown]
-        args: [--write]
-        additional_dependencies:
-          - prettier@3.3.3
-          - prettier-plugin-jinja-template@v2.0.0

@@ -73,7 +73,7 @@ async def sio_function_call(sid, data):
         await sio.disconnect(sid)
         return
     logger.info(
-        f"""Streaming function "{data['func_name']}" called by {current_user.name}"""
+        f"""Streaming function "{data["func_name"]}" called by {current_user.name}"""
     )
     # No Caller here: Office.js doesn't report the calling cell for streaming functions,
     # so declaring the hint on one is rejected when it's registered.

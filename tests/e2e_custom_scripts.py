@@ -10,9 +10,9 @@ this_dir = Path(__file__).resolve().parent
 
 @script
 def integration_test_write(book: xw.Book):
-    assert (
-        book.name == "integration_write.xlsm"
-    ), "integration_write.xlsm must be the active file"
+    assert book.name == "integration_write.xlsm", (
+        "integration_write.xlsm must be the active file"
+    )
     sheet1 = book.sheets["Sheet 1"]
 
     # Values
