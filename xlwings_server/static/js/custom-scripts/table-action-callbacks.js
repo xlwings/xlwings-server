@@ -58,7 +58,10 @@ function checkedIndex(value, count, allowEnd) {
 export function createAddTableRow(getSheet, getTable, isSupported) {
   return async function addTableRow(context, action) {
     requireTableRows(isSupported, "1.2");
-    const [tableIndex, index, values] = action?.args ?? [];
+    // `append` (from newer xlwings) adds the row at the end whatever `index`
+    // says: Python's index comes from loaded metadata, which counts the empty
+    // placeholder row of a new table as a data row.
+    const [tableIndex, index, values, append] = action?.args ?? [];
     if (!Number.isSafeInteger(tableIndex) || tableIndex < 0) {
       throw tableRowError("invalid_table_row", "Invalid table index.");
     }
@@ -68,7 +71,7 @@ export function createAddTableRow(getSheet, getTable, isSupported) {
     const rows = table.rows.load("count");
     const tableRange = table.getRange().load("columnCount");
     await context.sync();
-    checkedIndex(index, rows.count, true);
+    if (append !== true) checkedIndex(index, rows.count, true);
     if (
       values !== null &&
       (!Array.isArray(values) ||
@@ -87,7 +90,10 @@ export function createAddTableRow(getSheet, getTable, isSupported) {
       );
     }
     await requireUnprotectedSheet(context, sheet);
-    rows.add(index, values === null ? undefined : [values]);
+    rows.add(
+      append === true ? null : index,
+      values === null ? undefined : [values],
+    );
     await context.sync();
   };
 }
