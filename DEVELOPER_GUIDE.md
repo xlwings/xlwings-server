@@ -110,3 +110,18 @@ For the offline usage of Pyodide, the following packages are always required to 
 ## Script Lab
 
 Script Lab: figuring out the exact syntax for Office.js is easiest done in the Script Lab add-in that can be installed via Excel's add-in store.
+
+## Release
+
+Create a GitHub release with the version as the tag, without a `v` prefix, e.g., `gh release create 1.21.0 --generate-notes`. The release workflow (`.github/workflows/xlwings-release.yml`) then tests and builds the package and publishes it to PyPI via Trusted Publishing, including PEP 740 attestations.
+
+## GitHub Actions
+
+The actions are locked to commit SHAs in `.github/workflows/actions.lock` and CI fails if a workflow uses an action that isn't locked. After adding or changing an action, update the lockfile with the [gh-actions-lock](https://github.com/github/gh-actions-lock) extension:
+
+```text
+gh extension install github/gh-actions-lock --pin v0.4.1
+gh actions-lock
+```
+
+Dependabot keeps the actions and the lockfile up to date. The Semgrep container image is pinned by digest and has to be updated manually.

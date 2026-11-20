@@ -5,39 +5,48 @@ on:
   push:
     branches:
       - "**"
-    tags:
-      - "**"
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   lint:
     if: github.repository == 'xlwings/xlwings-server'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v7
-      - uses: j178/prek-action@4e14d07f9231acabce116ccfca13b13dd9755ece # v3.0.0
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: j178/prek-action@v3.0.0
 
   test:
     if: github.repository == 'xlwings/xlwings-server'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     strategy:
       matrix:
         python-version: ["3.11", "3.12", "3.13", "3.14"]
     env:
       XLWINGS_LICENSE_KEY: ${{ secrets.XLWINGS_LICENSE_KEY }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v7
+      - name: Install uv and Python ${{ matrix.python-version }}
+        uses: astral-sh/setup-uv@v10.3.3
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install the latest version of uv
-        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
-
       - name: Install dependencies
         run: |
-          uv sync --group all
+          uv sync --locked --group all
 
       - name: Run tests with xlwings Server and .env.test
         run: uv run pytest -v
@@ -56,17 +65,22 @@ jobs:
   test-js:
     if: github.repository == 'xlwings/xlwings-server'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-node@v7
+      - uses: actions/setup-node@v7.1.0
         with:
           node-version: "22"
 
-      # --ignore-scripts skips the postinstall hook, which vendors the npm packages into
-      # the static folder via uv/Python - not needed to run the JS tests
+      # npm ci installs exactly what's in package-lock.json. --ignore-scripts skips the
+      # postinstall hook, which vendors the npm packages into the static folder via
+      # uv/Python - not needed to run the JS tests
       - name: Install dependencies
-        run: npm install --ignore-scripts
+        run: npm ci --ignore-scripts
 
       - name: Run JS tests
         run: npm test
@@ -75,16 +89,16 @@ jobs:
     if: github.repository == 'xlwings/xlwings-server'
     needs: [lint, test, test-js]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
+          persist-credentials: false
           fetch-depth: 0  # Required for hatch-vcs to determine version from git tags
 
       - name: Install uv
-        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
-
-      - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: astral-sh/setup-uv@v10.3.3
         with:
           python-version: "3.12"
 
@@ -92,41 +106,29 @@ jobs:
         run: uv build
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: xlwings-server-dist
           path: dist/*
           retention-days: 3
           if-no-files-found: error
 
-  publish:
-    if: github.repository == 'xlwings/xlwings-server' && startsWith(github.ref, 'refs/tags/')
-    needs: [lint, test]
+  lockfile:
+    if: github.repository == 'xlwings/xlwings-server'
+    name: Verify actions.lock
     runs-on: ubuntu-latest
-    environment:
-      name: pypi
-      url: https://pypi.org/project/xlwings-server/
     permissions:
-      id-token: write  # Required for trusted publishing
       contents: read
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v7.0.1
         with:
-          fetch-depth: 0  # Required for hatch-vcs to determine version from git tags
+          persist-credentials: false
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
-        with:
-          # Install a specific version of uv.
-          version: "0.9.25"
+      - name: Install gh-actions-lock
+        run: gh extension install github/gh-actions-lock --pin v0.4.1
 
-      - name: Set up Python
-        uses: actions/setup-python@v7
-        with:
-          python-version: "3.12"
-
-      - name: Build package
-        run: uv build
-
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+      # Fails if a workflow uses an action that isn't locked in .github/workflows/actions.lock
+      - name: Verify
+        run: gh actions-lock --verify
