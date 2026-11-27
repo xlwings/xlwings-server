@@ -567,7 +567,7 @@ async function getBookData(
   payload["sheets"] = [];
   let sheetsLoader = [];
   sheets.forEach((sheet) => {
-    sheet.load("name,visibility,names,showGridlines");
+    sheet.load("id,name,visibility,names,showGridlines");
     let usedRange;
     if (!excludeArray.includes(sheet.name)) {
       // Values-only is intentional here, even though formatting-only cells
@@ -768,6 +768,8 @@ async function getBookData(
 
     const usedRange = rangeMetadata(item["usedRange"]);
     payload["sheets"].push({
+      // Lets xlwings Lite match sheets across a rename made outside the script.
+      id: item["sheet"].id,
       name: item["sheet"].name,
       visibility: item["sheet"].visibility,
       show_gridlines: item["sheet"].showGridlines,
