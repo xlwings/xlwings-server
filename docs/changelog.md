@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.20.3 (Nov 28, 2026)
+
+- Updated to the latest xlwings release.
+
 ## 1.20.2 (Nov 20, 2026)
 
 - Bug fix: appending a row to a new, empty Excel table no longer fails with `Table row index is out of range`.
